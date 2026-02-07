@@ -2,11 +2,9 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-import json
 import asyncio
 import os
 import sys
-from datetime import datetime, UTC
 
 import logging
 from typing import (
@@ -278,23 +276,17 @@ class BotOwner(
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
 
-        if self.restarting:
-            await ctx.send("Restart already in progress.", delete_after=1)
-            return
-
         self.restarting = True
-
-        confirm_msg = await ctx.send("Restarting bot...", delete_after=1)
-
+        
         try:
             await ctx.message.delete()
         except (discord.HTTPException, discord.Forbidden):
             pass
 
         loop = asyncio.get_running_loop()
-        loop.create_task(self.restart_bot(confirm_msg))
+        loop.create_task(self.restart_bot())
 
-    async def restart_bot(self, confirm_msg: Optional[discord.Message] = None):
+    async def restart_bot(self):
         try:
             await self.bot.change_presence(
                 status=discord.Status.idle,
@@ -303,19 +295,6 @@ class BotOwner(
                     name="Restarting..."
                 )
             )
-
-            if confirm_msg:
-                try:
-                    with open("restart_info.json", "w") as f:
-                        json.dump({
-                            "channel_id": confirm_msg.channel.id,
-                            "message_id": confirm_msg.id,
-                            "timestamp": datetime.now(UTC).isoformat()
-                        }, f)
-                except Exception as e:
-                    self.logger.error(
-                        f"Failed to save restart info: {e}"
-                    )
 
             await asyncio.sleep(1)
             await self.bot.close()
@@ -351,14 +330,6 @@ class BotOwner(
                 exc_info=True
             )
             self._restarting = False
-
-            if confirm_msg:
-                try:
-                    await confirm_msg.edit(
-                        content=f"Restart failed: {str(e)[:100]}"
-                    )
-                except Exception:
-                    pass
 
             try:
                 await self.bot.change_presence(
