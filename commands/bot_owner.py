@@ -2,9 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+import json
 import asyncio
 import os
 import sys
+from datetime import datetime, UTC
 
 import logging
 from typing import (
@@ -50,7 +52,8 @@ class BotOwner(
     description="Bot Owner only -- Bot owner commands."):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self._restarting = False
+        self.restarting = False
+        self.logger = logging.getLogger("bot")
         super().__init__()
 
     COGS = [
@@ -275,35 +278,94 @@ class BotOwner(
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
 
-        if self._restarting:
+        if self.restarting:
+            await ctx.send("Restart already in progress.", delete_after=1)
             return
 
-        self._restarting = True
+        self.restarting = True
+
+        confirm_msg = await ctx.send("Restarting bot...", delete_after=1)
 
         try:
             await ctx.message.delete()
-        except Exception:
+        except (discord.HTTPException, discord.Forbidden):
             pass
 
         loop = asyncio.get_running_loop()
-        loop.create_task(self.restart_bot())
+        loop.create_task(self.restart_bot(confirm_msg))
 
-    async def restart_bot(self):
-        await self.bot.change_presence(
-            status=discord.Status.idle
-        )
+    async def restart_bot(self, confirm_msg: Optional[discord.Message] = None):
+        try:
+            await self.bot.change_presence(
+                status=discord.Status.idle,
+                activity=discord.Activity(
+                    type=discord.CustomActivity,
+                    name="Restarting..."
+                )
+            )
 
-        await asyncio.sleep(1)
-        await self.bot.close()
+            if confirm_msg:
+                try:
+                    with open("restart_info.json", "w") as f:
+                        json.dump({
+                            "channel_id": confirm_msg.channel.id,
+                            "message_id": confirm_msg.id,
+                            "timestamp": datetime.now(UTC).isoformat()
+                        }, f)
+                except Exception as e:
+                    self.logger.error(
+                        f"Failed to save restart info: {e}"
+                    )
 
-        pending = [t for t in asyncio.all_tasks() if not t.done()]
-        for task in pending:
-            task.cancel()
+            await asyncio.sleep(1)
+            await self.bot.close()
 
-        await asyncio.gather(*pending, return_exceptions=True)
+            pending = [t for t in asyncio.all_tasks() if not t.done() and t is not asyncio.current_task()]
 
-        python = sys.executable
-        os.execv(python, [python] + sys.argv)
+            if pending:
+                for task in pending:
+                    task.cancel()
+
+                try:
+                    await asyncio.wait_for(
+                        asyncio.gather(*pending, return_exceptions=True),
+                        timeout=5.0
+                    )
+                except asyncio.TimeoutError:
+                    self.logger.warning(
+                        "Some tasks did not cancel in time"
+                    )
+
+            for handler in self.logger.handlers:
+                if hasattr(handler, "flush"):
+                    handler.flush()
+
+            python = sys.executable
+            args = [python] + sys.argv
+
+            os.execv(python, args)
+
+        except Exception as e:
+            self.logger.critical(
+                f"Fatal error during restart: {e}",
+                exc_info=True
+            )
+            self._restarting = False
+
+            if confirm_msg:
+                try:
+                    await confirm_msg.edit(
+                        content=f"Restart failed: {str(e)[:100]}"
+                    )
+                except Exception:
+                    pass
+
+            try:
+                await self.bot.change_presence(
+                    status=discord.Status.online
+                )
+            except Exception:
+                pass
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /status Command
