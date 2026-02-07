@@ -30,10 +30,10 @@ class TicketComponents(discord.ui.LayoutView):
         discord.ui.TextDisplay(
             content=(
                 "# Support Tickets\n"
-                "Tickets are used to contact the moderation team for support, reports, or questions that cannot be handled publicly.\n"
+                "Tickets are used to contact the moderation team for support, reports, or questions that cannot be handled publicly.\n\n"
                 "- **How to Start:** Open the correct ticket category and clearly explain your issue from the start.\n"
                 "- **Be Specific:** Provide usernames, IDs, timestamps, or screenshots if applicable.\n"
-                "- **Respect Moderators:** Remain calm and respectful at all times.\n"
+                "- **Respect Moderators:** Remain calm and respectful at all times.\n\n"
                 "Tickets are handled in the order they are received, and response times may vary.\n\n"
                 "**Note:** You may run `~ct` to close your ticket."
             )

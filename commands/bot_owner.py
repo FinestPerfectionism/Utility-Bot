@@ -298,10 +298,7 @@ class BotOwner(
         try:
             await self.bot.change_presence(
                 status=discord.Status.idle,
-                activity=discord.Activity(
-                    type=discord.CustomActivity,
-                    name="Restarting..."
-                )
+                activity=discord.CustomActivity(name="Restarting...")
             )
 
             if confirm_msg:
