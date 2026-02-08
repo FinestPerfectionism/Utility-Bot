@@ -91,7 +91,7 @@ class Meme(commands.Cog):
 
     @app_commands.command(
         name="meme", 
-        description="Get a random meme"
+        description="Get a random meme."
     )
     @app_commands.checks.cooldown(1, 5.0)
     async def meme(self, interaction: discord.Interaction):

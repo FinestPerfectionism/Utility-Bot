@@ -5,7 +5,10 @@ import sys
 from dotenv import load_dotenv
 
 from core.bot import bot
-from core.state import load_application_state, load_blacklist
+from core.state import (
+    load_application_state,
+    load_blacklist
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Main Script
@@ -38,7 +41,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        log.info("Received shutdown signal (KeyboardInterrupt)")
+        log.info("Received shutdown signal -- KeyboardInterrupt")
     except Exception:
         log.exception("Fatal error during startup")
         sys.exit(1)

@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from datetime import timedelta
 import random
+import logging
 
 from core.utils import (
     format_attachments,
@@ -84,7 +85,6 @@ class MessageHandler(commands.Cog):
             except discord.HTTPException:
                 pass
             except Exception as e:
-                import logging
                 logging.getLogger("utilitybot").exception(
                     "Automod failure while processing message", exc_info=e
                 )
