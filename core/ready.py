@@ -11,7 +11,7 @@ from core.state import (
     save_automod_strikes,
 )
 
-from events.applications import (
+from events.systems.applications import (
     DecisionView,
 )
 

@@ -14,7 +14,7 @@ from core.state import (
 )
 from core.utils import send_minor_error
 
-from events.applications import (
+from events.systems.applications import (
     delete_application_messages,
     ACTIVE_APPLICATIONS
 )

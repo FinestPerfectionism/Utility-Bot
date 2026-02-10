@@ -16,7 +16,7 @@ from core.utils import (
     send_minor_error
 )
 
-from events.automod import (
+from events.systems.automod import (
     DB_PATH,
     TIME_LIMIT,
     WARNING_TIME
@@ -112,7 +112,7 @@ class AutoModeration(
 
         guild = interaction.guild
         if guild is None:
-            await send_minor_error(interaction, "Command must be run in a guild.", subtitle="Wrong guild.")
+            await send_minor_error(interaction, "Command must be run in a guild.", subtitle="Wrong command environment.")
             return
 
         verified_role = guild.get_role(GOOBERS_ROLE_ID)

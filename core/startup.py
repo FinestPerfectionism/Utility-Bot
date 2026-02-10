@@ -12,9 +12,9 @@ from core.state import (
 )
 from core.utils import MESSAGE_LOG_QUEUE
 
-from events.applications import ApplicationComponents
-from events.tickets import TicketComponents
-from events.leave import LeaveComponents
+from events.systems.applications import ApplicationComponents
+from events.systems.tickets import TicketComponents
+from events.systems.leave import LeaveComponents
 
 from constants import (
     TICKET_CHANNEL_ID,

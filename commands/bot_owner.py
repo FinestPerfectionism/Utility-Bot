@@ -14,9 +14,10 @@ from typing import (
     List
 )
 
-from events.errors import PermissionError
+from events.logging.errors import PermissionError
 
 import core.state
+from core.cog_loader import discover_cogs
 from core.utils import (
     send_major_error,
     send_minor_error
@@ -54,6 +55,12 @@ class BotOwner(
         self.bot = bot
         self.restarting = False
         self.logger = logging.getLogger("bot")
+        self.COGS = discover_cogs(
+            "commands",
+            "events",
+            "core",
+        )
+        
         super().__init__()
 
     COGS = [

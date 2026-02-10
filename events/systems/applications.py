@@ -45,6 +45,9 @@ MOD_ROLE_IDS = {
     SENIOR_MODERATORS_ROLE_ID,
 }
 
+async def test():
+    pass
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Applications Handling
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -138,31 +141,34 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
             await user.send(
                 f"{ACCEPTED_EMOJI_ID} **Application Accepted**\n"
                 f"-# Your application has been accepted! Welcome to the staff team!\n"
-                f"-# **Notes:** {self.notes.value}")
+                f"-# **Notes:** {self.notes.value}"
+            )
         else:
             await user.send(
                 f"{DENIED_EMOJI_ID} **Application Denied**\n"
                 f"-# Your application has been denied."
-                f"-# **Notes:** {self.notes.value}")
+                f"-# **Notes:** {self.notes.value}"
+            )
 
         new_embed = discord.Embed(
             title=msg.embeds[0].title if msg.embeds else "Application Decision",
-            color=COLOR_GREEN if self.accepted else COLOR_RED)
-
+            color=COLOR_GREEN if self.accepted else COLOR_RED
+        )
         new_embed.add_field(
             name="Decision",
             value="Accepted" if self.accepted else "Denied",
-            inline=True)
-
+            inline=True
+        )
         new_embed.add_field(
             name="Handled By",
             value=interaction.user.mention,
-            inline=True)
-
+            inline=True
+        )
         new_embed.add_field(
             name="Decision Notes",
             value=self.notes.value,
-            inline=False)
+            inline=False
+        )
 
         new_embed.set_footer(text="Decision Made")
         new_embed.timestamp = interaction.created_at
@@ -335,7 +341,6 @@ async def delete_application_messages(client: discord.Client, user_id: int):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def can_apply(member: discord.Member, app_type: str) -> bool:
-
     role_ids = {r.id for r in member.roles}
     is_admin = bool(role_ids & ADMIN_ROLE_IDS)
     is_mod = bool(role_ids & MOD_ROLE_IDS)
@@ -404,7 +409,8 @@ class ApplicationSubmitView(ui.View):
         embed = discord.Embed(
             title=
             f"{interaction.user} — {type_map.get(data['type'], data['type'].capitalize())} Application",
-            color=COLOR_BLURPLE)
+            color=COLOR_BLURPLE
+        )
 
         for i, (q, a) in enumerate(zip(data["questions"], data["answers"]), start=1):
             embed.add_field(
@@ -664,7 +670,6 @@ class ApplicationMenuView(ui.View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EditQuestionSelectView(ui.View):
-
     def __init__(self, user_id: int):
         super().__init__(timeout=120)
         self.user_id = user_id
@@ -687,7 +692,6 @@ class EditQuestionSelectView(ui.View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EditQuestionSelect(ui.Select):
-
     def __init__(self, options, user_id):
         super().__init__(placeholder="Select a question to edit.",
                          options=options)
