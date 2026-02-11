@@ -1,6 +1,10 @@
 import discord
 from discord.ext import commands
 
+from typing import cast
+
+from events.member.verification import VerificationCog
+
 from core.state import (
     ACTIVE_APPLICATIONS,
     save_active_applications
@@ -21,6 +25,11 @@ class MemberLeaveHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
+        verification_cog = cast(VerificationCog, self.bot.get_cog("VerificationCog"))
+        if verification_cog:
+            verification_cog.data["unverified"].pop(str(member.id), None)
+            verification_cog.save_data()
+            
         data = ACTIVE_APPLICATIONS.get(member.id)
         if not data:
             return

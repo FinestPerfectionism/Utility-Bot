@@ -23,7 +23,7 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 
-log = logging.getLogger("utilitybot")
+log = logging.getLogger("Utility Bot")
 
 TOKEN = os.getenv("TOKEN")
 if not TOKEN:

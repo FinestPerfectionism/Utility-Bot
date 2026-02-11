@@ -20,7 +20,7 @@ from constants import (
     APPLICATION_LOG_CHANNEL_ID,
 )
 
-log = logging.getLogger("utilitybot")
+log = logging.getLogger("Utility Bot")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Ready Management

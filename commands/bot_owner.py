@@ -28,7 +28,7 @@ from constants import (
     DENIED_EMOJI_ID
 )
 
-log = logging.getLogger("utilitybot")
+log = logging.getLogger("Utility Bot")
 
 async def cog_autocomplete(
     interaction: discord.Interaction,
@@ -63,26 +63,11 @@ class BotOwner(
         
         super().__init__()
 
-    COGS = [
-        "commands.applications_tickets",
-        "commands.automod",
-        "commands.bot_owner",
-        "commands.meme",
-        "commands.misc",
-        "commands.mod",
-        "commands.proposal",
-        "commands.roles",
-        "events.applications",
-        "events.automod",
-        "events.commands",
-        "events.errors",
-        "events.leave",
-        "events.messages",
-        "events.on_leave",
-        "events.on_message",
-        "events.tickets",
-        "core.startup",
-    ]
+    COGS = discover_cogs(
+        "commands",
+        "events",
+        "core",
+    )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /privilege Command

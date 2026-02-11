@@ -1,0 +1,1294 @@
+import discord
+from discord.ext import commands
+from discord import app_commands
+
+import json
+import os
+from datetime import datetime, timedelta
+from typing import Optional, Dict
+
+from constants import(
+    COLOR_GREEN,
+    COLOR_ORANGE,
+    COLOR_RED,
+    COLOR_BLURPLE,
+
+    ACCEPTED_EMOJI_ID,
+    DENIED_EMOJI_ID,
+
+    QUARANTINE_ROLE_ID,
+    DIRECTORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+    ADMINISTRATORS_ROLE_ID,
+)
+from core.utils import send_major_error, send_minor_error
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# AModeration Commands
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class ModerationCog(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.data_file = "moderation_data.json"
+        self.data = self.load_data()
+
+        self.QUARANTINE_ROLE_ID = QUARANTINE_ROLE_ID
+        self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
+        self.SENIOR_MODERATORS_ROLE_ID = SENIOR_MODERATORS_ROLE_ID
+        self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
+        self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
+
+        self.HOURLY_LIMIT = 3
+        self.DAILY_LIMIT = 5
+
+    def permission_error(self, custom_text: str):
+        class PermissionError(discord.ui.LayoutView):
+            container1 = discord.ui.Container(
+                discord.ui.TextDisplay(content=(
+                    f"### {DENIED_EMOJI_ID} Unauthorized!\n"
+                    "-# No permissions.\n"
+                    f"{custom_text}")),
+                accent_color=COLOR_RED,
+            )
+
+        return PermissionError()
+
+    def parse_duration(self, duration_str: str) -> Optional[int]:
+        duration_str = duration_str.lower().strip()
+
+        try:
+            if duration_str.endswith('s'):
+                return int(duration_str[:-1])
+            elif duration_str.endswith('m'):
+                return int(duration_str[:-1]) * 60
+            elif duration_str.endswith('h'):
+                return int(duration_str[:-1]) * 3600
+            elif duration_str.endswith('d'):
+                return int(duration_str[:-1]) * 86400
+            elif duration_str.endswith('w'):
+                return int(duration_str[:-1]) * 604800
+            else:
+                return int(duration_str) * 60
+        except ValueError:
+            return None
+
+    def load_data(self) -> Dict:
+        if os.path.exists(self.data_file):
+            try:
+                with open(self.data_file, 'r') as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                return self.get_default_data()
+        return self.get_default_data()
+
+    def get_default_data(self) -> Dict:
+        return {
+            "bans": {},
+            "timeouts": {},
+            "kicks": {},
+            "rate_limits": {},
+            "quarantined": {}
+        }
+
+    def save_data(self):
+        with open(self.data_file, 'w') as f:
+            json.dump(self.data, f, indent=4)
+
+    def clean_old_rate_limits(self, user_id: str):
+        now = datetime.now()
+        if user_id not in self.data["rate_limits"]:
+            self.data["rate_limits"][user_id] = {"hourly": [], "daily": []}
+
+        self.data["rate_limits"][user_id]["hourly"] = [
+            ts for ts in self.data["rate_limits"][user_id]["hourly"]
+            if datetime.fromisoformat(ts) > now - timedelta(hours=1)
+        ]
+
+        self.data["rate_limits"][user_id]["daily"] = [
+            ts for ts in self.data["rate_limits"][user_id]["daily"]
+            if datetime.fromisoformat(ts) > now - timedelta(days=1)
+        ]
+
+    def check_rate_limit(self, user_id: str) -> tuple[bool, str]:
+        self.clean_old_rate_limits(user_id)
+
+        hourly_count = len(self.data["rate_limits"][user_id]["hourly"])
+        daily_count = len(self.data["rate_limits"][user_id]["daily"])
+
+        if hourly_count >= self.HOURLY_LIMIT:
+            return False, f"Hourly limit exceeded ({self.HOURLY_LIMIT} moderation actions per hour)"
+
+        if daily_count >= self.DAILY_LIMIT:
+            return False, f"Daily limit exceeded ({self.DAILY_LIMIT} moderation actions per day)"
+
+        return True, ""
+
+    def add_rate_limit_entry(self, user_id: str):
+        now = datetime.now().isoformat()
+        if user_id not in self.data["rate_limits"]:
+            self.data["rate_limits"][user_id] = {"hourly": [], "daily": []}
+
+        self.data["rate_limits"][user_id]["hourly"].append(now)
+        self.data["rate_limits"][user_id]["daily"].append(now)
+        self.save_data()
+
+    def has_role(self, member: discord.Member, role_id: int) -> bool:
+        return any(role.id == role_id for role in member.roles)
+
+    def is_director(self, member: discord.Member) -> bool:
+        return self.has_role(member, self.DIRECTORS_ROLE_ID)
+
+    def is_senior_moderator(self, member: discord.Member) -> bool:
+        return self.has_role(member, self.SENIOR_MODERATORS_ROLE_ID)
+
+    def is_administrator(self, member: discord.Member) -> bool:
+        return self.has_role(member, self.ADMINISTRATORS_ROLE_ID)
+
+    def is_moderator(self, member: discord.Member) -> bool:
+        return self.has_role(member, self.MODERATORS_ROLE_ID)
+
+    def can_view(self, member: discord.Member) -> bool:
+        return (self.is_director(member) or 
+                self.is_senior_moderator(member) or 
+                self.is_administrator(member) or 
+                self.is_moderator(member))
+
+    def can_moderate(self, member: discord.Member) -> bool:
+        return self.is_senior_moderator(member)
+
+    def can_unban_untimeout(self, member: discord.Member) -> bool:
+        return self.is_director(member)
+
+    def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
+        if target.id == moderator.guild.owner_id:
+            return False
+
+        if moderator.id == moderator.guild.owner_id:
+            return True
+
+        return moderator.top_role > target.top_role
+
+    async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild):
+        if not guild or not self.bot.user:
+            return
+
+        quarantine_role = guild.get_role(self.QUARANTINE_ROLE_ID)
+        if not quarantine_role:
+            return
+
+        saved_roles = [role.id for role in moderator.roles if role.id != guild.id]
+
+        self.data["quarantined"][str(moderator.id)] = {
+            "roles": saved_roles,
+            "quarantined_at": datetime.now().isoformat(),
+            "quarantined_by": self.bot.user.id,
+            "reason": "Exceeded moderation rate limits"
+        }
+        self.save_data()
+
+        try:
+            roles_to_remove = [role for role in moderator.roles if role.id != guild.default_role.id]
+            await moderator.remove_roles(*roles_to_remove, reason="Auto-quarantined: Exceeded rate limits")
+            await moderator.add_roles(quarantine_role, reason="Auto-quarantined: Exceeded rate limits")
+        except discord.Forbidden:
+            pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /ban Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="ban", description="Ban a member from the server.")
+    @app_commands.describe(
+        member="The member to ban.",
+        reason="Reason for the ban.",
+        delete_messages="Delete messages from the last N days."
+    )
+    async def ban_slash(
+        self,
+        interaction: discord.Interaction,
+        member: discord.Member,
+        reason: Optional[str] = "No reason provided",
+        delete_messages: Optional[int] = 0
+    ):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        deniedban = self.permission_error("You lack the necessary permissions to ban members.")
+
+        if not self.can_moderate(actor):
+            await interaction.response.send_message(view=deniedban, ephemeral=True)
+            return
+
+        if self.is_director(member):
+            await send_minor_error(interaction, "You cannot ban Directors.")
+            return
+
+        if not self.check_hierarchy(actor, member):
+            await send_minor_error(interaction, "You cannot ban members with a higher or equal role.")
+            return
+
+        if member.id == actor.id:
+            await send_minor_error(interaction, "You cannot ban yourself.")
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        if not self.is_director(actor):
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            if not can_proceed:
+                await send_major_error(
+                    interaction,
+                    f"Rate limit exceeded. {error_msg}.\n"
+                    f"Continuing to exceed rate limits will result in your own quarantine.",
+                    subtitle="Rate limit exceeded."
+                )
+                await self.auto_quarantine_moderator(actor, guild)
+                return
+
+            self.add_rate_limit_entry(str(actor.id))
+
+        await interaction.response.defer(ephemeral=True)
+
+        dm_value = delete_messages if delete_messages is not None else 0
+        delete_messages = max(0, min(7, dm_value))
+
+        try:
+            await member.ban(
+                reason=f"Banned by {actor}: {reason}",
+                delete_message_seconds=delete_messages * 86400
+            )
+
+            self.data["bans"][str(member.id)] = {
+                "banned_at": datetime.now().isoformat(),
+                "banned_by": actor.id,
+                "reason": reason
+            }
+            self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Member Banned",
+                color=COLOR_RED,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except discord.Forbidden:
+            await send_major_error(
+                interaction,
+                "I lack the necessary permissions to ban this member.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~ban Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="ban", aliases=["b"])
+    async def ban_prefix(
+        self,
+        ctx: commands.Context,
+        member: discord.Member,
+        delete_messages: Optional[int] = 0,
+        *,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_moderate(actor):
+            return
+
+        if self.is_director(member):
+            return
+
+        if not self.check_hierarchy(actor, member):
+            return
+
+        if member.id == actor.id:
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        if not self.is_director(actor):
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            if not can_proceed:
+                await self.auto_quarantine_moderator(actor, guild)
+                return
+
+            self.add_rate_limit_entry(str(actor.id))
+
+        dm_value = delete_messages if delete_messages is not None else 0
+        delete_messages = max(0, min(7, dm_value))
+
+        try:
+            await member.ban(
+                reason=f"Banned by {actor}: {reason}",
+                delete_message_seconds=delete_messages * 86400
+            )
+
+            self.data["bans"][str(member.id)] = {
+                "banned_at": datetime.now().isoformat(),
+                "banned_by": actor.id,
+                "reason": reason
+            }
+            self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Member Banned",
+                color=COLOR_RED,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await ctx.send(embed=embed)
+
+        except discord.Forbidden:
+            pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /unban Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="un-ban", description="Unban a user from the server.")
+    @app_commands.describe(
+        user="The user to unban.",
+        reason="Reason for the unban."
+    )
+    async def unban_slash(
+        self,
+        interaction: discord.Interaction,
+        user: str,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        deniedunban = self.permission_error("You lack the necessary permissions to unban members.")
+
+        if not self.can_unban_untimeout(actor):
+            await interaction.response.send_message(view=deniedunban, ephemeral=True)
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        user_to_unban = None
+
+        if user.isdigit():
+            try:
+                user_to_unban = await self.bot.fetch_user(int(user))
+            except discord.NotFound:
+                pass
+
+        if not user_to_unban:
+            try:
+                bans = [entry async for entry in guild.bans(limit=None)]
+                for ban_entry in bans:
+                    if (str(ban_entry.user.id) == user or 
+                        str(ban_entry.user) == user or
+                        ban_entry.user.name == user):
+                        user_to_unban = ban_entry.user
+                        break
+            except discord.Forbidden:
+                await send_major_error(
+                    interaction,
+                    "I lack the necessary permissions to view bans.",
+                    subtitle="Invalid configuration. Contact the owner."
+                )
+                return
+
+        if not user_to_unban:
+            await send_minor_error(interaction, f"Could not find banned user: {user}")
+            return
+
+        try:
+            await guild.unban(user_to_unban, reason=f"Unbanned by {actor}: {reason}")
+
+            if str(user_to_unban.id) in self.data["bans"]:
+                del self.data["bans"][str(user_to_unban.id)]
+                self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} User Unbanned",
+                color=COLOR_GREEN,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="User", value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
+            embed.add_field(name="Director", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except discord.NotFound:
+            await send_minor_error(interaction, f"{user_to_unban.mention} is not banned.")
+        except discord.Forbidden:
+            await send_major_error(
+                interaction,
+                "I lack the necessary permissions to unban this user.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~unban Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="un-ban", aliases=["unban", "ub"])
+    async def unban_prefix(
+        self,
+        ctx: commands.Context,
+        user: str,
+        *,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_unban_untimeout(actor):
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        user_to_unban = None
+
+        if user.isdigit():
+            try:
+                user_to_unban = await self.bot.fetch_user(int(user))
+            except discord.NotFound:
+                pass
+
+        if not user_to_unban:
+            try:
+                bans = [entry async for entry in guild.bans(limit=None)]
+                for ban_entry in bans:
+                    if (str(ban_entry.user.id) == user or 
+                        str(ban_entry.user) == user or
+                        ban_entry.user.name == user):
+                        user_to_unban = ban_entry.user
+                        break
+            except discord.Forbidden:
+                return
+
+        if not user_to_unban:
+            return
+
+        try:
+            await guild.unban(user_to_unban, reason=f"Unbanned by {actor}: {reason}")
+
+            if str(user_to_unban.id) in self.data["bans"]:
+                del self.data["bans"][str(user_to_unban.id)]
+                self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} User Unbanned",
+                color=COLOR_GREEN,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="User", value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
+            embed.add_field(name="Director", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await ctx.send(embed=embed)
+
+        except (discord.NotFound, discord.Forbidden):
+            pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /kick Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="kick", description="Kick a member from the server.")
+    @app_commands.describe(
+        member="The member to kick.",
+        reason="Reason for the kick."
+    )
+    async def kick_slash(
+        self,
+        interaction: discord.Interaction,
+        member: discord.Member,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        deniedkick = self.permission_error("You lack the necessary permissions to kick members.")
+
+        if not self.can_moderate(actor):
+            await interaction.response.send_message(view=deniedkick, ephemeral=True)
+            return
+
+        if self.is_director(member):
+            await send_minor_error(interaction, "You cannot kick Directors.")
+            return
+
+        if not self.check_hierarchy(actor, member):
+            await send_minor_error(interaction, "You cannot kick members with a higher or equal role.")
+            return
+
+        if member.id == actor.id:
+            await send_minor_error(interaction, "You cannot kick yourself.")
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        if not self.is_director(actor):
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            if not can_proceed:
+                await send_major_error(
+                    interaction,
+                    f"Rate limit exceeded. {error_msg}.\n"
+                    f"Continuing to exceed rate limits will result in your own quarantine.",
+                    subtitle="Rate limit exceeded."
+                )
+                await self.auto_quarantine_moderator(actor, guild)
+                return
+
+            self.add_rate_limit_entry(str(actor.id))
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            await member.kick(reason=f"Kicked by {actor}: {reason}")
+
+            self.data["kicks"][str(member.id)] = {
+                "kicked_at": datetime.now().isoformat(),
+                "kicked_by": actor.id,
+                "reason": reason
+            }
+            self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Member Kicked",
+                color=COLOR_ORANGE,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except discord.Forbidden:
+            await send_major_error(
+                interaction,
+                "I lack the necessary permissions to kick this member.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~kick Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="kick", aliases=["k"])
+    async def kick_prefix(
+        self,
+        ctx: commands.Context,
+        member: discord.Member,
+        *,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_moderate(actor):
+            return
+
+        if self.is_director(member):
+            return
+
+        if not self.check_hierarchy(actor, member):
+            return
+
+        if member.id == actor.id:
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        if not self.is_director(actor):
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            if not can_proceed:
+                await self.auto_quarantine_moderator(actor, guild)
+                return
+
+            self.add_rate_limit_entry(str(actor.id))
+
+        try:
+            await member.kick(reason=f"Kicked by {actor}: {reason}")
+
+            self.data["kicks"][str(member.id)] = {
+                "kicked_at": datetime.now().isoformat(),
+                "kicked_by": actor.id,
+                "reason": reason
+            }
+            self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Member Kicked",
+                color=COLOR_ORANGE,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await ctx.send(embed=embed)
+
+        except discord.Forbidden:
+            pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /timeout Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="timeout", description="Timeout a member.")
+    @app_commands.describe(
+        member="The member to timeout.",
+        duration="Duration.",
+        reason="Reason for the timeout."
+    )
+    async def timeout_slash(
+        self,
+        interaction: discord.Interaction,
+        member: discord.Member,
+        duration: str,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        deniedtimeout = self.permission_error("You lack the necessary permissions to timeout members.")
+
+        if not self.can_moderate(actor):
+            await interaction.response.send_message(view=deniedtimeout, ephemeral=True)
+            return
+
+        if self.is_director(member):
+            await send_minor_error(interaction, "You cannot timeout Directors.")
+            return
+
+        if not self.check_hierarchy(actor, member):
+            await send_minor_error(interaction, "You cannot timeout members with a higher or equal role.")
+            return
+
+        if member.id == actor.id:
+            await send_minor_error(interaction, "You cannot timeout yourself.")
+            return
+
+        duration_seconds = self.parse_duration(duration)
+        if not duration_seconds:
+            await send_minor_error(interaction, "Invalid duration format. Use: 30s, 5m, 1h, 2d, 1w")
+            return
+
+        max_duration = 28 * 86400
+        if duration_seconds > max_duration:
+            await send_minor_error(interaction, f"Timeout duration cannot exceed 28 days. You provided: {duration}")
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        if not self.is_director(actor):
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            if not can_proceed:
+                await send_major_error(
+                    interaction,
+                    f"Rate limit exceeded. {error_msg}.\n"
+                    f"Continuing to exceed rate limits will result in your own quarantine.",
+                    subtitle="Rate limit exceeded."
+                )
+                await self.auto_quarantine_moderator(actor, guild)
+                return
+
+            self.add_rate_limit_entry(str(actor.id))
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            until = discord.utils.utcnow() + timedelta(seconds=duration_seconds)
+            await member.timeout(until, reason=f"Timed out by {actor}: {reason}")
+
+            self.data["timeouts"][str(member.id)] = {
+                "timed_out_at": datetime.now().isoformat(),
+                "timed_out_by": actor.id,
+                "reason": reason,
+                "duration": duration_seconds,
+                "until": until.isoformat()
+            }
+            self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Member Timed Out",
+                color=COLOR_ORANGE,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=member.mention, inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            embed.add_field(name="Duration", value=duration, inline=True)
+            embed.add_field(name="Expires", value=discord.utils.format_dt(until, 'R'), inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except discord.Forbidden:
+            await send_major_error(
+                interaction,
+                "I lack the necessary permissions to timeout this member.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~timeout Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="timeout", aliases=["tt", "mute", "m"])
+    async def timeout_prefix(
+        self,
+        ctx: commands.Context,
+        member: discord.Member,
+        duration: str,
+        *,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_moderate(actor):
+            return
+
+        if self.is_director(member):
+            return
+
+        if not self.check_hierarchy(actor, member):
+            return
+
+        if member.id == actor.id:
+            return
+
+        duration_seconds = self.parse_duration(duration)
+        if not duration_seconds:
+            return
+
+        max_duration = 28 * 86400
+        if duration_seconds > max_duration:
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        if not self.is_director(actor):
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            if not can_proceed:
+                await self.auto_quarantine_moderator(actor, guild)
+                return
+
+            self.add_rate_limit_entry(str(actor.id))
+
+        try:
+            until = discord.utils.utcnow() + timedelta(seconds=duration_seconds)
+            await member.timeout(until, reason=f"Timed out by {actor}: {reason}")
+
+            self.data["timeouts"][str(member.id)] = {
+                "timed_out_at": datetime.now().isoformat(),
+                "timed_out_by": actor.id,
+                "reason": reason,
+                "duration": duration_seconds,
+                "until": until.isoformat()
+            }
+            self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Member Timed Out",
+                color=COLOR_ORANGE,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=member.mention, inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            embed.add_field(name="Duration", value=duration, inline=True)
+            embed.add_field(name="Expires", value=discord.utils.format_dt(until, 'R'), inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await ctx.send(embed=embed)
+
+        except discord.Forbidden:
+            pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /untimeout Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="un-timeout", description="Remove timeout from a member.")
+    @app_commands.describe(
+        member="The member to remove timeout from.",
+        reason="Reason for removing timeout."
+    )
+    async def untimeout_slash(
+        self,
+        interaction: discord.Interaction,
+        member: discord.Member,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        denieduntimeout = self.permission_error("You lack the necessary permissions to remove timeouts.")
+
+        if not self.can_unban_untimeout(actor):
+            await interaction.response.send_message(view=denieduntimeout, ephemeral=True)
+            return
+
+        if not member.is_timed_out():
+            await send_minor_error(interaction, f"{member.mention} is not currently timed out.")
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
+
+            if str(member.id) in self.data["timeouts"]:
+                del self.data["timeouts"][str(member.id)]
+                self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Timeout Removed",
+                color=COLOR_GREEN,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=member.mention, inline=True)
+            embed.add_field(name="Director", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except discord.Forbidden:
+            await send_major_error(
+                interaction,
+                "I lack the necessary permissions to remove timeout from this member.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~un-timeout Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="un-timeout", aliases=["untimeout", "utt", "unmute", "um"])
+    async def untimeout_prefix(
+        self,
+        ctx: commands.Context,
+        member: discord.Member,
+        *,
+        reason: Optional[str] = "No reason provided"
+    ):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_unban_untimeout(actor):
+            return
+
+        if not member.is_timed_out():
+            return
+
+        try:
+            await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
+
+            if str(member.id) in self.data["timeouts"]:
+                del self.data["timeouts"][str(member.id)]
+                self.save_data()
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Timeout Removed",
+                color=COLOR_GREEN,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=member.mention, inline=True)
+            embed.add_field(name="Director", value=actor.mention, inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await ctx.send(embed=embed)
+
+        except discord.Forbidden:
+            pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Purge Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="purge", description="Delete a specified number of messages.")
+    @app_commands.describe(
+        amount="Number of messages to delete.",
+        member="Optional: Only delete messages from this member."
+    )
+    async def purge_slash(
+        self,
+        interaction: discord.Interaction,
+        amount: int,
+        member: Optional[discord.Member] = None
+    ):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        deniedpurge = self.permission_error("You lack the necessary permissions to purge messages.")
+
+        if not self.can_moderate(actor):
+            await interaction.response.send_message(view=deniedpurge, ephemeral=True)
+            return
+
+        if amount < 1 or amount > 100:
+            await send_minor_error(interaction, "Amount must be between 1 and 100.")
+            return
+
+        await interaction.response.defer(ephemeral=True)
+        channel = interaction.channel
+
+        if not isinstance(channel, discord.TextChannel):
+            return
+
+        try:
+            if member:
+                deleted = await channel.purge(
+                    limit=amount,
+                    check=lambda m: m.author.id == member.id
+                )
+            else:
+                deleted = await channel.purge(limit=amount)
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Messages Purged",
+                color=COLOR_BLURPLE,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Deleted", value=str(len(deleted)), inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            if member:
+                embed.add_field(name="From User", value=member.mention, inline=True)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except discord.Forbidden:
+            await send_major_error(
+                interaction,
+                "I lack the necessary permissions to delete messages.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+
+    @commands.command(name="purge", aliases=["p"])
+    async def purge_prefix(
+        self,
+        ctx: commands.Context,
+        amount: int,
+        member: Optional[discord.Member] = None
+    ):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_moderate(actor):
+            return
+
+        if amount < 1 or amount > 100:
+            return
+
+        channel = ctx.channel
+        if not isinstance(channel, discord.TextChannel):
+            return
+
+        try:
+            if member:
+                deleted = await channel.purge(
+                    limit=amount,
+                    check=lambda m: m.author.id == member.id
+                )
+            else:
+                deleted = await channel.purge(limit=amount)
+
+            embed = discord.Embed(
+                title=f"{ACCEPTED_EMOJI_ID} Messages Purged",
+                color=COLOR_BLURPLE,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Deleted", value=str(len(deleted)), inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            if member:
+                embed.add_field(name="From User", value=member.mention, inline=True)
+
+            msg = await ctx.send(embed=embed)
+            await msg.delete(delay=5)
+
+        except discord.Forbidden:
+            pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # View Commands
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="bans", description="View all banned members.")
+    async def bans_slash(self, interaction: discord.Interaction):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        deniedview = self.permission_error("You lack the necessary permissions to view bans.")
+
+        if not self.can_view(actor):
+            await interaction.response.send_message(view=deniedview, ephemeral=True)
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            bans = [entry async for entry in guild.bans(limit=None)]
+
+            if not bans:
+                embed = discord.Embed(
+                    description="No members are currently banned.",
+                    color=COLOR_GREEN
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                return
+
+            embed = discord.Embed(
+                title="Banned Members",
+                color=COLOR_RED,
+                timestamp=datetime.now()
+            )
+
+            for ban_entry in bans[:25]:
+                user = ban_entry.user
+                ban_data = self.data["bans"].get(str(user.id))
+
+                if ban_data:
+                    banned_at = datetime.fromisoformat(ban_data["banned_at"])
+                    reason = ban_data["reason"]
+                    value = f"Banned: {discord.utils.format_dt(banned_at, 'R')}\nReason: {reason}"
+                else:
+                    value = f"Reason: {ban_entry.reason or 'No reason provided'}"
+
+                embed.add_field(
+                    name=f"{user} ({user.id})",
+                    value=value,
+                    inline=False
+                )
+
+            if len(bans) > 25:
+                embed.set_footer(text=f"Showing 25 of {len(bans)} bans")
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except discord.Forbidden:
+            await send_major_error(
+                interaction,
+                "I lack the necessary permissions to view bans.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+
+    @commands.command(name="bans", aliases=["banlist", "bls"])
+    async def bans_prefix(self, ctx: commands.Context):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_view(actor):
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        try:
+            bans = [entry async for entry in guild.bans(limit=None)]
+
+            if not bans:
+                embed = discord.Embed(
+                    description="No members are currently banned.",
+                    color=COLOR_GREEN
+                )
+                await ctx.send(embed=embed)
+                return
+
+            embed = discord.Embed(
+                title="Banned Members",
+                color=COLOR_RED,
+                timestamp=datetime.now()
+            )
+
+            for ban_entry in bans[:25]:
+                user = ban_entry.user
+                ban_data = self.data["bans"].get(str(user.id))
+
+                if ban_data:
+                    banned_at = datetime.fromisoformat(ban_data["banned_at"])
+                    reason = ban_data["reason"]
+                    value = f"Banned: {discord.utils.format_dt(banned_at, 'R')}\nReason: {reason}"
+                else:
+                    value = f"Reason: {ban_entry.reason or 'No reason provided'}"
+
+                embed.add_field(
+                    name=f"{user} ({user.id})",
+                    value=value,
+                    inline=False
+                )
+
+            if len(bans) > 25:
+                embed.set_footer(text=f"Showing 25 of {len(bans)} bans")
+
+            await ctx.send(embed=embed)
+
+        except discord.Forbidden:
+            pass
+
+    @app_commands.command(name="timeouts", description="View all timed out members.")
+    async def timeouts_slash(self, interaction: discord.Interaction):
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        deniedview = self.permission_error("You lack the necessary permissions to view timeouts.")
+
+        if not self.can_view(actor):
+            await interaction.response.send_message(view=deniedview, ephemeral=True)
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        timed_out_members = [m for m in guild.members if m.is_timed_out()]
+
+        if not timed_out_members:
+            embed = discord.Embed(
+                description="No members are currently timed out.",
+                color=COLOR_GREEN
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            return
+
+        embed = discord.Embed(
+            title="Timed Out Members",
+            color=COLOR_ORANGE,
+            timestamp=datetime.now()
+        )
+
+        for member in timed_out_members[:25]:
+            timeout_data = self.data["timeouts"].get(str(member.id))
+
+            if timeout_data and member.timed_out_until:
+                timed_out_at = datetime.fromisoformat(timeout_data["timed_out_at"])
+                reason = timeout_data["reason"]
+                value = (f"Timed out: {discord.utils.format_dt(timed_out_at, 'R')}\n"
+                        f"Expires: {discord.utils.format_dt(member.timed_out_until, 'R')}\n"
+                        f"Reason: {reason}")
+            elif member.timed_out_until:
+                value = f"Expires: {discord.utils.format_dt(member.timed_out_until, 'R')}"
+            else:
+                value = "No data available"
+
+            embed.add_field(
+                name=f"{member} ({member.id})",
+                value=value,
+                inline=False
+            )
+
+        if len(timed_out_members) > 25:
+            embed.set_footer(text=f"Showing 25 of {len(timed_out_members)} timeouts")
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /timed-members Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="mute-list", aliases=["mutelist", "mutes", "mls", "time-outs", "timeouts", "tls"])
+    async def timeouts_prefix(self, ctx: commands.Context):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_view(actor):
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        timed_out_members = [m for m in guild.members if m.is_timed_out()]
+
+        if not timed_out_members:
+            embed = discord.Embed(
+                description="No members are currently timed out.",
+                color=COLOR_GREEN
+            )
+            await ctx.send(embed=embed)
+            return
+
+        embed = discord.Embed(
+            title="Timed Out Members",
+            color=COLOR_ORANGE,
+            timestamp=datetime.now()
+        )
+
+        for member in timed_out_members[:25]:
+            timeout_data = self.data["timeouts"].get(str(member.id))
+
+            if timeout_data and member.timed_out_until:
+                timed_out_at = datetime.fromisoformat(timeout_data["timed_out_at"])
+                reason = timeout_data["reason"]
+                value = (f"Timed out: {discord.utils.format_dt(timed_out_at, 'R')}\n"
+                        f"Expires: {discord.utils.format_dt(member.timed_out_until, 'R')}\n"
+                        f"Reason: {reason}")
+            elif member.timed_out_until:
+                value = f"Expires: {discord.utils.format_dt(member.timed_out_until, 'R')}"
+            else:
+                value = "No data available"
+
+            embed.add_field(
+                name=f"{member} ({member.id})",
+                value=value,
+                inline=False
+            )
+
+        if len(timed_out_members) > 25:
+            embed.set_footer(text=f"Showing 25 of {len(timed_out_members)} timeouts")
+
+        await ctx.send(embed=embed)
+
+async def setup(bot: commands.Bot):
+    await bot.add_cog(ModerationCog(bot))

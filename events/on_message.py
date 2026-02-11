@@ -18,7 +18,7 @@ from core.state import (
     save_active_applications,
 )
 
-from events.applications import ApplicationSubmitView
+from events.systems.applications import ApplicationSubmitView
 
 from constants import (
     COLOR_GREEN,
@@ -85,7 +85,7 @@ class MessageHandler(commands.Cog):
             except discord.HTTPException:
                 pass
             except Exception as e:
-                logging.getLogger("utilitybot").exception(
+                logging.getLogger("Utility Bot").exception(
                     "Automod failure while processing message", exc_info=e
                 )
             return

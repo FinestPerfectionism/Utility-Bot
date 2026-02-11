@@ -8,15 +8,18 @@ import discord
 # Colors
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+COLOR_BLURPLE = discord.Color(0x5765F2)
 COLOR_GREEN = discord.Color(0x3BA562)
 COLOR_YELLOW = discord.Color(0xF1B133)
+COLOR_ORANGE = discord.Color(0xEE773E)
 COLOR_RED = discord.Color(0xEB3D48)
-COLOR_BLURPLE = discord.Color(0x5765F2)
 COLOR_GREY = discord.Color(0xABABAB)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role IDs
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+QUARANTINE_ROLE_ID = 1401776501862567947
 
 TRUSTED_ROLE_ID = 1463694813525180477
 

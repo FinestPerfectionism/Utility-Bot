@@ -1,15 +1,15 @@
 import importlib
 import pkgutil
-from typing import List
+from typing import List, Optional
 import logging
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cog Management
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-log = logging.getLogger("utilitybot")
+log = logging.getLogger("Utility Bot")
 
-def discover_cogs(*package_names: str) -> List[str]:
+def discover_cogs(*package_names: str, priority: Optional[List[str]] = None) -> List[str]:
     cogs: list[str] = []
 
     for package_name in package_names:
@@ -34,4 +34,12 @@ def discover_cogs(*package_names: str) -> List[str]:
             else:
                 log.debug("Skipped (no setup): %s", module_info.name)
 
-    return sorted(cogs)
+    if priority:
+        priority_set = set(priority)
+        ordered_cogs = [m for m in priority if m in cogs]
+        remaining_cogs = [m for m in cogs if m not in priority_set]
+        cogs = ordered_cogs + sorted(remaining_cogs)
+    else:
+        cogs = sorted(cogs)
+
+    return cogs

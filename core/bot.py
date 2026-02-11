@@ -23,14 +23,20 @@ class UtilityBot(commands.Bot):
         from constants import GUILD_ID
         from core.cog_loader import discover_cogs
     
-        log = logging.getLogger("utilitybot")
+        log = logging.getLogger("Utility Bot")
     
+        priority_load = [
+            "events.member.verification",  
+            "startup"
+        ]
+
         COGS = discover_cogs(
             "commands",
             "events",
             "core",
+            priority=priority_load
         )
-    
+
         for cog in COGS:
             try:
                 await self.load_extension(cog)
