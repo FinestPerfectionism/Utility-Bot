@@ -1,0 +1,11 @@
+{
+    "quarantined": {
+        "1403909200618328115": {
+            "roles": [],
+            "quarantined_at": "2026-02-11T23:30:12.787952",
+            "quarantined_by": 1311394031640776716,
+            "reason": "No reason provided"
+        }
+    },
+    "rate_limits": {}
+}

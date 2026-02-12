@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from commands.moderation.cases import CasesManager
+
 import logging
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -22,6 +24,8 @@ class UtilityBot(commands.Bot):
     async def setup_hook(self) -> None:
         from constants import GUILD_ID
         from core.cog_loader import discover_cogs
+
+        self.cases_manager = CasesManager(self)
     
         log = logging.getLogger("Utility Bot")
     

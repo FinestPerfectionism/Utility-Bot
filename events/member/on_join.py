@@ -31,6 +31,5 @@ class MemberJoinHandler(commands.Cog):
         }
         verification_cog.save_data()
 
-
 async def setup(bot: commands.Bot):
     await bot.add_cog(MemberJoinHandler(bot))

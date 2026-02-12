@@ -47,55 +47,81 @@ class Startup(commands.Cog):
             "tickets": (TICKET_CHANNEL_ID, TicketComponents),
             "applications": (APPLICATION_CHANNEL_ID, ApplicationComponents),
             "leave": (STAFF_LEAVE_CHANNEL_ID, LeaveComponents),
-            "verification": (VERIFICATION_CHANNEL_ID, VerificationComponents)
+            "verification": (VERIFICATION_CHANNEL_ID, VerificationComponents),
         }
 
         for key, (channel_id, view_cls) in view_mapping.items():
             channel = self.bot.get_channel(channel_id)
+
             if not isinstance(channel, discord.TextChannel):
+                log.warning("Layout '%s' skipped: channel not found", key)
                 continue
 
-            if key == "verification":
-                await self._handle_verification_layout(channel)
-                continue
+            log.info("Initializing layout: %s", key)
 
-            msg_id = self.layout_message_ids.get(key)
-            if msg_id:
-                try:
-                    await channel.fetch_message(msg_id)
-                    self.bot.add_view(view_cls(), message_id=msg_id)
+            try:
+                if key == "verification":
+                    await self._handle_verification_layout(channel)
                     continue
-                except discord.NotFound:
-                    pass
 
-            msg = await channel.send(view=view_cls())
-            self.layout_message_ids[key] = msg.id
-            self.bot.add_view(view_cls(), message_id=msg.id)
-            save_layout_message_ids(self.layout_message_ids)
+                msg_id = self.layout_message_ids.get(key)
+
+                if msg_id:
+                    try:
+                        await channel.fetch_message(msg_id)
+                        self.bot.add_view(view_cls(), message_id=msg_id)
+                        log.info("Layout '%s' restored", key)
+                        log.debug("Layout '%s' message_id=%s", key, msg_id)
+                        continue
+                    except discord.NotFound:
+                        log.debug("Layout '%s' message_id=%s not found", key, msg_id)
+
+                msg = await channel.send(view=view_cls())
+                self.layout_message_ids[key] = msg.id
+                self.bot.add_view(view_cls(), message_id=msg.id)
+                save_layout_message_ids(self.layout_message_ids)
+
+                log.info("Layout '%s' created", key)
+                log.debug("Layout '%s' message_id=%s", key, msg.id)
+
+            except Exception:
+                log.exception("Layout '%s' failed to initialize", key)
 
     async def _handle_verification_layout(self, channel: discord.TextChannel):
-        verification_cog = cast(VerificationCog, self.bot.get_cog("VerificationCog"))
+        verification_cog = cast(
+            VerificationCog,
+            self.bot.get_cog("VerificationCog")
+        )
+
         if not verification_cog:
-            log.error("VerificationCog not loaded, cannot setup verification layout")
+            log.error("Verification layout skipped: VerificationCog not loaded")
             return
 
         msg_id = verification_cog.get_verification_message_id()
+        view = VerificationComponents(verification_cog)
+
         if msg_id:
             try:
-                message = await channel.fetch_message(msg_id)
-                view = VerificationComponents(verification_cog)
+                await channel.fetch_message(msg_id)
                 self.bot.add_view(view, message_id=msg_id)
-                log.info(f"Restored verification message with ID {msg_id}")
+                log.info("Verification layout restored")
+                log.debug("Verification message_id=%s", msg_id)
                 return
             except discord.NotFound:
-                log.info(f"Verification message {msg_id} not found, creating new one")
+                log.debug("Verification message_id=%s not found", msg_id)
+            except Exception:
+                log.exception("Failed restoring verification layout")
 
-        view = VerificationComponents(verification_cog)
-        message = await channel.send(view=view)
+        try:
+            message = await channel.send(view=view)
+            verification_cog.set_verification_message_id(message.id)
+            self.bot.add_view(view, message_id=message.id)
 
-        verification_cog.set_verification_message_id(message.id)
-        self.bot.add_view(view, message_id=message.id)
-        log.info(f"Created new verification message with ID {message.id}")
+            log.info("Verification layout created")
+            log.debug("Verification message_id=%s", message.id)
+
+        except Exception:
+            log.exception("Failed creating verification layout")
 
     async def cog_unload(self):
         self.process_message_logs.cancel()

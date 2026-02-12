@@ -1,0 +1,50 @@
+{
+    "cases": [
+        {
+            "case_id": 1,
+            "type": "quarantine_add",
+            "guild_id": 1385650154832662688,
+            "moderator_id": 1311394031640776716,
+            "moderator_name": "finestperfectionism",
+            "target_user_id": 1403909200618328115,
+            "target_user_name": "eightyeightepsilons",
+            "reason": "No reason provided",
+            "duration": null,
+            "timestamp": "2026-02-11T23:29:02.534326",
+            "metadata": {
+                "roles_saved": 0
+            }
+        },
+        {
+            "case_id": 2,
+            "type": "quarantine_remove",
+            "guild_id": 1385650154832662688,
+            "moderator_id": 1311394031640776716,
+            "moderator_name": "finestperfectionism",
+            "target_user_id": 1403909200618328115,
+            "target_user_name": "eightyeightepsilons",
+            "reason": "Removed from quarantine",
+            "duration": null,
+            "timestamp": "2026-02-11T23:29:50.672343",
+            "metadata": {
+                "roles_restored": 0
+            }
+        },
+        {
+            "case_id": 3,
+            "type": "quarantine_add",
+            "guild_id": 1385650154832662688,
+            "moderator_id": 1311394031640776716,
+            "moderator_name": "finestperfectionism",
+            "target_user_id": 1403909200618328115,
+            "target_user_name": "eightyeightepsilons",
+            "reason": "No reason provided",
+            "duration": null,
+            "timestamp": "2026-02-11T23:30:13.040854",
+            "metadata": {
+                "roles_saved": 0
+            }
+        }
+    ],
+    "next_case_id": 4
+}

@@ -10,7 +10,7 @@ from constants import (
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Leave Handling
+# Leave System
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class LeaveComponents(discord.ui.LayoutView):
@@ -89,7 +89,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 return
 
         for thread in channel.threads:
-            if thread.name == f"Leave -- {user.id}" and not thread.archived:
+            if thread.name == f"Leave —— {user.id}" and not thread.archived:
                 await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                     f"Please do not open a leave request while you already have an open leave request: {thread.mention}",
@@ -98,7 +98,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 return
 
         thread = await channel.create_thread(
-            name=f"Leave -- {user.id}",
+            name=f"Leave —— {user.id}",
             type=discord.ChannelType.private_thread,
             invitable=False,
         )

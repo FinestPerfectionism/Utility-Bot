@@ -50,7 +50,7 @@ async def cog_autocomplete(
 class BotOwner(
     commands.GroupCog,
     name="bot-owner",
-    description="Bot Owner only -- Bot owner commands."):
+    description="Bot Owner only —— Bot owner commands."):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.restarting = False

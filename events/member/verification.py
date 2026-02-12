@@ -9,17 +9,22 @@ from datetime import datetime, timedelta
 from typing import Dict
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+import numpy as np
 
 from constants import(
     BOT_OWNER_ID,
 
-    ACCEPTED_EMOJI_ID,
     COLOR_GREEN,
+    COLOR_RED,
+
+    ACCEPTED_EMOJI_ID,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 
     VERIFICATION_CHANNEL_ID,
+
     GOOBERS_ROLE_ID,
+    STAFF_ROLE_ID
 )
 from core.utils import send_major_error, send_minor_error
 
@@ -43,16 +48,50 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
         self.add_item(self.code_input)
 
     async def on_submit(self, interaction: discord.Interaction):
-        entered_code = self.code_input.value.strip().upper()
+        session = self.cog.active_captchas.get(interaction.user.id)
 
-        if entered_code == self.correct_code:
-            await self.cog.verify_user(interaction)
-        else:
+        if not session:
             await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **Incorrect code!**\n"
-                "Please try again.",
+                f"{DENIED_EMOJI_ID} **Verification expired!**\n"
+                "Verification session expired. Please restart.",
                 ephemeral=True
             )
+            return
+
+        if datetime.now() > session["expires_at"]:
+            del self.cog.active_captchas[interaction.user.id]
+            await interaction.response.send_message(
+                f"{DENIED_EMOJI_ID} **Verification expired!**\n"
+                "Verification session expired. Please restart.",
+                ephemeral=True
+            )
+            return
+
+        entered_code = self.code_input.value.strip().upper()
+
+        session["attempts"] += 1
+
+        if entered_code == session["code"]:
+            del self.cog.active_captchas[interaction.user.id]
+            await self.cog.verify_user(interaction)
+            return
+
+        if session["attempts"] >= 3:
+            del self.cog.active_captchas[interaction.user.id]
+            await interaction.response.send_message(
+                f"{DENIED_EMOJI_ID} **Verification expeired!**\n"
+                "Verification session expired due to too many failed attempts. Please restart.",
+                ephemeral=True
+            )
+            return
+
+        remaining = 3 - session["attempts"]
+
+        await interaction.response.send_message(
+            f"{DENIED_EMOJI_ID} **Incorrect code!**\n"
+            f"Please re-enter the code and try again. Attempts remaining: {remaining}",
+            ephemeral=True
+        )
 
 class VerificationButton(discord.ui.Button):
     def __init__(self, cog):
@@ -65,6 +104,18 @@ class VerificationButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         await self.cog.start_verification(interaction)
+
+class HelpButton(discord.ui.Button):
+    def __init__(self, cog):
+        super().__init__(
+            style=discord.ButtonStyle.red,
+            label="Help!",
+            custom_id="persistent_help_button"
+        )
+        self.cog = cog
+
+    async def callback(self, interaction: discord.Interaction):
+        await self.cog.start_help(interaction)
 
 class VerificationComponents(discord.ui.LayoutView):
     def __init__(self, cog):
@@ -99,7 +150,10 @@ class VerificationComponents(discord.ui.LayoutView):
                 visible=True,
                 spacing=discord.SeparatorSpacing.large
             ),
-            VerificationButton(cog),
+            discord.ui.ActionRow(
+                VerificationButton(cog),
+                HelpButton(cog),
+            ),
             accent_color=COLOR_GREEN,
         )
 
@@ -115,6 +169,7 @@ class VerificationCog(commands.Cog):
         self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
 
         self.verification_message_id = None
+        self.active_captchas: Dict[int, Dict] = {}
 
     async def cog_load(self):
         self.check_unverified_users.start()
@@ -141,56 +196,211 @@ class VerificationCog(commands.Cog):
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
-    def generate_captcha(self) -> tuple[str, BytesIO]:
+    @staticmethod
+    def generate_captcha() -> tuple[str, BytesIO]:
         code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-        width, height = 300, 100
-        image = Image.new('RGB', (width, height), color='white')
-        draw = ImageDraw.Draw(image)
+        def sine_distort(img: Image.Image) -> Image.Image:
+            w, h = img.size
+            amplitude = random.randint(3, 6)
+            period = random.uniform(40, 70)
+
+            src = np.array(img)
+            dst = np.zeros_like(src)
+
+            for x in range(w):
+                offset = int(
+                    amplitude * np.sin(2 * np.pi * x / period)
+                    + random.randint(-2, 2)
+                )
+
+                if offset > 0:
+                    dst[offset:h, x] = src[0:h - offset, x]
+                elif offset < 0:
+                    dst[0:h + offset, x] = src[-offset:h, x]
+                else:
+                    dst[:, x] = src[:, x]
+
+            return Image.fromarray(dst, "RGBA")
+
+        width, height = 320, 120
+
+        background = Image.new("RGB", (width, height))
+        bg_draw = ImageDraw.Draw(background)
+
+        for y in range(height):
+            r = 230 - int((y / height) * 20)
+            g = 230 - int((y / height) * 20)
+            b = 255
+            bg_draw.line([(0, y), (width, y)], fill=(r, g, b))
+
+        background = background.filter(ImageFilter.GaussianBlur(1))
+
+        noise_layer = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        noise_draw = ImageDraw.Draw(noise_layer)
+
+        text_layer = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        text_draw = ImageDraw.Draw(text_layer)
 
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 40)
-        except():
+            font = ImageFont.truetype(
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48
+            )
+            small_font = ImageFont.truetype(
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18
+            )
+        except Exception:
             font = ImageFont.load_default()
+            small_font = ImageFont.load_default()
+
+        char_images = []
+
+        char_images = []
+        for char in code:
+            char_img = Image.new("RGBA", (70, 80), (255, 255, 255, 0))
+            char_draw = ImageDraw.Draw(char_img)
+
+            base = random.randint(70, 120)
+            color = (
+                base + random.randint(-20, 20),
+                base + random.randint(-20, 20),
+                base + random.randint(-20, 20),
+                random.randint(160, 210)
+            )
+
+            char_draw.text((10, 10), char, fill=color, font=font)
+
+            angle = random.randint(-30, 30)
+            char_img = char_img.rotate(angle, expand=True)
+            char_img = sine_distort(char_img)
+            char_images.append(char_img)
+
+        section_width = width // len(code)
+        baseline_points = []
+
+        for i, char_img in enumerate(char_images):
+            section_center = (i * section_width) + (section_width // 2)
+
+            x_pos = section_center - (char_img.size[0] // 2) + random.randint(-5, 5)
+            y_offset = random.randint(25, 45)
+
+            x_pos = max(5, min(x_pos, width - char_img.size[0] - 5))
+
+            text_layer.paste(char_img, (x_pos, y_offset), char_img)
+
+            baseline_points.append(
+                (
+                    x_pos + char_img.size[0] // 2,
+                    y_offset + char_img.size[1] // 2
+                )
+            )
+
+        if len(baseline_points) >= 2:
+            text_draw.line(
+                baseline_points,
+                fill=(40, 40, 40, 180),
+                width=3,
+                joint="curve"
+            )
+
+        for _ in range(25):
+            fake_char = random.choice(string.ascii_uppercase + string.digits)
+
+            x = random.randint(0, width - 40)
+            y = random.randint(0, height - 40)
+
+            base = random.randint(80, 150)
+
+            fake_color = (
+                base + random.randint(-20, 20),
+                base + random.randint(-20, 20),
+                base + random.randint(-20, 20),
+                random.randint(160, 220)
+            )
+
+            fake_img = Image.new("RGBA", (50, 50), (255, 255, 255, 0))
+            fake_draw = ImageDraw.Draw(fake_img)
+
+            fake_draw.text((10, 5), fake_char, font=small_font, fill=fake_color)
+
+            fake_img = fake_img.rotate(random.randint(-45, 45), expand=True)
+            fake_img = sine_distort(fake_img)
+
+            noise_layer.paste(fake_img, (x, y), fake_img)
 
         for _ in range(5):
             x1 = random.randint(0, width)
             y1 = random.randint(0, height)
-            x2 = random.randint(0, width)
-            y2 = random.randint(0, height)
-            draw.line([(x1, y1), (x2, y2)], fill=(200, 200, 200), width=2)
+            x2 = x1 + random.randint(30, 80)
+            y2 = y1 + random.randint(15, 50)
 
-        x_offset = 20
-        for char in code:
-            color = (
-                random.randint(0, 100),
-                random.randint(0, 100),
-                random.randint(0, 100)
+            noise_draw.ellipse(
+                (x1, y1, x2, y2),
+                fill=(
+                    random.randint(150, 255),
+                    random.randint(150, 255),
+                    random.randint(150, 255),
+                    40,
+                ),
             )
 
-            char_img = Image.new('RGBA', (60, 60), (255, 255, 255, 0))
-            char_draw = ImageDraw.Draw(char_img)
-            char_draw.text((5, 5), char, fill=color, font=font)
+        text_layer = sine_distort(text_layer)
+        text_layer = text_layer.filter(ImageFilter.GaussianBlur(0.4))
 
-            angle = random.randint(-30, 30)
-            char_img = char_img.rotate(angle, expand=True, fillcolor=(255, 255, 255, 0))
+        base = Image.alpha_composite(background.convert("RGBA"), noise_layer)
+        final_image = Image.alpha_composite(base, text_layer)
 
-            y_offset = random.randint(10, 30)
-            image.paste(char_img, (x_offset, y_offset), char_img)
-            x_offset += 45
+        final_draw = ImageDraw.Draw(final_image)
+        for _ in range(150):
+            x = random.randint(0, width - 1)
+            y = random.randint(0, height - 1)
+            final_draw.point(
+                (x, y),
+                fill=(
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                    random.randint(50, 150),
+                ),
+            )
 
-        for _ in range(100):
-            x = random.randint(0, width)
-            y = random.randint(0, height)
-            draw.point((x, y), fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
-
-        image = image.filter(ImageFilter.SMOOTH)
+        grain = np.random.normal(0, 10, (height, width, 3)).astype(np.int16)
+        img_np = np.array(final_image.convert("RGB")).astype(np.int16)
+        img_np = np.clip(img_np + grain, 0, 255).astype(np.uint8)
+        final_image = Image.fromarray(img_np, "RGB")
 
         buffer = BytesIO()
-        image.save(buffer, format='PNG')
+        final_image.save(buffer, format="PNG")
         buffer.seek(0)
 
         return code, buffer
+
+    class HelpComponents(discord.ui.LayoutView):
+        def __init__(self, cog):
+            super().__init__(timeout=None)
+            self.cog = cog
+
+            container = discord.ui.Container(
+                discord.ui.TextDisplay(
+                    content=(
+                        "# Stuck?\n"
+                        "Ocasionally, the CAPTCHA system may be difficult to pass. Here are some tips:\n\n"
+                        "- **Swap out letters:** For example, try switching out `0` and `O`, or `2` and `Z`.\n"
+                        "- **Restart the verification process:** You'll receive a new CAPTCHA image.\n"
+                        "## Still stuck?\n"
+                        "Please contact a staff member (moderator, administrator, or director) for assistance. They will run manual verification, as long as you __provide the captcha image__ that was difficult for you to read. The bot developer will be notified of the issue."
+                    ),
+                ),
+                accent_color=COLOR_RED,
+            )
+
+            self.add_item(container)
+
+    async def start_help(self, interaction: discord.Interaction):
+        await interaction.response.send_message(
+            view=self.HelpComponents(self),
+            ephemeral=True,
+        )
 
     async def start_verification(self, interaction: discord.Interaction):
         user = interaction.user
@@ -209,6 +419,12 @@ class VerificationCog(commands.Cog):
             return
 
         code, image_buffer = self.generate_captcha()
+
+        self.active_captchas[user.id] = {
+            "code": code,
+            "expires_at": datetime.now() + timedelta(minutes=5),
+            "attempts": 0
+        }
         file = discord.File(image_buffer, filename="captcha.png")
 
         verification_cog = self
@@ -221,16 +437,22 @@ class VerificationCog(commands.Cog):
                 )
 
             async def callback(self, interaction: discord.Interaction):
+                session = verification_cog.active_captchas.get(interaction.user.id)
+
+                if not session:
+                    await interaction.response.send_message(
+                        f"{DENIED_EMOJI_ID} **Verification expired!**\n"
+                        "Verification session expired. Please restart.",
+                        ephemeral=True
+                    )
+                    return
+
                 await interaction.response.send_modal(
-                    CaptchaModal(code, verification_cog)
+                    CaptchaModal(session["code"], verification_cog)
                 )
 
-
         layout = discord.ui.LayoutView()
-        container = discord.ui.Container(
-            accent_colour=discord.Colour.blurple()
-        )
-        container.add_item(discord.ui.TextDisplay(
+        layout.add_item(discord.ui.TextDisplay(
             content=(
                 "## CAPTCHA Verification\n"
                 "Enter the code shown in the image above.\n"
@@ -238,15 +460,12 @@ class VerificationCog(commands.Cog):
                 "- You have **5 minutes**."
             )
         ))
-        container.add_item(SubmitButton())
-        layout.add_item(container)
 
-        await interaction.response.send_message(
-            files=[file],
-            view=layout,
-            ephemeral=True
-        )
+        layout.add_item(discord.ui.ActionRow(SubmitButton()))
 
+        await interaction.response.send_message(view=layout, ephemeral=True)
+        await interaction.followup.send(files=[file], ephemeral=True)
+    
     async def verify_user(self, interaction: discord.Interaction):
         user = interaction.user
         guild = interaction.guild
@@ -274,7 +493,7 @@ class VerificationCog(commands.Cog):
                         if channel and isinstance(channel, discord.TextChannel):
                             msg = await channel.fetch_message(user_data["warning_message_id"])
                             await msg.delete()
-                    except():
+                    except Exception:
                         pass
 
                 del self.data["unverified"][str(user.id)]
@@ -292,19 +511,6 @@ class VerificationCog(commands.Cog):
                 "I lack the necessary permissions to assign roles.",
                 subtitle="Invalid configuration. Contact the owner."
             )
-
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
-        goobers_role = member.guild.get_role(self.GOOBERS_ROLE_ID)
-        if goobers_role and goobers_role in member.roles:
-            return
-
-        self.data["unverified"][str(member.id)] = {
-            "joined_at": datetime.now().isoformat(),
-            "warned": False,
-            "warning_message_id": None
-        }
-        self.save_data()
 
     @tasks.loop(minutes=30)
     async def check_unverified_users(self):
@@ -338,7 +544,7 @@ class VerificationCog(commands.Cog):
                             if channel and isinstance(channel, discord.TextChannel):
                                 msg = await channel.fetch_message(data["warning_message_id"])
                                 await msg.delete()
-                        except():
+                        except Exception:
                             pass
 
                     try:
@@ -347,7 +553,7 @@ class VerificationCog(commands.Cog):
                             "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
                             "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                         )
-                    except():
+                    except Exception:
                         pass
 
                     await member.kick(reason="Failure to verify within 72 hours.")
@@ -378,7 +584,7 @@ class VerificationCog(commands.Cog):
                             )
                             warning_message_id = msg.id
                             warned = True
-                    except():
+                    except Exception:
                         pass
 
                 if warned:
@@ -403,6 +609,68 @@ class VerificationCog(commands.Cog):
     def set_verification_message_id(self, message_id: int):
         self.data["verification_message_id"] = message_id
         self.save_data()
+
+    @commands.guild_only()
+    @commands.command(name="verify", aliases=["v"])
+    async def manual_verify(self, ctx: commands.Context, member: discord.Member):
+        if not ctx.guild or not isinstance(ctx.author, discord.Member):
+            return
+    
+        if not any(role.id == STAFF_ROLE_ID for role in ctx.author.roles):
+            return
+    
+        goobers_role = ctx.guild.get_role(self.GOOBERS_ROLE_ID)
+        
+        if not goobers_role or goobers_role in member.roles:
+            return
+    
+        try:
+            await member.add_roles(goobers_role, reason=f"Manual verification by {ctx.author}")
+    
+            if str(member.id) in self.data["unverified"]:
+                del self.data["unverified"][str(member.id)]
+                self.save_data()
+    
+        except discord.Forbidden:
+            return
+
+        try:
+            await ctx.message.delete()
+            
+        except discord.Forbidden:
+            return
+
+    @commands.guild_only()
+    @commands.command(name="unverify", aliases=["un-verify", "uv", "deverify", "de-verify", "dv"])
+    async def unverify(self, ctx: commands.Context, member: discord.Member):
+        if not ctx.guild or not isinstance(ctx.author, discord.Member):
+            return
+
+        if not any(role.id == STAFF_ROLE_ID for role in ctx.author.roles):
+            return
+
+        goobers_role = ctx.guild.get_role(self.GOOBERS_ROLE_ID)
+
+        if not goobers_role or goobers_role not in member.roles:
+            return
+
+        try:
+            await member.remove_roles(goobers_role, reason=f"Manual de-verification by {ctx.author}")
+
+            self.data["unverified"][str(member.id)] = {
+                "joined_at": datetime.now().isoformat(),
+                "warned": False,
+                "warning_message_id": None
+            }
+            self.save_data()
+
+        except discord.Forbidden:
+            return
+
+        try:
+            await ctx.message.delete()
+        except discord.Forbidden:
+            return
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(VerificationCog(bot))

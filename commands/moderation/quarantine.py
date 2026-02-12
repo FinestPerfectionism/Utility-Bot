@@ -5,7 +5,7 @@ from discord import app_commands
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from typing import Dict
 
 from constants import(
     BOT_OWNER_ID,
@@ -14,17 +14,23 @@ from constants import(
     COLOR_ORANGE,
     COLOR_RED,
 
-    ACCEPTED_EMOJI_ID,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
+    STAFF_ROLE_ID,
+    JUNIOR_ADMINISTRATORS_ROLE_ID,
+    SENIOR_ADMINISTRATORS_ROLE_ID,
+    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
+    JUNIOR_MODERATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
 )
 from core.utils import send_major_error, send_minor_error
+
+from commands.moderation.cases import CasesManager, CaseType
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Quarantine Commands
@@ -42,8 +48,22 @@ class QuarantineCog(commands.Cog):
         self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
         self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
 
+        self.PROTECTED_ROLE_IDS = [
+            STAFF_ROLE_ID,
+            ADMINISTRATORS_ROLE_ID,
+            JUNIOR_ADMINISTRATORS_ROLE_ID,
+            SENIOR_ADMINISTRATORS_ROLE_ID,
+            MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
+            MODERATORS_ROLE_ID,
+            JUNIOR_MODERATORS_ROLE_ID,
+            SENIOR_MODERATORS_ROLE_ID,
+            DIRECTORS_ROLE_ID,
+        ]
+
         self.HOURLY_LIMIT = 5
         self.DAILY_LIMIT = 20
+
+        self.cases_manager = bot.cases_manager
 
     def permission_error(self, custom_text: str):
         class PermissionError(discord.ui.LayoutView):
@@ -117,6 +137,9 @@ class QuarantineCog(commands.Cog):
     def has_role(self, member: discord.Member, role_id: int) -> bool:
         return any(role.id == role_id for role in member.roles)
 
+    def has_protected_role(self, member: discord.Member) -> bool:
+        return any(self.has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
+
     def is_director(self, member: discord.Member) -> bool:
         return self.has_role(member, self.DIRECTORS_ROLE_ID)
 
@@ -141,9 +164,34 @@ class QuarantineCog(commands.Cog):
     def can_remove(self, member: discord.Member) -> bool:
         return self.is_director(member)
 
-    quarantine_group = app_commands.Group(name="quarantine", description="Manage member quarantine.")
+    def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
+        if target.id == moderator.guild.owner_id:
+            return False
 
-    @quarantine_group.command(name="view", description="View all quarantined members.")
+        if moderator.id == moderator.guild.owner_id:
+            return True
+
+        target_roles = [
+            role for role in target.roles
+            if role.id != self.QUARANTINE_ROLE_ID
+        ]
+
+        if not target_roles:
+            return True
+
+        highest_target_role = max(target_roles, key=lambda r: r.position)
+
+        return moderator.top_role.position > highest_target_role.position
+
+    quarantine_group = app_commands.Group(
+        name="quarantine",
+        description="Staff only —— Quarantine management."
+    )
+
+    @quarantine_group.command(
+        name="view",
+        description="View the members in quarantine."
+    )
     async def quarantine_view(self, interaction: discord.Interaction):
         member = interaction.user
         if not isinstance(member, discord.Member):
@@ -194,11 +242,12 @@ class QuarantineCog(commands.Cog):
         self, 
         interaction: discord.Interaction, 
         member: discord.Member,
-        reason: Optional[str] = "No reason provided"
+        reason: str | None = None
     ):
-        
+        reason = reason or "No reason provided"
+
         deniedadd = self.permission_error("You lack the necessary permissions to add members to quarantine.")
-        
+
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -209,17 +258,17 @@ class QuarantineCog(commands.Cog):
             )
             return
 
-        if self.is_director(member):
-            await send_minor_error(
-                interaction,
-                "You cannot quarantine Directors.",
-            )
-            return
-
         if member.id == interaction.user.id:
             await send_minor_error(
                 interaction,
                 "You cannot quarantine yourself.",
+            )
+            return
+
+        if not self.check_hierarchy(actor, member):
+            await send_minor_error(
+                interaction,
+                "You cannot quarantine members with a role ≥ to yours.",
             )
             return
 
@@ -279,6 +328,15 @@ class QuarantineCog(commands.Cog):
             await member.remove_roles(*roles_to_remove, reason=f"Quarantined by {interaction.user}")
             await member.add_roles(quarantine_role, reason=f"Quarantined by {interaction.user}: {reason}")
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.QUARANTINE_ADD,
+                moderator=actor,
+                reason=reason,
+                target_user=member,
+                metadata={"roles_saved": len(saved_roles)}
+            )
+
             embed = discord.Embed(
                 title="Member Quarantined",
                 color=COLOR_RED,
@@ -322,6 +380,17 @@ class QuarantineCog(commands.Cog):
             roles_to_remove = [role for role in moderator.roles if role.id != guild.default_role.id]
             await moderator.remove_roles(*roles_to_remove, reason="Auto-quarantined: Exceeded rate limits")
             await moderator.add_roles(quarantine_role, reason="Auto-quarantined: Exceeded rate limits")
+
+            bot_member = guild.get_member(self.bot.user.id)
+            if bot_member:
+                await self.cases_manager.log_case(
+                    guild=guild,
+                    case_type=CaseType.QUARANTINE_ADD,
+                    moderator=bot_member,
+                    reason="Exceeded quarantine rate limits (auto-quarantine)",
+                    target_user=moderator,
+                    metadata={"roles_saved": len(saved_roles), "auto_quarantine": True}
+                )
         except discord.Forbidden:
             pass
 
@@ -332,7 +401,7 @@ class QuarantineCog(commands.Cog):
         interaction: discord.Interaction, 
         member: discord.Member
     ):
-        
+
         deniedremove = self.permission_error("You lack the necessary permissions to remove members from quarantine.")
 
         actor = interaction.user
@@ -361,7 +430,7 @@ class QuarantineCog(commands.Cog):
         if guild is None:
             return
         quarantine_role = await guild.fetch_role(self.QUARANTINE_ROLE_ID)
-        
+
         try:
             if quarantine_role and quarantine_role in member.roles:
                 await member.remove_roles(quarantine_role, reason=f"Unquarantined by {interaction.user}")
@@ -382,8 +451,17 @@ class QuarantineCog(commands.Cog):
             del self.data["quarantined"][str(member.id)]
             self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.QUARANTINE_REMOVE,
+                moderator=actor,
+                reason="Removed from quarantine",
+                target_user=member,
+                metadata={"roles_restored": len(roles_to_add)}
+            )
+
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Member Unquarantined",
+                title="Member Unquarantined",
                 color=COLOR_GREEN,
                 timestamp=datetime.now()
             )

@@ -17,7 +17,7 @@ from constants import (
 class Role(
     commands.GroupCog,
     name="role",
-    description="Directors only -- Role commands."):
+    description="Directors only —— Role commands."):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         super().__init__()

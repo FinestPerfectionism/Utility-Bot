@@ -35,7 +35,7 @@ from constants import (
 class Proposal(
     commands.GroupCog,
     name="proposal",
-    description="Staff only -- Proposal commands."):
+    description="Staff only —— Proposal commands."):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         super().__init__()
@@ -243,7 +243,7 @@ class Proposal(
         header = (
             f"{EMOJI_STATUS[status_value]} "
             f"**Proposal {status_value.capitalize()}"
-            f"{f' — {EMOJI_FORUM_LOCK_ID} Locking Thread' if lock else ''}**"
+            f"{f' —— {EMOJI_FORUM_LOCK_ID} Locking Thread' if lock else ''}**"
         )
 
         reason_line = reason.value

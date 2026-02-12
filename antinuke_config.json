@@ -1,0 +1,30 @@
+{
+    "enabled": true,
+    "limits": {
+        "channel_delete": {
+            "hourly": 3,
+            "daily": 10
+        },
+        "channel_create": {
+            "hourly": 5,
+            "daily": 15
+        },
+        "channel_update": {
+            "hourly": 10,
+            "daily": 30
+        },
+        "role_delete": {
+            "hourly": 3,
+            "daily": 10
+        },
+        "role_create": {
+            "hourly": 5,
+            "daily": 15
+        },
+        "role_update": {
+            "hourly": 10,
+            "daily": 30
+        }
+    },
+    "log_channel_id": 1437524746781724803
+}

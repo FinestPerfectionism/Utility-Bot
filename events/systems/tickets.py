@@ -14,7 +14,7 @@ from constants import (
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Tickets Handling
+# Tickets System
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class TicketComponents(discord.ui.LayoutView):
@@ -114,14 +114,14 @@ class TicketComponents(discord.ui.LayoutView):
                     return
 
         if ticket_type == "moderator":
-            thread_name = f"ticket--{user.id}"
+            thread_name = f"ticket——{user.id}"
             ping_role_id = MODERATORS_ROLE_ID
         else:
-            thread_name = f"sd-ticket--{user.id}"
+            thread_name = f"sd-ticket——{user.id}"
             ping_role_id = DIRECTORS_ROLE_ID
 
-        mod_name = f"ticket--{user.id}"
-        dir_name = f"sd-ticket--{user.id}"
+        mod_name = f"ticket——{user.id}"
+        dir_name = f"sd-ticket——{user.id}"
 
         for thread in channel.threads:
             if thread.archived:

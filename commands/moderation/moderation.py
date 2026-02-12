@@ -18,17 +18,28 @@ from constants import(
 
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
+    STAFF_ROLE_ID,
+    JUNIOR_ADMINISTRATORS_ROLE_ID,
+    SENIOR_ADMINISTRATORS_ROLE_ID,
+    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
+    JUNIOR_MODERATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
 )
 from core.utils import send_major_error, send_minor_error
 
+from commands.moderation.cases import CasesManager, CaseType
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# AModeration Commands
+# Moderation Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class ModerationCog(commands.Cog):
+class ModerationCog(
+    commands.GroupCog,
+    name="moderation",
+    description="Moderators only —— Moderation commands."
+):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.data_file = "moderation_data.json"
@@ -40,8 +51,22 @@ class ModerationCog(commands.Cog):
         self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
         self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
 
+        self.PROTECTED_ROLE_IDS = [
+            STAFF_ROLE_ID,
+            ADMINISTRATORS_ROLE_ID,
+            JUNIOR_ADMINISTRATORS_ROLE_ID,
+            SENIOR_ADMINISTRATORS_ROLE_ID,
+            MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
+            MODERATORS_ROLE_ID,
+            JUNIOR_MODERATORS_ROLE_ID,
+            SENIOR_MODERATORS_ROLE_ID,
+            DIRECTORS_ROLE_ID,
+        ]
+
         self.HOURLY_LIMIT = 3
         self.DAILY_LIMIT = 5
+
+        self.cases_manager = bot.cases_manager
 
     def permission_error(self, custom_text: str):
         class PermissionError(discord.ui.LayoutView):
@@ -137,6 +162,9 @@ class ModerationCog(commands.Cog):
     def has_role(self, member: discord.Member, role_id: int) -> bool:
         return any(role.id == role_id for role in member.roles)
 
+    def has_protected_role(self, member: discord.Member) -> bool:
+        return any(self.has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
+
     def is_director(self, member: discord.Member) -> bool:
         return self.has_role(member, self.DIRECTORS_ROLE_ID)
 
@@ -161,6 +189,9 @@ class ModerationCog(commands.Cog):
     def can_unban_untimeout(self, member: discord.Member) -> bool:
         return self.is_director(member)
 
+    def can_quarantine(self, member: discord.Member) -> bool:
+        return self.is_senior_moderator(member)
+
     def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
         if target.id == moderator.guild.owner_id:
             return False
@@ -168,7 +199,35 @@ class ModerationCog(commands.Cog):
         if moderator.id == moderator.guild.owner_id:
             return True
 
-        return moderator.top_role > target.top_role
+        if self.is_director(moderator) and self.has_role(target, self.QUARANTINE_ROLE_ID):
+            return True
+
+        target_roles = [
+            role for role in target.roles
+            if role.id != self.QUARANTINE_ROLE_ID
+        ]
+
+        if not target_roles:
+            return True
+
+        highest_target_role = max(target_roles, key=lambda r: r.position)
+
+        return moderator.top_role.position > highest_target_role.position
+
+    def check_can_moderate_target(self, moderator: discord.Member, target: discord.Member) -> tuple[bool, str]:
+        if self.has_protected_role(target):
+            if self.can_quarantine(moderator):
+                return False, "You cannot ban/kick/mute staff members. Use `/quarantine add` instead."
+            else:
+                return False, "You cannot ban/kick/mute staff members."
+
+        if not self.check_hierarchy(moderator, target):
+            if self.can_quarantine(moderator):
+                return False, "You cannot ban/kick/mute members with a role ≥ to yours. Use `/quarantine add` instead."
+            else:
+                return False, "You cannot ban/kick/mute members with a role ≥ to yours."
+
+        return True, ""
 
     async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild):
         if not guild or not self.bot.user:
@@ -192,6 +251,17 @@ class ModerationCog(commands.Cog):
             roles_to_remove = [role for role in moderator.roles if role.id != guild.default_role.id]
             await moderator.remove_roles(*roles_to_remove, reason="Auto-quarantined: Exceeded rate limits")
             await moderator.add_roles(quarantine_role, reason="Auto-quarantined: Exceeded rate limits")
+
+            bot_member = guild.get_member(self.bot.user.id)
+            if bot_member:
+                await self.cases_manager.log_case(
+                    guild=guild,
+                    case_type=CaseType.QUARANTINE_ADD,
+                    moderator=bot_member,
+                    reason="Exceeded moderation rate limits (auto-quarantine)",
+                    target_user=moderator,
+                    metadata={"roles_saved": len(saved_roles), "auto_quarantine": True}
+                )
         except discord.Forbidden:
             pass
 
@@ -209,7 +279,7 @@ class ModerationCog(commands.Cog):
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: Optional[str] = "No reason provided",
+        reason: str = "No reason provided",
         delete_messages: Optional[int] = 0
     ):
         actor = interaction.user
@@ -222,16 +292,13 @@ class ModerationCog(commands.Cog):
             await interaction.response.send_message(view=deniedban, ephemeral=True)
             return
 
-        if self.is_director(member):
-            await send_minor_error(interaction, "You cannot ban Directors.")
-            return
-
-        if not self.check_hierarchy(actor, member):
-            await send_minor_error(interaction, "You cannot ban members with a higher or equal role.")
-            return
-
         if member.id == actor.id:
             await send_minor_error(interaction, "You cannot ban yourself.")
+            return
+
+        can_moderate, error_msg = self.check_can_moderate_target(actor, member)
+        if not can_moderate:
+            await send_minor_error(interaction, error_msg)
             return
 
         guild = interaction.guild
@@ -270,6 +337,15 @@ class ModerationCog(commands.Cog):
             }
             self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.BAN,
+                moderator=actor,
+                reason=reason,
+                target_user=member,
+                metadata={"delete_message_days": delete_messages}
+            )
+
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Member Banned",
                 color=COLOR_RED,
@@ -299,7 +375,7 @@ class ModerationCog(commands.Cog):
         member: discord.Member,
         delete_messages: Optional[int] = 0,
         *,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
@@ -308,13 +384,11 @@ class ModerationCog(commands.Cog):
         if not self.can_moderate(actor):
             return
 
-        if self.is_director(member):
-            return
-
-        if not self.check_hierarchy(actor, member):
-            return
-
         if member.id == actor.id:
+            return
+
+        can_moderate, _ = self.check_can_moderate_target(actor, member)
+        if not can_moderate:
             return
 
         guild = ctx.guild
@@ -345,6 +419,15 @@ class ModerationCog(commands.Cog):
             }
             self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.BAN,
+                moderator=actor,
+                reason=reason,
+                target_user=member,
+                metadata={"delete_message_days": delete_messages}
+            )
+
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Member Banned",
                 color=COLOR_RED,
@@ -372,7 +455,7 @@ class ModerationCog(commands.Cog):
         self,
         interaction: discord.Interaction,
         user: str,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -426,6 +509,14 @@ class ModerationCog(commands.Cog):
                 del self.data["bans"][str(user_to_unban.id)]
                 self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.UNBAN,
+                moderator=actor,
+                reason=reason,
+                target_user=user_to_unban
+            )
+
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} User Unbanned",
                 color=COLOR_GREEN,
@@ -456,7 +547,7 @@ class ModerationCog(commands.Cog):
         ctx: commands.Context,
         user: str,
         *,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
@@ -499,6 +590,14 @@ class ModerationCog(commands.Cog):
                 del self.data["bans"][str(user_to_unban.id)]
                 self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.UNBAN,
+                moderator=actor,
+                reason=reason,
+                target_user=user_to_unban
+            )
+
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} User Unbanned",
                 color=COLOR_GREEN,
@@ -526,7 +625,7 @@ class ModerationCog(commands.Cog):
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -538,16 +637,13 @@ class ModerationCog(commands.Cog):
             await interaction.response.send_message(view=deniedkick, ephemeral=True)
             return
 
-        if self.is_director(member):
-            await send_minor_error(interaction, "You cannot kick Directors.")
-            return
-
-        if not self.check_hierarchy(actor, member):
-            await send_minor_error(interaction, "You cannot kick members with a higher or equal role.")
-            return
-
         if member.id == actor.id:
             await send_minor_error(interaction, "You cannot kick yourself.")
+            return
+
+        can_moderate, error_msg = self.check_can_moderate_target(actor, member)
+        if not can_moderate:
+            await send_minor_error(interaction, error_msg)
             return
 
         guild = interaction.guild
@@ -580,6 +676,14 @@ class ModerationCog(commands.Cog):
             }
             self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.KICK,
+                moderator=actor,
+                reason=reason,
+                target_user=member
+            )
+
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Member Kicked",
                 color=COLOR_ORANGE,
@@ -608,7 +712,7 @@ class ModerationCog(commands.Cog):
         ctx: commands.Context,
         member: discord.Member,
         *,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
@@ -617,13 +721,11 @@ class ModerationCog(commands.Cog):
         if not self.can_moderate(actor):
             return
 
-        if self.is_director(member):
-            return
-
-        if not self.check_hierarchy(actor, member):
-            return
-
         if member.id == actor.id:
+            return
+
+        can_moderate, _ = self.check_can_moderate_target(actor, member)
+        if not can_moderate:
             return
 
         guild = ctx.guild
@@ -647,6 +749,14 @@ class ModerationCog(commands.Cog):
                 "reason": reason
             }
             self.save_data()
+
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.KICK,
+                moderator=actor,
+                reason=reason,
+                target_user=member
+            )
 
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Member Kicked",
@@ -677,7 +787,7 @@ class ModerationCog(commands.Cog):
         interaction: discord.Interaction,
         member: discord.Member,
         duration: str,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -689,16 +799,13 @@ class ModerationCog(commands.Cog):
             await interaction.response.send_message(view=deniedtimeout, ephemeral=True)
             return
 
-        if self.is_director(member):
-            await send_minor_error(interaction, "You cannot timeout Directors.")
-            return
-
-        if not self.check_hierarchy(actor, member):
-            await send_minor_error(interaction, "You cannot timeout members with a higher or equal role.")
-            return
-
         if member.id == actor.id:
             await send_minor_error(interaction, "You cannot timeout yourself.")
+            return
+
+        can_moderate, error_msg = self.check_can_moderate_target(actor, member)
+        if not can_moderate:
+            await send_minor_error(interaction, error_msg)
             return
 
         duration_seconds = self.parse_duration(duration)
@@ -744,6 +851,16 @@ class ModerationCog(commands.Cog):
             }
             self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.TIMEOUT,
+                moderator=actor,
+                reason=reason,
+                target_user=member,
+                duration=duration,
+                metadata={"until": until.isoformat()}
+            )
+
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Member Timed Out",
                 color=COLOR_ORANGE,
@@ -775,7 +892,7 @@ class ModerationCog(commands.Cog):
         member: discord.Member,
         duration: str,
         *,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
@@ -784,13 +901,11 @@ class ModerationCog(commands.Cog):
         if not self.can_moderate(actor):
             return
 
-        if self.is_director(member):
-            return
-
-        if not self.check_hierarchy(actor, member):
-            return
-
         if member.id == actor.id:
+            return
+
+        can_moderate, _ = self.check_can_moderate_target(actor, member)
+        if not can_moderate:
             return
 
         duration_seconds = self.parse_duration(duration)
@@ -826,6 +941,16 @@ class ModerationCog(commands.Cog):
             }
             self.save_data()
 
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.TIMEOUT,
+                moderator=actor,
+                reason=reason,
+                target_user=member,
+                duration=duration,
+                metadata={"until": until.isoformat()}
+            )
+
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Member Timed Out",
                 color=COLOR_ORANGE,
@@ -855,7 +980,7 @@ class ModerationCog(commands.Cog):
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -873,12 +998,24 @@ class ModerationCog(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
+        guild = interaction.guild
+        if not guild:
+            return
+
         try:
             await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
 
             if str(member.id) in self.data["timeouts"]:
                 del self.data["timeouts"][str(member.id)]
                 self.save_data()
+
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.UNTIMEOUT,
+                moderator=actor,
+                reason=reason,
+                target_user=member
+            )
 
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Timeout Removed",
@@ -908,7 +1045,7 @@ class ModerationCog(commands.Cog):
         ctx: commands.Context,
         member: discord.Member,
         *,
-        reason: Optional[str] = "No reason provided"
+        reason: str = "No reason provided"
     ):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
@@ -920,12 +1057,24 @@ class ModerationCog(commands.Cog):
         if not member.is_timed_out():
             return
 
+        guild = ctx.guild
+        if not guild:
+            return
+
         try:
             await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
 
             if str(member.id) in self.data["timeouts"]:
                 del self.data["timeouts"][str(member.id)]
                 self.save_data()
+
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.UNTIMEOUT,
+                moderator=actor,
+                reason=reason,
+                target_user=member
+            )
 
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Timeout Removed",
@@ -976,6 +1125,10 @@ class ModerationCog(commands.Cog):
         if not isinstance(channel, discord.TextChannel):
             return
 
+        guild = interaction.guild
+        if not guild:
+            return
+
         try:
             if member:
                 deleted = await channel.purge(
@@ -984,6 +1137,18 @@ class ModerationCog(commands.Cog):
                 )
             else:
                 deleted = await channel.purge(limit=amount)
+
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.PURGE,
+                moderator=actor,
+                reason=f"Purged {len(deleted)} messages" + (f" from {member}" if member else ""),
+                target_user=member if member else None,
+                metadata={
+                    "deleted_messages": len(deleted),
+                    "channel_id": channel.id
+                }
+            )
 
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Messages Purged",
@@ -1025,6 +1190,10 @@ class ModerationCog(commands.Cog):
         if not isinstance(channel, discord.TextChannel):
             return
 
+        guild = ctx.guild
+        if not guild:
+            return
+
         try:
             if member:
                 deleted = await channel.purge(
@@ -1033,6 +1202,18 @@ class ModerationCog(commands.Cog):
                 )
             else:
                 deleted = await channel.purge(limit=amount)
+
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.PURGE,
+                moderator=actor,
+                reason=f"Purged {len(deleted)} messages" + (f" from {member}" if member else ""),
+                target_user=member if member else None,
+                metadata={
+                    "deleted_messages": len(deleted),
+                    "channel_id": channel.id
+                }
+            )
 
             embed = discord.Embed(
                 title=f"{ACCEPTED_EMOJI_ID} Messages Purged",
@@ -1233,7 +1414,7 @@ class ModerationCog(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /timed-members Command
+    # /mute-list Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="mute-list", aliases=["mutelist", "mutes", "mls", "time-outs", "timeouts", "tls"])

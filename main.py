@@ -41,7 +41,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        log.info("Received shutdown signal -- KeyboardInterrupt")
+        log.info("Received shutdown signal —— KeyboardInterrupt")
     except Exception:
         log.exception("Fatal error during startup")
         sys.exit(1)

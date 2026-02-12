@@ -33,7 +33,7 @@ from constants import (
 class ApplicationsTickets(
     commands.GroupCog,
     name="app-tickets",
-    description="Moderators only -- Applications and tickets commands."
+    description="Moderators only —— Applications and tickets commands."
 ):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -167,7 +167,7 @@ class ApplicationsTickets(
         mod_role = guild.get_role(MODERATORS_ROLE_ID)
         is_mod = mod_role is not None and mod_role in ctx.author.roles
 
-        opener_id = int(channel.name.split("--")[1])
+        opener_id = int(channel.name.split("——")[1])
 
         if not is_mod and ctx.author.id != opener_id:
             await ctx.send(
@@ -305,21 +305,21 @@ class ApplicationsTickets(
             )
             return
 
-        if not channel.name.startswith("ticket--"):
+        if not channel.name.startswith("ticket——"):
             await ctx.send(
                 "This ticket is not a moderator ticket or is already escalated."
             )
             return
 
         try:
-            opener_id = int(channel.name.split("--", 1)[1])
+            opener_id = int(channel.name.split("——", 1)[1])
         except (IndexError, ValueError):
             await ctx.send(
                 "Invalid ticket name format."
             )
             return
 
-        new_name = f"sd-ticket--{opener_id}"
+        new_name = f"sd-ticket——{opener_id}"
         await channel.edit(name=new_name)
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
