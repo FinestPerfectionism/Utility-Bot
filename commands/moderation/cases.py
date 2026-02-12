@@ -14,7 +14,6 @@ from constants import(
     COLOR_ORANGE,
     COLOR_RED,
     COLOR_BLURPLE,
-    COLOR_GREY,
     COLOR_BLACK,
 
     ACCEPTED_EMOJI_ID,
@@ -133,19 +132,19 @@ class CasesManager:
             CaseType.KICK.value: COLOR_ORANGE,
             CaseType.TIMEOUT.value: COLOR_YELLOW,
             CaseType.UNTIMEOUT.value: COLOR_GREEN,
-            CaseType.QUARANTINE_ADD.value: COLOR_GREY,
+            CaseType.QUARANTINE_ADD.value: COLOR_RED,
             CaseType.QUARANTINE_REMOVE.value: COLOR_GREEN,
             CaseType.PURGE.value: COLOR_BLURPLE,
         }
 
         title_map = {
             CaseType.BAN.value: "Member Banned",
-            CaseType.UNBAN.value: "User Unbanned",
+            CaseType.UNBAN.value: "User Un-banned",
             CaseType.KICK.value: "Member Kicked",
-            CaseType.TIMEOUT.value: "Member Timed Out",
-            CaseType.UNTIMEOUT.value: "Timeout Removed",
+            CaseType.TIMEOUT.value: "Member Muted",
+            CaseType.UNTIMEOUT.value: "Memebr Un-muted",
             CaseType.QUARANTINE_ADD.value: "Member Quarantined",
-            CaseType.QUARANTINE_REMOVE.value: "Member Unquarantined",
+            CaseType.QUARANTINE_REMOVE.value: "Member Un-quarantined",
             CaseType.PURGE.value: "Messages Purged",
         }
 
@@ -223,7 +222,7 @@ class CasesManager:
 class CasesCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.cases_manager = bot.cases_manager
+        self.cases_manager = CasesManager(bot)
 
         self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
         self.SENIOR_MODERATORS_ROLE_ID = SENIOR_MODERATORS_ROLE_ID

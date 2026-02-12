@@ -10,6 +10,8 @@ import logging
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class UtilityBot(commands.Bot):
+    cases_manager: CasesManager
+    
     def __init__(self):
         intents = discord.Intents.default()
         intents.guilds = True

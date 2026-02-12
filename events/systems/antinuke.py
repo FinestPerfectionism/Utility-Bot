@@ -2,15 +2,14 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, cast
 from collections import defaultdict
 
 from constants import(
-    DIRECTORS_CHANNEL_ID,
-
     BOT_OWNER_ID,
 
     COLOR_GREEN,
@@ -23,9 +22,11 @@ from constants import(
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
 )
+
+from core.bot import UtilityBot
 from core.utils import send_minor_error
 
-from commands.moderation.cases import CasesManager, CaseType
+from commands.moderation.cases import CaseType
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Anti-Nuke System
@@ -40,20 +41,18 @@ class ActionType:
     ROLE_UPDATE = "role_update"
 
 class AntiNukeCog(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: "UtilityBot"):
         self.bot = bot
         self.config_file = "antinuke_config.json"
         self.config = self.load_config()
-        self.DIRECTORS_CHANNEL_ID = DIRECTORS_CHANNEL_ID
+        self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
+        self.QUARANTINE_ROLE_ID = QUARANTINE_ROLE_ID
 
         self.action_tracker: Dict[int, Dict[str, Dict[str, List[datetime]]]] = defaultdict(
             lambda: defaultdict(lambda: {"hourly": [], "daily": []})
         )
 
-        self.cases_manager = bot.cases_manager
-
-        self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
-        self.QUARANTINE_ROLE_ID = QUARANTINE_ROLE_ID
+        self.cases_manager = cast(UtilityBot, bot).cases_manager
 
     def load_config(self) -> Dict:
         if os.path.exists(self.config_file):
@@ -615,4 +614,4 @@ class AntiNukeCog(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(AntiNukeCog(bot))
+    await bot.add_cog(AntiNukeCog(cast(UtilityBot, bot)))

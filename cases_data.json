@@ -44,7 +44,22 @@
             "metadata": {
                 "roles_saved": 0
             }
+        },
+        {
+            "case_id": 4,
+            "type": "timeout",
+            "guild_id": 1385650154832662688,
+            "moderator_id": 1311394031640776716,
+            "moderator_name": "finestperfectionism",
+            "target_user_id": 1403909200618328115,
+            "target_user_name": "eightyeightepsilons",
+            "reason": "testing",
+            "duration": "1s",
+            "timestamp": "2026-02-12T01:09:46.896689",
+            "metadata": {
+                "until": "2026-02-12T01:09:47.699243+00:00"
+            }
         }
     ],
-    "next_case_id": 4
+    "next_case_id": 5
 }

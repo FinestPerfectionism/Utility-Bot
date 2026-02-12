@@ -5,7 +5,12 @@ from discord import app_commands
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from typing import Optional, Dict, cast
+
+from commands.moderation.cases import CaseType
+
+from core.bot import UtilityBot
+from core.utils import send_major_error, send_minor_error
 
 from constants import(
     COLOR_GREEN,
@@ -27,9 +32,6 @@ from constants import(
     JUNIOR_MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 )
-from core.utils import send_major_error, send_minor_error
-
-from commands.moderation.cases import CasesManager, CaseType
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Commands
@@ -40,7 +42,7 @@ class ModerationCog(
     name="moderation",
     description="Moderators only —— Moderation commands."
 ):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: "UtilityBot"):
         self.bot = bot
         self.data_file = "moderation_data.json"
         self.data = self.load_data()
@@ -66,7 +68,7 @@ class ModerationCog(
         self.HOURLY_LIMIT = 3
         self.DAILY_LIMIT = 5
 
-        self.cases_manager = bot.cases_manager
+        self.cases_manager = cast(UtilityBot, bot).cases_manager
 
     def permission_error(self, custom_text: str):
         class PermissionError(discord.ui.LayoutView):
@@ -1472,4 +1474,4 @@ class ModerationCog(
         await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(ModerationCog(bot))
+    await bot.add_cog(ModerationCog(cast(UtilityBot, bot)))

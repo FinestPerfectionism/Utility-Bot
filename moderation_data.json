@@ -1,0 +1,15 @@
+{
+    "bans": {},
+    "timeouts": {
+        "1403909200618328115": {
+            "timed_out_at": "2026-02-12T01:09:46.896009",
+            "timed_out_by": 1311394031640776716,
+            "reason": "testing",
+            "duration": 1,
+            "until": "2026-02-12T01:09:47.699243+00:00"
+        }
+    },
+    "kicks": {},
+    "rate_limits": {},
+    "quarantined": {}
+}

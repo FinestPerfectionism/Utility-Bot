@@ -2,10 +2,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from core.bot import UtilityBot
+
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Dict
+from typing import Dict, cast
 
 from constants import(
     BOT_OWNER_ID,
@@ -30,14 +32,14 @@ from constants import(
 )
 from core.utils import send_major_error, send_minor_error
 
-from commands.moderation.cases import CasesManager, CaseType
+from commands.moderation.cases import CaseType
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Quarantine Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class QuarantineCog(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: "UtilityBot"):
         self.bot = bot
         self.data_file = "quarantine_data.json"
         self.data = self.load_data()
@@ -63,7 +65,7 @@ class QuarantineCog(commands.Cog):
         self.HOURLY_LIMIT = 5
         self.DAILY_LIMIT = 20
 
-        self.cases_manager = bot.cases_manager
+        self.cases_manager = cast(UtilityBot, bot).cases_manager
 
     def permission_error(self, custom_text: str):
         class PermissionError(discord.ui.LayoutView):
@@ -486,4 +488,4 @@ class QuarantineCog(commands.Cog):
             )
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(QuarantineCog(bot))
+    await bot.add_cog(QuarantineCog(cast(UtilityBot, bot)))
