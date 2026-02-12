@@ -14,6 +14,7 @@ from constants import(
     COLOR_ORANGE,
     COLOR_RED,
     COLOR_BLURPLE,
+    COLOR_GREY,
     COLOR_BLACK,
 
     ACCEPTED_EMOJI_ID,
@@ -38,6 +39,8 @@ class CaseType(str, Enum):
     UNTIMEOUT = "untimeout"
     QUARANTINE_ADD = "quarantine_add"
     QUARANTINE_REMOVE = "quarantine_remove"
+    LOCKDOWN_ADD = "lockdown_add"
+    LOCKDOWN_REMOVE = "lockdown_remove"
     PURGE = "purge"
 
 class CasesManager:
@@ -134,6 +137,8 @@ class CasesManager:
             CaseType.UNTIMEOUT.value: COLOR_GREEN,
             CaseType.QUARANTINE_ADD.value: COLOR_RED,
             CaseType.QUARANTINE_REMOVE.value: COLOR_GREEN,
+            CaseType.LOCKDOWN_ADD.value: COLOR_GREY,
+            CaseType.LOCKDOWN_REMOVE.value: COLOR_GREEN,
             CaseType.PURGE.value: COLOR_BLURPLE,
         }
 
@@ -145,6 +150,8 @@ class CasesManager:
             CaseType.UNTIMEOUT.value: "Memebr Un-muted",
             CaseType.QUARANTINE_ADD.value: "Member Quarantined",
             CaseType.QUARANTINE_REMOVE.value: "Member Un-quarantined",
+            CaseType.LOCKDOWN_ADD.value: "Lockdown Engaged",
+            CaseType.LOCKDOWN_REMOVE.value: "Lockdown Lifted",
             CaseType.PURGE.value: "Messages Purged",
         }
 
@@ -188,6 +195,12 @@ class CasesManager:
 
             if "roles_restored" in metadata:
                 embed.add_field(name="Roles Restored", value=str(metadata["roles_restored"]), inline=True)
+
+            if "channels_locked" in metadata:
+                embed.add_field(name="Channels Locked", value=str(metadata["channels_locked"]), inline=True)
+
+            if "channels_restored" in metadata:
+                embed.add_field(name="Channels Restored", value=str(metadata["channels_restored"]), inline=True)
 
         try:
             await log_channel.send(embed=embed)
@@ -281,7 +294,7 @@ class CasesCog(commands.Cog):
         interaction: discord.Interaction,
         user: Optional[discord.User] = None,
         moderator: Optional[discord.User] = None,
-        case_type: Optional[Literal["ban", "unban", "kick", "timeout", "untimeout", "quarantine", "unquarantine", "purge"]] = None
+        case_type: Optional[Literal["ban", "unban", "kick", "timeout", "untimeout", "quarantine", "unquarantine", "lockdown", "unlockdown", "purge"]] = None
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -313,6 +326,8 @@ class CasesCog(commands.Cog):
             "untimeout": CaseType.UNTIMEOUT.value,
             "quarantine": CaseType.QUARANTINE_ADD.value,
             "unquarantine": CaseType.QUARANTINE_REMOVE.value,
+            "lockdown": CaseType.LOCKDOWN_ADD.value,
+            "unlockdown": CaseType.LOCKDOWN_REMOVE.value,
             "purge": CaseType.PURGE.value,
         }
 
