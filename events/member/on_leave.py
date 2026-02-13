@@ -19,7 +19,7 @@ from constants import (
 # On Leave Event
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class MemberLeaveHandler(commands.Cog):
+class MemberLeaveEvent(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 

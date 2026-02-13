@@ -30,7 +30,7 @@ from constants import (
 # Errors Handling
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class Errors(commands.Cog):
+class ErrorLogger(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         bot.tree.error(self.app_command_error_handler)
@@ -372,7 +372,7 @@ class WrongGuildError(discord.ui.LayoutView):
     container1 = discord.ui.Container(
         discord.ui.TextDisplay(content=(
             f"### {CONTESTED_EMOJI_ID} Error!\n"
-            "-# Wrong guild.\n"
+            "-# Bad command environment.\n"
             "Although you have the necessary permissions to run this command (Bot Owner), using it in this current Guild/DM will not work."
         )),
         accent_color=COLOR_YELLOW,

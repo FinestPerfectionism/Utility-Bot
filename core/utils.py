@@ -87,34 +87,6 @@ def resolve_forum_tags(
     return resolved
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Send Notice Helper
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def send_notice(
-    ctx,
-    action_past: str,
-    action_verb: str,
-    length: str | None = None
-):
-    if length:
-        msg = (
-            f"User {action_past} for {length}. "
-            f"Please use Wick’s Commands instead unless it is preventing you from {action_verb} someone. "
-            f"This message will delete in 60 seconds."
-        )
-    else:
-        msg = (
-            f"User {action_past}."
-            f"Please use Wick’s Commands instead unless it is preventing you from {action_verb} someone. "
-            f"This message will delete in 60 seconds."
-        )
-
-    message = await ctx.send(
-        msg
-    )
-    await message.delete(delay=60)
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Parse Duration Helper
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -149,14 +121,14 @@ def parse_duration(input_str: str) -> timedelta | None:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MinorError(discord.ui.LayoutView):
-    def __init__(self, texts: list[str], subtitle: str = "Argument error."):
+    def __init__(self, texts: list[str], subtitle: str = "Argument error.", title: str = "Error!"):
         super().__init__()
 
         container = discord.ui.Container(accent_color=COLOR_YELLOW)
 
         container.add_item(
             discord.ui.TextDisplay(
-                content=f"### {CONTESTED_EMOJI_ID} Error!\n-# {subtitle}"
+                content=f"### {CONTESTED_EMOJI_ID} {title}\n-# {subtitle}"
             )
         )
 
@@ -172,11 +144,13 @@ class MinorError(discord.ui.LayoutView):
 
         self.add_item(container)
 
+
 class MajorError(discord.ui.LayoutView):
     def __init__(
         self,
         texts: list[str],
-        subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>."
+        subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
+        title: str = "Error!"
     ):
         super().__init__()
 
@@ -184,7 +158,7 @@ class MajorError(discord.ui.LayoutView):
 
         container.add_item(
             discord.ui.TextDisplay(
-                content=f"### {DENIED_EMOJI_ID} Error!\n-# {subtitle}"
+                content=f"### {DENIED_EMOJI_ID} {title}\n-# {subtitle}"
             )
         )
 
@@ -200,15 +174,17 @@ class MajorError(discord.ui.LayoutView):
 
         self.add_item(container)
 
+
 async def send_minor_error(
     interaction: discord.Interaction,
     texts: list[str] | str,
     subtitle: str = "Argument error.",
+    title: str = "Error!"
 ):
     if isinstance(texts, str):
         texts = [texts]
 
-    view = cast(discord.ui.View, MinorError(texts, subtitle))
+    view = cast(discord.ui.View, MinorError(texts, subtitle, title))
 
     if interaction.response.is_done():
         await interaction.followup.send(
@@ -223,15 +199,17 @@ async def send_minor_error(
             ephemeral=True,
         )
 
+
 async def send_major_error(
     interaction: discord.Interaction,
     texts: list[str] | str,
     subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
+    title: str = "Error!"
 ):
     if isinstance(texts, str):
         texts = [texts]
 
-    view = cast(discord.ui.View, MajorError(texts, subtitle))
+    view = cast(discord.ui.View, MajorError(texts, subtitle, title))
 
     if interaction.response.is_done():
         await interaction.followup.send(

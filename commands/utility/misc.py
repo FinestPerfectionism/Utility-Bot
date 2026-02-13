@@ -2,15 +2,34 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from datetime import datetime
+import pytz
+import json
 import random
+from typing import Optional
 
 from core.utils import send_minor_error
 
 from constants import (
+    DIRECTORS_ROLE_ID,
+
     BOT_OWNER_ID,
     HOLY_FATHER_ID,
+
     CAT_SHOOT_EMOJI_ID
 )
+
+USER_TZ_FILE = "user_timezones.json"
+
+try:
+    with open(USER_TZ_FILE, "r") as f:
+        user_timezones = json.load(f)
+except FileNotFoundError:
+    user_timezones = {}
+
+def save_timezones():
+    with open(USER_TZ_FILE, "w") as f:
+        json.dump(user_timezones, f)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Miscellaneous Commands
@@ -35,7 +54,7 @@ class Ping(discord.ui.LayoutView):
             )
         )
 
-class Misc(commands.Cog):
+class MiscCommands(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -108,7 +127,7 @@ class Misc(commands.Cog):
             await send_minor_error(
                 interaction,
                 "This command can only be used in a server.",
-                subtitle="Wrong guild."
+                subtitle="Bad command environment."
             )
             return
 
@@ -134,6 +153,65 @@ class Misc(commands.Cog):
                 "*Click.* You live."
             )
 
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~ti Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="ti")
+    async def timezone(self, ctx: commands.Context, action: Optional[str] = None, user: Optional[discord.Member] = None, tz: Optional[str] = None):
+        if action == "set":
+            if not tz:
+                await ctx.send("Usage: `~ti set {user} {timezone}` or `~ti set {timezone}` for yourself")
+                return
+            if user is None:
+                try:
+                    pytz.timezone(tz)
+                except Exception:
+                    await ctx.send(f"`{tz}` is not a valid timezone.")
+                    return
+                user_timezones[str(ctx.author.id)] = tz
+                save_timezones()
+                await ctx.send(f"Your timezone has been set to **{tz}**.")
+                return
+            if isinstance(ctx.author, discord.Member) and DIRECTORS_ROLE_ID in [role.id for role in ctx.author.roles]:
+                try:
+                    pytz.timezone(tz)
+                except Exception:
+                    await ctx.send(f"`{tz}` is not a valid timezone.")
+                    return
+                user_timezones[str(user.id)] = tz
+                save_timezones()
+                await ctx.send(f"Timezone for {user.mention} set to **{tz}**.")
+            return
+
+        target_user = ctx.author
+        if ctx.message.reference:
+            replied = ctx.message.reference.resolved
+            if isinstance(replied, discord.Message) and isinstance(replied.author, discord.Member):
+                target_user = replied.author
+
+        tz_target = user_timezones.get(str(target_user.id))
+        tz_author = user_timezones.get(str(ctx.author.id))
+
+        if tz_target:
+            time_target = datetime.now(pytz.timezone(tz_target)).strftime("%H:%M")
+            if tz_author:
+                dt_target = datetime.now(pytz.timezone(tz_target))
+                dt_author = datetime.now(pytz.timezone(tz_author))
+                diff_hours = round((dt_target - dt_author).total_seconds() / 3600)
+                if diff_hours == 0:
+                    message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, the same timezone as you!"
+                elif diff_hours > 0:
+                    message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, {diff_hours} hours ahead of you."
+                else:
+                    message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, {abs(diff_hours)} hours behind you."
+            else:
+                message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**."
+        else:
+            message = f"{target_user.mention} does not have a timezone set."
+
+        await ctx.send(message)
+
 async def setup(bot: commands.Bot):
-    cog = Misc(bot)
+    cog = MiscCommands(bot)
     await bot.add_cog(cog)

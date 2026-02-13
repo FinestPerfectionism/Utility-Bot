@@ -38,7 +38,7 @@ from commands.moderation.cases import CaseType
 # Quarantine Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class QuarantineCog(commands.Cog):
+class QuarantineCommands(commands.Cog):
     def __init__(self, bot: "UtilityBot"):
         self.bot = bot
         self.data_file = "quarantine_data.json"
@@ -488,4 +488,4 @@ class QuarantineCog(commands.Cog):
             )
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(QuarantineCog(cast(UtilityBot, bot)))
+    await bot.add_cog(QuarantineCommands(cast(UtilityBot, bot)))

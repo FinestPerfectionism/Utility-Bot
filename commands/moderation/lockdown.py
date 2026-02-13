@@ -29,7 +29,7 @@ from commands.moderation.cases import CaseType
 # Lockdown Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class LockdownCog(commands.Cog):
+class LockdownCommands(commands.Cog):
     def __init__(self, bot: "UtilityBot"):
         self.bot = bot
         self.data_file = "lockdown_data.json"
@@ -436,4 +436,4 @@ class LockdownCog(commands.Cog):
             pass
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(LockdownCog(cast(UtilityBot, bot)))
+    await bot.add_cog(LockdownCommands(cast(UtilityBot, bot)))

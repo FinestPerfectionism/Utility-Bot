@@ -14,7 +14,7 @@ from constants import (
 # Role Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class Role(
+class RoleCommands(
     commands.GroupCog,
     name="role",
     description="Directors only —— Role commands."):
@@ -193,7 +193,7 @@ class Role(
         )
 
 async def setup(bot: commands.Bot):
-    cog = Role(bot)
+    cog = RoleCommands(bot)
     await bot.add_cog(cog)
 
     assert cog.app_command is not None

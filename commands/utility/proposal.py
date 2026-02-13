@@ -32,7 +32,7 @@ from constants import (
 # Proposal Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class Proposal(
+class ProposalCommands(
     commands.GroupCog,
     name="proposal",
     description="Staff only —— Proposal commands."):
@@ -446,7 +446,7 @@ class Proposal(
         await ctx.channel.delete()
 
 async def setup(bot: commands.Bot):
-    cog = Proposal(bot)
+    cog = ProposalCommands(bot)
     await bot.add_cog(cog)
 
     assert cog.app_command is not None

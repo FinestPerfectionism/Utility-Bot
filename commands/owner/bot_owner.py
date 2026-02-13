@@ -39,7 +39,7 @@ async def cog_autocomplete(
             name=cog,
             value=cog
         )
-        for cog in BotOwner.COGS
+        for cog in BotOwnerCommands.COGS
         if current.lower() in cog.lower()
     ][:25]
 
@@ -47,7 +47,7 @@ async def cog_autocomplete(
 # Owner Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class BotOwner(
+class BotOwnerCommands(
     commands.GroupCog,
     name="bot-owner",
     description="Bot Owner only —— Bot owner commands."):
@@ -487,7 +487,7 @@ class BotOwner(
         )
 
 async def setup(bot: commands.Bot):
-    cog = BotOwner(bot)
+    cog = BotOwnerCommands(bot)
     await bot.add_cog(cog)
 
     assert cog.app_command is not None

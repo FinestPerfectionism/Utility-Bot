@@ -12,7 +12,7 @@ from constants import (
 # Command Handling
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class CommandLogging(commands.Cog):
+class CommandLogger(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -122,4 +122,4 @@ class CommandLogging(commands.Cog):
         await channel.send(embed=embed)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(CommandLogging(bot))
+    await bot.add_cog(CommandLogger(bot))

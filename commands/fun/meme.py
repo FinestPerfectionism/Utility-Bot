@@ -31,7 +31,7 @@ IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".webp")
 # Meme Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class Meme(commands.Cog):
+class MemeCommands(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.session: Optional[aiohttp.ClientSession] = None
@@ -127,4 +127,4 @@ class Meme(commands.Cog):
         await interaction.followup.send(embed=embed)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Meme(bot))
+    await bot.add_cog(MemeCommands(bot))

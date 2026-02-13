@@ -30,7 +30,7 @@ from constants import (
 # Applications & Tickets Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class ApplicationsTickets(
+class ApplicationsTicketsCommands(
     commands.GroupCog,
     name="app-tickets",
     description="Moderators only —— Applications and tickets commands."
@@ -323,7 +323,7 @@ class ApplicationsTickets(
         await channel.edit(name=new_name)
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
-        if director_role:
+        if difrector_role:
             await channel.send(director_role.mention)
 
         await ctx.send(
@@ -331,7 +331,7 @@ class ApplicationsTickets(
         )
 
 async def setup(bot: commands.Bot):
-    cog = ApplicationsTickets(bot)
+    cog = ApplicationsTicketsCommands(bot)
     await bot.add_cog(cog)
 
     assert cog.app_command is not None
