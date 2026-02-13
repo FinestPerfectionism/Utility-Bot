@@ -260,7 +260,7 @@ class LockdownCog(commands.Cog):
                             staff_role,
                             send_messages=True,
                             send_messages_in_threads=True,
-                            reason=f"Lockdown activated by {actor} - Staff exemption"
+                            reason=f"Lockdown engaged by {actor} - Staff exemption"
                         )
 
                     channels_locked += 1
@@ -287,7 +287,7 @@ class LockdownCog(commands.Cog):
         )
 
         embed = discord.Embed(
-            title="Lockdown Activated",
+            title="Lockdown Engaged",
             color=COLOR_RED,
             timestamp=datetime.now()
         )
@@ -423,7 +423,7 @@ class LockdownCog(commands.Cog):
                     guild=guild,
                     case_type=CaseType.KICK,
                     moderator=bot_member,
-                    reason="*Server is in lockdown —— automatic kick",
+                    reason="*Server is in lockdown —— automatic kick*",
                     target_user=member,
                     metadata={"auto_kick": True, "lockdown": True}
                 )

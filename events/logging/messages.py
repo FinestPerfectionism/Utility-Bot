@@ -9,6 +9,7 @@ from core.utils import (
     Messageable
 )
 from core.state import AUTOMOD_DELETIONS
+
 from constants import (
     MESSAGE_EDIT_LOG_CHANNEL_ID,
     MESSAGE_DELETE_LOG_CHANNEL_ID,

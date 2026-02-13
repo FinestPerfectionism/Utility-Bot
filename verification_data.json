@@ -1,15 +1,10 @@
 {
     "unverified": {
-        "1311394031640776716": {
-            "joined_at": "2026-02-11T19:51:54.290904",
-            "warned": false,
-            "warning_message_id": null
-        },
         "1432862874430210303": {
             "joined_at": "2026-02-11T22:41:50.404326",
             "warned": false,
             "warning_message_id": null
         }
     },
-    "verification_message_id": 1471144906927116289
+    "verification_message_id": 1471921530647613523
 }

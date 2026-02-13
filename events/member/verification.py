@@ -13,6 +13,7 @@ import numpy as np
 
 from constants import(
     BOT_OWNER_ID,
+    COLOR_BLURPLE,
 
     COLOR_GREEN,
     COLOR_RED,
@@ -79,7 +80,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
         if session["attempts"] >= 3:
             del self.cog.active_captchas[interaction.user.id]
             await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **Verification expeired!**\n"
+                f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired due to too many failed attempts. Please restart.",
                 ephemeral=True
             )
@@ -425,7 +426,6 @@ class VerificationCog(commands.Cog):
             "expires_at": datetime.now() + timedelta(minutes=5),
             "attempts": 0
         }
-        file = discord.File(image_buffer, filename="captcha.png")
 
         verification_cog = self
 
@@ -451,20 +451,43 @@ class VerificationCog(commands.Cog):
                     CaptchaModal(session["code"], verification_cog)
                 )
 
+        file = discord.File(image_buffer, filename="captcha.png")
+
         layout = discord.ui.LayoutView()
-        layout.add_item(discord.ui.TextDisplay(
-            content=(
-                "## CAPTCHA Verification\n"
-                "Enter the code shown in the image above.\n"
-                "- Code is **case-insensitive.**\n"
-                "- You have **5 minutes**."
-            )
-        ))
 
-        layout.add_item(discord.ui.ActionRow(SubmitButton()))
+        container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=(
+                    "## CAPTCHA Verification\n"
+                    "Enter the code shown in the image below.\n"
+                    "- Code is **case-insensitive.**\n"
+                    "- You have **5 minutes**."
+                )
+            ),
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.large
+            ),
+            discord.ui.MediaGallery(
+                discord.MediaGalleryItem(
+                    media="attachment://captcha.png"
+                ),
+            ),
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.large
+            ),
+            discord.ui.ActionRow(SubmitButton()),
+            accent_color=COLOR_BLURPLE,
+        )
 
-        await interaction.response.send_message(view=layout, ephemeral=True)
-        await interaction.followup.send(files=[file], ephemeral=True)
+        layout.add_item(container)
+
+        await interaction.response.send_message(
+            view=layout,
+            files=[file],
+            ephemeral=True
+        )
     
     async def verify_user(self, interaction: discord.Interaction):
         user = interaction.user
