@@ -18,7 +18,6 @@ from constants import(
     COLOR_BLACK,
 
     ACCEPTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 
     DIRECTORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
@@ -232,7 +231,7 @@ class CasesManager:
 
         return cases
 
-class CasesCog(commands.Cog):
+class CasesCommands(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.cases_manager = CasesManager(bot)
@@ -439,4 +438,4 @@ class CasesCog(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(CasesCog(bot))
+    await bot.add_cog(CasesCommands(bot))
