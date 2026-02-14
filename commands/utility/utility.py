@@ -87,108 +87,169 @@ class UtilityCommands(commands.Cog):
     # /leave Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="leave", description="Add or remove personal leave.")
-    @app_commands.describe(choice="Add or Remove", target="target user")
-    async def leave(
+    leave_group = app_commands.Group(
+        name="leave",
+        description="Staff only —— Leave commands."
+    )
+
+    @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
+    @app_commands.describe(target="The user to add personal leave to.")
+    async def leave_add(
         self,
         interaction: discord.Interaction,
-        choice: str,
         target: discord.Member | None = None
     ):
-        invocator = interaction.user
-
-        if not isinstance(invocator, discord.Member):
+        if not interaction.guild:
+            await send_minor_error(
+                interaction,
+                "This command can only be used in a server.",
+                subtitle="Bad command environment."
+            )
             return
 
-        if choice not in ["add", "remove"]:
+        invocator = interaction.user
+        if not isinstance(invocator, discord.Member):
             return
 
         target_member = target or invocator
 
-        if not is_staff(invocator) or not is_staff(target_member):
+        if target_member.bot:
+            await send_minor_error(
+                interaction,
+                "Bots cannot go on personal leave.",
+            )
             return
 
-        if choice == "add":
-            if target and not is_director(invocator):
-                return
-            if not target and not is_director(invocator):
-                return
+        if not is_staff(invocator):
+            await send_minor_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to run this command.",
+                subtitle="No permissions."
+            )
+            return
 
-            base_name = extract_name(target_member.nick or target_member.name)
+        if not is_staff(target_member):
+            await send_minor_error(
+                interaction,
+                "Target must exist within the Goobers Staff Team.",
+            )
+            return
 
-            self.data[str(target_member.id)] = base_name
-            save_data(self.data)
+        if not is_director(invocator):
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to add personal leave to Staff Members.",
+                subtitle="No permissions."
+            )
+            return
 
-            if not interaction.guild:
-                await send_minor_error(
-                    interaction,
-                    "This command can only be used in a server.",
-                    subtitle="Bad command environment."
-                )
-            else:
-                role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
-                if role is None:
-                    await send_major_error(
-                        interaction,
-                        "I could not fetch the Personal Leave role.",
-                        subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
-                    )
-                    return
+        role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
+        if role is None:
+            await send_major_error(
+                interaction,
+                "I could not fetch the Personal Leave role.",
+                subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            )
+            return
 
-                await target_member.add_roles(role)
+        original_nick = target_member.nick or target_member.name
+        self.data[str(target_member.id)] = original_nick
+        save_data(self.data)
 
-            new_nick = f"P. Leave | {base_name}"
+        await target_member.add_roles(role)
 
-            try:
-                await target_member.edit(nick=new_nick)
-            except():
-                alt_nick = f"PL | {base_name}"
-                try:
-                    await target_member.edit(nick=alt_nick)
-                except():
-                    await interaction.response.send_message(
-                        "Unable to update nickname due to length constraints.",
-                        ephemeral=True
-                    )
-                    return
+        new_nick = f"P. Leave | {original_nick}"
 
-            await interaction.response.defer(ephemeral=True)
+        try:
+            await target_member.edit(nick=new_nick)
+        except Exception:
+            await send_major_error(
+                interaction,
+                "I couldn't edit the nickname. This is likely a length issue of the username, but it may be a permission issue.",
+                subtitle="Potentially invalid configuration. Contact the owner."
+            )
+            return
 
-        elif choice == "remove":
-            if target and not is_director(invocator):
-                return
+        await interaction.response.send_message(
+            f"{target_member.mention} has been placed on personal leave.",
+            ephemeral=True
+        )
 
-            stored_name = self.data.get(str(target_member.id))
-            if not stored_name:
-                return
+    @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
+    @app_commands.describe(target="The user to remove personal leave from.")
+    async def leave_remove(
+        self,
+        interaction: discord.Interaction,
+        target: discord.Member | None = None
+    ):
+        if not interaction.guild:
+            await send_minor_error(
+                interaction,
+                "This command can only be used in a server.",
+                subtitle="Bad command environment."
+            )
+            return
 
-            if not interaction.guild:
-                await send_minor_error(
-                    interaction,
-                    "This command can only be used in a server.",
-                    subtitle="Bad command environment."
-                )
-            else:
-                role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
-                if role is None:
-                    await send_major_error(
-                        interaction,
-                        "I could not fetch the Personal Leave role.",
-                        subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
-                    )
-                    return
+        invocator = interaction.user
+        if not isinstance(invocator, discord.Member):
+            return
 
-                await target_member.remove_roles(role)
+        target_member = target or invocator
 
-            try:
-                await target_member.edit(nick=stored_name)
-            except():
-                return
+        if target_member.bot:
+            await send_minor_error(
+                interaction,
+                "Bots cannot go on personal leave.",
+            )
+            return
 
-            self.data.pop(str(target_member.id), None)
-            save_data(self.data)
+        if target and not is_director(invocator):
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to remove personal leave from Staff Members.",
+                subtitle="No permissions."
+            )
+            return
 
-            await interaction.response.defer(ephemeral=True)
+        stored_name = self.data.get(str(target_member.id))
+        if not stored_name:
+            await send_minor_error(
+                interaction,
+                "User is not on personal leave.",
+            )
+            return
+
+        role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
+        if role is None:
+            await send_major_error(
+                interaction,
+                "I could not fetch the Personal Leave role.",
+                subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            )
+            return
+
+        await target_member.remove_roles(role)
+
+        try:
+            await target_member.edit(nick=stored_name)
+        except Exception:
+            await send_major_error(
+                interaction,
+                "I couldn't restore the nickname.",
+                subtitle="Invalid configuration. Contact the owner."
+            )
+            return
+
+        self.data.pop(str(target_member.id), None)
+        save_data(self.data)
+
+        await interaction.response.send_message(
+            f"{target_member.mention} has been removed from personal leave.",
+            ephemeral=True
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # ~ti Command
