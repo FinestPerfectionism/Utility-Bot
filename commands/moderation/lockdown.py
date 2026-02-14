@@ -57,18 +57,6 @@ class LockdownCommands(commands.Cog):
 
         self.cases_manager = cast(UtilityBot, bot).cases_manager
 
-    def permission_error(self, custom_text: str):
-        class PermissionError(discord.ui.LayoutView):
-            container1 = discord.ui.Container(
-                discord.ui.TextDisplay(content=(
-                    f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-                    "-# No permissions.\n"
-                    f"{custom_text}")),
-                accent_color=COLOR_RED,
-            )
-
-        return PermissionError()
-
     def load_data(self) -> Dict:
         if os.path.exists(self.data_file):
             try:
@@ -125,10 +113,11 @@ class LockdownCommands(commands.Cog):
             return
 
         if not self.can_manage_lockdown(member):
-            deniedcommanduse = self.permission_error("You lack the necessary permissions to run this command.")
-            await interaction.response.send_message(
-                view=deniedcommanduse,
-                ephemeral=True
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to run this command.",
+                subtitle="No permissions."
             )
             return
 
@@ -194,10 +183,11 @@ class LockdownCommands(commands.Cog):
             return
 
         if not self.can_manage_lockdown(actor):
-            deniedadd = self.permission_error("You lack the necessary permissions to activate lockdown.")
-            await interaction.response.send_message(
-                view=deniedadd,
-                ephemeral=True
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to activate lockdown.",
+                subtitle="No permissions."
             )
             return
 
@@ -313,10 +303,11 @@ class LockdownCommands(commands.Cog):
             return
 
         if not self.can_manage_lockdown(actor):
-            deniedremove = self.permission_error("You lack the necessary permissions to lift lockdown.")
-            await interaction.response.send_message(
-                view=deniedremove,
-                ephemeral=True
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to lift lockdown.",
+                subtitle="No permissions."
             )
             return
 

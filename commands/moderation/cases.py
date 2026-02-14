@@ -25,7 +25,7 @@ from constants import(
     MODERATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
 )
-from core.utils import send_minor_error
+from core.utils import send_minor_error, send_major_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Management
@@ -242,18 +242,6 @@ class CasesCog(commands.Cog):
         self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
         self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
 
-    def permission_error(self, custom_text: str):
-        class PermissionError(discord.ui.LayoutView):
-            container1 = discord.ui.Container(
-                discord.ui.TextDisplay(content=(
-                    f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-                    "-# No permissions.\n"
-                    f"{custom_text}")),
-                accent_color=COLOR_RED,
-            )
-
-        return PermissionError()
-
     def has_role(self, member: discord.Member, role_id: int) -> bool:
         return any(role.id == role_id for role in member.roles)
 
@@ -301,8 +289,12 @@ class CasesCog(commands.Cog):
             return
 
         if not self.can_view(actor):
-            deniedview = self.permission_error("You lack the necessary permissions to view cases.")
-            await interaction.response.send_message(view=deniedview, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to view cases.",
+                subtitle="No permissions."
+            )
             return
 
         guild = interaction.guild
@@ -426,8 +418,12 @@ class CasesCog(commands.Cog):
             return
 
         if not self.can_configure(actor):
-            deniedconfig = self.permission_error("You lack the necessary permissions to configure cases.")
-            await interaction.response.send_message(view=deniedconfig, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to configure cases.",
+                subtitle="No permissions."
+            )
             return
 
         self.cases_manager.config["log_channel_id"] = channel.id

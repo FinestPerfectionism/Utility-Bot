@@ -453,10 +453,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        deniedunban = self.permission_error("You lack the necessary permissions to unban members.")
-
         if not self.can_unban_untimeout(actor):
-            await interaction.response.send_message(view=deniedunban, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to unban members.",
+                subtitle="No permissions."
+            )
             return
 
         guild = interaction.guild
@@ -623,10 +626,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        deniedkick = self.permission_error("You lack the necessary permissions to kick members.")
-
         if not self.can_moderate(actor):
-            await interaction.response.send_message(view=deniedkick, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to kick members.",
+                subtitle="No permissions."
+            )
             return
 
         if member.id == actor.id:
@@ -785,10 +791,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        deniedtimeout = self.permission_error("You lack the necessary permissions to timeout members.")
-
         if not self.can_moderate(actor):
-            await interaction.response.send_message(view=deniedtimeout, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to timeout members.",
+                subtitle="No permissions."
+            )
             return
 
         if member.id == actor.id:
@@ -978,10 +987,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        denieduntimeout = self.permission_error("You lack the necessary permissions to remove timeouts.")
-
         if not self.can_unban_untimeout(actor):
-            await interaction.response.send_message(view=denieduntimeout, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to remove timeouts.",
+                subtitle="No permissions."
+            )
             return
 
         if not member.is_timed_out():
@@ -1101,10 +1113,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        deniedpurge = self.permission_error("You lack the necessary permissions to purge messages.")
-
         if not self.can_moderate(actor):
-            await interaction.response.send_message(view=deniedpurge, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to purge messages.",
+                subtitle="No permissions."
+            )
             return
 
         if amount < 1 or amount > 100:
@@ -1233,10 +1248,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        deniedview = self.permission_error("You lack the necessary permissions to view bans.")
-
         if not self.can_view(actor):
-            await interaction.response.send_message(view=deniedview, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to view bans.",
+                subtitle="No permissions."
+            )
             return
 
         guild = interaction.guild
@@ -1352,10 +1370,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        deniedview = self.permission_error("You lack the necessary permissions to view timeouts.")
-
         if not self.can_view(actor):
-            await interaction.response.send_message(view=deniedview, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to view timeouts.",
+                subtitle="No permissions."
+            )
             return
 
         guild = interaction.guild
