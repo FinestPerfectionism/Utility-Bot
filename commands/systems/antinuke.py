@@ -5,7 +5,7 @@ from discord.ext import commands
 from datetime import datetime
 from typing import List, TYPE_CHECKING, cast
 
-from core.utils import send_minor_error
+from core.utils import send_major_error, send_minor_error
 
 from constants import(
     ACCEPTED_EMOJI_ID,
@@ -30,18 +30,6 @@ class AntiNukeCommands(commands.Cog):
         self.is_director = antinuke_system.is_director
         self.save_config = antinuke_system.save_config
 
-    def permission_error(self, custom_text: str):
-        class PermissionError(discord.ui.LayoutView):
-            container1 = discord.ui.Container(
-                discord.ui.TextDisplay(content=(
-                    f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-                    "-# No permissions.\n"
-                    f"{custom_text}")),
-                accent_color=COLOR_RED,
-            )
-
-        return PermissionError()
-
     antinuke_group = app_commands.Group(
         name="anti-nuke",
         description="Directors only —— Anti-nuke management."
@@ -57,8 +45,12 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            denied = self.permission_error("You lack the necessary permissions to view anti-nuke settings.")
-            await interaction.response.send_message(view=denied, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to view anti-nuke settings.",
+                subtitle="No permissions."
+            )
             return
 
         enabled = self.config.get("enabled", True)
@@ -108,8 +100,12 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            denied = self.permission_error("You lack the necessary permissions to configure anti-nuke settings.")
-            await interaction.response.send_message(view=denied, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to configure anti-nuke settings.",
+                subtitle="No permissions."
+            )
             return
 
         self.config["enabled"] = not self.config.get("enabled", True)
@@ -144,8 +140,12 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            denied = self.permission_error("You lack the necessary permissions to configure anti-nuke settings.")
-            await interaction.response.send_message(view=denied, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to configure anti-nuke settings.",
+                subtitle="No permissions."
+            )
             return
 
         if action not in self.config["limits"]:
@@ -208,8 +208,12 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            denied = self.permission_error("You lack the necessary permissions to configure anti-nuke settings.")
-            await interaction.response.send_message(view=denied, ephemeral=True)
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to configure anti-nuke settings.",
+                subtitle="No permissions."
+            )
             return
 
         self.config["log_channel_id"] = channel.id

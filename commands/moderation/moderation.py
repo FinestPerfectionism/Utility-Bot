@@ -70,18 +70,6 @@ class ModerationCommands(
 
         self.cases_manager = cast(UtilityBot, bot).cases_manager
 
-    def permission_error(self, custom_text: str):
-        class PermissionError(discord.ui.LayoutView):
-            container1 = discord.ui.Container(
-                discord.ui.TextDisplay(content=(
-                    f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-                    "-# No permissions.\n"
-                    f"{custom_text}")),
-                accent_color=COLOR_RED,
-            )
-
-        return PermissionError()
-
     def parse_duration(self, duration_str: str) -> Optional[int]:
         duration_str = duration_str.lower().strip()
 
@@ -288,11 +276,13 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member):
             return
 
-        deniedban = self.permission_error("You lack the necessary permissions to ban members.")
-
         if not self.can_moderate(actor):
-            await interaction.response.send_message(view=deniedban, ephemeral=True)
-            return
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to ban members.",
+                subtitle="No permissions."
+            )
 
         if member.id == actor.id:
             await send_minor_error(interaction, "You cannot ban yourself.")

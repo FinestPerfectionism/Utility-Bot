@@ -7,13 +7,11 @@ import os
 
 from core.utils import send_minor_error
 
-DIRECTORS_ROLE_ID = 123456789012345678
-PERSONAL_LEAVE_ROLE_ID = 123456789012345678
-STAFF_ROLE_IDS = {
-    111111111111111111,
-    222222222222222222,
-    333333333333333333
-}
+from constants import (
+    DIRECTORS_ROLE_ID,
+    PERSONAL_LEAVE_ROLE_ID,
+    STAFF_ROLE_ID
+)
 
 DATA_FILE = "leave_data.json"
 
@@ -28,7 +26,7 @@ def save_data(data):
         json.dump(data, f)
 
 def is_staff(member: discord.Member):
-    return any(role.id in STAFF_ROLE_IDS for role in member.roles)
+    return any(role.id == STAFF_ROLE_ID for role in member.roles)
 
 def is_director(member: discord.Member):
     return any(role.id == DIRECTORS_ROLE_ID for role in member.roles)

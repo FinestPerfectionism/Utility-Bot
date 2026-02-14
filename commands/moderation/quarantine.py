@@ -17,7 +17,6 @@ from constants import(
     COLOR_RED,
 
     CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
@@ -66,18 +65,6 @@ class QuarantineCommands(commands.Cog):
         self.DAILY_LIMIT = 20
 
         self.cases_manager = cast(UtilityBot, bot).cases_manager
-
-    def permission_error(self, custom_text: str):
-        class PermissionError(discord.ui.LayoutView):
-            container1 = discord.ui.Container(
-                discord.ui.TextDisplay(content=(
-                    f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-                    "-# No permissions.\n"
-                    f"{custom_text}")),
-                accent_color=COLOR_RED,
-            )
-
-        return PermissionError()
 
     def load_data(self) -> Dict:
         if os.path.exists(self.data_file):
@@ -200,11 +187,11 @@ class QuarantineCommands(commands.Cog):
             return
         if not self.can_view(member):
 
-            deniedcommanduse = self.permission_error("You lack the necessary permissions to run this command.")
-
-            await interaction.response.send_message(
-                view=deniedcommanduse,
-                ephemeral=True
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to view quarantined members.",
+                subtitle="No permisisons."
             )
             return
 
@@ -246,17 +233,17 @@ class QuarantineCommands(commands.Cog):
         member: discord.Member,
         reason: str | None = None
     ):
-        reason = reason or "No reason provided"
-
-        deniedadd = self.permission_error("You lack the necessary permissions to add members to quarantine.")
+        reason = reason or f"No reason specified by {interaction.user}."
 
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
         if not self.can_add(actor):
-            await interaction.response.send_message(
-                view=deniedadd,
-                ephemeral=True
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to add members to quarantine.",
+                subtitle="No permisisons."
             )
             return
 
@@ -404,15 +391,15 @@ class QuarantineCommands(commands.Cog):
         member: discord.Member
     ):
 
-        deniedremove = self.permission_error("You lack the necessary permissions to remove members from quarantine.")
-
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
         if not self.can_remove(actor):
-            await interaction.response.send_message(
-                view=deniedremove,
-                ephemeral=True
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to remove members from quarantine.",
+                subtitle="No permisisons."
             )
             return
 
