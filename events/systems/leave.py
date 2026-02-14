@@ -115,9 +115,9 @@ class LeaveComponents(discord.ui.LayoutView):
             ephemeral=True,
         )
 
-class Leave(commands.Cog):
+class LeaveSystem(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Leave(bot))
+    await bot.add_cog(LeaveSystem(bot))

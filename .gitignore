@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.replit
+venv/
+.env
+data/runtime/*
+storage/*.db
+!data/runtime/.gitkeep
+!storage/.gitkeep
+data/configs/antinuke_config.json
+data/configs/cases_config.json
+data/configs/application_state.json
+*.log
+restart_info.json

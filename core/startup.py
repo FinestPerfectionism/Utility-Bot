@@ -12,7 +12,7 @@ from events.systems.applications import ApplicationComponents
 from events.systems.tickets import TicketComponents
 from events.systems.leave import LeaveComponents
 from events.member.verification import (
-    VerificationCog,
+    VerificationHandler,
     VerificationComponents
 )
 
@@ -89,12 +89,12 @@ class Startup(commands.Cog):
 
     async def _handle_verification_layout(self, channel: discord.TextChannel):
         verification_cog = cast(
-            VerificationCog,
-            self.bot.get_cog("VerificationCog")
+            VerificationHandler,
+            self.bot.get_cog("VerificationHandler")
         )
 
         if not verification_cog:
-            log.error("Verification layout skipped: VerificationCog not loaded")
+            log.error("Verification layout skipped: VerificationHandler not loaded")
             return
 
         msg_id = verification_cog.get_verification_message_id()
@@ -142,7 +142,7 @@ class Startup(commands.Cog):
         await self.bot.wait_until_ready()
         verification_cog = None
         while not verification_cog:
-            verification_cog = self.bot.get_cog("VerificationCog")
+            verification_cog = self.bot.get_cog("VerificationHandler")
             if not verification_cog:
                 await asyncio.sleep(0.25)
 

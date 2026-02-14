@@ -4,7 +4,7 @@ from discord.ext import commands
 from datetime import datetime
 from typing import cast
 
-from events.member.verification import VerificationCog
+from events.member.verification import VerificationHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
@@ -16,7 +16,7 @@ class MemberJoinHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        verification_cog = cast(VerificationCog, self.bot.get_cog("VerificationCog"))
+        verification_cog = cast(VerificationHandler, self.bot.get_cog("VerificationHandler"))
         if not verification_cog:
             return
 

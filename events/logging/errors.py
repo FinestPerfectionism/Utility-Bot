@@ -388,4 +388,4 @@ class PermissionError(discord.ui.LayoutView):
     )
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Errors(bot))
+    await bot.add_cog(ErrorLogger(bot))

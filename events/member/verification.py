@@ -159,7 +159,7 @@ class VerificationComponents(discord.ui.LayoutView):
 
         self.add_item(container)
 
-class VerificationCog(commands.Cog):
+class VerificationHandler(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.data_file = "verification_data.json"
@@ -633,4 +633,4 @@ class VerificationCog(commands.Cog):
         self.save_data()
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(VerificationCog(bot))
+    await bot.add_cog(VerificationHandler(bot))

@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from typing import cast
 
-from events.member.verification import VerificationCog
+from events.member.verification import VerificationHandler
 
 from core.state import (
     ACTIVE_APPLICATIONS,
@@ -19,13 +19,13 @@ from constants import (
 # On Leave Event
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class MemberLeaveEvent(commands.Cog):
+class MemberLeaveHandler(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        verification_cog = cast(VerificationCog, self.bot.get_cog("VerificationCog"))
+        verification_cog = cast(VerificationHandler, self.bot.get_cog("VerificationHandler"))
         if verification_cog:
             verification_cog.data["unverified"].pop(str(member.id), None)
             verification_cog.save_data()

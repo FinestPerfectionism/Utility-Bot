@@ -32,6 +32,7 @@ class UtilityBot(commands.Bot):
         log = logging.getLogger("Utility Bot")
     
         priority_load = [
+            "events.systems.antinuke",
             "events.member.verification",  
             "startup"
         ]

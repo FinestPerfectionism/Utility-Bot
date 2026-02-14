@@ -712,9 +712,9 @@ class EditQuestionSelect(ui.Select):
             ephemeral=True
         )
 
-class ApplicationsCog(commands.Cog):
+class ApplicationsSystem(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
 async def setup(bot):
-    await bot.add_cog(ApplicationsCog(bot))
+    await bot.add_cog(ApplicationsSystem(bot))

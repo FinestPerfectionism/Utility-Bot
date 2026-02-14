@@ -30,10 +30,10 @@ TIMEOUT_DURATION = timedelta(days=3)
 WINDOW = timedelta(days=7)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# On Message Event
+# Message Sending
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class MessageHandler(commands.Cog):
+class MessageSendHandler(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -211,4 +211,4 @@ class MessageHandler(commands.Cog):
             await MESSAGE_LOG_QUEUE.put(embed)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(MessageHandler(bot))
+    await bot.add_cog(MessageSendHandler(bot))
