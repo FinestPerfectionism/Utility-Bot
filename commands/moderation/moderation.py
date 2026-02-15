@@ -1139,11 +1139,18 @@ class ModerationCommands(
         try:
             if member:
                 deleted = await channel.purge(
-                    limit=amount,
-                    check=lambda m: m.author.id == member.id
+                    limit=500,
+                    check=lambda m: m.author.id == member.id and (datetime.now() - m.created_at).days < 14,
+                    before=interaction.created_at,
+                    bulk=True
                 )
+                deleted = deleted[:amount]
             else:
-                deleted = await channel.purge(limit=amount)
+                deleted = await channel.purge(
+                    limit=amount,
+                    before=interaction.created_at,
+                    bulk=True
+                )
 
             await self.cases_manager.log_case(
                 guild=guild,

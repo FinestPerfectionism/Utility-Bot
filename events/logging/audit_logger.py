@@ -13,6 +13,10 @@ from constants import (
     COLOR_BLURPLE
 )
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Changes Handling
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
 class AuditLogger(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -276,7 +280,6 @@ class AuditLogger(commands.Cog):
 
         if executor:
             embed.add_field(name="Deleted By", value=f"{executor.name} ({executor.id})", inline=False)
-
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
@@ -286,27 +289,21 @@ class AuditLogger(commands.Cog):
             return
 
         changes = []
-
         
         if before.name != after.name:
             changes.append(("Name", before.name, after.name))
-
         
         if before.color != after.color:
             changes.append(("Color", str(before.color), str(after.color)))
-
         
         if before.position != after.position:
             changes.append(("Position", str(before.position), str(after.position)))
 
-        
         if before.hoist != after.hoist:
             changes.append(("Hoisted", str(before.hoist), str(after.hoist)))
-
         
         if before.mentionable != after.mentionable:
             changes.append(("Mentionable", str(before.mentionable), str(after.mentionable)))
-
         
         if before.permissions != after.permissions:
             before_perms = [perm[0].replace('_', ' ').title() for perm in before.permissions if perm[1]]
@@ -324,13 +321,11 @@ class AuditLogger(commands.Cog):
                         perm_change += "\n"
                     perm_change += f"Removed: {', '.join(removed_perms)}"
                 changes.append(("Permissions", "Changed", perm_change))
-
         
         if hasattr(before, 'icon') and before.icon != after.icon:
             before_icon = "Set" if before.icon else "None"
             after_icon = "Set" if after.icon else "None"
             changes.append(("Icon", before_icon, after_icon))
-
         
         if hasattr(before, 'unicode_emoji'):
             before_emoji = before.unicode_emoji or "None"
@@ -377,49 +372,41 @@ class AuditLogger(commands.Cog):
 
         changes = []
 
-        
         if before.name != after.name:
             changes.append(("Server Name", before.name, after.name))
-
         
         if before.icon != after.icon:
             before_icon = "Set" if before.icon else "None"
             after_icon = "Set" if after.icon else "None"
             changes.append(("Server Icon", before_icon, after_icon))
-
         
         if before.banner != after.banner:
             before_banner = "Set" if before.banner else "None"
             after_banner = "Set" if after.banner else "None"
             changes.append(("Server Banner", before_banner, after_banner))
-
         
         if before.splash != after.splash:
             before_splash = "Set" if before.splash else "None"
             after_splash = "Set" if after.splash else "None"
             changes.append(("Invite Splash", before_splash, after_splash))
-
         
         if before.discovery_splash != after.discovery_splash:
             before_disc = "Set" if before.discovery_splash else "None"
             after_disc = "Set" if after.discovery_splash else "None"
             changes.append(("Discovery Splash", before_disc, after_disc))
-
         
         if before.description != after.description:
             before_desc = before.description or "None"
             after_desc = after.description or "None"
             changes.append(("Description", before_desc, after_desc))
 
-        
         if before.verification_level != after.verification_level:
             changes.append((
                 "Verification Level",
                 str(before.verification_level),
                 str(after.verification_level)
             ))
-
-        
+            
         if before.default_notifications != after.default_notifications:
             changes.append((
                 "Default Notifications",
@@ -435,7 +422,6 @@ class AuditLogger(commands.Cog):
                 str(after.explicit_content_filter)
             ))
 
-        
         if before.afk_channel != after.afk_channel:
             before_afk = before.afk_channel.name if before.afk_channel else "None"
             after_afk = after.afk_channel.name if after.afk_channel else "None"
@@ -459,12 +445,10 @@ class AuditLogger(commands.Cog):
                 str(after.system_channel_flags.value)
             ))
 
-        
         if before.rules_channel != after.rules_channel:
             before_rules = before.rules_channel.name if before.rules_channel else "None"
             after_rules = after.rules_channel.name if after.rules_channel else "None"
             changes.append(("Rules Channel", before_rules, after_rules))
-
         
         if before.public_updates_channel != after.public_updates_channel:
             before_pub = before.public_updates_channel.name if before.public_updates_channel else "None"
@@ -475,7 +459,6 @@ class AuditLogger(commands.Cog):
         if before.preferred_locale != after.preferred_locale:
             changes.append(("Preferred Locale", str(before.preferred_locale), str(after.preferred_locale)))
 
-        
         if hasattr(before, 'premium_progress_bar_enabled'):
             if before.premium_progress_bar_enabled != after.premium_progress_bar_enabled:
                 changes.append((
@@ -483,8 +466,7 @@ class AuditLogger(commands.Cog):
                     str(before.premium_progress_bar_enabled),
                     str(after.premium_progress_bar_enabled)
                 ))
-
-        
+   
         if before.vanity_url_code != after.vanity_url_code:
             before_vanity = before.vanity_url_code or "None"
             after_vanity = after.vanity_url_code or "None"
@@ -498,7 +480,6 @@ class AuditLogger(commands.Cog):
                 f"{after.owner.name} ({after.owner.id})"
             ))
 
-        
         if before.mfa_level != after.mfa_level:
             changes.append(("MFA Level", str(before.mfa_level), str(after.mfa_level)))
 
@@ -532,11 +513,8 @@ class AuditLogger(commands.Cog):
 
         await log_channel.send(embed=embed)
 
-    
-
     @commands.Cog.listener()
     async def on_guild_emojis_update(self, guild, before, after):
-        
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
@@ -546,7 +524,6 @@ class AuditLogger(commands.Cog):
 
         added = after_set - before_set
         removed = before_set - after_set
-
         
         before_dict = {e.id: e for e in before}
         after_dict = {e.id: e for e in after}
@@ -558,7 +535,6 @@ class AuditLogger(commands.Cog):
                 after_emoji = after_dict[emoji_id]
                 if before_emoji.name != after_emoji.name or before_emoji.roles != after_emoji.roles:
                     updated.append((before_emoji, after_emoji))
-
         
         for emoji in added:
             executor = await self.get_executor(guild, discord.AuditLogAction.emoji_create, emoji.id)
@@ -584,7 +560,6 @@ class AuditLogger(commands.Cog):
                 embed.set_thumbnail(url=emoji.url)
 
             await log_channel.send(embed=embed)
-
         
         for emoji in removed:
             executor = await self.get_executor(guild, discord.AuditLogAction.emoji_delete, emoji.id)
@@ -602,7 +577,6 @@ class AuditLogger(commands.Cog):
                 embed.add_field(name="Removed By", value=f"{executor.name} ({executor.id})", inline=False)
 
             await log_channel.send(embed=embed)
-
         
         for before_emoji, after_emoji in updated:
             executor = await self.get_executor(guild, discord.AuditLogAction.emoji_update, after_emoji.id)
@@ -637,13 +611,10 @@ class AuditLogger(commands.Cog):
             if after_emoji.url:
                 embed.set_thumbnail(url=after_emoji.url)
 
-            await log_channel.send(embed=embed)
-
-    
+            await log_channel.send(embed=embed)    
 
     @commands.Cog.listener()
-    async def on_guild_stickers_update(self, guild, before, after):
-        
+    async def on_guild_stickers_update(self, guild, before, after):        
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
@@ -654,7 +625,6 @@ class AuditLogger(commands.Cog):
         added = after_set - before_set
         removed = before_set - after_set
 
-        
         before_dict = {s.id: s for s in before}
         after_dict = {s.id: s for s in after}
 
@@ -667,8 +637,7 @@ class AuditLogger(commands.Cog):
                     before_sticker.description != after_sticker.description or
                     before_sticker.emoji != after_sticker.emoji):
                     updated.append((before_sticker, after_sticker))
-
-        
+                    
         for sticker in added:
             executor = await self.get_executor(guild, discord.AuditLogAction.sticker_create, sticker.id)
 
@@ -689,7 +658,6 @@ class AuditLogger(commands.Cog):
                 embed.add_field(name="Added By", value=f"{executor.name} ({executor.id})", inline=False)
 
             await log_channel.send(embed=embed)
-
         
         for sticker in removed:
             executor = await self.get_executor(guild, discord.AuditLogAction.sticker_delete, sticker.id)
@@ -707,7 +675,6 @@ class AuditLogger(commands.Cog):
                 embed.add_field(name="Removed By", value=f"{executor.name} ({executor.id})", inline=False)
 
             await log_channel.send(embed=embed)
-
         
         for before_sticker, after_sticker in updated:
             executor = await self.get_executor(guild, discord.AuditLogAction.sticker_update, after_sticker.id)
@@ -749,19 +716,44 @@ class AuditLogger(commands.Cog):
                 embed.add_field(name="Updated By", value=f"{executor.name} ({executor.id})", inline=False)
 
             await log_channel.send(embed=embed)
-
-    
-
+            
     @commands.Cog.listener()
     async def on_webhooks_update(self, channel):
-        
         log_channel = await self.get_log_channel(channel.guild)
         if not log_channel:
             return
 
+        executor = None
+        action_type = None
+
+        try:
+            await asyncio.sleep(0.5)
+            async for entry in channel.guild.audit_logs(limit=5):
+                if entry.action in [
+                    discord.AuditLogAction.webhook_create, 
+                    discord.AuditLogAction.webhook_update, 
+                    discord.AuditLogAction.webhook_delete
+                ]:
+                    if hasattr(entry.target, 'channel_id') and entry.target.channel_id == channel.id:
+                        executor = entry.user
+                        action_type = entry.action
+                        break
+        except Exception as e:
+            print(f"Error fetching webhook audit log: {e}")
+
+        if action_type == discord.AuditLogAction.webhook_create:
+            title = "Webhook Created"
+            color = COLOR_GREEN
+        elif action_type == discord.AuditLogAction.webhook_delete:
+            title = "Webhook Deleted"
+            color = COLOR_RED
+        else:
+            title = "Webhook Updated"
+            color = COLOR_BLURPLE
+
         embed = discord.Embed(
-            title="Webhooks Updated",
-            color=COLOR_BLURPLE,
+            title=title,
+            color=color,
             timestamp=datetime.now(UTC)
         )
 
@@ -770,19 +762,14 @@ class AuditLogger(commands.Cog):
             value=f"{channel.name} ({channel.id})",
             inline=False
         )
-        embed.add_field(
-            name="Note",
-            value="Webhooks were created, deleted, or modified in this channel",
-            inline=False
-        )
+
+        if executor:
+            embed.add_field(name="Action By", value=f"{executor.name} ({executor.id})", inline=False)
 
         await log_channel.send(embed=embed)
 
-    
-
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
-        
         log_channel = await self.get_log_channel(invite.guild)
         if not log_channel:
             return
@@ -830,18 +817,45 @@ class AuditLogger(commands.Cog):
 
         await log_channel.send(embed=embed)
 
-    
-
     @commands.Cog.listener()
     async def on_guild_integrations_update(self, guild):
-        
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
 
+        executor = None
+        action_type = None
+        target_name = None
+
+        try:
+            await asyncio.sleep(0.5)
+            async for entry in guild.audit_logs(limit=5):
+                if entry.action in [
+                    discord.AuditLogAction.integration_create,
+                    discord.AuditLogAction.integration_update,
+                    discord.AuditLogAction.integration_delete
+                ]:
+                    executor = entry.user
+                    action_type = entry.action
+                    if hasattr(entry.target, 'name'):
+                        target_name = entry.target.name
+                    break
+        except Exception as e:
+            print(f"Error fetching integration audit log: {e}")
+
+        if action_type == discord.AuditLogAction.integration_create:
+            title = "Integration Added"
+            color = COLOR_GREEN
+        elif action_type == discord.AuditLogAction.integration_delete:
+            title = "Integration Removed"
+            color = COLOR_RED
+        else:
+            title = "Integration Updated"
+            color = COLOR_BLURPLE
+
         embed = discord.Embed(
-            title="Integrations Updated",
-            color=COLOR_BLURPLE,
+            title=title,
+            color=color,
             timestamp=datetime.now(UTC)
         )
 
@@ -850,19 +864,17 @@ class AuditLogger(commands.Cog):
             value=f"{guild.name} ({guild.id})",
             inline=False
         )
-        embed.add_field(
-            name="Note",
-            value="Server integrations (bots, apps) were modified",
-            inline=False
-        )
+
+        if target_name:
+            embed.add_field(name="Integration", value=target_name, inline=False)
+
+        if executor:
+            embed.add_field(name="Action By", value=f"{executor.name} ({executor.id})", inline=False)
 
         await log_channel.send(embed=embed)
 
-    
-
     @commands.Cog.listener()
     async def on_thread_create(self, thread):
-        
         log_channel = await self.get_log_channel(thread.guild)
         if not log_channel:
             return
@@ -944,6 +956,74 @@ class AuditLogger(commands.Cog):
             )
 
         await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        if before.nick != after.nick:
+            log_channel = await self.get_log_channel(after.guild)
+            if not log_channel:
+                return
+
+            executor = await self.get_executor(after.guild, discord.AuditLogAction.member_update, after.id)
+
+            embed = discord.Embed(
+                title="Nickname Changed",
+                color=COLOR_BLURPLE,
+                timestamp=datetime.now(UTC)
+            )
+
+            embed.add_field(name="Member", value=f"{after.name} ({after.id})", inline=False)
+
+            before_nick = before.nick or "None"
+            after_nick = after.nick or "None"
+
+            embed.add_field(
+                name="Nickname Changed",
+                value=f"**Before:** {before_nick}\n**After:** {after_nick}",
+                inline=False
+            )
+
+            if executor:
+                embed.add_field(name="Changed By", value=f"{executor.name} ({executor.id})", inline=False)
+
+            await log_channel.send(embed=embed)
+
+        if before.roles != after.roles:
+            log_channel = await self.get_log_channel(after.guild)
+            if not log_channel:
+                return
+
+            executor = await self.get_executor(after.guild, discord.AuditLogAction.member_role_update, after.id)
+
+            before_role_ids = set(role.id for role in before.roles)
+            after_role_ids = set(role.id for role in after.roles)
+
+            added_roles = [role for role in after.roles if role.id not in before_role_ids and role.name != "@everyone"]
+            removed_roles = [role for role in before.roles if role.id not in after_role_ids and role.name != "@everyone"]
+
+            if not added_roles and not removed_roles:
+                return
+
+            embed = discord.Embed(
+                title="Member Roles Changed",
+                color=COLOR_BLURPLE,
+                timestamp=datetime.now(UTC)
+            )
+
+            embed.add_field(name="Member", value=f"{after.name} ({after.id})", inline=False)
+
+            if added_roles:
+                role_names = ", ".join([role.name for role in added_roles])
+                embed.add_field(name="Roles Added", value=role_names, inline=False)
+
+            if removed_roles:
+                role_names = ", ".join([role.name for role in removed_roles])
+                embed.add_field(name="Roles Removed", value=role_names, inline=False)
+
+            if executor:
+                embed.add_field(name="Changed By", value=f"{executor.name} ({executor.id})", inline=False)
+
+            await log_channel.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(AuditLogger(bot))
