@@ -47,7 +47,9 @@ class AntiNukeSystem(commands.Cog):
             lambda: defaultdict(lambda: {"hourly": [], "daily": []})
         )
 
-        self.cases_manager = cast(UtilityBot, bot).cases_manager
+    @property
+    def cases_manager(self):
+        return cast(UtilityBot, self.bot).cases_manager
 
     def load_config(self) -> Dict:
         if os.path.exists(self.config_file):

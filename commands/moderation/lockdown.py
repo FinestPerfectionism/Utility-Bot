@@ -55,7 +55,9 @@ class LockdownCommands(commands.Cog):
             1434727818280833024,
         ]
 
-        self.cases_manager = cast(UtilityBot, bot).cases_manager
+    @property
+    def cases_manager(self):
+        return cast(UtilityBot, self.bot).cases_manager
 
     def load_data(self) -> Dict:
         if os.path.exists(self.data_file):

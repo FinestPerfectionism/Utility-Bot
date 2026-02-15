@@ -18,9 +18,6 @@ from constants import(
     COLOR_RED,
     COLOR_BLURPLE,
 
-    ACCEPTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
-
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
     MODERATORS_ROLE_ID,
@@ -68,7 +65,9 @@ class ModerationCommands(
         self.HOURLY_LIMIT = 3
         self.DAILY_LIMIT = 5
 
-        self.cases_manager = cast(UtilityBot, bot).cases_manager
+    @property
+    def cases_manager(self):
+        return cast(UtilityBot, self.bot).cases_manager
 
     def parse_duration(self, duration_str: str) -> Optional[int]:
         duration_str = duration_str.lower().strip()
@@ -339,7 +338,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Member Banned",
+                title="Member Banned",
                 color=COLOR_RED,
                 timestamp=datetime.now()
             )
@@ -421,7 +420,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Member Banned",
+                title="Member Banned",
                 color=COLOR_RED,
                 timestamp=datetime.now()
             )
@@ -513,7 +512,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} User Unbanned",
+                title="User Unbanned",
                 color=COLOR_GREEN,
                 timestamp=datetime.now()
             )
@@ -594,7 +593,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} User Unbanned",
+                title="User Unbanned",
                 color=COLOR_GREEN,
                 timestamp=datetime.now()
             )
@@ -683,7 +682,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Member Kicked",
+                title="Member Kicked",
                 color=COLOR_ORANGE,
                 timestamp=datetime.now()
             )
@@ -757,7 +756,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Member Kicked",
+                title="Member Kicked",
                 color=COLOR_ORANGE,
                 timestamp=datetime.now()
             )
@@ -863,7 +862,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Member Timed Out",
+                title="Member Timed Out",
                 color=COLOR_ORANGE,
                 timestamp=datetime.now()
             )
@@ -953,7 +952,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Member Timed Out",
+                title="Member Timed Out",
                 color=COLOR_ORANGE,
                 timestamp=datetime.now()
             )
@@ -1022,7 +1021,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Timeout Removed",
+                title="Timeout Removed",
                 color=COLOR_GREEN,
                 timestamp=datetime.now()
             )
@@ -1081,7 +1080,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Timeout Removed",
+                title="Timeout Removed",
                 color=COLOR_GREEN,
                 timestamp=datetime.now()
             )
@@ -1165,7 +1164,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Messages Purged",
+                title="Messages Purged",
                 color=COLOR_BLURPLE,
                 timestamp=datetime.now()
             )
@@ -1230,7 +1229,7 @@ class ModerationCommands(
             )
 
             embed = discord.Embed(
-                title=f"{ACCEPTED_EMOJI_ID} Messages Purged",
+                title="Messages Purged",
                 color=COLOR_BLURPLE,
                 timestamp=datetime.now()
             )
