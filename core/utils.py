@@ -121,7 +121,7 @@ def parse_duration(input_str: str) -> timedelta | None:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MinorError(discord.ui.LayoutView):
-    def __init__(self, texts: list[str], subtitle: str = "Argument error.", title: str = "Error!"):
+    def __init__(self, texts: list[str], subtitle: str = "Invalid argument.", title: str = "Error!"):
         super().__init__()
 
         container = discord.ui.Container(accent_color=COLOR_YELLOW)
@@ -178,7 +178,7 @@ class MajorError(discord.ui.LayoutView):
 async def send_minor_error(
     interaction: discord.Interaction,
     texts: list[str] | str,
-    subtitle: str = "Argument error.",
+    subtitle: str = "Invalid argument.",
     title: str = "Error!"
 ):
     if isinstance(texts, str):

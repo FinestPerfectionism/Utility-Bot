@@ -15,7 +15,6 @@ from core.utils import (
 
 from constants import (
     BOT_OWNER_ID,
-
     DIRECTORS_ROLE_ID,
     PERSONAL_LEAVE_ROLE_ID,
     STAFF_ROLE_ID,
@@ -42,7 +41,7 @@ def load_data():
 
 def save_data(data):
     with open(DATA_FILE, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=2)
 
 def is_staff(member: discord.Member):
     return any(role.id == STAFF_ROLE_ID for role in member.roles)
@@ -54,6 +53,17 @@ def extract_name(nickname: str):
     if nickname and "|" in nickname:
         return nickname.split("|")[-1].strip()
     return nickname
+
+def can_manage_leave(invocator: discord.Member, target: discord.Member):
+    if not is_staff(invocator):
+        return False
+
+    modifying_other = target.id != invocator.id
+
+    if modifying_other:
+        return is_director(invocator)
+
+    return True
 
 class Ping(discord.ui.LayoutView):
     def __init__(self, ping: int):
@@ -107,6 +117,8 @@ class UtilityCommands(commands.Cog):
             )
             return
 
+        await interaction.response.defer(ephemeral=True)
+
         invocator = interaction.user
         if not isinstance(invocator, discord.Member):
             return
@@ -121,7 +133,7 @@ class UtilityCommands(commands.Cog):
             return
 
         if not is_staff(invocator):
-            await send_minor_error(
+            await send_major_error(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
@@ -136,12 +148,19 @@ class UtilityCommands(commands.Cog):
             )
             return
 
-        if not is_director(invocator):
+        if not can_manage_leave(invocator, target_member):
             await send_major_error(
                 interaction,
                 title="Unauthorized!",
-                texts="You lack the necessary permissions to add personal leave to Staff Members.",
+                texts="You lack the necessary permissions to add personal leave to other Staff Members.",
                 subtitle="No permissions."
+            )
+            return
+
+        if str(target_member.id) in self.data:
+            await send_minor_error(
+                interaction,
+                "User is already on personal leave.",
             )
             return
 
@@ -153,29 +172,95 @@ class UtilityCommands(commands.Cog):
                 subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
             )
             return
-
-        original_nick = target_member.nick or target_member.name
-        self.data[str(target_member.id)] = original_nick
-        save_data(self.data)
-
-        await target_member.add_roles(role)
-
-        new_nick = f"P. Leave | {original_nick}"
-
-        try:
-            await target_member.edit(nick=new_nick)
-        except Exception:
-            await send_major_error(
+            
+        if role in target_member.roles:
+            await send_minor_error(
                 interaction,
-                "I couldn't edit the nickname. This is likely a length issue of the username, but it may be a permission issue.",
-                subtitle="Potentially invalid configuration. Contact the owner."
+                "User already has the Personal Leave role.",
             )
             return
 
-        await interaction.response.send_message(
-            f"{target_member.mention} has been placed on personal leave.",
-            ephemeral=True
-        )
+        original_full_nick = target_member.nick or target_member.name
+        actual_name = extract_name(original_full_nick)
+        new_nick = f"P. Leave | {actual_name}"
+
+        if len(new_nick) > 32:
+            await send_minor_error(
+                interaction,
+                title="Error!",
+                texts="The resulting nickname exceeds Discord's 32 character limit.",
+                subtitle="Invalid operation."
+            )
+            return
+            
+        role_added = False
+        nick_changed = False
+
+        try:
+            await target_member.add_roles(role)
+            role_added = True
+
+            await target_member.edit(nick=new_nick)
+            nick_changed = True
+            
+            self.data[str(target_member.id)] = original_full_nick
+            save_data(self.data)
+
+            if target_member.id == interaction.user.id:
+                await interaction.followup.send(
+                    "You have been placed on personal leave.",
+                    ephemeral=True
+                )
+            else:
+                await interaction.followup.send(
+                    f"{target_member.mention} has been placed on personal leave.",
+                    ephemeral=True
+                )
+
+        except discord.Forbidden:
+            if role_added:
+                try:
+                    await target_member.remove_roles(role)
+                except discord.HTTPException:
+                    pass
+
+            if not role_added:
+                await send_major_error(
+                    interaction,
+                    title="Error!",
+                    texts="I lack the necessary permissions to assign the Personal Leave role.",
+                    subtitle="Invalid configuration. Contact the owner."
+                )
+            elif not nick_changed:
+                if target_member.id == interaction.guild.owner_id:
+                    await send_minor_error(
+                        interaction,
+                        title="Error!",
+                        texts="The role was added, but I cannot change the server owner's nickname. Please change it manually.",
+                    )
+                else:
+                    await send_major_error(
+                        interaction,
+                        title="Error!",
+                        texts="I lack the necessary permissions to change this user's nickname.",
+                        subtitle="Invalid configuration. Contact the owner."
+                    )
+            return
+
+        except discord.HTTPException:
+            if role_added:
+                try:
+                    await target_member.remove_roles(role)
+                except discord.HTTPException:
+                    pass
+
+            await send_major_error(
+                interaction,
+                title="Error!",
+                texts="A Discord API error occurred. Please try again later.",
+                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}> if this persists."
+            )
+            return
 
     @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
@@ -192,6 +277,8 @@ class UtilityCommands(commands.Cog):
             )
             return
 
+        await interaction.response.defer(ephemeral=True)
+
         invocator = interaction.user
         if not isinstance(invocator, discord.Member):
             return
@@ -205,11 +292,27 @@ class UtilityCommands(commands.Cog):
             )
             return
 
-        if target and not is_director(invocator):
+        if not is_staff(invocator):
             await send_major_error(
                 interaction,
                 title="Unauthorized!",
-                texts="You lack the necessary permissions to remove personal leave from Staff Members.",
+                texts="You lack the necessary permissions to run this command.",
+                subtitle="No permissions."
+            )
+            return
+
+        if not is_staff(target_member):
+            await send_minor_error(
+                interaction,
+                "Target must exist within the Goobers Staff Team.",
+            )
+            return
+
+        if not can_manage_leave(invocator, target_member):
+            await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to remove personal leave from other Staff Members.",
                 subtitle="No permissions."
             )
             return
@@ -226,30 +329,88 @@ class UtilityCommands(commands.Cog):
         if role is None:
             await send_major_error(
                 interaction,
-                "I could not fetch the Personal Leave role.",
-                subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+                title="Error!",
+                texts="I could not fetch the Personal Leave role.",
+                subtitle=f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
             )
             return
 
-        await target_member.remove_roles(role)
+        if role not in target_member.roles:
+            self.data.pop(str(target_member.id), None)
+            save_data(self.data)
+            await send_minor_error(
+                interaction,
+                "User does not have the Personal Leave role.",
+            )
+            return
+
+        nickname_error = None
 
         try:
-            await target_member.edit(nick=stored_name)
-        except Exception:
+            await target_member.remove_roles(role)
+
+            current_nick = target_member.nick or target_member.name
+            expected_nick = f"P. Leave | {extract_name(stored_name)}"
+
+            if current_nick == expected_nick:
+                try:
+                    await target_member.edit(nick=stored_name)
+                except discord.Forbidden:
+                    nickname_error = "forbidden"
+                except discord.HTTPException:
+                    nickname_error = "http"
+
+            self.data.pop(str(target_member.id), None)
+            save_data(self.data)
+
+        except discord.Forbidden:
             await send_major_error(
                 interaction,
-                "I couldn't restore the nickname.",
+                title="Error!",
+                texts="I lack the necessary permissions to remove the Personal Leave role.",
                 subtitle="Invalid configuration. Contact the owner."
             )
             return
 
-        self.data.pop(str(target_member.id), None)
-        save_data(self.data)
+        except discord.HTTPException:
+            await send_major_error(
+                interaction,
+                title="Error!",
+                texts="A Discord API error occurred while removing the role. Please try again later.",
+                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            )
+            return
 
-        await interaction.response.send_message(
-            f"{target_member.mention} has been removed from personal leave.",
-            ephemeral=True
-        )
+        if nickname_error == "forbidden":
+            if target_member.id == interaction.guild.owner_id:
+                await send_minor_error(
+                    interaction,
+                    title="Error!",
+                    texts="The role was removed, but I cannot change the server owner's nickname. Please change it back manually.",
+                )
+            else:
+                await send_major_error(
+                    interaction,
+                    title="Error!",
+                    texts="The role was removed, but I lack the necessary permissions to change the nickname. Please change it back manually.",
+                )
+        elif nickname_error == "http":
+            await send_minor_error(
+                interaction,
+                title="Error!",
+                texts="The role was removed, but a Discord API error prevented the nickname from being restored.",
+            )
+        else:
+            if target_member.id == interaction.user.id:
+                await interaction.followup.send(
+                    "You have been removed from personal leave.",
+                    ephemeral=True
+                )
+            else:
+                await interaction.followup.send(
+                    f"{target_member.mention} has been removed from personal leave.",
+                    ephemeral=True
+                )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # ~ti Command
