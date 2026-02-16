@@ -544,10 +544,16 @@ class UtilityCommands(commands.Cog):
     }
 
     @commands.command(name="ti")
-    async def timezone(self, ctx: commands.Context, action: Optional[str] = None, user: Optional[discord.Member] = None, tz: Optional[str] = None):
+    async def timezone(
+        self,
+        ctx: commands.Context,
+        user: Optional[discord.Member] = None,
+        action: Optional[str] = None,
+        tz: Optional[str] = None
+    ):
         if action == "set":
             if not tz:
-                await ctx.send("Usage: `~ti set {user} {timezone}` or `~ti set {timezone}` for yourself")
+                await ctx.send("Usage: `~ti {user} set {timezone}` or `~ti set {timezone}` for yourself")
                 return
             if user is None:
                 resolved_tz = self.resolve_timezone(tz)
