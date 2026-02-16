@@ -579,18 +579,25 @@ class UtilityCommands(commands.Cog):
         tz_target = user_timezones.get(str(target_user.id))
         tz_author = user_timezones.get(str(ctx.author.id))
 
+        if str(target_user.id) == "1436054709700919477":
+            await ctx.send("It’s ∞:∞ for me… or maybe 00:00..? I’m just a robot… I wouldn’t know… 😔")
+            return
+
         if tz_target:
             time_target = datetime.now(pytz.timezone(tz_target)).strftime("%H:%M")
             if tz_author:
                 dt_target = datetime.now(pytz.timezone(tz_target))
                 dt_author = datetime.now(pytz.timezone(tz_author))
                 diff_hours = round((dt_target - dt_author).total_seconds() / 3600)
-                if diff_hours == 0:
-                    message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, the same timezone as you!"
-                elif diff_hours > 0:
-                    message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, {diff_hours} hours ahead of you."
+                if target_user.id == ctx.author.id:
+                    message = f"It is **{time_target}** for {target_user.mention}. Your timezone is **{tz_target}**."
                 else:
-                    message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, {abs(diff_hours)} hours behind you."
+                    if diff_hours == 0:
+                        message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, the same timezone as you!"
+                    elif diff_hours > 0:
+                        message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, {diff_hours} hours ahead of you."
+                    else:
+                        message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, {abs(diff_hours)} hours behind you."
             else:
                 message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**."
         else:
@@ -610,6 +617,17 @@ class UtilityCommands(commands.Cog):
             self.per_page = 20
             self.page = 0
             self.max_page = (len(matches) - 1) // self.per_page
+
+            def update_buttons(self):
+                total_pages = (len(self.members) - 1) // 20
+                no_pagination_needed = len(self.members) <= 20
+    
+                self.first_page.disabled = no_pagination_needed or self.current_page == 0
+                self.previous_page.disabled = no_pagination_needed or self.current_page == 0
+                self.next_page.disabled = no_pagination_needed or self.current_page >= total_pages
+                self.last_page.disabled = no_pagination_needed or self.current_page >= total_pages
+
+                self.update_buttons()
 
         def get_page_content(self) -> str:
             start = self.page * self.per_page
@@ -635,24 +653,64 @@ class UtilityCommands(commands.Cog):
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
         async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             self.page = 0
-            await self.update_message(interaction)
+
+            no_pagination_needed = len(self.matches) <= self.per_page
+            self.first_page.disabled = True
+            self.previous_page.disabled = True
+            self.next_page.disabled = no_pagination_needed or self.page >= self.max_page
+            self.last_page.disabled = no_pagination_needed or self.page >= self.max_page
+
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
         async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             if self.page > 0:
                 self.page -= 1
-            await self.update_message(interaction)
+
+            no_pagination_needed = len(self.matches) <= self.per_page
+            self.first_page.disabled = no_pagination_needed or self.page == 0
+            self.previous_page.disabled = no_pagination_needed or self.page == 0
+            self.next_page.disabled = no_pagination_needed or self.page >= self.max_page
+            self.last_page.disabled = no_pagination_needed or self.page >= self.max_page
+
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
         async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             if self.page < self.max_page:
                 self.page += 1
-            await self.update_message(interaction)
+
+            no_pagination_needed = len(self.matches) <= self.per_page
+            self.first_page.disabled = no_pagination_needed or self.page == 0
+            self.previous_page.disabled = no_pagination_needed or self.page == 0
+            self.next_page.disabled = no_pagination_needed or self.page >= self.max_page
+            self.last_page.disabled = no_pagination_needed or self.page >= self.max_page
+
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
         async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             self.page = self.max_page
-            await self.update_message(interaction)
+
+            no_pagination_needed = len(self.matches) <= self.per_page
+            self.first_page.disabled = no_pagination_needed or self.page == 0
+            self.previous_page.disabled = no_pagination_needed or self.page == 0
+            self.next_page.disabled = True
+            self.last_page.disabled = True
+
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
 
     @commands.command(name="ui")
     async def userinfo(self, ctx: commands.Context, *, user: Optional[str] = None):
@@ -716,11 +774,13 @@ class UtilityCommands(commands.Cog):
         user_index = sorted_members.index(target_user)
         join_order_lines = []
 
+        width = len(str(len(sorted_members)))
+
         for i in range(user_index - 3, user_index + 4):
             if 0 <= i < len(sorted_members):
                 member = sorted_members[i]
                 marker = ">" if member.id == target_user.id else " "
-                join_order_lines.append(f"{i+1}. {marker} {member}")
+                join_order_lines.append(f"{str(i+1).rjust(width)}. {marker} {member}")
 
         join_order_block = "```\n" + "\n".join(join_order_lines) + "\n```"
 
