@@ -416,6 +416,133 @@ class UtilityCommands(commands.Cog):
     # ~ti Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+    def resolve_timezone(self, tz_input: str) -> Optional[str]:
+        if not tz_input:
+            return None
+
+        tz_clean = tz_input.strip()
+
+        if tz_clean in self.TIMEZONE_ALIASES:
+            return self.TIMEZONE_ALIASES[tz_clean]
+
+        for key, value in self.TIMEZONE_ALIASES.items():
+            if key.lower() == tz_clean.lower():
+                return value
+
+        try:
+            pytz.timezone(tz_clean)
+            return tz_clean
+        except Exception:
+            return None
+
+    TIMEZONE_ALIASES = {
+        "Maine": "America/New_York",
+        "Augusta": "America/New_York",
+        "New Hampshire": "America/New_York",
+        "Concord": "America/New_York",
+        "Vermont": "America/New_York",
+        "Montpelier": "America/New_York",
+        "Massachusetts": "America/New_York",
+        "Boston": "America/New_York",
+        "Rhode Island": "America/New_York",
+        "Providence": "America/New_York",
+        "Connecticut": "America/New_York",
+        "Hartford": "America/New_York",
+        "New York": "America/New_York",
+        "Albany": "America/New_York",
+        "New Jersey": "America/New_York",
+        "Trenton": "America/New_York",
+        "Pennsylvania": "America/New_York",
+        "Harrisburg": "America/New_York",
+        "Delaware": "America/New_York",
+        "Dover": "America/New_York",
+        "Maryland": "America/New_York",
+        "Annapolis": "America/New_York",
+        "District of Columbia": "America/New_York",
+        "Washington DC": "America/New_York",
+        "Virginia": "America/New_York",
+        "Richmond": "America/New_York",
+        "North Carolina": "America/New_York",
+        "Raleigh": "America/New_York",
+        "South Carolina": "America/New_York",
+        "Columbia": "America/New_York",
+        "Georgia": "America/New_York",
+        "Atlanta": "America/New_York",
+        "Florida": "America/New_York",
+        "Tallahassee": "America/New_York",
+        "Miami": "America/New_York",
+        "Detroit": "America/Detroit",
+        "Michigan": "America/Detroit",
+
+        "Ohio": "America/New_York",
+        "Indiana": "America/Indiana/Indianapolis",
+        "Kentucky": "America/Kentucky/Louisville",
+        "Tennessee": "America/Chicago",
+        "Missouri": "America/Chicago",
+        "Mississippi": "America/Chicago",
+        "Alabama": "America/Chicago",
+        "Wisconsin": "America/Chicago",
+        "Illinois": "America/Chicago",
+        "Minnesota": "America/Chicago",
+        "Iowa": "America/Chicago",
+        "Louisiana": "America/Chicago",
+        "North Dakota": "America/Chicago",
+        "South Dakota": "America/Chicago",
+        "Kansas": "America/Chicago",
+        "Oklahoma": "America/Chicago",
+        "Texas": "America/Chicago",
+        "Chicago": "America/Chicago",
+        "Dallas": "America/Chicago",
+        "Houston": "America/Chicago",
+        "Minneapolis": "America/Chicago",
+        "St. Louis": "America/Chicago",
+
+        "Montana": "America/Denver",
+        "Helena": "America/Denver",
+        "Wyoming": "America/Denver",
+        "Cheyenne": "America/Denver",
+        "Colorado": "America/Denver",
+        "Denver": "America/Denver",
+        "New Mexico": "America/Denver",
+        "Santa Fe": "America/Denver",
+        "Idaho": "America/Boise",
+        "Boise": "America/Boise",
+        "Utah": "America/Denver",
+        "Salt Lake City": "America/Denver",
+        "Arizona": "America/Phoenix",
+        "Phoenix": "America/Phoenix",
+
+        "California": "America/Los_Angeles",
+        "Sacramento": "America/Los_Angeles",
+        "Los Angeles": "America/Los_Angeles",
+        "San Francisco": "America/Los_Angeles",
+        "Oregon": "America/Los_Angeles",
+        "Salem": "America/Los_Angeles",
+        "Washington": "America/Los_Angeles",
+        "Olympia": "America/Los_Angeles",
+        "Nevada": "America/Los_Angeles",
+        "Carson City": "America/Los_Angeles",
+
+        "Alaska": "America/Anchorage",
+        "Juneau": "America/Anchorage",
+        "Anchorage": "America/Anchorage",
+
+        "Hawaii": "Pacific/Honolulu",
+        "Honolulu": "Pacific/Honolulu",
+
+        "PST": "America/Los_Angeles",
+        "PDT": "America/Los_Angeles",
+        "MST": "America/Denver",
+        "MDT": "America/Denver",
+        "CST": "America/Chicago",
+        "CDT": "America/Chicago",
+        "EST": "America/New_York",
+        "EDT": "America/New_York",
+        "AKST": "America/Anchorage",
+        "AKDT": "America/Anchorage",
+        "HST": "Pacific/Honolulu",
+    }
+
     @commands.command(name="ti")
     async def timezone(self, ctx: commands.Context, action: Optional[str] = None, user: Optional[discord.Member] = None, tz: Optional[str] = None):
         if action == "set":
@@ -423,24 +550,24 @@ class UtilityCommands(commands.Cog):
                 await ctx.send("Usage: `~ti set {user} {timezone}` or `~ti set {timezone}` for yourself")
                 return
             if user is None:
-                try:
-                    pytz.timezone(tz)
-                except Exception:
+                resolved_tz = self.resolve_timezone(tz)
+                if not resolved_tz:
                     await ctx.send(f"`{tz}` is not a valid timezone.")
                     return
-                user_timezones[str(ctx.author.id)] = tz
+
+                user_timezones[str(ctx.author.id)] = resolved_tz
                 save_timezones()
-                await ctx.send(f"Your timezone has been set to **{tz}**.")
+                await ctx.send(f"Your timezone has been set to **{resolved_tz}**.")
                 return
             if isinstance(ctx.author, discord.Member) and DIRECTORS_ROLE_ID in [role.id for role in ctx.author.roles]:
-                try:
-                    pytz.timezone(tz)
-                except Exception:
+                resolved_tz = self.resolve_timezone(tz)
+                if not resolved_tz:
                     await ctx.send(f"`{tz}` is not a valid timezone.")
                     return
-                user_timezones[str(user.id)] = tz
+
+                user_timezones[str(user.id)] = resolved_tz
                 save_timezones()
-                await ctx.send(f"Timezone for {user.mention} set to **{tz}**.")
+                await ctx.send(f"Timezone for {user.mention} set to **{resolved_tz}**.")
             return
 
         target_user = ctx.author
@@ -458,13 +585,6 @@ class UtilityCommands(commands.Cog):
                 dt_target = datetime.now(pytz.timezone(tz_target))
                 dt_author = datetime.now(pytz.timezone(tz_author))
                 diff_hours = round((dt_target - dt_author).total_seconds() / 3600)
-                if target_user.id == ctx.author.id:
-                    if tz_target:
-                        time_target = datetime.now(pytz.timezone(tz_target)).strftime("%H:%M")
-                        await ctx.send(f"It is **{time_target}** for you. Your timezone is **{tz_target}**.")
-                    else:
-                        await ctx.send("You don't have a timezone set.")
-                    return
                 if diff_hours == 0:
                     message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, the same timezone as you!"
                 elif diff_hours > 0:
@@ -482,20 +602,96 @@ class UtilityCommands(commands.Cog):
     # ~ui Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+    class UserMatchPaginator(discord.ui.View):
+        def __init__(self, ctx: commands.Context, matches: list[discord.Member]):
+            super().__init__(timeout=120)
+            self.ctx = ctx
+            self.matches = matches
+            self.per_page = 20
+            self.page = 0
+            self.max_page = (len(matches) - 1) // self.per_page
+
+        def get_page_content(self) -> str:
+            start = self.page * self.per_page
+            end = start + self.per_page
+            page_members = self.matches[start:end]
+
+            lines = [
+                f"{i+1}. {member} ({member.id})"
+                for i, member in enumerate(page_members, start=start)
+            ]
+
+            return (
+                f"**User Matches (Page {self.page+1}/{self.max_page+1})**\n\n"
+                + "\n".join(lines)
+            )
+
+        async def update_message(self, interaction: discord.Interaction):
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
+
+        @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            self.page = 0
+            await self.update_message(interaction)
+
+        @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if self.page > 0:
+                self.page -= 1
+            await self.update_message(interaction)
+
+        @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if self.page < self.max_page:
+                self.page += 1
+            await self.update_message(interaction)
+
+        @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            self.page = self.max_page
+            await self.update_message(interaction)
+
     @commands.command(name="ui")
-    async def userinfo(self, ctx: commands.Context, user: Optional[discord.Member] = None):
+    async def userinfo(self, ctx: commands.Context, *, user: Optional[str] = None):
         if ctx.guild is None:
             return
 
-        target_user = user or cast(discord.Member, ctx.author)
-
-        if not isinstance(target_user, discord.Member):
-            return
+        target_user = cast(discord.Member, ctx.author)
 
         if ctx.message.reference and user is None:
             replied = ctx.message.reference.resolved
             if isinstance(replied, discord.Message) and isinstance(replied.author, discord.Member):
                 target_user = replied.author
+
+        elif user:
+            user_lower = user.lower()
+
+            for member in ctx.guild.members:
+                if member.name.lower() == user_lower or (member.nick and member.nick.lower() == user_lower):
+                    target_user = member
+                    break
+            else:
+                matches = [
+                    m for m in ctx.guild.members
+                    if user_lower in m.name.lower()
+                    or (m.nick and user_lower in m.nick.lower())
+                ]
+
+                if len(matches) == 1:
+                    target_user = matches[0]
+                elif len(matches) > 1:
+                    view = self.UserMatchPaginator(ctx, matches)
+                    await ctx.send(
+                        content=view.get_page_content(),
+                        view=view
+                    )
+                    return
+                else:
+                    await ctx.send("No users matched that name.")
+                    return
 
         guild = ctx.guild
 

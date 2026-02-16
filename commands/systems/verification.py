@@ -3,7 +3,7 @@ from discord.ext import commands
 
 from datetime import datetime
 
-from constants import STAFF_ROLE_ID
+from constants import GOOBERS_ROLE_ID, STAFF_ROLE_ID
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Verification Commands
@@ -12,11 +12,15 @@ from constants import STAFF_ROLE_ID
 class VerificationCommands(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.GOOBERS_ROLE_ID = STAFF_ROLE_ID
+        self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
         self.data = {"unverified": {}}
 
     def save_data(self):
         pass
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~verify/v Commands
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.guild_only()
     @commands.command(name="verify", aliases=["v"])
@@ -49,6 +53,10 @@ class VerificationCommands(commands.Cog):
             await ctx.message.delete()
         except discord.Forbidden:
             return
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~un-verify/uv Commands
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.guild_only()
     @commands.command(
