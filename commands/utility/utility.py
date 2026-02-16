@@ -4,7 +4,7 @@ from discord import app_commands
 
 import json
 import os
-from typing import Optional
+from typing import Optional, cast
 import pytz
 from datetime import datetime
 
@@ -458,6 +458,13 @@ class UtilityCommands(commands.Cog):
                 dt_target = datetime.now(pytz.timezone(tz_target))
                 dt_author = datetime.now(pytz.timezone(tz_author))
                 diff_hours = round((dt_target - dt_author).total_seconds() / 3600)
+                if target_user.id == ctx.author.id:
+                    if tz_target:
+                        time_target = datetime.now(pytz.timezone(tz_target)).strftime("%H:%M")
+                        await ctx.send(f"It is **{time_target}** for you. Your timezone is **{tz_target}**.")
+                    else:
+                        await ctx.send("You don't have a timezone set.")
+                    return
                 if diff_hours == 0:
                     message = f"It is **{time_target}** for {target_user.mention}. Their timezone is **{tz_target}**, the same timezone as you!"
                 elif diff_hours > 0:
@@ -470,6 +477,80 @@ class UtilityCommands(commands.Cog):
             message = f"{target_user.mention} does not have a timezone set."
 
         await ctx.send(message)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ~ui Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="ui")
+    async def userinfo(self, ctx: commands.Context, user: Optional[discord.Member] = None):
+        if ctx.guild is None:
+            return
+
+        target_user = user or cast(discord.Member, ctx.author)
+
+        if not isinstance(target_user, discord.Member):
+            return
+
+        if ctx.message.reference and user is None:
+            replied = ctx.message.reference.resolved
+            if isinstance(replied, discord.Message) and isinstance(replied.author, discord.Member):
+                target_user = replied.author
+
+        guild = ctx.guild
+
+        def format_dt(dt: Optional[datetime]) -> str:
+            if not dt:
+                return "Unknown"
+            return dt.strftime("%A, %B %d, %Y, at %I:%M %p")
+
+        name = target_user.name
+        nickname = target_user.nick or "None"
+        joined_at = format_dt(target_user.joined_at)
+        created_at = format_dt(target_user.created_at)
+
+        roles = [role.mention for role in target_user.roles if role != guild.default_role]
+        roles_display = ", ".join(roles) if roles else "None"
+
+        sorted_members = sorted(
+            guild.members,
+            key=lambda m: m.joined_at or datetime.min
+        )
+
+        user_index = sorted_members.index(target_user)
+        join_order_lines = []
+
+        for i in range(user_index - 3, user_index + 4):
+            if 0 <= i < len(sorted_members):
+                member = sorted_members[i]
+                marker = ">" if member.id == target_user.id else " "
+                join_order_lines.append(f"{i+1}. {marker} {member}")
+
+        join_order_block = "```\n" + "\n".join(join_order_lines) + "\n```"
+
+        embed = discord.Embed(
+            title=f"{target_user} —— {target_user.id}",
+            color=target_user.color
+        )
+
+        embed.description = (
+            f"`      Name:` {name}\n"
+            f"`  Nickname:` {nickname}\n"
+            f"` Joined at:` {joined_at}\n"
+            f"`Created at:` {created_at}\n\n"
+            f"**Roles**\n"
+            f"{roles_display}\n\n"
+            f"**Join Order**\n"
+            f"{join_order_block}"
+        )
+
+        embed.set_thumbnail(url=target_user.display_avatar.url)
+
+        fetched_user = await ctx.bot.fetch_user(target_user.id)
+        if fetched_user.banner:
+            embed.set_image(url=fetched_user.banner.url)
+
+        await ctx.send(embed=embed)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # ~ping Command

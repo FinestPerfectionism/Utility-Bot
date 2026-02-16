@@ -304,7 +304,10 @@ class QuarantineCommands(commands.Cog):
             )
             return
 
-        saved_roles = [role.id for role in member.roles if role.id != guild.default_role.id]
+        saved_roles = [
+            role.id for role in member.roles
+            if role.id not in (guild.default_role.id, self.QUARANTINE_ROLE_ID)
+        ]
 
         self.data["quarantined"][str(member.id)] = {
             "roles": saved_roles,
@@ -346,8 +349,9 @@ class QuarantineCommands(commands.Cog):
                 "I lack the necessary permissions to run this command.",
                 subtitle="Invalid configuration. Contact the owner."
             )
-            del self.data["quarantined"][str(member.id)]
-            self.save_data()
+            if str(member.id) in self.data["quarantined"]:
+                del self.data["quarantined"][str(member.id)]
+                self.save_data()
 
     async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild):
         if not guild or not self.bot.user:
@@ -357,7 +361,10 @@ class QuarantineCommands(commands.Cog):
         if not quarantine_role:
             return
 
-        saved_roles = [role.id for role in moderator.roles if role.id != guild.id]
+        saved_roles = [
+            role.id for role in moderator.roles
+            if role.id not in (guild.default_role.id, self.QUARANTINE_ROLE_ID)
+        ]
 
         self.data["quarantined"][str(moderator.id)] = {
             "roles": saved_roles,
@@ -405,7 +412,20 @@ class QuarantineCommands(commands.Cog):
             )
             return
 
-        if str(member.id) not in self.data["quarantined"]:
+        guild = interaction.guild
+        if not guild:
+            await send_minor_error(
+                interaction,
+                "This command can only be used in a server.",
+                subtitle="Bad command environment."
+            )
+            return
+
+        quarantine_role = guild.get_role(self.QUARANTINE_ROLE_ID)
+        in_json = str(member.id) in self.data["quarantined"]
+        has_role = quarantine_role in member.roles if quarantine_role else False
+
+        if not in_json and not has_role:
             await send_minor_error(
                 interaction,
                 f"{member.mention} is already not quarantined.",
@@ -414,8 +434,8 @@ class QuarantineCommands(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        quarantine_data = self.data["quarantined"][str(member.id)]
-        saved_role_ids = quarantine_data["roles"]
+        quarantine_data = self.data["quarantined"].get(str(member.id))
+        saved_role_ids = quarantine_data["roles"] if quarantine_data else []
 
         guild = interaction.guild
         if guild is None:
@@ -430,6 +450,9 @@ class QuarantineCommands(commands.Cog):
             roles_not_found = []
 
             for role_id in saved_role_ids:
+                if role_id == self.QUARANTINE_ROLE_ID:
+                    continue
+
                 role = guild.get_role(role_id)
                 if role:
                     roles_to_add.append(role)
@@ -439,8 +462,9 @@ class QuarantineCommands(commands.Cog):
             if roles_to_add:
                 await member.add_roles(*roles_to_add, reason=f"Unquarantined by {interaction.user}")
 
-            del self.data["quarantined"][str(member.id)]
-            self.save_data()
+            if str(member.id) in self.data["quarantined"]:
+                del self.data["quarantined"][str(member.id)]
+                self.save_data()
 
             await self.cases_manager.log_case(
                 guild=guild,

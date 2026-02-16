@@ -3,6 +3,8 @@ from discord.ext import commands
 
 from typing import cast
 
+from commands.moderation.quarantine import QuarantineCommands
+
 from events.member.verification import VerificationHandler
 
 from core.state import (
@@ -29,6 +31,15 @@ class MemberLeaveHandler(commands.Cog):
         if verification_cog:
             verification_cog.data["unverified"].pop(str(member.id), None)
             verification_cog.save_data()
+
+        quarantine_cog = cast(
+            QuarantineCommands,
+            self.bot.get_cog("QuarantineCommands")
+        )
+
+        if quarantine_cog:
+            quarantine_cog.data["quarantined"].pop(str(member.id), None)
+            quarantine_cog.save_data()
             
         data = ACTIVE_APPLICATIONS.get(member.id)
         if not data:

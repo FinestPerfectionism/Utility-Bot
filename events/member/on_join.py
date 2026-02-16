@@ -6,6 +6,8 @@ from typing import cast
 
 from events.member.verification import VerificationHandler
 
+from commands.moderation.quarantine import QuarantineCommands
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -30,6 +32,24 @@ class MemberJoinHandler(commands.Cog):
             "warning_message_id": None
         }
         verification_cog.save_data()
+
+        quarantine_cog = cast(
+            QuarantineCommands,
+            self.bot.get_cog("QuarantineCommands")
+        )
+
+        if quarantine_cog and str(member.id) in quarantine_cog.data["quarantined"]:
+            quarantine_role = member.guild.get_role(
+                quarantine_cog.QUARANTINE_ROLE_ID
+            )
+            if quarantine_role:
+                try:
+                    await member.add_roles(
+                        quarantine_role,
+                        reason="Rejoined while quarantined"
+                    )
+                except discord.Forbidden:
+                    pass
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MemberJoinHandler(bot))
