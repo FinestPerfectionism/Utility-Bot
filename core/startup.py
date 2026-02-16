@@ -22,19 +22,23 @@ from core.state import (
 )
 from core.utils import MESSAGE_LOG_QUEUE
 
+from guild_info.staff_proposals import (
+    StaffProposalComponents1,
+    StaffProposalComponents2,
+    StaffProposalComponents3,
+    StaffProposalComponents4
+)
+
 from constants import (
     TICKET_CHANNEL_ID,
     APPLICATION_CHANNEL_ID,
     STAFF_LEAVE_CHANNEL_ID,
+    STAFF_PROPOSALS_INFO_CHANNEL_ID,
     MESSAGE_SEND_LOG_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
 )
 
 log = logging.getLogger("Utility Bot")
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Startup Management
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class Startup(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -87,6 +91,15 @@ class Startup(commands.Cog):
             except Exception:
                 log.exception("Layout '%s' failed to initialize", key)
 
+        staff_proposals_channel = self.bot.get_channel(STAFF_PROPOSALS_INFO_CHANNEL_ID)
+        if isinstance(staff_proposals_channel, discord.TextChannel):
+            try:
+                await self._handle_staff_proposals_layout(staff_proposals_channel)
+            except Exception as e:
+                log.exception(f"Staff proposals layout failed to initialize: {e}")
+        else:
+            log.warning("Staff proposals layout skipped: channel not found")
+
     async def _handle_verification_layout(self, channel: discord.TextChannel):
         verification_cog = cast(
             VerificationHandler,
@@ -122,6 +135,44 @@ class Startup(commands.Cog):
 
         except Exception:
             log.exception("Failed creating verification layout")
+
+    async def _handle_staff_proposals_layout(self, channel: discord.TextChannel):
+        msg_ids = self.layout_message_ids.get("staff_proposals", [])
+
+        all_exist = False
+        if len(msg_ids) == 4:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            msg1 = await channel.send(view=StaffProposalComponents1())
+            msg2 = await channel.send(view=StaffProposalComponents2())
+            msg3 = await channel.send(view=StaffProposalComponents3())
+            msg4 = await channel.send(view=StaffProposalComponents4())
+
+            self.layout_message_ids["staff_proposals"] = [msg1.id, msg2.id, msg3.id, msg4.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(StaffProposalComponents2(), message_id=msg2.id)
+
+            log.info("Staff proposals layout created")
+            log.debug("Staff proposals message_ids=%s", self.layout_message_ids["staff_proposals"])
+        else:
+            self.bot.add_view(StaffProposalComponents2(), message_id=msg_ids[1])
+            log.info("Staff proposals layout restored")
+            log.debug("Staff proposals message_ids=%s", msg_ids)
 
     async def cog_unload(self):
         self.process_message_logs.cancel()
