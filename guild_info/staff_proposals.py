@@ -50,7 +50,7 @@ class TrusteeRolesComponents(discord.ui.LayoutView):
                 "Guild Trustees are members of the community who contribute to the server's improvement through proposals and suggestions.\n\n"
                 "**Tasks**\n"
                 "> *To raise proposals that improve The Goobers server and its community.*\n\n"
-                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. While Trustees can raise proposals, they do not have voting permissions or access to proposal commands. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
+                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. While Trustees can raise proposals. They do not have access to proposal commands and must ask a staff member for assistance. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
         ),
         accent_color=0xfacd6c
     )
@@ -113,7 +113,7 @@ class StaffProposalComponents2(discord.ui.LayoutView):
         discord.ui.TextDisplay(
             content=
                 "# Staff Proposal Information\n"
-                "Staff proposals last updated ___.\n"
+                "Staff proposals last updated <t:1771213225:D>.\n"
                 "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                 "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>."
         ),
@@ -131,7 +131,6 @@ class StaffProposalComponents2(discord.ui.LayoutView):
         ),
         discord.ui.TextDisplay(
             content=
-                "# Staff Proposal Information\n"
                 "Any member of the **Goobers Staff Team** (Administrators + Moderators + Directors + Owner) is allowed to vote in a proposal, or raise a proposal. All proposals are expected to be beneficial to the Goobers and its community.\n"
                 "## Important Information\n"
                 "### Abstaining\n"
