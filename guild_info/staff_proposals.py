@@ -65,7 +65,8 @@ class AdministratorsRoles(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_message(
-            view=AdministratorsRolesComponents()
+            view=AdministratorsRolesComponents(),
+            ephemeral=True
         )
 
 class ModeratorsRoles(discord.ui.Button):
@@ -78,20 +79,22 @@ class ModeratorsRoles(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_message(
-            view=ModeratorsRolesComponents()
+            view=ModeratorsRolesComponents(),
+            ephemeral=True
         )
 
 class TrusteeRoles(discord.ui.Button):
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.success,
+            style=discord.ButtonStyle.primary,
             label="Trustee's Roles",
             custom_id="persistent_trustee_button"
         )
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_message(
-            view=TrusteeRolesComponents()
+            view=TrusteeRolesComponents(),
+            ephemeral=True
         )
 
 class StaffProposalComponents1(discord.ui.LayoutView):    
@@ -103,7 +106,9 @@ class StaffProposalComponents1(discord.ui.LayoutView):
       ),
   )
 
-class StaffProposalComponents2(discord.ui.LayoutView):   
+class StaffProposalComponents2(discord.ui.LayoutView):
+    def __init__(self):
+        super().__init__(timeout=None)
     container = discord.ui.Container(
         discord.ui.TextDisplay(
             content=
