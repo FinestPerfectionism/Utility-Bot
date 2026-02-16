@@ -576,12 +576,13 @@ class UtilityCommands(commands.Cog):
             if isinstance(replied, discord.Message) and isinstance(replied.author, discord.Member):
                 target_user = replied.author
 
+        if str(target_user.id) == "1436054709700919477":
+            message = "It’s ∞:∞ for me… or 00:00..? I’m just a robot… I wouldn’t know… 😞"
+            await ctx.send(message)
+            return
+
         tz_target = user_timezones.get(str(target_user.id))
         tz_author = user_timezones.get(str(ctx.author.id))
-
-        if str(target_user.id) == "1436054709700919477":
-            await ctx.send("It’s ∞:∞ for me… or maybe 00:00..? I’m just a robot… I wouldn’t know… 😔")
-            return
 
         if tz_target:
             time_target = datetime.now(pytz.timezone(tz_target)).strftime("%H:%M")
@@ -618,16 +619,16 @@ class UtilityCommands(commands.Cog):
             self.page = 0
             self.max_page = (len(matches) - 1) // self.per_page
 
-            def update_buttons(self):
-                total_pages = (len(self.members) - 1) // 20
-                no_pagination_needed = len(self.members) <= 20
-    
-                self.first_page.disabled = no_pagination_needed or self.current_page == 0
-                self.previous_page.disabled = no_pagination_needed or self.current_page == 0
-                self.next_page.disabled = no_pagination_needed or self.current_page >= total_pages
-                self.last_page.disabled = no_pagination_needed or self.current_page >= total_pages
+            self.update_buttons()
 
-                self.update_buttons()
+        def update_buttons(self):
+            total_pages = self.max_page
+            no_pagination_needed = len(self.matches) <= self.per_page
+
+            self.first_page.disabled = no_pagination_needed or self.page == 0
+            self.previous_page.disabled = no_pagination_needed or self.page == 0
+            self.next_page.disabled = no_pagination_needed or self.page >= total_pages
+            self.last_page.disabled = no_pagination_needed or self.page >= total_pages
 
         def get_page_content(self) -> str:
             start = self.page * self.per_page
@@ -653,13 +654,7 @@ class UtilityCommands(commands.Cog):
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
         async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             self.page = 0
-
-            no_pagination_needed = len(self.matches) <= self.per_page
-            self.first_page.disabled = True
-            self.previous_page.disabled = True
-            self.next_page.disabled = no_pagination_needed or self.page >= self.max_page
-            self.last_page.disabled = no_pagination_needed or self.page >= self.max_page
-
+            self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
                 view=self
@@ -669,13 +664,7 @@ class UtilityCommands(commands.Cog):
         async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             if self.page > 0:
                 self.page -= 1
-
-            no_pagination_needed = len(self.matches) <= self.per_page
-            self.first_page.disabled = no_pagination_needed or self.page == 0
-            self.previous_page.disabled = no_pagination_needed or self.page == 0
-            self.next_page.disabled = no_pagination_needed or self.page >= self.max_page
-            self.last_page.disabled = no_pagination_needed or self.page >= self.max_page
-
+            self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
                 view=self
@@ -685,13 +674,7 @@ class UtilityCommands(commands.Cog):
         async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             if self.page < self.max_page:
                 self.page += 1
-
-            no_pagination_needed = len(self.matches) <= self.per_page
-            self.first_page.disabled = no_pagination_needed or self.page == 0
-            self.previous_page.disabled = no_pagination_needed or self.page == 0
-            self.next_page.disabled = no_pagination_needed or self.page >= self.max_page
-            self.last_page.disabled = no_pagination_needed or self.page >= self.max_page
-
+            self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
                 view=self
@@ -700,13 +683,7 @@ class UtilityCommands(commands.Cog):
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
         async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
             self.page = self.max_page
-
-            no_pagination_needed = len(self.matches) <= self.per_page
-            self.first_page.disabled = no_pagination_needed or self.page == 0
-            self.previous_page.disabled = no_pagination_needed or self.page == 0
-            self.next_page.disabled = True
-            self.last_page.disabled = True
-
+            self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
                 view=self
