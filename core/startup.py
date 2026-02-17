@@ -43,6 +43,8 @@ class Startup(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.layout_message_ids = load_layout_message_ids()
+
+    async def cog_load(self):
         self.bot.loop.create_task(self._wait_and_restore())
 
     async def _wait_and_restore(self):
