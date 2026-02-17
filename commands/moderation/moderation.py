@@ -232,14 +232,14 @@ class ModerationCommands(
             "roles": saved_roles,
             "quarantined_at": datetime.now().isoformat(),
             "quarantined_by": self.bot.user.id,
-            "reason": "Exceeded moderation rate limits"
+            "reason": "UB Anti-Nuke: exceeded moderation rate limits"
         }
         self.save_data()
 
         try:
             roles_to_remove = [role for role in moderator.roles if role.id != guild.default_role.id]
-            await moderator.remove_roles(*roles_to_remove, reason="Auto-quarantined: Exceeded rate limits")
-            await moderator.add_roles(quarantine_role, reason="Auto-quarantined: Exceeded rate limits")
+            await moderator.remove_roles(*roles_to_remove, reason="UB Anti-Nuke: Exceeded rate limits")
+            await moderator.add_roles(quarantine_role, reason="UB Anti-Nuke: Exceeded rate limits")
 
             bot_member = guild.get_member(self.bot.user.id)
             if bot_member:
@@ -262,15 +262,19 @@ class ModerationCommands(
     @app_commands.describe(
         member="The member to ban.",
         reason="Reason for the ban.",
-        delete_messages="Delete messages from the last N days."
+        delete_messages="Delete messages from the last 1-7 days."
     )
     async def ban_slash(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str = "No reason provided",
+        reason: str | None = None,
         delete_messages: Optional[int] = 0
     ):
+        
+        if reason is None:
+            reason = f"No reason specified by {interaction.user}"
+            
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -366,8 +370,12 @@ class ModerationCommands(
         member: discord.Member,
         delete_messages: Optional[int] = 0,
         *,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+        
+        if reason is None:
+            reason = f"No reason specified by {ctx.author}"
+            
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -446,8 +454,12 @@ class ModerationCommands(
         self,
         interaction: discord.Interaction,
         user: str,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {interaction.user}"
+        
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -541,8 +553,12 @@ class ModerationCommands(
         ctx: commands.Context,
         user: str,
         *,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {ctx.author}"
+        
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -619,8 +635,12 @@ class ModerationCommands(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {interaction.user}"
+        
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -709,8 +729,12 @@ class ModerationCommands(
         ctx: commands.Context,
         member: discord.Member,
         *,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {ctx.author}"
+        
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -784,8 +808,12 @@ class ModerationCommands(
         interaction: discord.Interaction,
         member: discord.Member,
         duration: str,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {interaction.user}"
+        
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -892,8 +920,12 @@ class ModerationCommands(
         member: discord.Member,
         duration: str,
         *,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {ctx.author}"
+            
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -980,8 +1012,12 @@ class ModerationCommands(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {interaction.user}"
+            
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -1048,8 +1084,12 @@ class ModerationCommands(
         ctx: commands.Context,
         member: discord.Member,
         *,
-        reason: str = "No reason provided"
+        reason: str | None = None
     ):
+
+        if reason is None:
+            reason = f"No reason specified by {ctx.author}"
+            
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return

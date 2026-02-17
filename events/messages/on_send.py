@@ -64,7 +64,7 @@ class MessageSendHandler(commands.Cog):
                     if isinstance(member, discord.Member):
                         await member.timeout(
                             TIMEOUT_DURATION,
-                            reason="UB Auto-Moderation. Night night to them.",
+                            reason="UB Auto-Moderation: night night",
                         )
                         await message.channel.send(
                             f"{message.author.mention} Alright bro, I've given you *five fucking warnings* "

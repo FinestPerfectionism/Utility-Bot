@@ -370,14 +370,14 @@ class QuarantineCommands(commands.Cog):
             "roles": saved_roles,
             "quarantined_at": datetime.now().isoformat(),
             "quarantined_by": self.bot.user.id,
-            "reason": "Exceeded quarantine rate limits"
+            "reason": "UB Anti-Nuke: exceeded quarantine rate limits"
         }
         self.save_data()
 
         try:
             roles_to_remove = [role for role in moderator.roles if role.id != guild.default_role.id]
-            await moderator.remove_roles(*roles_to_remove, reason="Auto-quarantined: Exceeded rate limits")
-            await moderator.add_roles(quarantine_role, reason="Auto-quarantined: Exceeded rate limits")
+            await moderator.remove_roles(*roles_to_remove, reason="UB Anti-Nuke: exceeded rate limits")
+            await moderator.add_roles(quarantine_role, reason="UB Anti-Nuke: exceeded rate limits")
 
             bot_member = guild.get_member(self.bot.user.id)
             if bot_member:

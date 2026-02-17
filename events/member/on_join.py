@@ -46,7 +46,7 @@ class MemberJoinHandler(commands.Cog):
                 try:
                     await member.add_roles(
                         quarantine_role,
-                        reason="Rejoined while quarantined"
+                        reason="UB Quarantine: rejoined while quarantined"
                     )
                 except discord.Forbidden:
                     pass

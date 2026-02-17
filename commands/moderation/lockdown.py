@@ -162,7 +162,7 @@ class LockdownCommands(commands.Cog):
         )
         embed.add_field(
             name="Reason",
-            value=self.data["reason"] or "No reason provided",
+            value=self.data["reason"] or f"No reason specified by {interaction.user}",
             inline=False
         )
 
@@ -178,7 +178,7 @@ class LockdownCommands(commands.Cog):
         interaction: discord.Interaction,
         reason: str | None = None
     ):
-        reason = reason or "No reason provided"
+        reason = reason or f"No reason specified by {interaction.user}"
 
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -244,7 +244,7 @@ class LockdownCommands(commands.Cog):
                         create_private_threads=False,
                         connect=False,
                         speak=False,
-                        reason=f"Lockdown activated by {actor}"
+                        reason=f"Lockdown engaged by {actor}"
                     )
 
                     if isinstance(channel, discord.TextChannel):

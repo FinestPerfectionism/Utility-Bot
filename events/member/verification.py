@@ -505,7 +505,7 @@ class VerificationHandler(commands.Cog):
             return
 
         try:
-            await user.add_roles(goobers_role, reason="Passed verification")
+            await user.add_roles(goobers_role, reason="UB Verification: passed verification")
 
             if str(user.id) in self.data["unverified"]:
                 user_data = self.data["unverified"][str(user.id)]
@@ -578,7 +578,7 @@ class VerificationHandler(commands.Cog):
                     except Exception:
                         pass
 
-                    await member.kick(reason="Failure to verify within 72 hours.")
+                    await member.kick(reason="UB Verification: failure to verify within 72 hours")
                     to_remove.append(user_id)
 
                 except discord.Forbidden:

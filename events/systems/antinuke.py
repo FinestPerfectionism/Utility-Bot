@@ -167,8 +167,8 @@ class AntiNukeSystem(commands.Cog):
 
         try:
             roles_to_remove = [role for role in member.roles if role.id != guild.default_role.id]
-            await member.remove_roles(*roles_to_remove, reason=f"Anti-nuke: Exceeded {action_type} {limit_type} limits")
-            await member.add_roles(quarantine_role, reason=f"Anti-nuke: {action_type} {limit_type} limit exceeded")
+            await member.remove_roles(*roles_to_remove, reason=f"UB Anti-Nuke: Exceeded {action_type} {limit_type} limits")
+            await member.add_roles(quarantine_role, reason=f"UB Anti-Nuke: {action_type} {limit_type} limit exceeded")
 
             bot_member = guild.get_member(self.bot.user.id) if self.bot.user else None
             if bot_member:
