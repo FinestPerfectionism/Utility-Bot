@@ -5,6 +5,8 @@ from datetime import datetime, UTC
 import asyncio
 
 from constants import (
+    DIRECTORSHIP_CATEGORY_ID,
+
     CHANGE_LOG_CHANNEL_ID,
 
     COLOR_RED,
@@ -28,13 +30,20 @@ class AuditLogger(commands.Cog):
             print(f"Warning: Logging channel {self.log_channel_id} not found in {guild.name}")
         return channel
 
+    def is_directorship_channel(self, channel):
+        if hasattr(channel, 'category_id') and channel.category_id == DIRECTORSHIP_CATEGORY_ID:
+            return True
+        if hasattr(channel, 'category') and channel.category and channel.category.id == DIRECTORSHIP_CATEGORY_ID:
+            return True
+        return False
+
     async def get_executor(self, guild, action_type, target_id=None):
         try:
             await asyncio.sleep(0.5)
             async for entry in guild.audit_logs(limit=10, action=action_type):
                 if target_id is None or entry.target.id == target_id:
                     return entry.user
-        except():
+        except Exception:
             pass
         return None
 
@@ -51,28 +60,56 @@ class AuditLogger(commands.Cog):
 
         return "\n".join(perms) if perms else "None"
 
-    def format_overwrites(self, overwrites):
-        if not overwrites:
-            return "None"
+    def get_overwrite_changes(self, before_overwrites, after_overwrites):
+        changes = []
 
-        result = []
-        for target, overwrite in overwrites.items():
+        all_targets = set(before_overwrites.keys()) | set(after_overwrites.keys())
+
+        for target in all_targets:
+            before_ow = before_overwrites.get(target)
+            after_ow = after_overwrites.get(target)
+
             target_type = "Role" if isinstance(target, discord.Role) else "Member"
             target_name = target.name if hasattr(target, 'name') else str(target)
+            target_id = target.id if hasattr(target, 'id') else "Unknown"
 
-            perms = []
-            for perm, value in overwrite:
-                if value is not None:
-                    status = "Allow" if value else "Deny"
-                    perms.append(f"{perm.replace('_', ' ').title()}: {status}")
+            if before_ow is None:
+                perms = []
+                for perm, value in after_ow:
+                    if value is not None:
+                        status = "Allow" if value else "Deny"
+                        perms.append(f"{perm.replace('_', ' ').title()}: {status}")
+                if perms:
+                    changes.append(f"**Added {target_type}** `{target_name}`\n`{target_id}`\n" + "\n".join(perms))
 
-            if perms:
-                result.append(f"{target_type} '{target_name}':\n  " + "\n  ".join(perms))
+            elif after_ow is None:
+                changes.append(f"**Removed {target_type}** `{target_name}`\n`{target_id}`")
 
-        return "\n".join(result) if result else "None"
+            else:
+                before_perms = {perm: value for perm, value in before_ow}
+                after_perms = {perm: value for perm, value in after_ow}
+
+                modified_perms = []
+                for perm in set(before_perms.keys()) | set(after_perms.keys()):
+                    before_val = before_perms.get(perm)
+                    after_val = after_perms.get(perm)
+
+                    if before_val != after_val:
+                        perm_name = perm.replace('_', ' ').title()
+                        before_status = "Allow" if before_val else ("Deny" if before_val is False else "Neutral")
+                        after_status = "Allow" if after_val else ("Deny" if after_val is False else "Neutral")
+                        modified_perms.append(f"{perm_name}: {before_status} → {after_status}")
+
+                if modified_perms:
+                    changes.append(f"**Modified {target_type}** `{target_name}`\n`{target_id}`\n" + "\n".join(modified_perms))
+
+        return changes
 
     @commands.Cog.listener()
     async def on_guild_channel_create(self, channel):
+        if self.is_directorship_channel(channel):
+            return
+
         log_channel = await self.get_log_channel(channel.guild)
         if not log_channel:
             return
@@ -86,29 +123,37 @@ class AuditLogger(commands.Cog):
         )
 
         channel_type = str(channel.type).replace('_', ' ').title()
-        embed.add_field(name="Channel Name", value=channel.name, inline=True)
-        embed.add_field(name="Channel Type", value=channel_type, inline=True)
-        embed.add_field(name="Channel ID", value=channel.id, inline=True)
+        embed.add_field(
+            name="Channel",
+            value=f"`{channel.name}`\n`{channel.id}`",
+            inline=True
+        )
+        embed.add_field(name="Type", value=channel_type, inline=True)
 
         if hasattr(channel, 'category') and channel.category:
-            embed.add_field(name="Category", value=channel.category.name, inline=True)
+            embed.add_field(
+                name="Category",
+                value=f"`{channel.category.name}`\n`{channel.category.id}`",
+                inline=True
+            )
 
         if hasattr(channel, 'position'):
-            embed.add_field(name="Position", value=channel.position, inline=True)
+            embed.add_field(name="Position", value=str(channel.position), inline=True)
 
         if executor:
-            embed.add_field(name="Created By", value=f"{executor.name} ({executor.id})", inline=False)
-
-        if hasattr(channel, 'overwrites'):
-            overwrites_text = self.format_overwrites(channel.overwrites)
-            if len(overwrites_text) > 1024:
-                overwrites_text = overwrites_text[:1021] + "..."
-            embed.add_field(name="Permission Overwrites", value=overwrites_text, inline=False)
+            embed.add_field(
+                name="Created By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
 
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel):
+        if self.is_directorship_channel(channel):
+            return
+
         log_channel = await self.get_log_channel(channel.guild)
         if not log_channel:
             return
@@ -122,21 +167,34 @@ class AuditLogger(commands.Cog):
         )
 
         channel_type = str(channel.type).replace('_', ' ').title()
-        embed.add_field(name="Channel Name", value=channel.name, inline=True)
-        embed.add_field(name="Channel Type", value=channel_type, inline=True)
-        embed.add_field(name="Channel ID", value=channel.id, inline=True)
+        embed.add_field(
+            name="Channel",
+            value=f"`{channel.name}`\n`{channel.id}`",
+            inline=True
+        )
+        embed.add_field(name="Type", value=channel_type, inline=True)
 
         if hasattr(channel, 'category') and channel.category:
-            embed.add_field(name="Category", value=channel.category.name, inline=True)
+            embed.add_field(
+                name="Category",
+                value=f"`{channel.category.name}`\n`{channel.category.id}`",
+                inline=True
+            )
 
         if executor:
-            embed.add_field(name="Deleted By", value=f"{executor.name} ({executor.id})", inline=False)
+            embed.add_field(
+                name="Deleted By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
 
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_guild_channel_update(self, before, after):
-        
+        if self.is_directorship_channel(after):
+            return
+
         log_channel = await self.get_log_channel(after.guild)
         if not log_channel:
             return
@@ -184,12 +242,6 @@ class AuditLogger(commands.Cog):
         if hasattr(before, 'video_quality_mode') and before.video_quality_mode != after.video_quality_mode:
             changes.append(("Video Quality", str(before.video_quality_mode), str(after.video_quality_mode)))
 
-        if hasattr(before, 'overwrites') and before.overwrites != after.overwrites:
-            before_overwrites = self.format_overwrites(before.overwrites)
-            after_overwrites = self.format_overwrites(after.overwrites)
-            if before_overwrites != after_overwrites:
-                changes.append(("Permission Overwrites", before_overwrites, after_overwrites))
-
         if hasattr(before, 'default_auto_archive_duration'):
             if before.default_auto_archive_duration != after.default_auto_archive_duration:
                 changes.append((
@@ -198,7 +250,11 @@ class AuditLogger(commands.Cog):
                     f"{after.default_auto_archive_duration} min"
                 ))
 
-        if not changes:
+        overwrite_changes = []
+        if hasattr(before, 'overwrites') and before.overwrites != after.overwrites:
+            overwrite_changes = self.get_overwrite_changes(before.overwrites, after.overwrites)
+
+        if not changes and not overwrite_changes:
             return
 
         executor = await self.get_executor(after.guild, discord.AuditLogAction.channel_update, after.id)
@@ -209,22 +265,35 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Channel", value=f"{after.name} ({after.id})", inline=False)
+        embed.add_field(
+            name="Channel",
+            value=f"`{after.name}`\n`{after.id}`",
+            inline=False
+        )
 
         for change_name, before_val, after_val in changes:
-            if len(str(before_val)) > 500:
-                before_val = str(before_val)[:497] + "..."
-            if len(str(after_val)) > 500:
-                after_val = str(after_val)[:497] + "..."
-
             embed.add_field(
                 name=f"{change_name} Changed",
-                value=f"**Before:** {before_val}\n**After:** {after_val}",
+                value=f"**Before:** `{before_val}`\n**After:** `{after_val}`",
                 inline=False
             )
 
+        if overwrite_changes:
+            for i, change in enumerate(overwrite_changes):
+                if len(change) > 1024:
+                    change = change[:1021] + "..."
+                embed.add_field(
+                    name="Permission Overwrite Changed" if i == 0 else "\u200b",
+                    value=change,
+                    inline=False
+                )
+
         if executor:
-            embed.add_field(name="Changed By", value=f"{executor.name} ({executor.id})", inline=False)
+            embed.add_field(
+                name="Changed By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
 
         await log_channel.send(embed=embed)
 
@@ -242,21 +311,27 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Role Name", value=role.name, inline=True)
-        embed.add_field(name="Role ID", value=role.id, inline=True)
+        embed.add_field(
+            name="Role",
+            value=f"`{role.name}`\n`{role.id}`",
+            inline=True
+        )
         embed.add_field(name="Color", value=str(role.color), inline=True)
-        embed.add_field(name="Position", value=role.position, inline=True)
+        embed.add_field(name="Position", value=str(role.position), inline=True)
         embed.add_field(name="Hoisted", value=str(role.hoist), inline=True)
         embed.add_field(name="Mentionable", value=str(role.mentionable), inline=True)
 
-        perms = [perm[0].replace('_', ' ').title() for perm in role.permissions if perm[1]]
-        perms_text = ", ".join(perms) if perms else "None"
-        if len(perms_text) > 1024:
-            perms_text = perms_text[:1021] + "..."
-        embed.add_field(name="Permissions", value=perms_text, inline=False)
-
         if executor:
-            embed.add_field(name="Created By", value=f"{executor.name} ({executor.id})", inline=False)
+            embed.add_field(
+                name="Created By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
+
+        permissions_text = self.format_permissions(role.permissions)
+        if len(permissions_text) > 1024:
+            permissions_text = permissions_text[:1021] + "..."
+        embed.add_field(name="Permissions", value=permissions_text, inline=False)
 
         await log_channel.send(embed=embed)
 
@@ -274,12 +349,21 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Role Name", value=role.name, inline=True)
-        embed.add_field(name="Role ID", value=role.id, inline=True)
+        embed.add_field(
+            name="Role",
+            value=f"`{role.name}`\n`{role.id}`",
+            inline=True
+        )
         embed.add_field(name="Color", value=str(role.color), inline=True)
+        embed.add_field(name="Position", value=str(role.position), inline=True)
 
         if executor:
-            embed.add_field(name="Deleted By", value=f"{executor.name} ({executor.id})", inline=False)
+            embed.add_field(
+                name="Deleted By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
+
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
@@ -289,49 +373,39 @@ class AuditLogger(commands.Cog):
             return
 
         changes = []
-        
+
         if before.name != after.name:
             changes.append(("Name", before.name, after.name))
-        
+
         if before.color != after.color:
             changes.append(("Color", str(before.color), str(after.color)))
-        
-        if before.position != after.position:
-            changes.append(("Position", str(before.position), str(after.position)))
 
         if before.hoist != after.hoist:
             changes.append(("Hoisted", str(before.hoist), str(after.hoist)))
-        
+
         if before.mentionable != after.mentionable:
             changes.append(("Mentionable", str(before.mentionable), str(after.mentionable)))
-        
+
+        if before.position != after.position:
+            changes.append(("Position", str(before.position), str(after.position)))
+
         if before.permissions != after.permissions:
-            before_perms = [perm[0].replace('_', ' ').title() for perm in before.permissions if perm[1]]
-            after_perms = [perm[0].replace('_', ' ').title() for perm in after.permissions if perm[1]]
+            before_perms = dict(before.permissions)
+            after_perms = dict(after.permissions)
 
-            added_perms = set(after_perms) - set(before_perms)
-            removed_perms = set(before_perms) - set(after_perms)
+            perm_changes = []
+            for perm in set(before_perms.keys()) | set(after_perms.keys()):
+                if before_perms.get(perm) != after_perms.get(perm):
+                    perm_name = perm.replace('_', ' ').title()
+                    before_status = "Enabled" if before_perms.get(perm) else "Disabled"
+                    after_status = "Enabled" if after_perms.get(perm) else "Disabled"
+                    perm_changes.append(f"{perm_name}: {before_status} → {after_status}")
 
-            if added_perms or removed_perms:
-                perm_change = ""
-                if added_perms:
-                    perm_change += f"Added: {', '.join(added_perms)}"
-                if removed_perms:
-                    if perm_change:
-                        perm_change += "\n"
-                    perm_change += f"Removed: {', '.join(removed_perms)}"
-                changes.append(("Permissions", "Changed", perm_change))
-        
-        if hasattr(before, 'icon') and before.icon != after.icon:
-            before_icon = "Set" if before.icon else "None"
-            after_icon = "Set" if after.icon else "None"
-            changes.append(("Icon", before_icon, after_icon))
-        
-        if hasattr(before, 'unicode_emoji'):
-            before_emoji = before.unicode_emoji or "None"
-            after_emoji = after.unicode_emoji or "None"
-            if before_emoji != after_emoji:
-                changes.append(("Unicode Emoji", before_emoji, after_emoji))
+            if perm_changes:
+                perm_text = "\n".join(perm_changes)
+                if len(perm_text) > 1024:
+                    perm_text = perm_text[:1021] + "..."
+                changes.append(("Permissions", perm_text, None))
 
         if not changes:
             return
@@ -344,28 +418,183 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Role", value=f"{after.name} ({after.id})", inline=False)
+        embed.add_field(
+            name="Role",
+            value=f"`{after.name}`\n`{after.id}`",
+            inline=False
+        )
 
         for change_name, before_val, after_val in changes:
-            if len(str(before_val)) > 500:
-                before_val = str(before_val)[:497] + "..."
-            if len(str(after_val)) > 500:
-                after_val = str(after_val)[:497] + "..."
+            if after_val is None:
+                embed.add_field(
+                    name=f"{change_name} Changed",
+                    value=before_val,
+                    inline=False
+                )
+            else:
+                embed.add_field(
+                    name=f"{change_name} Changed",
+                    value=f"**Before:** `{before_val}`\n**After:** `{after_val}`",
+                    inline=False
+                )
 
+        if executor:
             embed.add_field(
-                name=f"{change_name} Changed",
-                value=f"**Before:** {before_val}\n**After:** {after_val}",
+                name="Changed By",
+                value=f"`{executor}`\n`{executor.id}`",
                 inline=False
             )
 
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        log_channel = await self.get_log_channel(member.guild)
+        if not log_channel:
+            return
+
+        embed = discord.Embed(
+            title="Member Joined",
+            color=COLOR_GREEN,
+            timestamp=datetime.now(UTC)
+        )
+
+        embed.add_field(
+            name="Member",
+            value=f"`{member}`\n`{member.id}`",
+            inline=True
+        )
+        embed.add_field(
+            name="Account Created",
+            value=discord.utils.format_dt(member.created_at, style='R'),
+            inline=True
+        )
+
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        log_channel = await self.get_log_channel(member.guild)
+        if not log_channel:
+            return
+
+        executor = None
+        was_kicked = False
+        was_banned = False
+
+        try:
+            await asyncio.sleep(0.5)
+            async for entry in member.guild.audit_logs(limit=5):
+                if entry.action == discord.AuditLogAction.kick and entry.target.id == member.id:
+                    executor = entry.user
+                    was_kicked = True
+                    break
+                elif entry.action == discord.AuditLogAction.ban and entry.target.id == member.id:
+                    executor = entry.user
+                    was_banned = True
+                    break
+        except Exception:
+            pass
+
+        if was_kicked:
+            title = "Member Kicked"
+            color = COLOR_YELLOW
+        elif was_banned:
+            title = "Member Banned"
+            color = COLOR_RED
+        else:
+            title = "Member Left"
+            color = COLOR_YELLOW
+
+        embed = discord.Embed(
+            title=title,
+            color=color,
+            timestamp=datetime.now(UTC)
+        )
+
+        embed.add_field(
+            name="Member",
+            value=f"`{member}`\n`{member.id}`",
+            inline=True
+        )
+
+        if member.joined_at:
+            embed.add_field(
+                name="Joined Server",
+                value=discord.utils.format_dt(member.joined_at, style='R'),
+                inline=True
+            )
+
         if executor:
-            embed.add_field(name="Changed By", value=f"{executor.name} ({executor.id})", inline=False)
+            action_name = "Kicked By" if was_kicked else "Banned By"
+            embed.add_field(
+                name=action_name,
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
+
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, guild, user):
+        log_channel = await self.get_log_channel(guild)
+        if not log_channel:
+            return
+
+        executor = await self.get_executor(guild, discord.AuditLogAction.ban, user.id)
+
+        embed = discord.Embed(
+            title="Member Banned",
+            color=COLOR_RED,
+            timestamp=datetime.now(UTC)
+        )
+
+        embed.add_field(
+            name="User",
+            value=f"`{user}`\n`{user.id}`",
+            inline=True
+        )
+
+        if executor:
+            embed.add_field(
+                name="Banned By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
+
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_unban(self, guild, user):
+        log_channel = await self.get_log_channel(guild)
+        if not log_channel:
+            return
+
+        executor = await self.get_executor(guild, discord.AuditLogAction.unban, user.id)
+
+        embed = discord.Embed(
+            title="Member Unbanned",
+            color=COLOR_GREEN,
+            timestamp=datetime.now(UTC)
+        )
+
+        embed.add_field(
+            name="User",
+            value=f"`{user}`\n`{user.id}`",
+            inline=True
+        )
+
+        if executor:
+            embed.add_field(
+                name="Unbanned By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
 
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_guild_update(self, before, after):
-        
         log_channel = await self.get_log_channel(after)
         if not log_channel:
             return
@@ -373,115 +602,70 @@ class AuditLogger(commands.Cog):
         changes = []
 
         if before.name != after.name:
-            changes.append(("Server Name", before.name, after.name))
-        
+            changes.append(("Name", before.name, after.name))
+
         if before.icon != after.icon:
             before_icon = "Set" if before.icon else "None"
             after_icon = "Set" if after.icon else "None"
-            changes.append(("Server Icon", before_icon, after_icon))
-        
+            changes.append(("Icon", before_icon, after_icon))
+
         if before.banner != after.banner:
             before_banner = "Set" if before.banner else "None"
             after_banner = "Set" if after.banner else "None"
-            changes.append(("Server Banner", before_banner, after_banner))
-        
+            changes.append(("Banner", before_banner, after_banner))
+
         if before.splash != after.splash:
             before_splash = "Set" if before.splash else "None"
             after_splash = "Set" if after.splash else "None"
-            changes.append(("Invite Splash", before_splash, after_splash))
-        
+            changes.append(("Splash", before_splash, after_splash))
+
         if before.discovery_splash != after.discovery_splash:
             before_disc = "Set" if before.discovery_splash else "None"
             after_disc = "Set" if after.discovery_splash else "None"
             changes.append(("Discovery Splash", before_disc, after_disc))
-        
+
         if before.description != after.description:
             before_desc = before.description or "None"
             after_desc = after.description or "None"
             changes.append(("Description", before_desc, after_desc))
 
         if before.verification_level != after.verification_level:
-            changes.append((
-                "Verification Level",
-                str(before.verification_level),
-                str(after.verification_level)
-            ))
-            
-        if before.default_notifications != after.default_notifications:
-            changes.append((
-                "Default Notifications",
-                str(before.default_notifications),
-                str(after.default_notifications)
-            ))
+            changes.append(("Verification Level", str(before.verification_level), str(after.verification_level)))
 
-        
+        if before.default_notifications != after.default_notifications:
+            changes.append(("Default Notifications", str(before.default_notifications), str(after.default_notifications)))
+
         if before.explicit_content_filter != after.explicit_content_filter:
-            changes.append((
-                "Explicit Content Filter",
-                str(before.explicit_content_filter),
-                str(after.explicit_content_filter)
-            ))
+            changes.append(("Explicit Content Filter", str(before.explicit_content_filter), str(after.explicit_content_filter)))
 
         if before.afk_channel != after.afk_channel:
             before_afk = before.afk_channel.name if before.afk_channel else "None"
             after_afk = after.afk_channel.name if after.afk_channel else "None"
             changes.append(("AFK Channel", before_afk, after_afk))
 
-        
         if before.afk_timeout != after.afk_timeout:
             changes.append(("AFK Timeout", f"{before.afk_timeout}s", f"{after.afk_timeout}s"))
 
-        
         if before.system_channel != after.system_channel:
             before_sys = before.system_channel.name if before.system_channel else "None"
             after_sys = after.system_channel.name if after.system_channel else "None"
             changes.append(("System Channel", before_sys, after_sys))
 
-        
-        if before.system_channel_flags != after.system_channel_flags:
-            changes.append((
-                "System Channel Flags",
-                str(before.system_channel_flags.value),
-                str(after.system_channel_flags.value)
-            ))
-
         if before.rules_channel != after.rules_channel:
             before_rules = before.rules_channel.name if before.rules_channel else "None"
             after_rules = after.rules_channel.name if after.rules_channel else "None"
             changes.append(("Rules Channel", before_rules, after_rules))
-        
+
         if before.public_updates_channel != after.public_updates_channel:
             before_pub = before.public_updates_channel.name if before.public_updates_channel else "None"
             after_pub = after.public_updates_channel.name if after.public_updates_channel else "None"
             changes.append(("Public Updates Channel", before_pub, after_pub))
 
-        
         if before.preferred_locale != after.preferred_locale:
             changes.append(("Preferred Locale", str(before.preferred_locale), str(after.preferred_locale)))
 
-        if hasattr(before, 'premium_progress_bar_enabled'):
-            if before.premium_progress_bar_enabled != after.premium_progress_bar_enabled:
-                changes.append((
-                    "Premium Progress Bar",
-                    str(before.premium_progress_bar_enabled),
-                    str(after.premium_progress_bar_enabled)
-                ))
-   
-        if before.vanity_url_code != after.vanity_url_code:
-            before_vanity = before.vanity_url_code or "None"
-            after_vanity = after.vanity_url_code or "None"
-            changes.append(("Vanity URL", before_vanity, after_vanity))
-
-        
-        if before.owner != after.owner:
-            changes.append((
-                "Server Owner",
-                f"{before.owner.name} ({before.owner.id})",
-                f"{after.owner.name} ({after.owner.id})"
-            ))
-
-        if before.mfa_level != after.mfa_level:
-            changes.append(("MFA Level", str(before.mfa_level), str(after.mfa_level)))
+        if before.premium_progress_bar_enabled != after.premium_progress_bar_enabled:
+            changes.append(("Boost Progress Bar", str(before.premium_progress_bar_enabled), str(after.premium_progress_bar_enabled)))
 
         if not changes:
             return
@@ -490,26 +674,29 @@ class AuditLogger(commands.Cog):
 
         embed = discord.Embed(
             title="Server Updated",
-            color=COLOR_YELLOW,
+            color=COLOR_BLURPLE,
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Server", value=f"{after.name} ({after.id})", inline=False)
+        embed.add_field(
+            name="Server",
+            value=f"`{after.name}`\n`{after.id}`",
+            inline=False
+        )
 
         for change_name, before_val, after_val in changes:
-            if len(str(before_val)) > 500:
-                before_val = str(before_val)[:497] + "..."
-            if len(str(after_val)) > 500:
-                after_val = str(after_val)[:497] + "..."
-
             embed.add_field(
                 name=f"{change_name} Changed",
-                value=f"**Before:** {before_val}\n**After:** {after_val}",
+                value=f"**Before:** `{before_val}`\n**After:** `{after_val}`",
                 inline=False
             )
 
         if executor:
-            embed.add_field(name="Changed By", value=f"{executor.name} ({executor.id})", inline=False)
+            embed.add_field(
+                name="Changed By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
 
         await log_channel.send(embed=embed)
 
@@ -519,254 +706,129 @@ class AuditLogger(commands.Cog):
         if not log_channel:
             return
 
-        before_set = set(before)
-        after_set = set(after)
+        before_ids = {emoji.id for emoji in before}
+        after_ids = {emoji.id for emoji in after}
 
-        added = after_set - before_set
-        removed = before_set - after_set
-        
-        before_dict = {e.id: e for e in before}
-        after_dict = {e.id: e for e in after}
+        added_emojis = [emoji for emoji in after if emoji.id not in before_ids]
+        removed_emojis = [emoji for emoji in before if emoji.id not in after_ids]
 
-        updated = []
-        for emoji_id in before_dict:
-            if emoji_id in after_dict:
-                before_emoji = before_dict[emoji_id]
-                after_emoji = after_dict[emoji_id]
-                if before_emoji.name != after_emoji.name or before_emoji.roles != after_emoji.roles:
-                    updated.append((before_emoji, after_emoji))
-        
-        for emoji in added:
-            executor = await self.get_executor(guild, discord.AuditLogAction.emoji_create, emoji.id)
+        if not added_emojis and not removed_emojis:
+            return
+
+        if added_emojis:
+            executor = await self.get_executor(guild, discord.AuditLogAction.emoji_create)
 
             embed = discord.Embed(
-                title="Emoji Added",
+                title="Emoji Created",
                 color=COLOR_GREEN,
                 timestamp=datetime.now(UTC)
             )
 
-            embed.add_field(name="Emoji Name", value=emoji.name, inline=True)
-            embed.add_field(name="Emoji ID", value=emoji.id, inline=True)
-            embed.add_field(name="Animated", value=str(emoji.animated), inline=True)
-
-            if emoji.roles:
-                role_names = ", ".join([r.name for r in emoji.roles])
-                embed.add_field(name="Restricted to Roles", value=role_names, inline=False)
+            for emoji in added_emojis:
+                embed.add_field(
+                    name="Emoji",
+                    value=f"`{emoji.name}`\n`{emoji.id}`\n{emoji}",
+                    inline=True
+                )
 
             if executor:
-                embed.add_field(name="Added By", value=f"{executor.name} ({executor.id})", inline=False)
-
-            if emoji.url:
-                embed.set_thumbnail(url=emoji.url)
+                embed.add_field(
+                    name="Created By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
 
             await log_channel.send(embed=embed)
-        
-        for emoji in removed:
-            executor = await self.get_executor(guild, discord.AuditLogAction.emoji_delete, emoji.id)
+
+        if removed_emojis:
+            executor = await self.get_executor(guild, discord.AuditLogAction.emoji_delete)
 
             embed = discord.Embed(
-                title="Emoji Removed",
+                title="Emoji Deleted",
                 color=COLOR_RED,
                 timestamp=datetime.now(UTC)
             )
 
-            embed.add_field(name="Emoji Name", value=emoji.name, inline=True)
-            embed.add_field(name="Emoji ID", value=emoji.id, inline=True)
+            for emoji in removed_emojis:
+                embed.add_field(
+                    name="Emoji",
+                    value=f"`{emoji.name}`\n`{emoji.id}`",
+                    inline=True
+                )
 
             if executor:
-                embed.add_field(name="Removed By", value=f"{executor.name} ({executor.id})", inline=False)
+                embed.add_field(
+                    name="Deleted By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
 
             await log_channel.send(embed=embed)
-        
-        for before_emoji, after_emoji in updated:
-            executor = await self.get_executor(guild, discord.AuditLogAction.emoji_update, after_emoji.id)
-
-            embed = discord.Embed(
-                title="Emoji Updated",
-                color=COLOR_BLURPLE,
-                timestamp=datetime.now(UTC)
-            )
-
-            embed.add_field(name="Emoji", value=f"{after_emoji.name} ({after_emoji.id})", inline=False)
-
-            if before_emoji.name != after_emoji.name:
-                embed.add_field(
-                    name="Name Changed",
-                    value=f"**Before:** {before_emoji.name}\n**After:** {after_emoji.name}",
-                    inline=False
-                )
-
-            if before_emoji.roles != after_emoji.roles:
-                before_roles = ", ".join([r.name for r in before_emoji.roles]) if before_emoji.roles else "None"
-                after_roles = ", ".join([r.name for r in after_emoji.roles]) if after_emoji.roles else "None"
-                embed.add_field(
-                    name="Role Restrictions Changed",
-                    value=f"**Before:** {before_roles}\n**After:** {after_roles}",
-                    inline=False
-                )
-
-            if executor:
-                embed.add_field(name="Updated By", value=f"{executor.name} ({executor.id})", inline=False)
-
-            if after_emoji.url:
-                embed.set_thumbnail(url=after_emoji.url)
-
-            await log_channel.send(embed=embed)    
 
     @commands.Cog.listener()
-    async def on_guild_stickers_update(self, guild, before, after):        
+    async def on_guild_stickers_update(self, guild, before, after):
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
 
-        before_set = set(before)
-        after_set = set(after)
+        before_ids = {sticker.id for sticker in before}
+        after_ids = {sticker.id for sticker in after}
 
-        added = after_set - before_set
-        removed = before_set - after_set
+        added_stickers = [sticker for sticker in after if sticker.id not in before_ids]
+        removed_stickers = [sticker for sticker in before if sticker.id not in after_ids]
 
-        before_dict = {s.id: s for s in before}
-        after_dict = {s.id: s for s in after}
+        if not added_stickers and not removed_stickers:
+            return
 
-        updated = []
-        for sticker_id in before_dict:
-            if sticker_id in after_dict:
-                before_sticker = before_dict[sticker_id]
-                after_sticker = after_dict[sticker_id]
-                if (before_sticker.name != after_sticker.name or 
-                    before_sticker.description != after_sticker.description or
-                    before_sticker.emoji != after_sticker.emoji):
-                    updated.append((before_sticker, after_sticker))
-                    
-        for sticker in added:
-            executor = await self.get_executor(guild, discord.AuditLogAction.sticker_create, sticker.id)
+        if added_stickers:
+            executor = await self.get_executor(guild, discord.AuditLogAction.sticker_create)
 
             embed = discord.Embed(
-                title="Sticker Added",
+                title="Sticker Created",
                 color=COLOR_GREEN,
                 timestamp=datetime.now(UTC)
             )
 
-            embed.add_field(name="Sticker Name", value=sticker.name, inline=True)
-            embed.add_field(name="Sticker ID", value=sticker.id, inline=True)
-            embed.add_field(name="Related Emoji", value=sticker.emoji or "None", inline=True)
-
-            if sticker.description:
-                embed.add_field(name="Description", value=sticker.description, inline=False)
+            for sticker in added_stickers:
+                embed.add_field(
+                    name="Sticker",
+                    value=f"`{sticker.name}`\n`{sticker.id}`",
+                    inline=True
+                )
 
             if executor:
-                embed.add_field(name="Added By", value=f"{executor.name} ({executor.id})", inline=False)
+                embed.add_field(
+                    name="Created By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
 
             await log_channel.send(embed=embed)
-        
-        for sticker in removed:
-            executor = await self.get_executor(guild, discord.AuditLogAction.sticker_delete, sticker.id)
+
+        if removed_stickers:
+            executor = await self.get_executor(guild, discord.AuditLogAction.sticker_delete)
 
             embed = discord.Embed(
-                title="Sticker Removed",
+                title="Sticker Deleted",
                 color=COLOR_RED,
                 timestamp=datetime.now(UTC)
             )
 
-            embed.add_field(name="Sticker Name", value=sticker.name, inline=True)
-            embed.add_field(name="Sticker ID", value=sticker.id, inline=True)
-
-            if executor:
-                embed.add_field(name="Removed By", value=f"{executor.name} ({executor.id})", inline=False)
-
-            await log_channel.send(embed=embed)
-        
-        for before_sticker, after_sticker in updated:
-            executor = await self.get_executor(guild, discord.AuditLogAction.sticker_update, after_sticker.id)
-
-            embed = discord.Embed(
-                title="Sticker Updated",
-                color=COLOR_BLURPLE,
-                timestamp=datetime.now(UTC)
-            )
-
-            embed.add_field(name="Sticker", value=f"{after_sticker.name} ({after_sticker.id})", inline=False)
-
-            if before_sticker.name != after_sticker.name:
+            for sticker in removed_stickers:
                 embed.add_field(
-                    name="Name Changed",
-                    value=f"**Before:** {before_sticker.name}\n**After:** {after_sticker.name}",
-                    inline=False
-                )
-
-            if before_sticker.description != after_sticker.description:
-                before_desc = before_sticker.description or "None"
-                after_desc = after_sticker.description or "None"
-                embed.add_field(
-                    name="Description Changed",
-                    value=f"**Before:** {before_desc}\n**After:** {after_desc}",
-                    inline=False
-                )
-
-            if before_sticker.emoji != after_sticker.emoji:
-                before_emoji = before_sticker.emoji or "None"
-                after_emoji = after_sticker.emoji or "None"
-                embed.add_field(
-                    name="Related Emoji Changed",
-                    value=f"**Before:** {before_emoji}\n**After:** {after_emoji}",
-                    inline=False
+                    name="Sticker",
+                    value=f"`{sticker.name}`\n`{sticker.id}`",
+                    inline=True
                 )
 
             if executor:
-                embed.add_field(name="Updated By", value=f"{executor.name} ({executor.id})", inline=False)
+                embed.add_field(
+                    name="Deleted By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
 
             await log_channel.send(embed=embed)
-            
-    @commands.Cog.listener()
-    async def on_webhooks_update(self, channel):
-        log_channel = await self.get_log_channel(channel.guild)
-        if not log_channel:
-            return
-
-        executor = None
-        action_type = None
-
-        try:
-            await asyncio.sleep(0.5)
-            async for entry in channel.guild.audit_logs(limit=5):
-                if entry.action in [
-                    discord.AuditLogAction.webhook_create, 
-                    discord.AuditLogAction.webhook_update, 
-                    discord.AuditLogAction.webhook_delete
-                ]:
-                    if hasattr(entry.target, 'channel_id') and entry.target.channel_id == channel.id:
-                        executor = entry.user
-                        action_type = entry.action
-                        break
-        except Exception as e:
-            print(f"Error fetching webhook audit log: {e}")
-
-        if action_type == discord.AuditLogAction.webhook_create:
-            title = "Webhook Created"
-            color = COLOR_GREEN
-        elif action_type == discord.AuditLogAction.webhook_delete:
-            title = "Webhook Deleted"
-            color = COLOR_RED
-        else:
-            title = "Webhook Updated"
-            color = COLOR_BLURPLE
-
-        embed = discord.Embed(
-            title=title,
-            color=color,
-            timestamp=datetime.now(UTC)
-        )
-
-        embed.add_field(
-            name="Channel",
-            value=f"{channel.name} ({channel.id})",
-            inline=False
-        )
-
-        if executor:
-            embed.add_field(name="Action By", value=f"{executor.name} ({executor.id})", inline=False)
-
-        await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
@@ -780,14 +842,24 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Invite Code", value=invite.code, inline=True)
-        embed.add_field(name="Channel", value=invite.channel.name, inline=True)
-        embed.add_field(name="Created By", value=f"{invite.inviter.name} ({invite.inviter.id})", inline=True)
+        embed.add_field(name="Code", value=f"`{invite.code}`", inline=True)
+        embed.add_field(
+            name="Channel",
+            value=f"`{invite.channel.name}`\n`{invite.channel.id}`",
+            inline=True
+        )
+
+        if invite.inviter:
+            embed.add_field(
+                name="Created By",
+                value=f"`{invite.inviter}`\n`{invite.inviter.id}`",
+                inline=False
+            )
 
         if invite.max_age:
             embed.add_field(name="Expires In", value=f"{invite.max_age}s", inline=True)
         else:
-            embed.add_field(name="Expires In", value="Never", inline=True)
+            embed.add_field(name="Expires", value="Never", inline=True)
 
         if invite.max_uses:
             embed.add_field(name="Max Uses", value=str(invite.max_uses), inline=True)
@@ -800,7 +872,6 @@ class AuditLogger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_invite_delete(self, invite):
-        
         log_channel = await self.get_log_channel(invite.guild)
         if not log_channel:
             return
@@ -811,9 +882,15 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Invite Code", value=invite.code, inline=True)
-        embed.add_field(name="Channel", value=invite.channel.name, inline=True)
-        embed.add_field(name="Uses", value=str(invite.uses), inline=True)
+        embed.add_field(name="Code", value=f"`{invite.code}`", inline=True)
+        embed.add_field(
+            name="Channel",
+            value=f"`{invite.channel.name}`\n`{invite.channel.id}`",
+            inline=True
+        )
+
+        if invite.uses is not None:
+            embed.add_field(name="Uses", value=str(invite.uses), inline=True)
 
         await log_channel.send(embed=embed)
 
@@ -861,20 +938,27 @@ class AuditLogger(commands.Cog):
 
         embed.add_field(
             name="Server",
-            value=f"{guild.name} ({guild.id})",
+            value=f"`{guild.name}`\n`{guild.id}`",
             inline=False
         )
 
         if target_name:
-            embed.add_field(name="Integration", value=target_name, inline=False)
+            embed.add_field(name="Integration", value=f"`{target_name}`", inline=False)
 
         if executor:
-            embed.add_field(name="Action By", value=f"{executor.name} ({executor.id})", inline=False)
+            embed.add_field(
+                name="Action By",
+                value=f"`{executor}`\n`{executor.id}`",
+                inline=False
+            )
 
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_thread_create(self, thread):
+        if self.is_directorship_channel(thread.parent):
+            return
+
         log_channel = await self.get_log_channel(thread.guild)
         if not log_channel:
             return
@@ -885,17 +969,37 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Thread Name", value=thread.name, inline=True)
-        embed.add_field(name="Thread ID", value=thread.id, inline=True)
-        embed.add_field(name="Parent Channel", value=thread.parent.name, inline=True)
-        embed.add_field(name="Created By", value=f"{thread.owner.name} ({thread.owner.id})", inline=True)
-        embed.add_field(name="Auto Archive Duration", value=f"{thread.auto_archive_duration} min", inline=True)
+        embed.add_field(
+            name="Thread",
+            value=f"`{thread.name}`\n`{thread.id}`",
+            inline=True
+        )
+        embed.add_field(
+            name="Parent Channel",
+            value=f"`{thread.parent.name}`\n`{thread.parent.id}`",
+            inline=True
+        )
+
+        if thread.owner:
+            embed.add_field(
+                name="Created By",
+                value=f"`{thread.owner}`\n`{thread.owner.id}`",
+                inline=False
+            )
+
+        embed.add_field(
+            name="Auto Archive Duration",
+            value=f"{thread.auto_archive_duration} min",
+            inline=True
+        )
 
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_thread_delete(self, thread):
-        
+        if self.is_directorship_channel(thread.parent):
+            return
+
         log_channel = await self.get_log_channel(thread.guild)
         if not log_channel:
             return
@@ -906,15 +1010,24 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Thread Name", value=thread.name, inline=True)
-        embed.add_field(name="Thread ID", value=thread.id, inline=True)
-        embed.add_field(name="Parent Channel", value=thread.parent.name, inline=True)
+        embed.add_field(
+            name="Thread",
+            value=f"`{thread.name}`\n`{thread.id}`",
+            inline=True
+        )
+        embed.add_field(
+            name="Parent Channel",
+            value=f"`{thread.parent.name}`\n`{thread.parent.id}`",
+            inline=True
+        )
 
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_thread_update(self, before, after):
-        
+        if self.is_directorship_channel(after.parent):
+            return
+
         log_channel = await self.get_log_channel(after.guild)
         if not log_channel:
             return
@@ -946,12 +1059,16 @@ class AuditLogger(commands.Cog):
             timestamp=datetime.now(UTC)
         )
 
-        embed.add_field(name="Thread", value=f"{after.name} ({after.id})", inline=False)
+        embed.add_field(
+            name="Thread",
+            value=f"`{after.name}`\n`{after.id}`",
+            inline=False
+        )
 
         for change_name, before_val, after_val in changes:
             embed.add_field(
                 name=f"{change_name} Changed",
-                value=f"**Before:** {before_val}\n**After:** {after_val}",
+                value=f"**Before:** `{before_val}`\n**After:** `{after_val}`",
                 inline=False
             )
 
@@ -972,19 +1089,27 @@ class AuditLogger(commands.Cog):
                 timestamp=datetime.now(UTC)
             )
 
-            embed.add_field(name="Member", value=f"{after.name} ({after.id})", inline=False)
+            embed.add_field(
+                name="Member",
+                value=f"`{after}`\n`{after.id}`",
+                inline=False
+            )
 
             before_nick = before.nick or "None"
             after_nick = after.nick or "None"
 
             embed.add_field(
                 name="Nickname Changed",
-                value=f"**Before:** {before_nick}\n**After:** {after_nick}",
+                value=f"**Before:** `{before_nick}`\n**After:** `{after_nick}`",
                 inline=False
             )
 
             if executor:
-                embed.add_field(name="Changed By", value=f"{executor.name} ({executor.id})", inline=False)
+                embed.add_field(
+                    name="Changed By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
 
             await log_channel.send(embed=embed)
 
@@ -1010,18 +1135,26 @@ class AuditLogger(commands.Cog):
                 timestamp=datetime.now(UTC)
             )
 
-            embed.add_field(name="Member", value=f"{after.name} ({after.id})", inline=False)
+            embed.add_field(
+                name="Member",
+                value=f"`{after}`\n`{after.id}`",
+                inline=False
+            )
 
             if added_roles:
-                role_names = ", ".join([role.name for role in added_roles])
-                embed.add_field(name="Roles Added", value=role_names, inline=False)
+                role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in added_roles])
+                embed.add_field(name="Roles Added", value=role_list, inline=False)
 
             if removed_roles:
-                role_names = ", ".join([role.name for role in removed_roles])
-                embed.add_field(name="Roles Removed", value=role_names, inline=False)
+                role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in removed_roles])
+                embed.add_field(name="Roles Removed", value=role_list, inline=False)
 
             if executor:
-                embed.add_field(name="Changed By", value=f"{executor.name} ({executor.id})", inline=False)
+                embed.add_field(
+                    name="Changed By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
 
             await log_channel.send(embed=embed)
 

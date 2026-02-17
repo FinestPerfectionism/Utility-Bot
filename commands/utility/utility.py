@@ -172,7 +172,7 @@ class UtilityCommands(commands.Cog):
                 subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
             )
             return
-            
+
         if role in target_member.roles:
             await send_minor_error(
                 interaction,
@@ -192,7 +192,7 @@ class UtilityCommands(commands.Cog):
                 subtitle="Invalid operation."
             )
             return
-            
+
         role_added = False
         nick_changed = False
 
@@ -202,7 +202,7 @@ class UtilityCommands(commands.Cog):
 
             await target_member.edit(nick=new_nick)
             nick_changed = True
-            
+
             self.data[str(target_member.id)] = original_full_nick
             save_data(self.data)
 
@@ -576,14 +576,14 @@ class UtilityCommands(commands.Cog):
                 await ctx.send(f"Timezone for {user.mention} set to **{resolved_tz}**.")
             return
 
-        target_user = ctx.author
-        if ctx.message.reference:
+        target_user = user if user else ctx.author
+        if ctx.message.reference and user is None:
             replied = ctx.message.reference.resolved
             if isinstance(replied, discord.Message) and isinstance(replied.author, discord.Member):
                 target_user = replied.author
 
         if str(target_user.id) == "1436054709700919477":
-            message = "It’s ∞:∞ for me… or 00:00..? I’m just a robot… I wouldn’t know… 😞"
+            message = "It's ∞:∞ for me… or 00:00..? I'm just a robot… I wouldn't know… 😞"
             await ctx.send(message)
             return
 

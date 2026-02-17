@@ -323,7 +323,7 @@ class ApplicationsTicketsCommands(
         await channel.edit(name=new_name)
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
-        if difrector_role:
+        if director_role:
             await channel.send(director_role.mention)
 
         await ctx.send(

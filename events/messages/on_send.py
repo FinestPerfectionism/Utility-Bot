@@ -5,11 +5,6 @@ from datetime import timedelta
 import random
 import logging
 
-from core.utils import (
-    format_attachments,
-    channel_display,
-    MESSAGE_LOG_QUEUE
-)
 from core.state import (
     AUTOMOD_DELETIONS,
     AUTOMOD_STRIKES,
@@ -21,7 +16,6 @@ from core.state import (
 from events.systems.applications import ApplicationSubmitView
 
 from constants import (
-    COLOR_GREEN,
     COLOR_BLURPLE
 )
 
@@ -178,37 +172,6 @@ class MessageSendHandler(commands.Cog):
                 app["messages"].append(msg.id)
                 save_active_applications()
                 return
-
-        if message.guild is not None:
-            embed = discord.Embed(
-                title="Message Sent",
-                color=COLOR_GREEN,
-                timestamp=message.created_at,
-            )
-            embed.add_field(
-                name="Author",
-                value=f"{message.author} ({message.author.id})",
-                inline=False,
-            )
-            embed.add_field(
-                name="Channel",
-                value=channel_display(message.channel),
-                inline=False,
-            )
-
-            content = message.content or "[No content]"
-            embed.add_field(
-                name="Content",
-                value=content[:1021] + "..." if len(content) > 1024 else content,
-                inline=False,
-            )
-            embed.add_field(
-                name="Attachments",
-                value=format_attachments(message.attachments),
-                inline=False,
-            )
-
-            await MESSAGE_LOG_QUEUE.put(embed)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(MessageSendHandler(bot))
