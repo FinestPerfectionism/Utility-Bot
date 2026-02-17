@@ -1,8 +1,5 @@
 import discord
-from discord.ext import (
-    commands,
-    tasks
-)
+from discord.ext import commands
 
 import logging
 from typing import cast
@@ -20,7 +17,6 @@ from core.state import (
     load_layout_message_ids,
     save_layout_message_ids
 )
-from core.utils import MESSAGE_LOG_QUEUE
 
 from guild_info.staff_proposals import (
     StaffProposalComponents1,
@@ -34,17 +30,31 @@ from constants import (
     APPLICATION_CHANNEL_ID,
     STAFF_LEAVE_CHANNEL_ID,
     STAFF_PROPOSALS_INFO_CHANNEL_ID,
-    MESSAGE_SEND_LOG_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
 )
 
 log = logging.getLogger("Utility Bot")
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Startup Management
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
 class Startup(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.process_message_logs.start()
         self.layout_message_ids = load_layout_message_ids()
+        self.bot.loop.create_task(self._wait_and_restore())
+
+    async def _wait_and_restore(self):
+        await self.bot.wait_until_ready()
+
+        verification_cog = None
+        while not verification_cog:
+            verification_cog = self.bot.get_cog("VerificationHandler")
+            if not verification_cog:
+                await asyncio.sleep(0.25)
+
+        await self.restore_or_send_layouts()
 
     async def restore_or_send_layouts(self):
         view_mapping = {
@@ -175,29 +185,7 @@ class Startup(commands.Cog):
             log.debug("Staff proposals message_ids=%s", msg_ids)
 
     async def cog_unload(self):
-        self.process_message_logs.cancel()
-
-    @tasks.loop(seconds=1)
-    async def process_message_logs(self):
-        while not MESSAGE_LOG_QUEUE.empty():
-            embed = await MESSAGE_LOG_QUEUE.get()
-            channel = self.bot.get_channel(MESSAGE_SEND_LOG_CHANNEL_ID)
-            if isinstance(channel, discord.TextChannel):
-                try:
-                    await channel.send(embed=embed)
-                except discord.HTTPException:
-                    pass
-
-    @process_message_logs.before_loop
-    async def before_logs(self):
-        await self.bot.wait_until_ready()
-        verification_cog = None
-        while not verification_cog:
-            verification_cog = self.bot.get_cog("VerificationHandler")
-            if not verification_cog:
-                await asyncio.sleep(0.25)
-
-        await self.restore_or_send_layouts()
+        pass
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Startup(bot))
