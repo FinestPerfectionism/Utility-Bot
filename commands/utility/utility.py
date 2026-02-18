@@ -605,26 +605,33 @@ class UtilityCommands(commands.Cog):
 
         set_flag = False
         tz_value = None
-        member_query = None
+        query_parts = []
 
         i = 0
         while i < len(parts):
             token = parts[i]
-            if token == "/s":
+            low_token = token.lower()
+
+            if low_token == "/s":
                 set_flag = True
-            elif token == "/tz":
-                if i + 1 < len(parts):
+            elif low_token == "/tz":
+                # Collect everything until the next flag or end of string as the timezone
+                temp_tz = []
+                while i + 1 < len(parts) and not parts[i+1].startswith("/"):
                     i += 1
-                    tz_value = parts[i]
+                    temp_tz.append(parts[i])
+                tz_value = " ".join(temp_tz)
             elif not token.startswith("/"):
-                member_query = token
+                query_parts.append(token)
             i += 1
 
+        member_query = " ".join(query_parts) if query_parts else None
         target: discord.Member = invocator
 
         if member_query:
             member = await self.resolve_member_with_partial(ctx, member_query)
             if member is None:
+                # The resolve_member_with_partial likely sends the error message
                 return
             target = member
 
@@ -659,7 +666,6 @@ class UtilityCommands(commands.Cog):
 
         now_target = datetime.now(pytz.timezone(tz_target))
         time_target = now_target.strftime("%H:%M")
-
         tz_author = user_timezones.get(str(invocator.id))
 
         if target.id == invocator.id:
@@ -671,7 +677,6 @@ class UtilityCommands(commands.Cog):
             return
 
         now_author = datetime.now(pytz.timezone(tz_author))
-
         t_delta = now_target.utcoffset()
         a_delta = now_author.utcoffset()
 
@@ -680,7 +685,6 @@ class UtilityCommands(commands.Cog):
 
         target_offset = t_delta.total_seconds()
         author_offset = a_delta.total_seconds()
-        diff_hours = int((target_offset - author_offset) / 3600)
         diff_hours = int((target_offset - author_offset) / 3600)
 
         if diff_hours == 0:
