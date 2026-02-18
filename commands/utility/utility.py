@@ -572,7 +572,7 @@ class UtilityCommands(commands.Cog):
     }
 
     @commands.command(name="ti")
-    async def timezone(self, ctx: commands.Context, *, arg: Optional[str] = None, flags: Optional[TimezoneFlags] = None):
+    async def timezone(self, ctx: commands.Context, *, flags: Optional[TimezoneFlags] = None, arg: Optional[str] = None):
         if not ctx.guild:
             return
 
@@ -591,7 +591,7 @@ class UtilityCommands(commands.Cog):
         if target is None:
             return
 
-        if arg:
+        if arg and not arg.startswith("/"):
             member = await self.resolve_member_with_partial(ctx, arg)
             if member is None:
                 return
@@ -631,7 +631,11 @@ class UtilityCommands(commands.Cog):
 
         tz_author = user_timezones.get(str(ctx.author.id))
 
-        if not tz_author or target.id == ctx.author.id:
+        if target.id == ctx.author.id:
+            await ctx.send(f"It is **{time_target}** for you. Your timezone is **{tz_target}**.")
+            return
+
+        if not tz_author:
             await ctx.send(f"It is **{time_target}** for {target.mention}. Their timezone is **{tz_target}**.")
             return
 
