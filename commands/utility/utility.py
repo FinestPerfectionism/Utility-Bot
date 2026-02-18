@@ -572,50 +572,81 @@ class UtilityCommands(commands.Cog):
     }
 
     @commands.command(name="ti")
-    async def timezone(self, ctx: commands.Context, arg: Optional[str] = None, *, flags: TimezoneFlags):
-        if not ctx.guild:
+    async def timezone(self, ctx: commands.Context, *, raw: Optional[str] = None):
+        if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 
-        if arg and arg.startswith("/@"):
-            raw_tz = arg[2:]
-            resolved = self.resolve_timezone(raw_tz)
-            if not resolved:
-                await ctx.send(f"`{raw_tz}` is not a valid timezone.")
-                return
+        invocator: discord.Member = ctx.author
 
+        if not raw:
+            target: discord.Member = invocator
+            tz_target = user_timezones.get(str(target.id))
+            if not tz_target:
+                await ctx.send(f"{target.mention} does not have a timezone set.")
+                return
+            now_target = datetime.now(pytz.timezone(tz_target))
+            await ctx.send(f"It is **{now_target.strftime('%H:%M')}** for you. Your timezone is **{tz_target}**.")
+            return
+
+        parts = raw.split()
+
+        if parts[0].startswith("/@"):
+            tz_input = parts[0][2:] or (" ".join(parts[1:]) if len(parts) > 1 else "")
+            if not tz_input:
+                await ctx.send("Please provide a timezone. Example: `.ti /@ EST`")
+                return
+            resolved = self.resolve_timezone(tz_input)
+            if not resolved:
+                await ctx.send(f"`{tz_input}` is not a valid timezone.")
+                return
             now = datetime.now(pytz.timezone(resolved)).strftime("%H:%M")
             await ctx.send(f"It is **{now}** in **{resolved}**.")
             return
 
-        target = ctx.author if isinstance(ctx.author, discord.Member) else None
-        if target is None:
-            return
+        set_flag = False
+        tz_value = None
+        member_query = None
 
-        if arg and not arg.startswith("/"):
-            member = await self.resolve_member_with_partial(ctx, arg)
+        i = 0
+        while i < len(parts):
+            token = parts[i]
+            if token == "/s":
+                set_flag = True
+            elif token == "/tz":
+                if i + 1 < len(parts):
+                    i += 1
+                    tz_value = parts[i]
+            elif not token.startswith("/"):
+                member_query = token
+            i += 1
+
+        target: discord.Member = invocator
+
+        if member_query:
+            member = await self.resolve_member_with_partial(ctx, member_query)
             if member is None:
                 return
             target = member
 
-        if flags and flags.set:
-            if not flags.tz:
+        if set_flag:
+            if not tz_value:
                 await ctx.send("You must provide a timezone. Example: `.ti /s /tz EST`")
                 return
 
-            resolved = self.resolve_timezone(flags.tz)
+            resolved = self.resolve_timezone(tz_value)
             if not resolved:
-                await ctx.send(f"`{flags.tz}` is not a valid timezone.")
+                await ctx.send(f"`{tz_value}` is not a valid timezone.")
                 return
 
-            if target.id != ctx.author.id:
-                if not isinstance(ctx.author, discord.Member) or DIRECTORS_ROLE_ID not in [r.id for r in ctx.author.roles]:
+            if target.id != invocator.id:
+                if DIRECTORS_ROLE_ID not in [r.id for r in invocator.roles]:
                     await ctx.send("You lack permission to set other users' timezones.")
                     return
 
             user_timezones[str(target.id)] = resolved
             save_timezones()
 
-            if target.id == ctx.author.id:
+            if target.id == invocator.id:
                 await ctx.send(f"Your timezone has been set to **{resolved}**.")
             else:
                 await ctx.send(f"Timezone for {target.mention} set to **{resolved}**.")
@@ -629,9 +660,9 @@ class UtilityCommands(commands.Cog):
         now_target = datetime.now(pytz.timezone(tz_target))
         time_target = now_target.strftime("%H:%M")
 
-        tz_author = user_timezones.get(str(ctx.author.id))
+        tz_author = user_timezones.get(str(invocator.id))
 
-        if target.id == ctx.author.id:
+        if target.id == invocator.id:
             await ctx.send(f"It is **{time_target}** for you. Your timezone is **{tz_target}**.")
             return
 
@@ -640,14 +671,24 @@ class UtilityCommands(commands.Cog):
             return
 
         now_author = datetime.now(pytz.timezone(tz_author))
-        diff_hours = int((now_target - now_author).total_seconds() // 3600)
+
+        t_delta = now_target.utcoffset()
+        a_delta = now_author.utcoffset()
+
+        if t_delta is None or a_delta is None:
+            return
+
+        target_offset = t_delta.total_seconds()
+        author_offset = a_delta.total_seconds()
+        diff_hours = int((target_offset - author_offset) / 3600)
+        diff_hours = int((target_offset - author_offset) / 3600)
 
         if diff_hours == 0:
             relation = "the same timezone as you"
         elif diff_hours > 0:
-            relation = f"{diff_hours} hours ahead of you"
+            relation = f"{diff_hours} hour{'s' if abs(diff_hours) != 1 else ''} ahead of you"
         else:
-            relation = f"{abs(diff_hours)} hours behind you"
+            relation = f"{abs(diff_hours)} hour{'s' if abs(diff_hours) != 1 else ''} behind you"
 
         await ctx.send(
             f"It is **{time_target}** for {target.mention}. Their timezone is **{tz_target}**, {relation}."
