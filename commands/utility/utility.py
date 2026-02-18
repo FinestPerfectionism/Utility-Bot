@@ -572,7 +572,7 @@ class UtilityCommands(commands.Cog):
     }
 
     @commands.command(name="ti")
-    async def timezone(self, ctx: commands.Context, *, flags: Optional[TimezoneFlags] = None, arg: Optional[str] = None):
+    async def timezone(self, ctx: commands.Context, arg: Optional[str] = None, *, flags: TimezoneFlags):
         if not ctx.guild:
             return
 
