@@ -19,10 +19,12 @@ from constants import (
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 
+    SUPPORTING_DIRECTOR_ROLE_ID,
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 )
+
 from core.bot import UtilityBot
 from core.utils import send_major_error
 
@@ -352,7 +354,7 @@ class HealthCommands(commands.Cog):
 
         bad_roles: List[str] = []
         for role in guild.roles:
-            if role.id in (guild.default_role.id, DIRECTORS_ROLE_ID):
+            if role.id in (guild.default_role.id, SUPPORTING_DIRECTOR_ROLE_ID):
                 continue
             if role.managed:
                 continue
@@ -479,7 +481,7 @@ class HealthCommands(commands.Cog):
 
     @app_commands.command(
         name="health",
-        description="Staff only —— Run a full server health and security check."
+        description="View server health and run automated fixes."
     )
     async def health(self, interaction: discord.Interaction):
         actor = interaction.user
