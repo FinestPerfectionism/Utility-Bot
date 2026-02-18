@@ -131,10 +131,10 @@ class CasesManager:
         color_map = {
             CaseType.BAN.value: COLOR_BLACK,
             CaseType.UNBAN.value: COLOR_GREEN,
-            CaseType.KICK.value: COLOR_ORANGE,
+            CaseType.KICK.value: COLOR_RED,
             CaseType.TIMEOUT.value: COLOR_YELLOW,
             CaseType.UNTIMEOUT.value: COLOR_GREEN,
-            CaseType.QUARANTINE_ADD.value: COLOR_RED,
+            CaseType.QUARANTINE_ADD.value: COLOR_ORANGE,
             CaseType.QUARANTINE_REMOVE.value: COLOR_GREEN,
             CaseType.LOCKDOWN_ADD.value: COLOR_GREY,
             CaseType.LOCKDOWN_REMOVE.value: COLOR_GREEN,

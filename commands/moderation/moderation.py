@@ -4,13 +4,23 @@ from discord import app_commands
 
 import json
 import os
-from datetime import datetime, timedelta
-from typing import Optional, Dict, cast
+from datetime import (
+    datetime,
+    timedelta
+)
+from typing import (
+    Optional,
+    Dict, 
+    cast
+)
 
 from commands.moderation.cases import CaseType
 
 from core.bot import UtilityBot
-from core.utils import send_major_error, send_minor_error
+from core.utils import (
+    send_major_error,
+    send_minor_error
+)
 
 from constants import(
     COLOR_GREEN,
@@ -29,6 +39,24 @@ from constants import(
     JUNIOR_MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 )
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Flag Converters
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class BanFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    r: str = commands.flag(name="r", aliases=["reason"], default=None)
+    d: int = commands.flag(name="d", aliases=["delete"], default=0)
+
+class KickFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    r: str = commands.flag(name="r", aliases=["reason"], default=None)
+
+class TimeoutFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    r: str = commands.flag(name="r", aliases=["reason"], default=None)
+    d: str = commands.flag(name="d", aliases=["duration"], default=None)
+
+class PurgeFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    u: Optional[discord.Member] = commands.flag(name="u", aliases=["user"], default=None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Commands
@@ -62,8 +90,12 @@ class ModerationCommands(
             DIRECTORS_ROLE_ID,
         ]
 
-        self.HOURLY_LIMIT = 3
-        self.DAILY_LIMIT = 5
+        self.BAN_HOURLY_LIMIT = 2
+        self.BAN_DAILY_LIMIT = 4
+        self.KICK_HOURLY_LIMIT = 3
+        self.KICK_DAILY_LIMIT = 6
+        self.SEVERE_HOURLY_LIMIT = 4
+        self.SEVERE_DAILY_LIMIT = 8
 
     @property
     def cases_manager(self):
@@ -110,42 +142,64 @@ class ModerationCommands(
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
+    def _ensure_rate_limit_entry(self, user_id: str):
+        if user_id not in self.data["rate_limits"]:
+            self.data["rate_limits"][user_id] = {}
+        rl = self.data["rate_limits"][user_id]
+        for key in ("ban_hourly", "ban_daily", "kick_hourly", "kick_daily", "severe_hourly", "severe_daily"):
+            if key not in rl:
+                rl[key] = []
+
     def clean_old_rate_limits(self, user_id: str):
         now = datetime.now()
-        if user_id not in self.data["rate_limits"]:
-            self.data["rate_limits"][user_id] = {"hourly": [], "daily": []}
+        self._ensure_rate_limit_entry(user_id)
+        rl = self.data["rate_limits"][user_id]
 
-        self.data["rate_limits"][user_id]["hourly"] = [
-            ts for ts in self.data["rate_limits"][user_id]["hourly"]
-            if datetime.fromisoformat(ts) > now - timedelta(hours=1)
-        ]
+        for key in ("ban_hourly", "kick_hourly", "severe_hourly"):
+            rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
 
-        self.data["rate_limits"][user_id]["daily"] = [
-            ts for ts in self.data["rate_limits"][user_id]["daily"]
-            if datetime.fromisoformat(ts) > now - timedelta(days=1)
-        ]
+        for key in ("ban_daily", "kick_daily", "severe_daily"):
+            rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(days=1)]
 
-    def check_rate_limit(self, user_id: str) -> tuple[bool, str]:
+    def check_rate_limit(self, user_id: str, action: str) -> tuple[bool, str]:
         self.clean_old_rate_limits(user_id)
+        rl = self.data["rate_limits"][user_id]
 
-        hourly_count = len(self.data["rate_limits"][user_id]["hourly"])
-        daily_count = len(self.data["rate_limits"][user_id]["daily"])
+        if len(rl["severe_hourly"]) >= self.SEVERE_HOURLY_LIMIT:
+            return False, f"Severe action hourly limit exceeded ({self.SEVERE_HOURLY_LIMIT} bans/kicks/quarantines per hour)"
+        if len(rl["severe_daily"]) >= self.SEVERE_DAILY_LIMIT:
+            return False, f"Severe action daily limit exceeded ({self.SEVERE_DAILY_LIMIT} bans/kicks/quarantines per day)"
 
-        if hourly_count >= self.HOURLY_LIMIT:
-            return False, f"Hourly limit exceeded ({self.HOURLY_LIMIT} moderation actions per hour)"
+        if action == "ban":
+            if len(rl["ban_hourly"]) >= self.BAN_HOURLY_LIMIT:
+                return False, f"Ban hourly limit exceeded ({self.BAN_HOURLY_LIMIT} bans per hour)"
+            if len(rl["ban_daily"]) >= self.BAN_DAILY_LIMIT:
+                return False, f"Ban daily limit exceeded ({self.BAN_DAILY_LIMIT} bans per day)"
 
-        if daily_count >= self.DAILY_LIMIT:
-            return False, f"Daily limit exceeded ({self.DAILY_LIMIT} moderation actions per day)"
+        elif action == "kick":
+            if len(rl["kick_hourly"]) >= self.KICK_HOURLY_LIMIT:
+                return False, f"Kick hourly limit exceeded ({self.KICK_HOURLY_LIMIT} kicks per hour)"
+            if len(rl["kick_daily"]) >= self.KICK_DAILY_LIMIT:
+                return False, f"Kick daily limit exceeded ({self.KICK_DAILY_LIMIT} kicks per day)"
 
         return True, ""
 
-    def add_rate_limit_entry(self, user_id: str):
+    def add_rate_limit_entry(self, user_id: str, action: str):
         now = datetime.now().isoformat()
-        if user_id not in self.data["rate_limits"]:
-            self.data["rate_limits"][user_id] = {"hourly": [], "daily": []}
+        self._ensure_rate_limit_entry(user_id)
+        rl = self.data["rate_limits"][user_id]
 
-        self.data["rate_limits"][user_id]["hourly"].append(now)
-        self.data["rate_limits"][user_id]["daily"].append(now)
+        if action in ("ban", "kick"):
+            rl["severe_hourly"].append(now)
+            rl["severe_daily"].append(now)
+
+        if action == "ban":
+            rl["ban_hourly"].append(now)
+            rl["ban_daily"].append(now)
+        elif action == "kick":
+            rl["kick_hourly"].append(now)
+            rl["kick_daily"].append(now)
+
         self.save_data()
 
     def has_role(self, member: discord.Member, role_id: int) -> bool:
@@ -268,13 +322,9 @@ class ModerationCommands(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str | None = None,
+        reason: str,
         delete_messages: Optional[int] = 0
     ):
-        
-        if reason is None:
-            reason = f"No reason specified by {interaction.user}"
-            
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -286,6 +336,7 @@ class ModerationCommands(
                 texts="You lack the necessary permissions to ban members.",
                 subtitle="No permissions."
             )
+            return
 
         if member.id == actor.id:
             await send_minor_error(interaction, "You cannot ban yourself.")
@@ -301,7 +352,7 @@ class ModerationCommands(
             return
 
         if not self.is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id), "ban")
             if not can_proceed:
                 await send_major_error(
                     interaction,
@@ -312,7 +363,7 @@ class ModerationCommands(
                 await self.auto_quarantine_moderator(actor, guild)
                 return
 
-            self.add_rate_limit_entry(str(actor.id))
+            self.add_rate_limit_entry(str(actor.id), "ban")
 
         await interaction.response.defer(ephemeral=True)
 
@@ -368,14 +419,15 @@ class ModerationCommands(
         self,
         ctx: commands.Context,
         member: discord.Member,
-        delete_messages: Optional[int] = 0,
         *,
-        reason: str | None = None
+        flags: BanFlags
     ):
-        
-        if reason is None:
-            reason = f"No reason specified by {ctx.author}"
-            
+        if not flags.r:
+            return
+
+        reason = flags.r
+        delete_messages = max(0, min(7, flags.d))
+
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -395,15 +447,12 @@ class ModerationCommands(
             return
 
         if not self.is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            can_proceed, _ = self.check_rate_limit(str(actor.id), "ban")
             if not can_proceed:
                 await self.auto_quarantine_moderator(actor, guild)
                 return
 
-            self.add_rate_limit_entry(str(actor.id))
-
-        dm_value = delete_messages if delete_messages is not None else 0
-        delete_messages = max(0, min(7, dm_value))
+            self.add_rate_limit_entry(str(actor.id), "ban")
 
         try:
             await member.ban(
@@ -454,12 +503,8 @@ class ModerationCommands(
         self,
         interaction: discord.Interaction,
         user: str,
-        reason: str | None = None
+        reason: str
     ):
-
-        if reason is None:
-            reason = f"No reason specified by {interaction.user}"
-        
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -553,12 +598,13 @@ class ModerationCommands(
         ctx: commands.Context,
         user: str,
         *,
-        reason: str | None = None
+        flags: KickFlags
     ):
+        if not flags.r:
+            return
 
-        if reason is None:
-            reason = f"No reason specified by {ctx.author}"
-        
+        reason = flags.r
+
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -635,12 +681,8 @@ class ModerationCommands(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str | None = None
+        reason: str
     ):
-
-        if reason is None:
-            reason = f"No reason specified by {interaction.user}"
-        
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -668,7 +710,7 @@ class ModerationCommands(
             return
 
         if not self.is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id), "kick")
             if not can_proceed:
                 await send_major_error(
                     interaction,
@@ -679,7 +721,7 @@ class ModerationCommands(
                 await self.auto_quarantine_moderator(actor, guild)
                 return
 
-            self.add_rate_limit_entry(str(actor.id))
+            self.add_rate_limit_entry(str(actor.id), "kick")
 
         await interaction.response.defer(ephemeral=True)
 
@@ -729,12 +771,13 @@ class ModerationCommands(
         ctx: commands.Context,
         member: discord.Member,
         *,
-        reason: str | None = None
+        flags: KickFlags
     ):
+        if not flags.r:
+            return
 
-        if reason is None:
-            reason = f"No reason specified by {ctx.author}"
-        
+        reason = flags.r
+
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -754,12 +797,12 @@ class ModerationCommands(
             return
 
         if not self.is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            can_proceed, _ = self.check_rate_limit(str(actor.id), "kick")
             if not can_proceed:
                 await self.auto_quarantine_moderator(actor, guild)
                 return
 
-            self.add_rate_limit_entry(str(actor.id))
+            self.add_rate_limit_entry(str(actor.id), "kick")
 
         try:
             await member.kick(reason=f"Kicked by {actor}: {reason}")
@@ -808,12 +851,8 @@ class ModerationCommands(
         interaction: discord.Interaction,
         member: discord.Member,
         duration: str,
-        reason: str | None = None
+        reason: str
     ):
-
-        if reason is None:
-            reason = f"No reason specified by {interaction.user}"
-        
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -851,7 +890,7 @@ class ModerationCommands(
             return
 
         if not self.is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            can_proceed, error_msg = self.check_rate_limit(str(actor.id), "timeout")
             if not can_proceed:
                 await send_major_error(
                     interaction,
@@ -862,7 +901,7 @@ class ModerationCommands(
                 await self.auto_quarantine_moderator(actor, guild)
                 return
 
-            self.add_rate_limit_entry(str(actor.id))
+            self.add_rate_limit_entry(str(actor.id), "timeout")
 
         await interaction.response.defer(ephemeral=True)
 
@@ -918,14 +957,15 @@ class ModerationCommands(
         self,
         ctx: commands.Context,
         member: discord.Member,
-        duration: str,
         *,
-        reason: str | None = None
+        flags: TimeoutFlags
     ):
+        if not flags.r or not flags.d:
+            return
 
-        if reason is None:
-            reason = f"No reason specified by {ctx.author}"
-            
+        reason = flags.r
+        duration = flags.d
+
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -953,12 +993,12 @@ class ModerationCommands(
             return
 
         if not self.is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id))
+            can_proceed, _ = self.check_rate_limit(str(actor.id), "timeout")
             if not can_proceed:
                 await self.auto_quarantine_moderator(actor, guild)
                 return
 
-            self.add_rate_limit_entry(str(actor.id))
+            self.add_rate_limit_entry(str(actor.id), "timeout")
 
         try:
             until = discord.utils.utcnow() + timedelta(seconds=duration_seconds)
@@ -1012,12 +1052,8 @@ class ModerationCommands(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str | None = None
+        reason: str
     ):
-
-        if reason is None:
-            reason = f"No reason specified by {interaction.user}"
-            
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -1084,12 +1120,13 @@ class ModerationCommands(
         ctx: commands.Context,
         member: discord.Member,
         *,
-        reason: str | None = None
+        flags: KickFlags
     ):
+        if not flags.r:
+            return
 
-        if reason is None:
-            reason = f"No reason specified by {ctx.author}"
-            
+        reason = flags.r
+
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -1227,7 +1264,8 @@ class ModerationCommands(
         self,
         ctx: commands.Context,
         amount: int,
-        member: Optional[discord.Member] = None
+        *,
+        flags: PurgeFlags
     ):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
@@ -1246,6 +1284,8 @@ class ModerationCommands(
         guild = ctx.guild
         if not guild:
             return
+
+        member = flags.u
 
         try:
             if member:

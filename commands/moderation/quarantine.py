@@ -34,6 +34,16 @@ from core.utils import send_major_error, send_minor_error
 from commands.moderation.cases import CaseType
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Flag Converters
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class QuarantineAddFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    r: str = commands.flag(name="r", aliases=["reason"], default=None)
+
+class QuarantineRemoveFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    r: str = commands.flag(name="r", aliases=["reason"], default=None)
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Quarantine Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -61,8 +71,10 @@ class QuarantineCommands(commands.Cog):
             DIRECTORS_ROLE_ID,
         ]
 
-        self.HOURLY_LIMIT = 5
-        self.DAILY_LIMIT = 20
+        self.QUARANTINE_HOURLY_LIMIT = 5
+        self.QUARANTINE_DAILY_LIMIT = 20
+        self.SEVERE_HOURLY_LIMIT = 6
+        self.SEVERE_DAILY_LIMIT = 24
 
     @property
     def cases_manager(self):
@@ -87,42 +99,50 @@ class QuarantineCommands(commands.Cog):
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
+    def _ensure_rate_limit_entry(self, user_id: str):
+        if user_id not in self.data["rate_limits"]:
+            self.data["rate_limits"][user_id] = {}
+        rl = self.data["rate_limits"][user_id]
+        for key in ("quarantine_hourly", "quarantine_daily", "severe_hourly", "severe_daily"):
+            if key not in rl:
+                rl[key] = []
+
     def clean_old_rate_limits(self, user_id: str):
         now = datetime.now()
-        if user_id not in self.data["rate_limits"]:
-            self.data["rate_limits"][user_id] = {"hourly": [], "daily": []}
+        self._ensure_rate_limit_entry(user_id)
+        rl = self.data["rate_limits"][user_id]
 
-        self.data["rate_limits"][user_id]["hourly"] = [
-            ts for ts in self.data["rate_limits"][user_id]["hourly"]
-            if datetime.fromisoformat(ts) > now - timedelta(hours=1)
-        ]
+        for key in ("quarantine_hourly", "severe_hourly"):
+            rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
 
-        self.data["rate_limits"][user_id]["daily"] = [
-            ts for ts in self.data["rate_limits"][user_id]["daily"]
-            if datetime.fromisoformat(ts) > now - timedelta(days=1)
-        ]
+        for key in ("quarantine_daily", "severe_daily"):
+            rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(days=1)]
 
     def check_rate_limit(self, user_id: str) -> tuple[bool, str]:
         self.clean_old_rate_limits(user_id)
+        rl = self.data["rate_limits"][user_id]
 
-        hourly_count = len(self.data["rate_limits"][user_id]["hourly"])
-        daily_count = len(self.data["rate_limits"][user_id]["daily"])
+        if len(rl["severe_hourly"]) >= self.SEVERE_HOURLY_LIMIT:
+            return False, f"Severe action hourly limit exceeded ({self.SEVERE_HOURLY_LIMIT} severe actions per hour)"
+        if len(rl["severe_daily"]) >= self.SEVERE_DAILY_LIMIT:
+            return False, f"Severe action daily limit exceeded ({self.SEVERE_DAILY_LIMIT} severe actions per day)"
 
-        if hourly_count >= self.HOURLY_LIMIT:
-            return False, f"Hourly limit exceeded ({self.HOURLY_LIMIT} quarantines per hour)"
-
-        if daily_count >= self.DAILY_LIMIT:
-            return False, f"Daily limit exceeded ({self.DAILY_LIMIT} quarantines per day)"
+        if len(rl["quarantine_hourly"]) >= self.QUARANTINE_HOURLY_LIMIT:
+            return False, f"Hourly limit exceeded ({self.QUARANTINE_HOURLY_LIMIT} quarantines per hour)"
+        if len(rl["quarantine_daily"]) >= self.QUARANTINE_DAILY_LIMIT:
+            return False, f"Daily limit exceeded ({self.QUARANTINE_DAILY_LIMIT} quarantines per day)"
 
         return True, ""
 
     def add_rate_limit_entry(self, user_id: str):
         now = datetime.now().isoformat()
-        if user_id not in self.data["rate_limits"]:
-            self.data["rate_limits"][user_id] = {"hourly": [], "daily": []}
+        self._ensure_rate_limit_entry(user_id)
+        rl = self.data["rate_limits"][user_id]
 
-        self.data["rate_limits"][user_id]["hourly"].append(now)
-        self.data["rate_limits"][user_id]["daily"].append(now)
+        rl["quarantine_hourly"].append(now)
+        rl["quarantine_daily"].append(now)
+        rl["severe_hourly"].append(now)
+        rl["severe_daily"].append(now)
         self.save_data()
 
     def has_role(self, member: discord.Member, role_id: int) -> bool:
@@ -227,16 +247,51 @@ class QuarantineCommands(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+    @commands.command(name="quarantine-view", aliases=["qview", "qv"])
+    async def quarantine_view_prefix(self, ctx: commands.Context):
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_view(actor):
+            return
+
+        if not self.data["quarantined"]:
+            await ctx.send("No members are currently quarantined.")
+            return
+
+        embed = discord.Embed(
+            title="Quarantined Members",
+            color=COLOR_ORANGE,
+            timestamp=datetime.now()
+        )
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        for user_id, data in self.data["quarantined"].items():
+            member = guild.get_member(int(user_id))
+            member_name = member.mention if member else f"Unknown User ({user_id})"
+            quarantined_at = datetime.fromisoformat(data["quarantined_at"])
+
+            embed.add_field(
+                name=member_name,
+                value=f"Quarantined: {discord.utils.format_dt(quarantined_at, 'R')}\n"
+                      f"Saved roles: {len(data['roles'])}",
+                inline=False
+            )
+
+        await ctx.send(embed=embed)
+
     @quarantine_group.command(name="add", description="Add a member to quarantine.")
     @app_commands.describe(member="The member to quarantine.", reason="Reason for quarantine.")
     async def quarantine_add(
         self, 
         interaction: discord.Interaction, 
         member: discord.Member,
-        reason: str | None = None
+        reason: str
     ):
-        reason = reason or f"No reason specified by {interaction.user}."
-
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -353,6 +408,94 @@ class QuarantineCommands(commands.Cog):
                 del self.data["quarantined"][str(member.id)]
                 self.save_data()
 
+    @commands.command(name="quarantine-add", aliases=["qadd", "qa"])
+    async def quarantine_add_prefix(
+        self,
+        ctx: commands.Context,
+        member: discord.Member,
+        *,
+        flags: QuarantineAddFlags
+    ):
+        if not flags.r:
+            return
+
+        reason = flags.r
+
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+        if not self.can_add(actor):
+            return
+
+        if member.id == actor.id:
+            return
+
+        if not self.check_hierarchy(actor, member):
+            return
+
+        if str(member.id) in self.data["quarantined"]:
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        if not self.is_director(actor):
+            can_proceed, _ = self.check_rate_limit(str(actor.id))
+            if not can_proceed:
+                await self.auto_quarantine_moderator(actor, guild)
+                return
+
+            self.add_rate_limit_entry(str(actor.id))
+
+        quarantine_role = guild.get_role(self.QUARANTINE_ROLE_ID)
+        if not quarantine_role:
+            return
+
+        saved_roles = [
+            role.id for role in member.roles
+            if role.id not in (guild.default_role.id, self.QUARANTINE_ROLE_ID)
+        ]
+
+        self.data["quarantined"][str(member.id)] = {
+            "roles": saved_roles,
+            "quarantined_at": datetime.now().isoformat(),
+            "quarantined_by": actor.id,
+            "reason": reason
+        }
+        self.save_data()
+
+        try:
+            roles_to_remove = [role for role in member.roles if role.id != guild.default_role.id]
+            await member.remove_roles(*roles_to_remove, reason=f"Quarantined by {actor}")
+            await member.add_roles(quarantine_role, reason=f"Quarantined by {actor}: {reason}")
+
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.QUARANTINE_ADD,
+                moderator=actor,
+                reason=reason,
+                target_user=member,
+                metadata={"roles_saved": len(saved_roles)}
+            )
+
+            embed = discord.Embed(
+                title="Member Quarantined",
+                color=COLOR_RED,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=member.mention, inline=True)
+            embed.add_field(name="Moderator", value=actor.mention, inline=True)
+            embed.add_field(name="Roles Saved", value=str(len(saved_roles)), inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            await ctx.send(embed=embed)
+
+        except discord.Forbidden:
+            if str(member.id) in self.data["quarantined"]:
+                del self.data["quarantined"][str(member.id)]
+                self.save_data()
+
     async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild):
         if not guild or not self.bot.user:
             return
@@ -393,16 +536,17 @@ class QuarantineCommands(commands.Cog):
             pass
 
     @quarantine_group.command(name="remove", description="Remove a member from quarantine.")
-    @app_commands.describe(member="The member to remove from quarantine.")
+    @app_commands.describe(member="The member to remove from quarantine.", reason="Reason for removal.")
     async def quarantine_remove(
-        self, 
-        interaction: discord.Interaction, 
-        member: discord.Member
+        self,
+        interaction: discord.Interaction,
+        member: discord.Member,
+        reason: str
     ):
-
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
+
         if not self.can_remove(actor):
             await send_major_error(
                 interaction,
@@ -437,14 +581,9 @@ class QuarantineCommands(commands.Cog):
         quarantine_data = self.data["quarantined"].get(str(member.id))
         saved_role_ids = quarantine_data["roles"] if quarantine_data else []
 
-        guild = interaction.guild
-        if guild is None:
-            return
-        quarantine_role = await guild.fetch_role(self.QUARANTINE_ROLE_ID)
-
         try:
             if quarantine_role and quarantine_role in member.roles:
-                await member.remove_roles(quarantine_role, reason=f"Unquarantined by {interaction.user}")
+                await member.remove_roles(quarantine_role, reason=f"Unquarantined by {actor}: {reason}")
 
             roles_to_add = []
             roles_not_found = []
@@ -460,7 +599,7 @@ class QuarantineCommands(commands.Cog):
                     roles_not_found.append(role_id)
 
             if roles_to_add:
-                await member.add_roles(*roles_to_add, reason=f"Unquarantined by {interaction.user}")
+                await member.add_roles(*roles_to_add, reason=f"Unquarantined by {actor}: {reason}")
 
             if str(member.id) in self.data["quarantined"]:
                 del self.data["quarantined"][str(member.id)]
@@ -470,7 +609,7 @@ class QuarantineCommands(commands.Cog):
                 guild=guild,
                 case_type=CaseType.QUARANTINE_REMOVE,
                 moderator=actor,
-                reason="Removed from quarantine",
+                reason=reason,
                 target_user=member,
                 metadata={"roles_restored": len(roles_to_add)}
             )
@@ -481,8 +620,9 @@ class QuarantineCommands(commands.Cog):
                 timestamp=datetime.now()
             )
             embed.add_field(name="Member", value=member.mention, inline=True)
-            embed.add_field(name="Director", value=interaction.user.mention, inline=True)
+            embed.add_field(name="Director", value=actor.mention, inline=True)
             embed.add_field(name="Roles Restored", value=str(len(roles_to_add)), inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
 
             if roles_not_found:
                 embed.add_field(
@@ -499,6 +639,95 @@ class QuarantineCommands(commands.Cog):
                 "I lack the necessary permissions to run this command.",
                 subtitle="Invalid configuration. Contact the owner."
             )
+
+    @commands.command(name="quarantine-remove", aliases=["qremove", "qr"])
+    async def quarantine_remove_prefix(
+        self,
+        ctx: commands.Context,
+        member: discord.Member,
+        *,
+        flags: QuarantineRemoveFlags
+    ):
+        if not flags.r:
+            return
+
+        reason = flags.r
+
+        actor = ctx.author
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_remove(actor):
+            return
+
+        guild = ctx.guild
+        if not guild:
+            return
+
+        quarantine_role = guild.get_role(self.QUARANTINE_ROLE_ID)
+        in_json = str(member.id) in self.data["quarantined"]
+        has_role = quarantine_role in member.roles if quarantine_role else False
+
+        if not in_json and not has_role:
+            return
+
+        quarantine_data = self.data["quarantined"].get(str(member.id))
+        saved_role_ids = quarantine_data["roles"] if quarantine_data else []
+
+        try:
+            if quarantine_role and quarantine_role in member.roles:
+                await member.remove_roles(quarantine_role, reason=f"Unquarantined by {actor}: {reason}")
+
+            roles_to_add = []
+            roles_not_found = []
+
+            for role_id in saved_role_ids:
+                if role_id == self.QUARANTINE_ROLE_ID:
+                    continue
+
+                role = guild.get_role(role_id)
+                if role:
+                    roles_to_add.append(role)
+                else:
+                    roles_not_found.append(role_id)
+
+            if roles_to_add:
+                await member.add_roles(*roles_to_add, reason=f"Unquarantined by {actor}: {reason}")
+
+            if str(member.id) in self.data["quarantined"]:
+                del self.data["quarantined"][str(member.id)]
+                self.save_data()
+
+            await self.cases_manager.log_case(
+                guild=guild,
+                case_type=CaseType.QUARANTINE_REMOVE,
+                moderator=actor,
+                reason=reason,
+                target_user=member,
+                metadata={"roles_restored": len(roles_to_add)}
+            )
+
+            embed = discord.Embed(
+                title="Member Unquarantined",
+                color=COLOR_GREEN,
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Member", value=member.mention, inline=True)
+            embed.add_field(name="Director", value=actor.mention, inline=True)
+            embed.add_field(name="Roles Restored", value=str(len(roles_to_add)), inline=True)
+            embed.add_field(name="Reason", value=reason, inline=False)
+
+            if roles_not_found:
+                embed.add_field(
+                    name=f"{CONTESTED_EMOJI_ID} Roles Not Found",
+                    value=f"{len(roles_not_found)} role(s) no longer exist and could not be restored.",
+                    inline=False
+                )
+
+            await ctx.send(embed=embed)
+
+        except discord.Forbidden:
+            pass
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(QuarantineCommands(cast(UtilityBot, bot)))

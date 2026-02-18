@@ -7,8 +7,10 @@ import asyncio
 from constants import (
     DIRECTORSHIP_CATEGORY_ID,
 
+    DIRECTOR_TOPICS_CHANNEL_ID,
     CHANGE_LOG_CHANNEL_ID,
 
+    DIRECTORS_ROLE_ID,
     COLOR_RED,
     COLOR_YELLOW,
     COLOR_GREEN,
@@ -955,9 +957,15 @@ class AuditLogger(commands.Cog):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_thread_create(self, thread):
+    async def on_thread_create(self, thread: discord.Thread):
         if self.is_directorship_channel(thread.parent):
             return
+
+        if thread.parent and thread.parent.id == DIRECTOR_TOPICS_CHANNEL_ID:
+            await thread.send(
+                content=f"<@&{DIRECTORS_ROLE_ID}>",
+                allowed_mentions=discord.AllowedMentions(roles=True)
+            )
 
         log_channel = await self.get_log_channel(thread.guild)
         if not log_channel:
@@ -974,9 +982,14 @@ class AuditLogger(commands.Cog):
             value=f"`{thread.name}`\n`{thread.id}`",
             inline=True
         )
+
+        parent = thread.parent
+        if parent is None:
+            return
+        
         embed.add_field(
             name="Parent Channel",
-            value=f"`{thread.parent.name}`\n`{thread.parent.id}`",
+            value=f"`{parent.name}`\n`{parent.id}`",
             inline=True
         )
 
