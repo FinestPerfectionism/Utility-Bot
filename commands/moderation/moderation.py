@@ -46,7 +46,7 @@ from constants import(
 
 class BanFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
-    d: int = commands.flag(name="d", aliases=["delete"], default=0)
+    d: int = commands.flag(name="d", aliases=["delete"], default=7)
 
 class KickFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
@@ -57,6 +57,7 @@ class TimeoutFlags(commands.FlagConverter, prefix="/", delimiter=" "):
 
 class PurgeFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     u: Optional[discord.Member] = commands.flag(name="u", aliases=["user"], default=None)
+    r: str = commands.flag(name="r", aliases=["reason"])
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Commands
@@ -1177,12 +1178,14 @@ class ModerationCommands(
     @app_commands.command(name="purge", description="Delete a specified number of messages.")
     @app_commands.describe(
         amount="Number of messages to delete.",
-        member="Optional: Only delete messages from this member."
+        member="Only delete messages from this member.",
+        reason="Reason for purging messages."
     )
     async def purge_slash(
         self,
         interaction: discord.Interaction,
         amount: int,
+        reason: str,
         member: Optional[discord.Member] = None
     ):
         actor = interaction.user
@@ -1232,7 +1235,7 @@ class ModerationCommands(
                 guild=guild,
                 case_type=CaseType.PURGE,
                 moderator=actor,
-                reason=f"Purged {len(deleted)} messages" + (f" from {member}" if member else ""),
+                reason=reason,
                 target_user=member if member else None,
                 metadata={
                     "deleted_messages": len(deleted),
@@ -1300,7 +1303,7 @@ class ModerationCommands(
                 guild=guild,
                 case_type=CaseType.PURGE,
                 moderator=actor,
-                reason=f"Purged {len(deleted)} messages" + (f" from {member}" if member else ""),
+                reason=flags.r,
                 target_user=member if member else None,
                 metadata={
                     "deleted_messages": len(deleted),
