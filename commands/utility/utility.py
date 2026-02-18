@@ -615,9 +615,11 @@ class UtilityCommands(commands.Cog):
             if low_token == "/s":
                 set_flag = True
             elif low_token == "/tz":
-                # Collect everything until the next flag or end of string as the timezone
                 temp_tz = []
-                while i + 1 < len(parts) and not parts[i+1].startswith("/"):
+                while i + 1 < len(parts):
+                    next_token = parts[i+1]
+                    if next_token.startswith("/") or next_token.startswith("<@"):
+                        break
                     i += 1
                     temp_tz.append(parts[i])
                 tz_value = " ".join(temp_tz)
@@ -631,7 +633,6 @@ class UtilityCommands(commands.Cog):
         if member_query:
             member = await self.resolve_member_with_partial(ctx, member_query)
             if member is None:
-                # The resolve_member_with_partial likely sends the error message
                 return
             target = member
 
