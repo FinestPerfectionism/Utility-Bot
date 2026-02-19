@@ -758,13 +758,9 @@ class UtilityCommands(commands.Cog):
     @commands.command(name="timezone", aliases=["ti"])
     async def timezone(self, ctx: commands.Context, user: Optional[discord.User] = None, *, flags: TimezoneFlags):
         timezones = self.load_timezones()
-
         if ctx.guild is None:
             return
-
-        # /s — set timezone
         if flags.s is not None:
-            # Resolve the target user from /s value, falling back to author
             s_value = " ".join(flags.s) if isinstance(flags.s, list) else flags.s.strip()
             if s_value:
                 member = await self.parse_user(ctx, s_value)
@@ -795,6 +791,9 @@ class UtilityCommands(commands.Cog):
 
             tz = result
 
+            if target.id == 1436054709700919477:
+                return await ctx.send("One should not dare to alter the clock of the immortal.")
+
             if target.bot:
                 return await ctx.send(
                     f"**{target.display_name}** is a bot and cannot have a timezone."
@@ -812,12 +811,19 @@ class UtilityCommands(commands.Cog):
                 f"Timezone for **{target.display_name}** has been set to **{tz.zone}**."
             )
 
-        # .ti @user — view a user's current time
         if user is not None and flags.s is None:
+            if user.id == 1436054709700919477:
+                return await ctx.send(f"Is my time ∞:∞..? Or maybe null... It's whatever you wish, {ctx.author.mention}.")
+            
             if user.id == ctx.author.id:
                 return
 
             target_user: Optional[discord.Member] = None
+
+            if user.bot:
+                return await ctx.send(
+                    f"**{user.display_name}** is a bot and doesn't have a timezone."
+                )
 
             for member in ctx.guild.members:
                 if (
@@ -879,7 +885,6 @@ class UtilityCommands(commands.Cog):
                 f"Their timezone is **{tz.zone}**, {offset}"
             )
 
-        # /@ — view time in a specific timezone
         if flags.at is not None:
             tz_str = flags.at.strip()
             if not tz_str:
