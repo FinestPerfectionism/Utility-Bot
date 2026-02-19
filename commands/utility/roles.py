@@ -2,12 +2,14 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from core.help import help_description, ArgumentInfo
 from core.permissions import directors_only
 
 from constants import (
     COLOR_BLURPLE,
     ACCEPTED_EMOJI_ID,
     DENIED_EMOJI_ID,
+    DIRECTORS_ROLE_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -30,8 +32,22 @@ class RoleCommands(
         name="permissions",
         description="List all permissions for a selected role."
     )
+    @help_description(
+        desc        = "The role permissions command lists all permissions for a selected role.",
+        prefix      = False,
+        slash       = True,
+        run_role    = DIRECTORS_ROLE_ID,
+        has_inverse = False,
+        arguments   = {
+            "role": ArgumentInfo(
+                role=DIRECTORS_ROLE_ID,
+                required=True,
+                description="The role to list permissions for."
+            ),
+        },
+    )
     @app_commands.describe(
-        role="Select a role."
+        role="The role to list permissions for."
     )
     @directors_only()
     async def rolepermissions(
@@ -65,10 +81,29 @@ class RoleCommands(
         name="permissions-compare",
         description="List all differing permissions for two selected roles."
     )
-    @app_commands.rename(role1="role_1", role2="role_2")
+    @app_commands.rename(role1="role-1", role2="role-2")
     @app_commands.describe(
-        role1="Select the first role.",
-        role2="Select the second role."
+        role1="The first role to compare.",
+        role2="The second role to compare.",
+    )
+    @help_description(
+        desc        = "The role permissions-compare command lists all differing permissions for two selected roles.",
+        prefix      = False,
+        slash       = True,
+        run_role    = DIRECTORS_ROLE_ID,
+        has_inverse = False,
+        arguments   = {
+            "role-1": ArgumentInfo(
+                role=DIRECTORS_ROLE_ID,
+                required=True,
+                description="The first role to compare."
+            ),
+            "role-2": ArgumentInfo(
+                role=DIRECTORS_ROLE_ID,
+                required=True,
+                description="The second role to compare."
+            ),
+        },
     )
     @directors_only()
     async def rolepermissionscompare(

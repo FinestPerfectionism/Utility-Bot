@@ -411,10 +411,10 @@ class VerificationHandler(commands.Cog):
 
         goobers_role = guild.get_role(self.GOOBERS_ROLE_ID)
         if goobers_role and goobers_role in user.roles:
-            await send_minor_error(
-                interaction,
+            await interaction.response.send_message(
+                "**Failed to open verification session!**\n"
                 "You are already verified!",
-                subtitle="Invalid operation."
+                ephemeral=True
             )
             return
 

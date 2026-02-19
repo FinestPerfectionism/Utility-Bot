@@ -346,8 +346,22 @@ class UtilityCommands(commands.Cog):
         name="leave",
         description="Staff only —— Leave commands."
     )
-
+    
     @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
+    @help_description(
+        desc        = f"The leave add command adds the <@{PERSONAL_LEAVE_ROLE_ID}> role to a staff member, and changes their nickname to \"P. Leave | username\". Their username is stored and restored upon /leave remove.",
+        prefix      = False,
+        slash       = True,
+        run_role    = DIRECTORS_ROLE_ID,
+        has_inverse = "/leave remove",
+        arguments   = {
+            "target": ArgumentInfo(
+                role=DIRECTORS_ROLE_ID,
+                required=False,
+                description="The user to add personal leave to."
+            ),
+        },
+    )
     @app_commands.describe(target="The user to add personal leave to.")
     async def leave_add(
         self,
@@ -510,7 +524,7 @@ class UtilityCommands(commands.Cog):
     @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
     @help_description(
-        desc        = "Removes the leave role from a staff member...",
+        desc        = f"The leave remove command removes the <@{PERSONAL_LEAVE_ROLE_ID}> role from a staff member, and changes their nickname back to before they were on leave.",
         prefix      = False,
         slash       = True,
         run_role    = STAFF_ROLE_ID,
@@ -771,6 +785,33 @@ class UtilityCommands(commands.Cog):
         )
 
     @commands.command(name="timezone", aliases=["ti"])
+    @help_description(
+        desc        = "The timezone command allows users to set and view their timezone, or view the current time in a specific timezone. It also allows users to view the current time of other users if they have set their timezone.",
+        prefix      = True,
+        slash       = False,
+        has_inverse = False,
+        aliases     = ["ti"],
+        arguments   = {
+            "s": ArgumentInfo(
+                role=STAFF_ROLE_ID,
+                required=False,
+                description="Set timezone for yourself or a user.",
+                is_flag=True,
+            ),
+            "user": ArgumentInfo(
+                role=None,
+                required=False,
+                description="The user to view the timezone of.",
+                is_flag=True,
+            ),
+            "tz": ArgumentInfo(
+                role=None,
+                required=False,
+                description="The timezone to view or set to.",
+                is_flag=True,
+            ),
+        }
+    )
     async def timezone(self, ctx: commands.Context, user: Optional[discord.User] = None, *, flags: TimezoneFlags):
         timezones = self.load_timezones()
         if ctx.guild is None:
@@ -1049,6 +1090,13 @@ class UtilityCommands(commands.Cog):
             )
 
     @commands.command(name="userinfo", aliases=["ui"])
+    @help_description(
+        desc        = "The userinfo command displays information about a user, including their username, display name, guild nickname, time (if set by the user), roles, time, join date, and account creation date.",
+        prefix      = True,
+        slash       = False,
+        has_inverse = False,
+        aliases     = ["ui"],
+    )
     async def userinfo(self, ctx: commands.Context, *, user: Optional[str] = None):
         if ctx.guild is None:
             return
@@ -1094,7 +1142,7 @@ class UtilityCommands(commands.Cog):
                 return "Unknown"
             return dt.strftime("%A, %B %d, %Y, at %I:%M %p")
 
-        name = target_user.name
+        name = target_user.display_name
         nickname = target_user.nick or "None"
         joined_at = format_dt(target_user.joined_at)
         created_at = format_dt(target_user.created_at)
@@ -1159,8 +1207,12 @@ class UtilityCommands(commands.Cog):
     # ~ping Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(
-        name="ping"
+    @commands.command(name="ping")
+    @help_description(
+        desc        = "The ping command displays the bot's current latency in milliseconds.",
+        prefix      = True,
+        slash       = False,
+        has_inverse = False,
     )
     async def ping(self, ctx: commands.Context):
         latency_ms = round(self.bot.latency * 1000)

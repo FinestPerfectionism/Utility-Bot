@@ -46,6 +46,7 @@ class ArgumentInfo:
     role:        Optional[int] = None
     required:    bool          = True
     description: Optional[str] = None
+    is_flag:     bool          = False
 
 @dataclass
 class CommandHelpData:
@@ -55,6 +56,7 @@ class CommandHelpData:
     run_role:     Optional[int]
     has_inverse:  Union[bool, str]
     arguments:    dict[str, ArgumentInfo] = field(default_factory=dict)
+    aliases:      list[str]               = field(default_factory=list)
 
 class HelpedCallable:
     __help_data__: CommandHelpData
@@ -66,8 +68,10 @@ def help_description(
     run_role: Optional[int] = None,
     has_inverse: Union[bool, str] = False,
     arguments: Optional[dict[str, ArgumentInfo]] = None,
+    aliases: Optional[list[str]] = None,
 ):
     arguments = arguments or {}
+    aliases   = aliases   or []
 
     def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
         data = CommandHelpData(
@@ -77,6 +81,7 @@ def help_description(
             run_role=run_role,
             has_inverse=has_inverse,
             arguments=arguments,
+            aliases=aliases,
         )
 
         @functools.wraps(func)
@@ -112,12 +117,11 @@ def _check_access(
         return "partial", accessible, inaccessible
     return "full", accessible, inaccessible
 
-
-# ──────────────────────────────────────────────
-# Embed builder (LayoutView)
-# ──────────────────────────────────────────────
-
 def _build_argument_line(name: str, info: ArgumentInfo) -> str:
+    if info.is_flag:
+        inner = f"/{name}: {{{name}}}"
+        return inner if info.required else f"[{inner}]"
+
     return f"{{{name}}}" if info.required else f"[{name}]"
 
 def _build_help_view(
@@ -129,12 +133,23 @@ def _build_help_view(
     arg_tokens = " ".join(
         _build_argument_line(n, i) for n, i in data.arguments.items()
     )
-    usage_line = f"/{command_name} {arg_tokens}".strip()
+
+    usage_lines: list[str] = []
+    if data.prefix:
+        usage_lines.append(f"{command_name} {arg_tokens}".strip())
+    if data.slash:
+        usage_lines.append(f"/{command_name} {arg_tokens}".strip())
+    usage_block = "\n".join(usage_lines)
 
     arg_details_lines: list[str] = []
     for arg_name, arg_info in data.arguments.items():
-        bracket = f"{{{arg_name}}}" if arg_info.required else f"[{arg_name}]"
+        if arg_info.is_flag:
+            bracket = f"{arg_name}: {{{arg_name}}}" if arg_info.required else f"[{arg_name}: {arg_name}]"
+        else:
+            bracket = f"{{{arg_name}}}" if arg_info.required else f"[{arg_name}]"
         line = f"**{bracket.capitalize()}**"
+        if arg_info.is_flag:
+            line += " *(flag)*"
         if arg_info.description:
             line += f"\n{arg_info.description}"
         arg_details_lines.append(line)
@@ -143,23 +158,27 @@ def _build_help_view(
     prefix_emoji = ACCEPTED_EMOJI_ID if data.prefix else DENIED_EMOJI_ID
     slash_emoji  = ACCEPTED_EMOJI_ID if data.slash  else DENIED_EMOJI_ID
 
+    aliases_line = ""
+    if data.aliases:
+        formatted = ", ".join(f"`{a}`" for a in data.aliases)
+        aliases_line = f"\n**Aliases:** {formatted}"
+
     inverse_line = ""
     if data.has_inverse and isinstance(data.has_inverse, str):
         inverse_line = f"\nThis command has an inverse, **{data.has_inverse}**."
-    elif data.has_inverse is False:
-        inverse_line = ""
 
     main_text = (
         f"# \"{command_name}\" Command\n"
         f"## Description:\n{data.desc}\n"
         f"## Arguments:\n"
-        f"```python\n{usage_line}\n```\n"
+        f"```python\n{usage_block}\n```\n"
         f"-# {{…}} denotes a required argument\n"
         f"-# […] denotes an optional argument\n\n"
         f"{arg_details}"
         f"## Variants:\n"
         f"- {prefix_emoji} **Prefix**\n"
         f"- {slash_emoji} **Slash**"
+        f"{aliases_line}"
         f"{inverse_line}"
     )
 
@@ -183,18 +202,13 @@ def _build_help_view(
 
     else:
         perm_colour = COLOR_YELLOW
-        if accessible_args:
-            accessible_display = ", ".join(f"`{a}`" for a in accessible_args)
-        else:
-            accessible_display = "None"
 
-        total = len(data.arguments)
-        if total == 1 and not accessible_args:
-            detail = "None, command only has 1 argument, and you do not have access to it."
-        elif accessible_args:
-            detail = accessible_display
+        if not accessible_args:
+            detail = (
+                "None —— You lack access to all of this command's arguments."
+            )
         else:
-            detail = "None of the restricted arguments."
+            detail = ", ".join(f"`{a}`" for a in accessible_args)
 
         perm_text = (
             f"### {CONTESTED_EMOJI_ID} Partially Authorized.\n"
@@ -251,59 +265,69 @@ def _find_nested_command(bot: commands.Bot, parts: list[str]) -> Optional[object
 
     return getattr(node, "callback", None)
 
-def setup_help_command(bot: commands.Bot) -> None:
-    async def _run_help(ctx_or_inter: Union[commands.Context, discord.Interaction], command_name: Optional[str]):
-        if isinstance(ctx_or_inter, commands.Context):
-            member  = ctx_or_inter.author
-            respond = ctx_or_inter.send
-        else:
-            if not isinstance(ctx_or_inter.user, discord.Member):
-                await ctx_or_inter.response.send_message(
-                    "Cannot resolve guild member context.",
-                    ephemeral=True,
-                )
-                return
-            member = ctx_or_inter.user
-            respond = ctx_or_inter.response.send_message
-
-        if not command_name:
-            lines = []
-            for cmd in bot.commands:
-                cb = cast(HelpedCallable, cmd.callback)
-                if hasattr(cb, "__help_data__"):
-                    lines.append(f"`{cmd.name}` — {cb.__help_data__.desc}")
-            for app_cmd in bot.tree.get_commands():
-                cb = cast(HelpedCallable, getattr(app_cmd, "callback", None))
-                if cb and hasattr(cb, "__help_data__"):
-                    lines.append(f"`/{app_cmd.name}` — {cb.__help_data__.desc}")
-
-            if lines:
-                await respond(
-                    embed=discord.Embed(
-                        title="Available Commands",
-                        description="\n".join(lines),
-                        color=COLOR_BLURPLE,
-                    )
-                )
-            else:
-                await respond("No documented commands found.", ephemeral=True)
+async def _run_help(
+    bot: commands.Bot,
+    ctx_or_inter: Union[commands.Context, discord.Interaction],
+    command_name: Optional[str],
+):
+    if isinstance(ctx_or_inter, commands.Context):
+        if not isinstance(ctx_or_inter.author, discord.Member):
+            await ctx_or_inter.send("Cannot resolve guild member context.")
             return
-
-        parts    = command_name.strip().lstrip("/").split()
-        callback = _find_nested_command(bot, parts)
-
-        if callback is None or not hasattr(callback, "__help_data__"):
-            await respond(
-                f"Command `{command_name}` not found or has no help data.",
+        member  = ctx_or_inter.author
+        respond = ctx_or_inter.send
+    else:
+        if not isinstance(ctx_or_inter.user, discord.Member):
+            await ctx_or_inter.response.send_message(
+                "Cannot resolve guild member context.",
                 ephemeral=True,
             )
             return
+        member  = ctx_or_inter.user
+        respond = ctx_or_inter.response.send_message
 
-        data = cast(HelpedCallable, callback).__help_data__
+    if not command_name:
+        seen_callbacks: set[int] = set()
+        lines: list[str] = []
 
-        view = _build_help_view(
-            command_name=" ".join(parts),
-            data=data,
-            member=cast(discord.Member, member),
+        for cmd in bot.commands:
+            cb = cast(HelpedCallable, cmd.callback)
+            if hasattr(cb, "__help_data__"):
+                seen_callbacks.add(id(cb))
+                lines.append(f"`{cmd.name}` — {cb.__help_data__.desc}")
+
+        for app_cmd in bot.tree.get_commands():
+            cb = cast(HelpedCallable, getattr(app_cmd, "callback", None))
+            if cb and hasattr(cb, "__help_data__") and id(cb) not in seen_callbacks:
+                lines.append(f"`/{app_cmd.name}` — {cb.__help_data__.desc}")
+
+        if lines:
+            await respond(
+                embed=discord.Embed(
+                    title="Available Commands",
+                    description="\n".join(lines),
+                    color=COLOR_BLURPLE,
+                )
+            )
+        else:
+            await respond("No documented commands found.", ephemeral=True)
+        return
+
+    parts    = command_name.strip().lstrip("/").split()
+    callback = _find_nested_command(bot, parts)
+
+    if callback is None or not hasattr(callback, "__help_data__"):
+        await respond(
+            f"Command `{command_name}` not found or has no help data.",
+            ephemeral=True,
         )
-        await respond(view=view)
+        return
+
+    data = cast(HelpedCallable, callback).__help_data__
+
+    view = _build_help_view(
+        command_name=" ".join(parts),
+        data=data,
+        member=member,
+    )
+    await respond(view=view)
