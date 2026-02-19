@@ -785,6 +785,65 @@ class UtilityCommands(commands.Cog):
         if ctx.guild is None:
             return
 
+        if flags.s is not None:
+            member, tz_str = await self.parse_user_and_tz(ctx, flags.s)
+
+            target = member or ctx.author
+
+            if tz_str is None:
+                return await ctx.send(
+                    "You must provide a timezone. Example: `.ti /s @user EST`"
+                )
+
+            result = self.resolve_timezone(tz_str)
+
+            if result is None:
+                return await ctx.send(
+                    f"Unknown timezone `{tz_str}`."
+                )
+
+            if isinstance(result, list):
+                view = self.TimezoneMatchPaginator(ctx, result)
+                await ctx.send(
+                    content=view.get_page_content(),
+                    view=view
+                )
+                return
+
+            tz = result
+            timezones[str(target.id)] = tz.zone
+            self.save_timezones(timezones)
+
+            if target.id == ctx.author.id:
+                return await ctx.send(
+                    f"Your timezone has been set to **{tz.zone}**."
+                )
+
+            return await ctx.send(
+                f"Timezone for **{target.display_name}** has been set to **{tz.zone}**."
+            )
+
+        if flags.r is not None:
+            member = await self.parse_user(ctx, flags.r)
+            target = member or ctx.author
+
+            uid = str(target.id)
+
+            if uid not in timezones:
+                return await ctx.send(
+                    f"**{target.display_name}** does not have a timezone set."
+                )
+
+            del timezones[uid]
+            self.save_timezones(timezones)
+
+            if target.id == ctx.author.id:
+                return await ctx.send("Your timezone has been reset.")
+
+            return await ctx.send(
+                f"Timezone for **{target.display_name}** has been reset."
+            )
+
         if user is not None:
             target_user: Optional[discord.Member] = None
 
