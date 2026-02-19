@@ -286,28 +286,6 @@ class UtilityCommands(commands.Cog):
 
         return sorted(matches)
 
-    async def parse_user_and_tz(
-        self, ctx: commands.Context, value: str | list[str]
-    ) -> tuple[discord.Member | None, str | None]:
-        if isinstance(value, list):
-            parts = value
-        else:
-            parts = value.strip().split()
-
-        if not parts:
-            return None, None
-
-        member = None
-        tz_parts_start = 0
-        try:
-            member = await commands.MemberConverter().convert(ctx, parts[0])
-            tz_parts_start = 1
-        except commands.BadArgument:
-            pass
-
-        tz_str = " ".join(parts[tz_parts_start:]) if len(parts) > tz_parts_start else None
-        return member, tz_str
-
     async def parse_user(
         self, ctx: commands.Context, value: str | list[str]
     ) -> discord.Member | None:
@@ -763,14 +741,13 @@ class UtilityCommands(commands.Cog):
         s: str | None = commands.flag(
             name="s",
             default=None,
-            description="Set timezone. Usage: /s [user] {timezone}",
+            description="Set timezone for yourself or a user. Usage: /s [user]",
             max_args=-1,
         )
-        r: str | None = commands.flag(
-            name="r",
+        tz: str | None = commands.flag(
+            name="tz",
             default=None,
-            description="Reset timezone. Usage: /r [user]",
-            max_args=-1,
+            description="Timezone to use with /s or standalone. Usage: /tz {timezone}",
         )
         at: str | None = commands.flag(
             name="@",
@@ -785,19 +762,22 @@ class UtilityCommands(commands.Cog):
         if ctx.guild is None:
             return
 
+        # /s — set timezone
         if flags.s is not None:
-            if user is not None:
-                target = user
-                tz_str = " ".join(flags.s) if isinstance(flags.s, list) else flags.s.strip()
-            else:
-                member, tz_str = await self.parse_user_and_tz(ctx, flags.s)
+            # Resolve the target user from /s value, falling back to author
+            s_value = " ".join(flags.s) if isinstance(flags.s, list) else flags.s.strip()
+            if s_value:
+                member = await self.parse_user(ctx, s_value)
                 target = member or ctx.author
+            else:
+                target = ctx.author
 
-            if not tz_str:
+            if not flags.tz:
                 return await ctx.send(
-                    "You must provide a timezone. Example: `.ti @user /s EST`"
+                    "You must provide a timezone with `/tz`. Example: `.ti /s @user /tz EST`"
                 )
 
+            tz_str = flags.tz.strip()
             result = self.resolve_timezone(tz_str)
 
             if result is None:
@@ -814,6 +794,12 @@ class UtilityCommands(commands.Cog):
                 return
 
             tz = result
+
+            if target.bot:
+                return await ctx.send(
+                    f"**{target.display_name}** is a bot and cannot have a timezone."
+                )
+
             timezones[str(target.id)] = tz.zone
             self.save_timezones(timezones)
 
@@ -826,36 +812,8 @@ class UtilityCommands(commands.Cog):
                 f"Timezone for **{target.display_name}** has been set to **{tz.zone}**."
             )
 
-        if flags.r is not None:
-            if user is not None:
-                target = user
-            else:
-                member = await self.parse_user(ctx, flags.r)
-                target = member or ctx.author
-
-            uid = str(target.id)
-
-            if isinstance(target, commands.Bot):
-                return await ctx.send(
-                    f"**{target.display_name}** is a bot and cannot have a timezone."
-                )
-
-            if uid not in timezones:
-                return await ctx.send(
-                    f"**{target.display_name}** does not have a timezone set."
-                )
-
-            del timezones[uid]
-            self.save_timezones(timezones)
-
-            if target.id == ctx.author.id:
-                return await ctx.send("Your timezone has been reset.")
-
-            return await ctx.send(
-                f"Timezone for **{target.display_name}** has been reset."
-            )
-
-        if user is not None and flags.s is None and flags.r is None:
+        # .ti @user — view a user's current time
+        if user is not None and flags.s is None:
             if user.id == ctx.author.id:
                 return
 
@@ -921,39 +879,40 @@ class UtilityCommands(commands.Cog):
                 f"Their timezone is **{tz.zone}**, {offset}"
             )
 
+        # /@ — view time in a specific timezone
         if flags.at is not None:
             tz_str = flags.at.strip()
             if not tz_str:
                 return await ctx.send(
                     "You must provide a timezone. Example: `.ti /@ PDT`"
                 )
-    
+
             result = self.resolve_timezone(tz_str)
-    
+
             if result is None:
                 return await ctx.send(
                     f"Unknown timezone `{tz_str}`."
                 )
-    
+
             if isinstance(result, list):
                 view = self.TimezoneMatchPaginator(ctx, result)
                 await ctx.send(
                     content=view.get_page_content(),
                     view=view
                 )
-    
+
                 def check(m: discord.Message):
                     return (
                         m.author == ctx.author
                         and m.channel == ctx.channel
                         and m.content.isdigit()
                     )
-    
+
                 try:
                     msg = await self.bot.wait_for("message", timeout=30, check=check)
                 except Exception:
                     return
-    
+
                 index = int(msg.content) - 1
                 if 0 <= index < len(result):
                     tz = pytz.timezone(result[index])
@@ -963,21 +922,20 @@ class UtilityCommands(commands.Cog):
                         f"Current time in **{tz.zone}**: `{formatted}`"
                     )
                 return
-    
+
             tz = result
             now = datetime.now(tz)
             formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
             return await ctx.send(
                 f"Current time in **{tz.zone}**: `{formatted}`"
             )
-    
+
         await ctx.send(
             "**Timezone command usage:**\n"
             "```\n"
-            ".ti @user                 –– View a user's current time\n"
-            ".ti /s [user] {timezone}  –– Set a timezone\n"
-            ".ti /r [user]             –– Reset a timezone\n"
-            ".ti /@ {timezone}         –– View current time in a timezone\n"
+            ".ti @user                      –– View a user's current time\n"
+            ".ti /s [user] /tz {timezone}   –– Set a timezone\n"
+            ".ti /@ {timezone}              –– View current time in a timezone\n"
             "```"
         )
 
