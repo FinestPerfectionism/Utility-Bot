@@ -90,7 +90,7 @@ class ErrorLogger(commands.Cog):
         if command_display:
             embed.add_field(
                 name="Command",
-                value=f"`{command_display}`",
+                value=f"```{command_display}```",
                 inline=True,
             )
 
