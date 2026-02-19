@@ -27,6 +27,8 @@ class UtilityBot(commands.Bot):
         from constants import GUILD_ID
         from core.cog_loader import discover_cogs
 
+        self.remove_command('help')
+
         self.cases_manager = CasesManager(self)
     
         log = logging.getLogger("Utility Bot")
