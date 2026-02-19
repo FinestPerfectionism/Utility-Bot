@@ -287,9 +287,13 @@ class UtilityCommands(commands.Cog):
         return sorted(matches)
 
     async def parse_user_and_tz(
-        self, ctx: commands.Context, value: str
+        self, ctx: commands.Context, value: str | list[str]
     ) -> tuple[discord.Member | None, str | None]:
-        parts = value.strip().split()
+        if isinstance(value, list):
+            parts = value
+        else:
+            parts = value.strip().split()
+
         if not parts:
             return None, None
 
@@ -305,8 +309,10 @@ class UtilityCommands(commands.Cog):
         return member, tz_str
 
     async def parse_user(
-        self, ctx: commands.Context, value: str
+        self, ctx: commands.Context, value: str | list[str]
     ) -> discord.Member | None:
+        if isinstance(value, list):
+            value = " ".join(value)
         value = value.strip()
         if not value:
             return None
