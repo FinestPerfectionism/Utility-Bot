@@ -49,7 +49,7 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to view anti-nuke settings.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -104,7 +104,7 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -144,7 +144,7 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -212,7 +212,7 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 

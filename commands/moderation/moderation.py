@@ -335,7 +335,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to ban members.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -515,7 +515,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to unban members.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -693,7 +693,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to kick members.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -863,7 +863,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to timeout members.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -1064,7 +1064,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to remove timeouts.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -1197,7 +1197,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to purge messages.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -1342,7 +1342,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to view bans.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -1464,7 +1464,7 @@ class ModerationCommands(
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to view timeouts.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 

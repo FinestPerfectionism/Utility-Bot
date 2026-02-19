@@ -543,7 +543,7 @@ class HealthCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to run a health check.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 

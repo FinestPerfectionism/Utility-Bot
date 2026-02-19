@@ -292,7 +292,7 @@ class CasesCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to view cases.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -421,7 +421,7 @@ class CasesCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to configure cases.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 

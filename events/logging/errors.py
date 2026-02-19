@@ -382,7 +382,7 @@ class PermissionError(discord.ui.LayoutView):
     container1 = discord.ui.Container(
         discord.ui.TextDisplay(content=(
             f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-            "-# No permissions.\n"
+            "-# Invalid permissions.\n"
             "You lack the necessary permissions to run this command.")),
         accent_color=COLOR_RED,
     )

@@ -119,7 +119,7 @@ class LockdownCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -189,7 +189,7 @@ class LockdownCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to activate lockdown.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -309,7 +309,7 @@ class LockdownCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to lift lockdown.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 

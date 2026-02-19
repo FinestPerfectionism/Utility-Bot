@@ -381,7 +381,7 @@ class UtilityCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -397,7 +397,7 @@ class UtilityCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to add personal leave to other Staff Members.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -541,7 +541,7 @@ class UtilityCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
@@ -557,7 +557,7 @@ class UtilityCommands(commands.Cog):
                 interaction,
                 title="Unauthorized!",
                 texts="You lack the necessary permissions to remove personal leave from other Staff Members.",
-                subtitle="No permissions."
+                subtitle="Invalid permissions."
             )
             return
 
