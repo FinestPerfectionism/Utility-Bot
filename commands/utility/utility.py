@@ -2,11 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from datetime import datetime, timedelta
 import json
 import os
 from typing import Optional, cast
 import pytz
-from datetime import datetime
 
 from core.utils import (
     send_minor_error,
@@ -21,17 +21,7 @@ from constants import (
 )
 
 DATA_FILE = "leave_data.json"
-USER_TZ_FILE = "user_timezones.json"
-
-try:
-    with open(USER_TZ_FILE, "r") as f:
-        user_timezones = json.load(f)
-except FileNotFoundError:
-    user_timezones = {}
-
-def save_timezones():
-    with open(USER_TZ_FILE, "w") as f:
-        json.dump(user_timezones, f)
+TIMEZONE_FILE = "user_timezones.json"
 
 def load_data():
     if not os.path.exists(DATA_FILE):
@@ -92,6 +82,110 @@ class UtilityCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.data = load_data()
+
+    def load_timezones(self) -> dict:
+        if os.path.exists(TIMEZONE_FILE):
+            with open(TIMEZONE_FILE, "r") as f:
+                return json.load(f)
+        return {}
+
+    def save_timezones(self, data: dict) -> None:
+        with open(TIMEZONE_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+
+    def resolve_timezone(self, tz_str: str) -> pytz.BaseTzInfo | None:
+        ABBREV_MAP = {
+            "EST": "America/New_York",
+            "EDT": "America/New_York",
+            "CST": "America/Chicago",
+            "CDT": "America/Chicago",
+            "MST": "America/Denver",
+            "MDT": "America/Denver",
+            "PST": "America/Los_Angeles",
+            "PDT": "America/Los_Angeles",
+            "GMT": "Etc/GMT",
+            "UTC": "UTC",
+            "BST": "Europe/London",
+            "CET": "Europe/Paris",
+            "AEST": "Australia/Sydney",
+            "JST": "Asia/Tokyo",
+        }
+
+        normalized = tz_str.upper()
+        if normalized in ABBREV_MAP:
+            tz_str = ABBREV_MAP[normalized]
+
+        try:
+            return pytz.timezone(tz_str)
+        except pytz.UnknownTimeZoneError:
+            return None
+
+    async def parse_user_and_tz(
+        self, ctx: commands.Context, value: str
+    ) -> tuple[discord.Member | None, str | None]:
+        parts = value.strip().split()
+        if not parts:
+            return None, None
+
+        member = None
+        tz_parts_start = 0
+        try:
+            member = await commands.MemberConverter().convert(ctx, parts[0])
+            tz_parts_start = 1
+        except commands.BadArgument:
+            pass
+
+        tz_str = " ".join(parts[tz_parts_start:]) if len(parts) > tz_parts_start else None
+        return member, tz_str
+
+    async def parse_user(
+        self, ctx: commands.Context, value: str
+    ) -> discord.Member | None:
+        value = value.strip()
+        if not value:
+            return None
+        try:
+            return await commands.MemberConverter().convert(ctx, value)
+        except commands.BadArgument:
+            return None
+
+    def format_offset(
+        self, invoker: discord.Member, target: discord.Member, timezones: dict
+    ) -> str | None:
+        invoker_tz_name = timezones.get(str(invoker.id))
+        if not invoker_tz_name:
+            return None
+
+        target_tz_name = timezones.get(str(target.id))
+        if not target_tz_name:
+            return None
+
+        invoker_tz = pytz.timezone(invoker_tz_name)
+        target_tz = pytz.timezone(target_tz_name)
+
+        now = datetime.now(pytz.utc)
+
+        invoker_offset = now.astimezone(invoker_tz).utcoffset() or timedelta(0)
+        target_offset = now.astimezone(target_tz).utcoffset() or timedelta(0)
+
+        delta_seconds = int((target_offset - invoker_offset).total_seconds())
+
+        if delta_seconds == 0:
+            return "the same timezone as you!"
+
+        abs_seconds = abs(delta_seconds)
+        hours, remainder = divmod(abs_seconds, 3600)
+        minutes = remainder // 60
+        direction = "ahead of" if delta_seconds > 0 else "behind"
+
+        if hours and minutes:
+            diff_str = f"{hours} hour{'s' if hours != 1 else ''} and {minutes} minute{'s' if minutes != 1 else ''}"
+        elif hours:
+            diff_str = f"{hours} hour{'s' if hours != 1 else ''}"
+        else:
+            diff_str = f"{minutes} minute{'s' if minutes != 1 else ''}"
+
+        return f"{diff_str} {direction} you."
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /leave Command
@@ -417,286 +511,125 @@ class UtilityCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     class TimezoneFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-        set: bool = commands.flag(name="s", default=False)
-        tz: Optional[str] = commands.flag(name="tz", default=None)
+        s: str | None = commands.flag(
+            name="s",
+            default=None,
+            description="Set timezone. Usage: /s [user] {timezone}",
+            max_args=-1,
+        )
+        r: str | None = commands.flag(
+            name="r",
+            default=None,
+            description="Reset timezone. Usage: /r [user]",
+            max_args=-1,
+        )
+        at: str | None = commands.flag(
+            name="@",
+            default=None,
+            description="View time for a timezone. Usage: /@ {timezone}",
+        )
 
-    async def resolve_member_with_partial(self, ctx: commands.Context, query: str):
-        guild = ctx.guild
-        if not guild:
-            return None
+    @commands.command(name="timezone", aliases=["ti"])
+    async def timezone(
+        self,
+        ctx: commands.Context,
+        user: discord.Member | None = None,
+        *,
+        flags: TimezoneFlags,
+    ):
+        timezones = self.load_timezones()
 
-        query_lower = query.lower()
-
-        for member in guild.members:
-            if member.name.lower() == query_lower or (member.nick and member.nick.lower() == query_lower):
-                return member
-
-        matches = [
-            m for m in guild.members
-            if query_lower in m.name.lower()
-            or (m.nick and query_lower in m.nick.lower())
-        ]
-
-        if len(matches) == 1:
-            return matches[0]
-        elif len(matches) > 1:
-            view = self.UserMatchPaginator(ctx, matches)
-            await ctx.send(content=view.get_page_content(), view=view)
-            return None
-        else:
-            await ctx.send("No users matched that name.")
-            return None
-
-    def resolve_timezone(self, tz_input: str) -> Optional[str]:
-        if not tz_input:
-            return None
-
-        tz_clean = tz_input.strip()
-
-        for key, value in self.TIMEZONE_ALIASES.items():
-            if key.lower() == tz_clean.lower():
-                return value
-
-        try:
-            pytz.timezone(tz_clean)
-            return tz_clean
-        except Exception:
-            return None
-
-    TIMEZONE_ALIASES = {
-        "Maine": "America/New_York",
-        "Augusta": "America/New_York",
-        "New Hampshire": "America/New_York",
-        "Concord": "America/New_York",
-        "Vermont": "America/New_York",
-        "Montpelier": "America/New_York",
-        "Massachusetts": "America/New_York",
-        "Boston": "America/New_York",
-        "Rhode Island": "America/New_York",
-        "Providence": "America/New_York",
-        "Connecticut": "America/New_York",
-        "Hartford": "America/New_York",
-        "New York": "America/New_York",
-        "Albany": "America/New_York",
-        "New Jersey": "America/New_York",
-        "Trenton": "America/New_York",
-        "Pennsylvania": "America/New_York",
-        "Harrisburg": "America/New_York",
-        "Delaware": "America/New_York",
-        "Dover": "America/New_York",
-        "Maryland": "America/New_York",
-        "Annapolis": "America/New_York",
-        "District of Columbia": "America/New_York",
-        "Washington DC": "America/New_York",
-        "Virginia": "America/New_York",
-        "Richmond": "America/New_York",
-        "North Carolina": "America/New_York",
-        "Raleigh": "America/New_York",
-        "South Carolina": "America/New_York",
-        "Columbia": "America/New_York",
-        "Georgia": "America/New_York",
-        "Atlanta": "America/New_York",
-        "Florida": "America/New_York",
-        "Tallahassee": "America/New_York",
-        "Miami": "America/New_York",
-        "Detroit": "America/Detroit",
-        "Michigan": "America/Detroit",
-
-        "Ohio": "America/New_York",
-        "Indiana": "America/Indiana/Indianapolis",
-        "Kentucky": "America/Kentucky/Louisville",
-        "Tennessee": "America/Chicago",
-        "Missouri": "America/Chicago",
-        "Mississippi": "America/Chicago",
-        "Alabama": "America/Chicago",
-        "Wisconsin": "America/Chicago",
-        "Illinois": "America/Chicago",
-        "Minnesota": "America/Chicago",
-        "Iowa": "America/Chicago",
-        "Louisiana": "America/Chicago",
-        "North Dakota": "America/Chicago",
-        "South Dakota": "America/Chicago",
-        "Kansas": "America/Chicago",
-        "Oklahoma": "America/Chicago",
-        "Texas": "America/Chicago",
-        "Chicago": "America/Chicago",
-        "Dallas": "America/Chicago",
-        "Houston": "America/Chicago",
-        "Minneapolis": "America/Chicago",
-        "St. Louis": "America/Chicago",
-
-        "Montana": "America/Denver",
-        "Helena": "America/Denver",
-        "Wyoming": "America/Denver",
-        "Cheyenne": "America/Denver",
-        "Colorado": "America/Denver",
-        "Denver": "America/Denver",
-        "New Mexico": "America/Denver",
-        "Santa Fe": "America/Denver",
-        "Idaho": "America/Boise",
-        "Boise": "America/Boise",
-        "Utah": "America/Denver",
-        "Salt Lake City": "America/Denver",
-        "Arizona": "America/Phoenix",
-        "Phoenix": "America/Phoenix",
-
-        "California": "America/Los_Angeles",
-        "Sacramento": "America/Los_Angeles",
-        "Los Angeles": "America/Los_Angeles",
-        "San Francisco": "America/Los_Angeles",
-        "Oregon": "America/Los_Angeles",
-        "Salem": "America/Los_Angeles",
-        "Washington": "America/Los_Angeles",
-        "Olympia": "America/Los_Angeles",
-        "Nevada": "America/Los_Angeles",
-        "Carson City": "America/Los_Angeles",
-
-        "Alaska": "America/Anchorage",
-        "Juneau": "America/Anchorage",
-        "Anchorage": "America/Anchorage",
-
-        "Hawaii": "Pacific/Honolulu",
-        "Honolulu": "Pacific/Honolulu",
-
-        "PST": "America/Los_Angeles",
-        "PDT": "America/Los_Angeles",
-        "MST": "America/Denver",
-        "MDT": "America/Denver",
-        "CST": "America/Chicago",
-        "CDT": "America/Chicago",
-        "EST": "America/New_York",
-        "EDT": "America/New_York",
-        "AKST": "America/Anchorage",
-        "AKDT": "America/Anchorage",
-        "HST": "Pacific/Honolulu",
-    }
-
-    @commands.command(name="ti")
-    async def timezone(self, ctx: commands.Context, *, raw: Optional[str] = None):
-        if not ctx.guild or not isinstance(ctx.author, discord.Member):
+        if ctx.guild is None:
             return
 
-        invocator: discord.Member = ctx.author
+        if user is not None:
+            target_user: Optional[discord.Member] = None
 
-        if not raw:
-            target: discord.Member = invocator
-            tz_target = user_timezones.get(str(target.id))
-            if not tz_target:
-                await ctx.send(f"{target.mention} does not have a timezone set.")
-                return
-            now_target = datetime.now(pytz.timezone(tz_target))
-            await ctx.send(f"It is **{now_target.strftime('%H:%M')}** for you. Your timezone is **{tz_target}**.")
-            return
+            for member in ctx.guild.members:
+                if (
+                    member.name.lower() == user.name.lower()
+                    or (member.nick and member.nick.lower() == user.name.lower())
+                ):
+                    target_user = member
+                    break
+            else:
+                matches = [
+                    m for m in ctx.guild.members
+                    if user.name.lower() in m.name.lower()
+                    or (m.nick and user.name.lower() in m.nick.lower())
+                ]
 
-        parts = raw.split()
-
-        if parts[0].startswith("/@"):
-            tz_input = parts[0][2:] or (" ".join(parts[1:]) if len(parts) > 1 else "")
-            if not tz_input:
-                await ctx.send("Please provide a timezone. Example: `.ti /@ EST`")
-                return
-            resolved = self.resolve_timezone(tz_input)
-            if not resolved:
-                await ctx.send(f"`{tz_input}` is not a valid timezone.")
-                return
-            now = datetime.now(pytz.timezone(resolved)).strftime("%H:%M")
-            await ctx.send(f"It is **{now}** in **{resolved}**.")
-            return
-
-        set_flag = False
-        tz_value = None
-        query_parts = []
-
-        i = 0
-        while i < len(parts):
-            token = parts[i]
-            low_token = token.lower()
-
-            if low_token == "/s":
-                set_flag = True
-            elif low_token == "/tz":
-                temp_tz = []
-                while i + 1 < len(parts):
-                    next_token = parts[i+1]
-                    if next_token.startswith("/") or next_token.startswith("<@"):
-                        break
-                    i += 1
-                    temp_tz.append(parts[i])
-                tz_value = " ".join(temp_tz)
-            elif not token.startswith("/"):
-                query_parts.append(token)
-            i += 1
-
-        member_query = " ".join(query_parts) if query_parts else None
-        target: discord.Member = invocator
-
-        if member_query:
-            member = await self.resolve_member_with_partial(ctx, member_query)
-            if member is None:
-                return
-            target = member
-
-        if set_flag:
-            if not tz_value:
-                await ctx.send("You must provide a timezone. Example: `.ti /s /tz EST`")
-                return
-
-            resolved = self.resolve_timezone(tz_value)
-            if not resolved:
-                await ctx.send(f"`{tz_value}` is not a valid timezone.")
-                return
-
-            if target.id != invocator.id:
-                if DIRECTORS_ROLE_ID not in [r.id for r in invocator.roles]:
-                    await ctx.send("You lack permission to set other users' timezones.")
+                if len(matches) == 1:
+                    target_user = matches[0]
+                elif len(matches) > 1:
+                    view = self.UserMatchPaginator(ctx, matches)
+                    await ctx.send(
+                        content=view.get_page_content(),
+                        view=view
+                    )
+                    return
+                else:
+                    await ctx.send("No users matched that name.")
                     return
 
-            user_timezones[str(target.id)] = resolved
-            save_timezones()
+            uid = str(target_user.id)
 
-            if target.id == invocator.id:
-                await ctx.send(f"Your timezone has been set to **{resolved}**.")
-            else:
-                await ctx.send(f"Timezone for {target.mention} set to **{resolved}**.")
-            return
+            if uid not in timezones:
+                return await ctx.send(
+                    f"**{target_user.display_name}** hasn't set a timezone yet."
+                )
 
-        tz_target = user_timezones.get(str(target.id))
-        if not tz_target:
-            await ctx.send(f"{target.mention} does not have a timezone set.")
-            return
+            tz = pytz.timezone(timezones[uid])
+            now = datetime.now(tz)
+            time_str = now.strftime("%H:%M")
+            offset = self.format_offset(
+                cast(discord.Member, ctx.author),
+                target_user,
+                timezones
+            )
 
-        now_target = datetime.now(pytz.timezone(tz_target))
-        time_target = now_target.strftime("%H:%M")
-        tz_author = user_timezones.get(str(invocator.id))
+            if offset is None:
+                return await ctx.send(
+                    f"It is **{time_str}** for **{target_user.display_name}**. "
+                    f"Their timezone is **{tz.zone}**."
+                )
 
-        if target.id == invocator.id:
-            await ctx.send(f"It is **{time_target}** for you. Your timezone is **{tz_target}**.")
-            return
+            if offset == "the same timezone as you!":
+                return await ctx.send(
+                    f"It is **{time_str}** for **{target_user.display_name}**. "
+                    f"Their timezone is **{tz.zone}**, the same timezone as you!"
+                )
 
-        if not tz_author:
-            await ctx.send(f"It is **{time_target}** for {target.mention}. Their timezone is **{tz_target}**.")
-            return
+            return await ctx.send(
+                f"It is **{time_str}** for **{target_user.display_name}**. "
+                f"Their timezone is **{tz.zone}**, {offset}"
+            )
 
-        now_author = datetime.now(pytz.timezone(tz_author))
-        t_delta = now_target.utcoffset()
-        a_delta = now_author.utcoffset()
+        if flags.at is not None:
+            tz_str = flags.at.strip()
+            if not tz_str:
+                return await ctx.send(
+                    "You must provide a timezone. Example: `.ti /@ PDT`"
+                )
 
-        if t_delta is None or a_delta is None:
-            return
+            tz = self.resolve_timezone(tz_str)
+            if tz is None:
+                return await ctx.send(
+                    f"Unknown timezone `{tz_str}`. "
+                )
 
-        target_offset = t_delta.total_seconds()
-        author_offset = a_delta.total_seconds()
-        diff_hours = int((target_offset - author_offset) / 3600)
-
-        if diff_hours == 0:
-            relation = "the same timezone as you"
-        elif diff_hours > 0:
-            relation = f"{diff_hours} hour{'s' if abs(diff_hours) != 1 else ''} ahead of you"
-        else:
-            relation = f"{abs(diff_hours)} hour{'s' if abs(diff_hours) != 1 else ''} behind you"
+            now = datetime.now(tz)
+            formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
+            return await ctx.send(f"Current time in **{tz.zone}**: `{formatted}`")
 
         await ctx.send(
-            f"It is **{time_target}** for {target.mention}. Their timezone is **{tz_target}**, {relation}."
+            "**Timezone command usage:**\n"
+            "```\n"
+            ".ti @user                 –– View a user's current time\n"
+            ".ti /s [user] {timezone}  –– Set a timezone\n"
+            ".ti /r [user]             –– Reset a timezone\n"
+            ".ti /@ {timezone}         –– View current time in a timezone\n"
+            "```"
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -782,7 +715,7 @@ class UtilityCommands(commands.Cog):
                 view=self
             )
 
-    @commands.command(name="ui")
+    @commands.command(name="userinfo", aliases=["ui"])
     async def userinfo(self, ctx: commands.Context, *, user: Optional[str] = None):
         if ctx.guild is None:
             return
@@ -859,9 +792,20 @@ class UtilityCommands(commands.Cog):
             color=target_user.color
         )
 
+        timezones = self.load_timezones()
+        uid = str(target_user.id)
+
+        time_line = ""
+        if uid in timezones:
+            tz = pytz.timezone(timezones[uid])
+            now = datetime.now(tz)
+            jtime = now.strftime("%I:%M %p")
+            time_line = f"`      Time:` {jtime}\n"
+
         embed.description = (
             f"`      Name:` {name}\n"
             f"`  Nickname:` {nickname}\n"
+            f"{time_line}"
             f"` Joined at:` {joined_at}\n"
             f"`Created at:` {created_at}\n\n"
             f"**Roles**\n"
