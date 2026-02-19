@@ -773,13 +773,7 @@ class UtilityCommands(commands.Cog):
         )
 
     @commands.command(name="timezone", aliases=["ti"])
-    async def timezone(
-        self,
-        ctx: commands.Context,
-        user: discord.Member | None = None,
-        *,
-        flags: TimezoneFlags,
-    ):
+    async def timezone(self, ctx: commands.Context, user: Optional[discord.User] = None, *, flags: TimezoneFlags):
         timezones = self.load_timezones()
 
         if ctx.guild is None:
@@ -787,7 +781,6 @@ class UtilityCommands(commands.Cog):
 
         if flags.s is not None:
             member, tz_str = await self.parse_user_and_tz(ctx, flags.s)
-
             target = member or ctx.author
 
             if tz_str is None:
@@ -913,33 +906,33 @@ class UtilityCommands(commands.Cog):
                 return await ctx.send(
                     "You must provide a timezone. Example: `.ti /@ PDT`"
                 )
-
+    
             result = self.resolve_timezone(tz_str)
-
+    
             if result is None:
                 return await ctx.send(
                     f"Unknown timezone `{tz_str}`."
                 )
-
+    
             if isinstance(result, list):
                 view = self.TimezoneMatchPaginator(ctx, result)
                 await ctx.send(
                     content=view.get_page_content(),
                     view=view
                 )
-
+    
                 def check(m: discord.Message):
                     return (
                         m.author == ctx.author
                         and m.channel == ctx.channel
                         and m.content.isdigit()
                     )
-
+    
                 try:
                     msg = await self.bot.wait_for("message", timeout=30, check=check)
                 except Exception:
                     return
-
+    
                 index = int(msg.content) - 1
                 if 0 <= index < len(result):
                     tz = pytz.timezone(result[index])
@@ -949,14 +942,14 @@ class UtilityCommands(commands.Cog):
                         f"Current time in **{tz.zone}**: `{formatted}`"
                     )
                 return
-
+    
             tz = result
             now = datetime.now(tz)
             formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
             return await ctx.send(
                 f"Current time in **{tz.zone}**: `{formatted}`"
             )
-
+    
         await ctx.send(
             "**Timezone command usage:**\n"
             "```\n"
