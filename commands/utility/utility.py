@@ -8,6 +8,7 @@ import os
 from typing import Optional, cast
 import pytz
 
+from core.help import help_description, ArgumentInfo
 from core.utils import (
     send_minor_error,
     send_major_error
@@ -508,6 +509,20 @@ class UtilityCommands(commands.Cog):
 
     @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
+    @help_description(
+        desc        = "Removes the leave role from a staff member...",
+        prefix      = False,
+        slash       = True,
+        run_role    = STAFF_ROLE_ID,
+        has_inverse = "/leave add",
+        arguments   = {
+            "target": ArgumentInfo(
+                role=DIRECTORS_ROLE_ID,
+                required=False,
+                description="The user to remove leave from."
+            ),
+        },
+    )
     async def leave_remove(
         self,
         interaction: discord.Interaction,
