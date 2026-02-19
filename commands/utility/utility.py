@@ -93,7 +93,7 @@ class UtilityCommands(commands.Cog):
         with open(TIMEZONE_FILE, "w") as f:
             json.dump(data, f, indent=2)
 
-    def resolve_timezone(self, tz_str: str) -> pytz.BaseTzInfo | None:
+    def resolve_timezone(self, tz_str: str) -> pytz.BaseTzInfo | list[str] | None:
         ABBREV_MAP = {
             "EST": "America/New_York",
             "EDT": "America/New_York",
@@ -103,22 +103,188 @@ class UtilityCommands(commands.Cog):
             "MDT": "America/Denver",
             "PST": "America/Los_Angeles",
             "PDT": "America/Los_Angeles",
+            "AKST": "America/Anchorage",
+            "AKDT": "America/Anchorage",
+            "HST": "Pacific/Honolulu",
+            "HDT": "Pacific/Honolulu",
+            "AST": "America/Halifax",
+            "ADT": "America/Halifax",
+            "NST": "America/St_Johns",
+            "NDT": "America/St_Johns",
+            "MST_AZ": "America/Phoenix",
+
+            # Central & South America
+            "ART": "America/Argentina/Buenos_Aires",
+            "BRT": "America/Sao_Paulo",
+            "BRST": "America/Sao_Paulo",
+            "CLT": "America/Santiago",
+            "CLST": "America/Santiago",
+            "COT": "America/Bogota",
+            "ECT": "America/Guayaquil",
+            "GYT": "America/Guyana",
+            "PET": "America/Lima",
+            "PYT": "America/Asuncion",
+            "PYST": "America/Asuncion",
+            "UYT": "America/Montevideo",
+            "VET": "America/Caracas",
+            "BOT": "America/La_Paz",
+            "SRT": "America/Paramaribo",
+            "GFT": "America/Cayenne",
+
+            # Europe
             "GMT": "Etc/GMT",
             "UTC": "UTC",
             "BST": "Europe/London",
+            "IST_IE": "Europe/Dublin",
+            "WET": "Europe/Lisbon",
+            "WEST": "Europe/Lisbon",
             "CET": "Europe/Paris",
-            "AEST": "Australia/Sydney",
+            "CEST": "Europe/Paris",
+            "EET": "Europe/Helsinki",
+            "EEST": "Europe/Helsinki",
+            "MSK": "Europe/Moscow",
+            "MSD": "Europe/Moscow",
+            "TRT": "Europe/Istanbul",
+            "FET": "Europe/Minsk",
+            "SAMT": "Europe/Samara",
+            "VOLT": "Europe/Volgograd",
+
+            # Africa
+            "WAT": "Africa/Lagos",
+            "WAST": "Africa/Windhoek",
+            "CAT": "Africa/Harare",
+            "EAT": "Africa/Nairobi",
+            "SAST": "Africa/Johannesburg",
+            "GMT_GH": "Africa/Accra",
+            "CVT": "Atlantic/Cape_Verde",
+            "MUT": "Indian/Mauritius",
+            "SCT": "Indian/Mahe",
+            "IOT": "Indian/Chagos",
+            "TFT": "Indian/Kerguelen",
+            "RET": "Indian/Reunion",
+
+            # Middle East
+            "AST_AR": "Asia/Riyadh",
+            "ADT_AR": "Asia/Baghdad",
+            "GST": "Asia/Dubai",
+            "IRST": "Asia/Tehran",
+            "IRDT": "Asia/Tehran",
+            "IST": "Asia/Kolkata",
+            "PKT": "Asia/Karachi",
+
+            # Central Asia
+            "AFT": "Asia/Kabul",
+            "UZT": "Asia/Tashkent",
+            "TJT": "Asia/Dushanbe",
+            "TMT": "Asia/Ashgabat",
+            "KGT": "Asia/Bishkek",
+            "ALMT": "Asia/Almaty",
+            "YEKT": "Asia/Yekaterinburg",
+            "OMST": "Asia/Omsk",
+            "KRAT": "Asia/Krasnoyarsk",
+            "NOVT": "Asia/Novosibirsk",
+
+            # South & Southeast Asia
+            "NPT": "Asia/Kathmandu",
+            "BST_BD": "Asia/Dhaka",
+            "MMT": "Asia/Rangoon",
+            "ICT": "Asia/Bangkok",
+            "WIB": "Asia/Jakarta",
+            "WITA": "Asia/Makassar",
+            "WIT": "Asia/Jayapura",
+            "SGT": "Asia/Singapore",
+            "MYT": "Asia/Kuala_Lumpur",
+            "PHT": "Asia/Manila",
+            "BNT": "Asia/Brunei",
+
+            # East Asia
+            "CST_CN": "Asia/Shanghai",
+            "HKT": "Asia/Hong_Kong",
+            "TWT": "Asia/Taipei",
+            "KST": "Asia/Seoul",
             "JST": "Asia/Tokyo",
+            "IRKST": "Asia/Irkutsk",
+            "YAKT": "Asia/Yakutsk",
+            "VLAT": "Asia/Vladivostok",
+            "MAGT": "Asia/Magadan",
+            "SAKT": "Asia/Sakhalin",
+            "PETT": "Asia/Kamchatka",
+
+            # Oceania
+            "AEST": "Australia/Sydney",
+            "AEDT": "Australia/Sydney",
+            "ACST": "Australia/Darwin",
+            "ACDT": "Australia/Adelaide",
+            "AWST": "Australia/Perth",
+            "LHST": "Australia/Lord_Howe",
+            "LHDT": "Australia/Lord_Howe",
+            "NZST": "Pacific/Auckland",
+            "NZDT": "Pacific/Auckland",
+            "FJT": "Pacific/Fiji",
+            "FJST": "Pacific/Fiji",
+            "PGT": "Pacific/Port_Moresby",
+            "SBT": "Pacific/Guadalcanal",
+            "VUT": "Pacific/Efate",
+            "NCT": "Pacific/Noumea",
+            "TOT": "Pacific/Tongatapu",
+            "WST": "Pacific/Apia",
+            "SST": "Pacific/Pago_Pago",
+            "CHAST": "Pacific/Chatham",
+            "CHADT": "Pacific/Chatham",
+            "LINT": "Pacific/Kiritimati",
+            "PHOT": "Pacific/Enderbury",
+            "TKT": "Pacific/Fakaofo",
+            "TVT": "Pacific/Funafuti",
+            "WFST": "Pacific/Wallis",
+            "PONT": "Pacific/Pohnpei",
+            "CHUT": "Pacific/Chuuk",
+            "PWT": "Pacific/Palau",
+            "MHT": "Pacific/Majuro",
+            "GILT": "Pacific/Tarawa",
+            "NRT": "Pacific/Nauru",
+            "CKT": "Pacific/Rarotonga",
+            "TAHT": "Pacific/Tahiti",
+            "MART": "Pacific/Marquesas",
+            "GAMT": "Pacific/Gambier",
+
+            # Atlantic
+            "AZOT": "Atlantic/Azores",
+            "AZOST": "Atlantic/Azores",
+            "FKST": "Atlantic/Stanley",
+            "FKT": "Atlantic/Stanley",
+            "SGT_GS": "Atlantic/South_Georgia",
+            "PMST": "America/Miquelon",
+            "PMDT": "America/Miquelon",
+
+            # Antartic (I wonder who would ever be using these)
+            "MAWT": "Antarctica/Mawson",
+            "DAVT": "Antarctica/Davis",
+            "DDUT": "Antarctica/DumontDUrville",
+            "SYOT": "Antarctica/Syowa",
+            "ROTT": "Antarctica/Rothera",
+            "CAST": "Antarctica/Casey",
         }
 
         normalized = tz_str.upper()
         if normalized in ABBREV_MAP:
             tz_str = ABBREV_MAP[normalized]
 
-        try:
-            return pytz.timezone(tz_str)
-        except pytz.UnknownTimeZoneError:
+        for tz in pytz.all_timezones:
+            if tz.lower() == tz_str.lower():
+                return pytz.timezone(tz)
+
+        matches = [
+            tz for tz in pytz.all_timezones
+            if tz_str.lower() in tz.lower()
+        ]
+
+        if not matches:
             return None
+
+        if len(matches) == 1:
+            return pytz.timezone(matches[0])
+
+        return sorted(matches)
 
     async def parse_user_and_tz(
         self, ctx: commands.Context, value: str
@@ -510,6 +676,83 @@ class UtilityCommands(commands.Cog):
     # ~ti Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+    class TimezoneMatchPaginator(discord.ui.View):
+        def __init__(self, ctx: commands.Context, matches: list[str]):
+            super().__init__(timeout=120)
+            self.ctx = ctx
+            self.matches = matches
+            self.per_page = 20
+            self.page = 0
+            self.max_page = (len(matches) - 1) // self.per_page
+
+            self.update_buttons()
+
+        def update_buttons(self):
+            total_pages = self.max_page
+            no_pagination_needed = len(self.matches) <= self.per_page
+
+            self.first_page.disabled = no_pagination_needed or self.page == 0
+            self.previous_page.disabled = no_pagination_needed or self.page == 0
+            self.next_page.disabled = no_pagination_needed or self.page >= total_pages
+            self.last_page.disabled = no_pagination_needed or self.page >= total_pages
+
+        def get_page_content(self) -> str:
+            start = self.page * self.per_page
+            end = start + self.per_page
+            page_items = self.matches[start:end]
+
+            lines = [
+                f"{i+1}. {tz}"
+                for i, tz in enumerate(page_items, start=start)
+            ]
+
+            return (
+                f"**Timezone Matches (Page {self.page+1}/{self.max_page+1})**\n\n"
+                + "\n".join(lines)
+                + "\n\nReply with the number of the timezone you want."
+            )
+
+        @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            self.page = 0
+            self.update_buttons()
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
+
+        @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if self.page > 0:
+                self.page -= 1
+            self.update_buttons()
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
+
+        @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if self.page < self.max_page:
+                self.page += 1
+            self.update_buttons()
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
+
+        @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+            self.page = self.max_page
+            self.update_buttons()
+            await interaction.response.edit_message(
+                content=self.get_page_content(),
+                view=self
+            )
+
+        async def interaction_check(self, interaction: discord.Interaction) -> bool:
+            return interaction.user == self.ctx.author
+
     class TimezoneFlags(commands.FlagConverter, prefix="/", delimiter=" "):
         s: str | None = commands.flag(
             name="s",
@@ -612,15 +855,48 @@ class UtilityCommands(commands.Cog):
                     "You must provide a timezone. Example: `.ti /@ PDT`"
                 )
 
-            tz = self.resolve_timezone(tz_str)
-            if tz is None:
+            result = self.resolve_timezone(tz_str)
+
+            if result is None:
                 return await ctx.send(
-                    f"Unknown timezone `{tz_str}`. "
+                    f"Unknown timezone `{tz_str}`."
                 )
 
+            if isinstance(result, list):
+                view = self.TimezoneMatchPaginator(ctx, result)
+                await ctx.send(
+                    content=view.get_page_content(),
+                    view=view
+                )
+
+                def check(m: discord.Message):
+                    return (
+                        m.author == ctx.author
+                        and m.channel == ctx.channel
+                        and m.content.isdigit()
+                    )
+
+                try:
+                    msg = await self.bot.wait_for("message", timeout=30, check=check)
+                except Exception:
+                    return
+
+                index = int(msg.content) - 1
+                if 0 <= index < len(result):
+                    tz = pytz.timezone(result[index])
+                    now = datetime.now(tz)
+                    formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
+                    await ctx.send(
+                        f"Current time in **{tz.zone}**: `{formatted}`"
+                    )
+                return
+
+            tz = result
             now = datetime.now(tz)
             formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
-            return await ctx.send(f"Current time in **{tz.zone}**: `{formatted}`")
+            return await ctx.send(
+                f"Current time in **{tz.zone}**: `{formatted}`"
+            )
 
         await ctx.send(
             "**Timezone command usage:**\n"
