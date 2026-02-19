@@ -786,12 +786,16 @@ class UtilityCommands(commands.Cog):
             return
 
         if flags.s is not None:
-            member, tz_str = await self.parse_user_and_tz(ctx, flags.s)
-            target = member or ctx.author
+            if user is not None:
+                target = user
+                tz_str = " ".join(flags.s) if isinstance(flags.s, list) else flags.s.strip()
+            else:
+                member, tz_str = await self.parse_user_and_tz(ctx, flags.s)
+                target = member or ctx.author
 
-            if tz_str is None:
+            if not tz_str:
                 return await ctx.send(
-                    "You must provide a timezone. Example: `.ti /s @user EST`"
+                    "You must provide a timezone. Example: `.ti @user /s EST`"
                 )
 
             result = self.resolve_timezone(tz_str)
@@ -823,10 +827,18 @@ class UtilityCommands(commands.Cog):
             )
 
         if flags.r is not None:
-            member = await self.parse_user(ctx, flags.r)
-            target = member or ctx.author
+            if user is not None:
+                target = user
+            else:
+                member = await self.parse_user(ctx, flags.r)
+                target = member or ctx.author
 
             uid = str(target.id)
+
+            if isinstance(target, commands.Bot):
+                return await ctx.send(
+                    f"**{target.display_name}** is a bot and cannot have a timezone."
+                )
 
             if uid not in timezones:
                 return await ctx.send(
@@ -843,7 +855,10 @@ class UtilityCommands(commands.Cog):
                 f"Timezone for **{target.display_name}** has been reset."
             )
 
-        if user is not None:
+        if user is not None and flags.s is None and flags.r is None:
+            if user.id == ctx.author.id:
+                return
+
             target_user: Optional[discord.Member] = None
 
             for member in ctx.guild.members:
