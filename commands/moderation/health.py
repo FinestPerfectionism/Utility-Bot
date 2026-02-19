@@ -85,11 +85,12 @@ def _get_health_color(score: float) -> discord.Color:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class HealthFixView(discord.ui.View):
-    def __init__(self, guild: discord.Guild, fixable: List[str]):
+    def __init__(self, guild: discord.Guild, fixable: List[str], cog: "HealthCommands"):
         super().__init__(timeout=300)
         self.guild = guild
         self.fixable = fixable
-
+        self.cog = cog
+        
         if not fixable:
             for child in self.children:
                 if isinstance(child, (discord.ui.Button, discord.ui.Select)):
@@ -263,12 +264,61 @@ class HealthFixView(discord.ui.View):
             embed.description = "Nothing to fix."
 
         button.disabled = True
-        try:
-            if interaction.message:
-                await interaction.message.edit(view=self)
-        except Exception:
-            pass
+        for child in self.children:
+            if isinstance(child, discord.ui.Button):
+                child.disabled = True
 
+        await interaction.response.edit_message(view=self)
+        await interaction.followup.send("Applying fixes...", ephemeral=True)
+
+        checks = await self.cog._run_checks(self.guild)
+
+        passed = sum(1 for c in checks if c["passed"])
+        total = len(checks)
+        score = (passed / total) * 100
+        color = _get_health_color(score)
+
+        updated_embed = discord.Embed(
+            title=f"Server Health — {score:.0f}%",
+            color=color,
+            timestamp=datetime.now()
+        )
+
+        categories = [
+            ("Bot Configuration", ["BOT_ADMIN", "BOT_TOP"]),
+            ("Permission Safety", ["EVERYONE_ROLE_PERMS", "EVERYONE_CHANNEL_PERMS", "NATIVE_MOD_PERMS"]),
+            ("Quarantine Setup", ["QUARANTINE_EXISTS", "QUARANTINE_ROLE_CLEAN", "QUARANTINE_CHANNEL_DENY"]),
+            ("Server Security", ["VERIFICATION_LEVEL", "CONTENT_FILTER"]),
+            ("System Configuration", ["ANTINUKE_ENABLED", "ANTINUKE_LOG", "CASES_LOG"]),
+        ]
+
+        check_map = {c["id"]: c for c in checks}
+
+        for category_name, check_ids in categories:
+            lines = []
+            for check_id in check_ids:
+                check = check_map.get(check_id)
+                if not check:
+                    continue
+                icon = f"{ACCEPTED_EMOJI_ID}" if check["passed"] else f"{DENIED_EMOJI_ID}"
+                line = f"{icon} {check['label']}"
+                if not check["passed"] and check.get("detail"):
+                    line += f"\n-# ↳ {check['detail']}"
+                lines.append(line)
+
+            updated_embed.add_field(
+                name=category_name,
+                value="\n".join(lines),
+                inline=False
+            )
+
+        updated_embed.set_footer(text=f"{passed}/{total} checks passed")
+
+        remaining_fixable = [c["id"] for c in checks if not c["passed"] and c["fixable"]]
+        if not remaining_fixable:
+            self.clear_items()
+
+        await interaction.edit_original_response(embed=updated_embed, view=self)
         await interaction.followup.send(embed=embed, ephemeral=True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -560,7 +610,7 @@ class HealthCommands(commands.Cog):
         embed.set_footer(text=f"{passed}/{total} checks passed")
 
         fixable = [c["id"] for c in checks if not c["passed"] and c["fixable"]]
-        view = HealthFixView(guild, fixable)
+        view = HealthFixView(guild, fixable, self)
 
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 

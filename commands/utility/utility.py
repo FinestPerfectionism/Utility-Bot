@@ -802,13 +802,15 @@ class UtilityCommands(commands.Cog):
             timezones[str(target.id)] = tz.zone
             self.save_timezones(timezones)
 
+            abbr = datetime.now(tz).strftime("%Z")
+
             if target.id == ctx.author.id:
                 return await ctx.send(
-                    f"Your timezone has been set to **{tz.zone}**."
+                    f"Your timezone has been set to **{abbr}**."
                 )
 
             return await ctx.send(
-                f"Timezone for **{target.display_name}** has been set to **{tz.zone}**."
+                f"Timezone for **{target.display_name}** has been set to **{abbr}**."
             )
 
         if user is not None and flags.s is None:
@@ -868,21 +870,23 @@ class UtilityCommands(commands.Cog):
                 timezones
             )
 
+            abbr = now.strftime("%Z")
+
             if offset is None:
                 return await ctx.send(
                     f"It is **{time_str}** for **{target_user.display_name}**. "
-                    f"Their timezone is **{tz.zone}**."
+                    f"Their timezone is **{abbr}**."
                 )
 
             if offset == "the same timezone as you!":
                 return await ctx.send(
                     f"It is **{time_str}** for **{target_user.display_name}**. "
-                    f"Their timezone is **{tz.zone}**, the same timezone as you!"
+                    f"Their timezone is **{abbr}**, the same timezone as you!"
                 )
 
             return await ctx.send(
                 f"It is **{time_str}** for **{target_user.display_name}**. "
-                f"Their timezone is **{tz.zone}**, {offset}"
+                f"Their timezone is **{abbr}**, {offset}"
             )
 
         if flags.at is not None:
@@ -923,16 +927,18 @@ class UtilityCommands(commands.Cog):
                     tz = pytz.timezone(result[index])
                     now = datetime.now(tz)
                     formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
+                    abbr = now.strftime("%Z")
                     await ctx.send(
-                        f"Current time in **{tz.zone}**: `{formatted}`"
+                        f"Current time in **{abbr}**: `{formatted}`"
                     )
                 return
 
             tz = result
             now = datetime.now(tz)
             formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
+            abbr = now.strftime("%Z")
             return await ctx.send(
-                f"Current time in **{tz.zone}**: `{formatted}`"
+                f"Current time in **{abbr}**: `{formatted}`"
             )
 
         await ctx.send(
