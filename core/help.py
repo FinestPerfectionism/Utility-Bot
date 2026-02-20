@@ -149,7 +149,7 @@ def _build_help_view(
             bracket = f"{{{arg_name}}}" if arg_info.required else f"[{arg_name}]"
         line = f"**{bracket.capitalize()}**"
         if arg_info.is_flag:
-            line += " *(flag)*"
+            line += "[Flag]"
         if arg_info.description:
             line += f"\n{arg_info.description}"
         arg_details_lines.append(line)

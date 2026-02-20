@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from datetime import datetime, UTC
 import asyncio
@@ -21,10 +21,44 @@ from constants import (
 # Changes Handling
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+_SEND_INTERVAL = 1.0
+
 class AuditLogger(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.log_channel_id = CHANGE_LOG_CHANNEL_ID
+        self._queue: asyncio.Queue[tuple[discord.abc.Messageable, discord.Embed]] = asyncio.Queue()
+        self._queue_worker.start()
+
+    async def cog_unload(self):
+        self._queue_worker.cancel()
+
+    @tasks.loop(seconds=_SEND_INTERVAL)
+    async def _queue_worker(self):
+        if self._queue.empty():
+            return
+
+        channel, embed = await self._queue.get()
+        try:
+            await channel.send(embed=embed)
+        except discord.RateLimited as e:
+            await asyncio.sleep(e.retry_after)
+            await self._queue.put((channel, embed))
+        except discord.HTTPException as e:
+            print(f"Failed to send log embed: {e}")
+        finally:
+            self._queue.task_done()
+
+    @_queue_worker.before_loop
+    async def _before_queue_worker(self):
+        await self.bot.wait_until_ready()
+
+    async def _enqueue(self, channel: discord.abc.Messageable, embed: discord.Embed):
+        await self._queue.put((channel, embed))
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Helpers
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     async def get_log_channel(self, guild):
         channel = guild.get_channel(self.log_channel_id)
@@ -45,8 +79,8 @@ class AuditLogger(commands.Cog):
             async for entry in guild.audit_logs(limit=10, action=action_type):
                 if target_id is None or entry.target.id == target_id:
                     return entry.user
-        except Exception:
-            pass
+        except discord.HTTPException as e:
+            print(f"Error fetching audit log: {e}")
         return None
 
     def format_permissions(self, permissions):
@@ -107,6 +141,10 @@ class AuditLogger(commands.Cog):
 
         return changes
 
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Channel Events
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
     @commands.Cog.listener()
     async def on_guild_channel_create(self, channel):
         if self.is_directorship_channel(channel):
@@ -149,7 +187,7 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel):
@@ -190,7 +228,7 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_guild_channel_update(self, before, after):
@@ -297,7 +335,11 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Role Events
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
     async def on_guild_role_create(self, role):
@@ -335,7 +377,7 @@ class AuditLogger(commands.Cog):
             permissions_text = permissions_text[:1021] + "..."
         embed.add_field(name="Permissions", value=permissions_text, inline=False)
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
@@ -366,7 +408,7 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, before, after):
@@ -447,7 +489,11 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Member Events
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -472,7 +518,7 @@ class AuditLogger(commands.Cog):
             inline=True
         )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -495,8 +541,8 @@ class AuditLogger(commands.Cog):
                     executor = entry.user
                     was_banned = True
                     break
-        except Exception:
-            pass
+        except discord.HTTPException as e:
+            print(f"Error fetching audit log: {e}")
 
         if was_kicked:
             title = "Member Kicked"
@@ -535,7 +581,7 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user):
@@ -564,7 +610,7 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild, user):
@@ -593,7 +639,95 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        if before.nick != after.nick:
+            log_channel = await self.get_log_channel(after.guild)
+            if not log_channel:
+                return
+
+            executor = await self.get_executor(after.guild, discord.AuditLogAction.member_update, after.id)
+
+            embed = discord.Embed(
+                title="Nickname Changed",
+                color=COLOR_BLURPLE,
+                timestamp=datetime.now(UTC)
+            )
+
+            embed.add_field(
+                name="Member",
+                value=f"`{after}`\n`{after.id}`",
+                inline=False
+            )
+
+            before_nick = before.nick or "None"
+            after_nick = after.nick or "None"
+
+            embed.add_field(
+                name="Nickname Changed",
+                value=f"**Before:** `{before_nick}`\n**After:** `{after_nick}`",
+                inline=False
+            )
+
+            if executor:
+                embed.add_field(
+                    name="Changed By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
+
+            await self._enqueue(log_channel, embed)
+
+        if before.roles != after.roles:
+            log_channel = await self.get_log_channel(after.guild)
+            if not log_channel:
+                return
+
+            executor = await self.get_executor(after.guild, discord.AuditLogAction.member_role_update, after.id)
+
+            before_role_ids = set(role.id for role in before.roles)
+            after_role_ids = set(role.id for role in after.roles)
+
+            added_roles = [role for role in after.roles if role.id not in before_role_ids and role.name != "@everyone"]
+            removed_roles = [role for role in before.roles if role.id not in after_role_ids and role.name != "@everyone"]
+
+            if not added_roles and not removed_roles:
+                return
+
+            embed = discord.Embed(
+                title="Member Roles Changed",
+                color=COLOR_BLURPLE,
+                timestamp=datetime.now(UTC)
+            )
+
+            embed.add_field(
+                name="Member",
+                value=f"`{after}`\n`{after.id}`",
+                inline=False
+            )
+
+            if added_roles:
+                role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in added_roles])
+                embed.add_field(name="Roles Added", value=role_list, inline=False)
+
+            if removed_roles:
+                role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in removed_roles])
+                embed.add_field(name="Roles Removed", value=role_list, inline=False)
+
+            if executor:
+                embed.add_field(
+                    name="Changed By",
+                    value=f"`{executor}`\n`{executor.id}`",
+                    inline=False
+                )
+
+            await self._enqueue(log_channel, embed)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Server Events
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
     async def on_guild_update(self, before, after):
@@ -700,7 +834,11 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Emoji & Sticker Events
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
     async def on_guild_emojis_update(self, guild, before, after):
@@ -740,7 +878,7 @@ class AuditLogger(commands.Cog):
                     inline=False
                 )
 
-            await log_channel.send(embed=embed)
+            await self._enqueue(log_channel, embed)
 
         if removed_emojis:
             executor = await self.get_executor(guild, discord.AuditLogAction.emoji_delete)
@@ -765,7 +903,7 @@ class AuditLogger(commands.Cog):
                     inline=False
                 )
 
-            await log_channel.send(embed=embed)
+            await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_guild_stickers_update(self, guild, before, after):
@@ -805,7 +943,7 @@ class AuditLogger(commands.Cog):
                     inline=False
                 )
 
-            await log_channel.send(embed=embed)
+            await self._enqueue(log_channel, embed)
 
         if removed_stickers:
             executor = await self.get_executor(guild, discord.AuditLogAction.sticker_delete)
@@ -830,7 +968,11 @@ class AuditLogger(commands.Cog):
                     inline=False
                 )
 
-            await log_channel.send(embed=embed)
+            await self._enqueue(log_channel, embed)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Invite Events
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
@@ -870,7 +1012,7 @@ class AuditLogger(commands.Cog):
 
         embed.add_field(name="Temporary", value=str(invite.temporary), inline=True)
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_invite_delete(self, invite):
@@ -894,7 +1036,11 @@ class AuditLogger(commands.Cog):
         if invite.uses is not None:
             embed.add_field(name="Uses", value=str(invite.uses), inline=True)
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # Integration & Thread Events
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
     async def on_guild_integrations_update(self, guild):
@@ -919,7 +1065,7 @@ class AuditLogger(commands.Cog):
                     if hasattr(entry.target, 'name'):
                         target_name = entry.target.name
                     break
-        except Exception as e:
+        except discord.HTTPException as e:
             print(f"Error fetching integration audit log: {e}")
 
         if action_type == discord.AuditLogAction.integration_create:
@@ -954,7 +1100,7 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_thread_create(self, thread: discord.Thread):
@@ -986,7 +1132,7 @@ class AuditLogger(commands.Cog):
         parent = thread.parent
         if parent is None:
             return
-        
+
         embed.add_field(
             name="Parent Channel",
             value=f"`{parent.name}`\n`{parent.id}`",
@@ -1006,7 +1152,7 @@ class AuditLogger(commands.Cog):
             inline=True
         )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_thread_delete(self, thread):
@@ -1034,7 +1180,7 @@ class AuditLogger(commands.Cog):
             inline=True
         )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
     async def on_thread_update(self, before, after):
@@ -1085,91 +1231,8 @@ class AuditLogger(commands.Cog):
                 inline=False
             )
 
-        await log_channel.send(embed=embed)
+        await self._enqueue(log_channel, embed)
 
-    @commands.Cog.listener()
-    async def on_member_update(self, before, after):
-        if before.nick != after.nick:
-            log_channel = await self.get_log_channel(after.guild)
-            if not log_channel:
-                return
-
-            executor = await self.get_executor(after.guild, discord.AuditLogAction.member_update, after.id)
-
-            embed = discord.Embed(
-                title="Nickname Changed",
-                color=COLOR_BLURPLE,
-                timestamp=datetime.now(UTC)
-            )
-
-            embed.add_field(
-                name="Member",
-                value=f"`{after}`\n`{after.id}`",
-                inline=False
-            )
-
-            before_nick = before.nick or "None"
-            after_nick = after.nick or "None"
-
-            embed.add_field(
-                name="Nickname Changed",
-                value=f"**Before:** `{before_nick}`\n**After:** `{after_nick}`",
-                inline=False
-            )
-
-            if executor:
-                embed.add_field(
-                    name="Changed By",
-                    value=f"`{executor}`\n`{executor.id}`",
-                    inline=False
-                )
-
-            await log_channel.send(embed=embed)
-
-        if before.roles != after.roles:
-            log_channel = await self.get_log_channel(after.guild)
-            if not log_channel:
-                return
-
-            executor = await self.get_executor(after.guild, discord.AuditLogAction.member_role_update, after.id)
-
-            before_role_ids = set(role.id for role in before.roles)
-            after_role_ids = set(role.id for role in after.roles)
-
-            added_roles = [role for role in after.roles if role.id not in before_role_ids and role.name != "@everyone"]
-            removed_roles = [role for role in before.roles if role.id not in after_role_ids and role.name != "@everyone"]
-
-            if not added_roles and not removed_roles:
-                return
-
-            embed = discord.Embed(
-                title="Member Roles Changed",
-                color=COLOR_BLURPLE,
-                timestamp=datetime.now(UTC)
-            )
-
-            embed.add_field(
-                name="Member",
-                value=f"`{after}`\n`{after.id}`",
-                inline=False
-            )
-
-            if added_roles:
-                role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in added_roles])
-                embed.add_field(name="Roles Added", value=role_list, inline=False)
-
-            if removed_roles:
-                role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in removed_roles])
-                embed.add_field(name="Roles Removed", value=role_list, inline=False)
-
-            if executor:
-                embed.add_field(
-                    name="Changed By",
-                    value=f"`{executor}`\n`{executor.id}`",
-                    inline=False
-                )
-
-            await log_channel.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(AuditLogger(bot))

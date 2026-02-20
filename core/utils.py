@@ -199,7 +199,6 @@ async def send_minor_error(
             ephemeral=True,
         )
 
-
 async def send_major_error(
     interaction: discord.Interaction,
     texts: list[str] | str,

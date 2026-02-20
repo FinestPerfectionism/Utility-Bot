@@ -301,7 +301,8 @@ class HealthFixView(discord.ui.View):
                 if not check:
                     continue
                 icon = f"{ACCEPTED_EMOJI_ID}" if check["passed"] else f"{DENIED_EMOJI_ID}"
-                line = f"{icon} {check['label']}"
+                text = check["label"] if check["passed"] else check.get("fail_label", check["label"])
+                line = f"{icon} {text}"
                 if not check["passed"] and check.get("detail"):
                     line += f"\n-# ↳ {check['detail']}"
                 lines.append(line)
@@ -504,6 +505,7 @@ class HealthCommands(commands.Cog):
         checks.append({
             "id": "ANTINUKE_LOG",
             "label": "Anti-nuke log channel is configured",
+            "fail_label": "Anti-nuke log channel is __not__ configured",
             "passed": antinuke_log,
             "fixable": False,
             "manual_note": "Set a log channel via the anti-nuke configuration command.",
@@ -522,11 +524,11 @@ class HealthCommands(commands.Cog):
         checks.append({
             "id": "CASES_LOG",
             "label": "Cases log channel is configured",
+            "fail_label": "Cases log channel is __not__ configured",
             "passed": cases_log,
             "fixable": False,
             "manual_note": "Run /cases config to set the log channel.",
         })
-
         return checks
 
     @app_commands.command(
@@ -583,7 +585,8 @@ class HealthCommands(commands.Cog):
                 if not check:
                     continue
                 icon = f"{ACCEPTED_EMOJI_ID}" if check["passed"] else f"{DENIED_EMOJI_ID}"
-                line = f"{icon} {check['label']}"
+                text = check["label"] if check["passed"] else check.get("fail_label", check["label"])
+                line = f"{icon} {text}"
                 if not check["passed"] and check.get("detail"):
                     line += f"\n-# ↳ {check['detail']}"
                 lines.append(line)

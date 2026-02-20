@@ -660,18 +660,21 @@ class UtilityCommands(commands.Cog):
                     interaction,
                     title="Error!",
                     texts="The role was removed, but I cannot change the server owner's nickname. Please change it back manually.",
+                    subtitle="Not an error."
                 )
             else:
                 await send_major_error(
                     interaction,
                     title="Error!",
                     texts="The role was removed, but I lack the necessary permissions to change the nickname. Please change it back manually.",
+                    subtitle="Invalid configuration. Contact the owner."
                 )
         elif nickname_error == "http":
             await send_minor_error(
                 interaction,
                 title="Error!",
                 texts="The role was removed, but a Discord API error prevented the nickname from being restored.",
+                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
             )
         else:
             if target_member.id == interaction.user.id:
@@ -793,7 +796,7 @@ class UtilityCommands(commands.Cog):
         aliases     = ["ti"],
         arguments   = {
             "s": ArgumentInfo(
-                role=STAFF_ROLE_ID,
+                role=None,
                 required=False,
                 description="Set timezone for yourself or a user.",
                 is_flag=True,
@@ -802,7 +805,7 @@ class UtilityCommands(commands.Cog):
                 role=None,
                 required=False,
                 description="The user to view the timezone of.",
-                is_flag=True,
+                is_flag=False,
             ),
             "tz": ArgumentInfo(
                 role=None,
