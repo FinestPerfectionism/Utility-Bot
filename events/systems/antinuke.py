@@ -19,7 +19,7 @@ from constants import(
     DIRECTORS_ROLE_ID,
 )
 
-from core.bot import UtilityBot
+from bot import UtilityBot
 
 from commands.moderation.cases import CaseType
 

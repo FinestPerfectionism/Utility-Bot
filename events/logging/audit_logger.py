@@ -7,7 +7,7 @@ import asyncio
 from constants import (
     DIRECTORSHIP_CATEGORY_ID,
 
-    DIRECTOR_TOPICS_CHANNEL_ID,
+    DIRECTOR_TASKS_CHANNEL_ID,
     CHANGE_LOG_CHANNEL_ID,
 
     DIRECTORS_ROLE_ID,
@@ -1106,12 +1106,6 @@ class AuditLogger(commands.Cog):
     async def on_thread_create(self, thread: discord.Thread):
         if self.is_directorship_channel(thread.parent):
             return
-
-        if thread.parent and thread.parent.id == DIRECTOR_TOPICS_CHANNEL_ID:
-            await thread.send(
-                content=f"<@&{DIRECTORS_ROLE_ID}>",
-                allowed_mentions=discord.AllowedMentions(roles=True)
-            )
 
         log_channel = await self.get_log_channel(thread.guild)
         if not log_channel:

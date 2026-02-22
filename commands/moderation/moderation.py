@@ -16,7 +16,7 @@ from typing import (
 
 from commands.moderation.cases import CaseType
 
-from core.bot import UtilityBot
+from bot import UtilityBot
 from core.utils import (
     send_major_error,
     send_minor_error

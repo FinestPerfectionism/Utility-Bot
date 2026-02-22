@@ -2,21 +2,13 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from datetime import datetime
-import pytz
-import json
 import random
-from typing import Optional
 
 from core.utils import send_minor_error
 
 from constants import (
-    DIRECTORS_ROLE_ID,
-
     BOT_OWNER_ID,
     HOLY_FATHER_ID,
-
-    CAT_SHOOT_EMOJI_ID
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -98,7 +90,7 @@ class MiscCommands(commands.Cog):
                     reason="Played a stupid game, won a stupid prize."
                 )
                 await interaction.followup.send(
-                    f"{CAT_SHOOT_EMOJI_ID} *Click,* ***BAM***."
+                    "<a:CatShoot:1466460098955313294> *Click,* ***BAM***."
                 )
             except discord.Forbidden:
                 await interaction.followup.send(

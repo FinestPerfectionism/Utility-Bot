@@ -25,7 +25,7 @@ from constants import (
     SENIOR_MODERATORS_ROLE_ID,
 )
 
-from core.bot import UtilityBot
+from bot import UtilityBot
 from core.utils import send_major_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

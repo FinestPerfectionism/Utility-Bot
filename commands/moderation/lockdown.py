@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from core.bot import UtilityBot
+from bot import UtilityBot
 
 import json
 import os

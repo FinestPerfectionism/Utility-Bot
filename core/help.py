@@ -47,6 +47,7 @@ class ArgumentInfo:
     required:    bool          = True
     description: Optional[str] = None
     is_flag:     bool          = False
+    choices:     list[str]     = field(default_factory=list)
 
 @dataclass
 class CommandHelpData:
@@ -118,6 +119,11 @@ def _check_access(
     return "full", accessible, inaccessible
 
 def _build_argument_line(name: str, info: ArgumentInfo) -> str:
+    if info.choices:
+        choices_str = "|".join(info.choices)
+        inner = f"{name}: {choices_str}"
+        return f"{{{inner}}}" if info.required else f"[{inner}]"
+
     if info.is_flag:
         inner = f"/{name}: {{{name}}}"
         return inner if info.required else f"[{inner}]"
@@ -143,13 +149,19 @@ def _build_help_view(
 
     arg_details_lines: list[str] = []
     for arg_name, arg_info in data.arguments.items():
-        if arg_info.is_flag:
+        if arg_info.choices:
+            choices_str = "|".join(arg_info.choices)
+            bracket = f"{{{arg_name}: {choices_str}}}" if arg_info.required else f"[{arg_name}: {choices_str}]"
+        elif arg_info.is_flag:
             bracket = f"{arg_name}: {{{arg_name}}}" if arg_info.required else f"[{arg_name}: {arg_name}]"
         else:
             bracket = f"{{{arg_name}}}" if arg_info.required else f"[{arg_name}]"
+
         line = f"**{bracket.capitalize()}**"
         if arg_info.is_flag:
-            line += "[Flag]"
+            line += " [Flag]"
+        if arg_info.choices:
+            line += " [Choices]"
         if arg_info.description:
             line += f"\n{arg_info.description}"
         arg_details_lines.append(line)
@@ -265,6 +277,26 @@ def _find_nested_command(bot: commands.Bot, parts: list[str]) -> Optional[object
 
     return getattr(node, "callback", None)
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Listing helpers
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+def _collect_slash_commands(
+    app_commands_list: list[Any],
+    seen_callbacks:    set[int],
+    lines:             list[str],
+) -> None:
+    for app_cmd in app_commands_list:
+        cb = getattr(app_cmd, "callback", None)
+        if cb and hasattr(cb, "__help_data__") and id(cb) not in seen_callbacks:
+            seen_callbacks.add(id(cb))
+            qualified = getattr(app_cmd, "qualified_name", app_cmd.name)
+            lines.append(f"`/{qualified}` — {cast(HelpedCallable, cb).__help_data__.desc}")
+
+        sub_commands = getattr(app_cmd, "commands", None)
+        if sub_commands:
+            _collect_slash_commands(sub_commands, seen_callbacks, lines)
+
 async def _run_help(
     bot: commands.Bot,
     ctx_or_inter: Union[commands.Context, discord.Interaction],
@@ -296,10 +328,7 @@ async def _run_help(
                 seen_callbacks.add(id(cb))
                 lines.append(f"`{cmd.name}` — {cb.__help_data__.desc}")
 
-        for app_cmd in bot.tree.get_commands():
-            cb = cast(HelpedCallable, getattr(app_cmd, "callback", None))
-            if cb and hasattr(cb, "__help_data__") and id(cb) not in seen_callbacks:
-                lines.append(f"`/{app_cmd.name}` — {cb.__help_data__.desc}")
+        _collect_slash_commands(bot.tree.get_commands(), seen_callbacks, lines)
 
         if lines:
             await respond(

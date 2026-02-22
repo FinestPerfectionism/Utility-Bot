@@ -4,7 +4,7 @@ import os
 import sys
 from dotenv import load_dotenv
 
-from core.bot import bot
+from bot import bot
 from core.state import (
     load_application_state,
     load_blacklist

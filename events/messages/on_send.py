@@ -16,7 +16,11 @@ from core.state import (
 from events.systems.applications import ApplicationSubmitView
 
 from constants import (
-    COLOR_BLURPLE
+    COLOR_BLURPLE,
+
+    DIRECTOR_TASKS_CHANNEL_ID,
+
+    DIRECTORS_ROLE_ID
 )
 
 MAX_STRIKES = 5
@@ -35,6 +39,19 @@ class MessageSendHandler(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
+
+        if isinstance(message.channel, discord.Thread):
+            thread = message.channel
+
+            if (
+                isinstance(thread.parent, discord.ForumChannel)
+                and thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID
+                and message.id == thread.id
+            ):
+                await thread.send(
+                    content=f"<@&{DIRECTORS_ROLE_ID}>",
+                    allowed_mentions=discord.AllowedMentions(roles=True),
+                )
 
         if (
             "https://tenor.com/view/dog-funny-video-funny-funny-dog-dog-peeing-gif-4718562751207105873"
