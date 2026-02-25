@@ -6,7 +6,7 @@ from typing import cast
 
 from core.permissions import (
     main_guild_only,
-    has_committee_role
+    committee_only
 )
 from core.utils import (
     resolve_forum_tags,
@@ -106,7 +106,7 @@ class ProposalCommands(
         ]
     )
     @main_guild_only()
-    @has_committee_role()
+    @committee_only()
     async def edit(
         self,
         interaction: discord.Interaction,
@@ -286,7 +286,7 @@ class ProposalCommands(
         reason=LOCK_REASONS
     )
     @main_guild_only()
-    @has_committee_role()
+    @committee_only()
     async def lock_thread(
         self,
         interaction: discord.Interaction,
@@ -356,7 +356,7 @@ class ProposalCommands(
         reason=UNLOCK_REASONS
     )
     @main_guild_only()
-    @has_committee_role()
+    @committee_only()
     async def unlock_thread(
         self,
         interaction: discord.Interaction,
@@ -393,7 +393,7 @@ class ProposalCommands(
         description="Remove the Standstill status from this thread."
     )
     @main_guild_only()
-    @has_committee_role()
+    @committee_only()
     async def unstandstill(self, interaction: discord.Interaction):
 
         try:
@@ -438,7 +438,7 @@ class ProposalCommands(
         name="delete",
         aliases=["d", "del"]
     )
-    @has_committee_role()
+    @committee_only()
     async def delete_thread(self, ctx: commands.Context):
         if not isinstance(ctx.channel, discord.Thread):
             return

@@ -134,98 +134,113 @@ class StaffProposalComponents1(discord.ui.LayoutView):
   )
 
 class StaffProposalComponents2(discord.ui.LayoutView):
-    def __init__(self):
+    def __init__(self, timestamp: int):
         super().__init__(timeout=None)
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Staff Proposal Information\n"
-                "Staff proposals last updated <t:1771213225:D>.\n"
-                "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>."
-        ),
-        discord.ui.Separator(
-            visible=False,
-            spacing=discord.SeparatorSpacing.small
-        ),
-        discord.ui.Separator(
-            visible=True,
-            spacing=discord.SeparatorSpacing.small
-        ),
-        discord.ui.Separator(
-            visible=False,
-            spacing=discord.SeparatorSpacing.small
-        ),
-        discord.ui.TextDisplay(
-            content=
-                "Any member of the **Goobers Staff Team** (Administrators + Moderators + Directors + Owner) is allowed to vote in a proposal, or raise a proposal. All proposals are expected to be beneficial to the Goobers and its community.\n"
-                "## Important Information\n"
-                "### Advisory Votes\n"
-                "Staff Proposal polls are **non-binding advisory votes**. Poll results are visible and recorded, but do not automatically Accept or Deny a proposal. Final decision authority rests with the **Staff Committee**.\n"
-                "### Abstaining\n"
-                "Abstentions are recorded as part of the advisory poll. They are not counted toward any threshold and are reviewed by the Staff Committee alongside all other vote data.\n"
-                "### Staff Count\n"
-                "Vote totals are tracked for advisory reference during the poll period.\n"
-                "- **S** = number of Staff voting roles.\n"
-                "- **Majority** = ⌈(S / 2) + 1⌉.\n"
-                "This is used as an advisory reference only and does not determine the proposal's outcome.\n"
-                "### Inactive or Missing Votes\n"
-                "If a proposal's poll expires with missing Staff votes, it proceeds to the Staff Committee as-is with whatever vote data was collected.\n"
-                "### Vote Changes\n"
-                "- Staff may change their votes at any time before the poll ends.\n"
-                "- Once the poll expires, votes are locked for the record.\n"
-                "## Staff Committee\n"
-                "After the advisory poll concludes, the **Staff Committee** reviews the proposal. The committee considers vote totals, staff discussion, technical feasibility, and operational concerns before issuing a final decision.\n"
-                "The Staff Committee may:\n"
-                "- **Accept**\n"
-                "- **Accept with minor revisions**\n"
-                "- **Request revision**\n"
-                "- **Deny**\n"
-                "- **Place in Standstill**\n"
-                "When acting contrary to strong staff consensus, the committee should provide brief reasoning for their decision.\n"
-                "-# Staff Committee composition, appointment and removal process, internal voting threshold, review timelines, and interaction with existing veto powers are to be formalized in a follow-up document.\n"
-                "## Staff Groups\n"
-                "**Staff** consists of:\n"
-                "- **Owner**\n"
-                "- **Directors**\n"
-                "- **Administrators**\n"
-                "- **Moderators**\n"
-                "All Staff are equal in advisory voting ability. Administrators are responsible for implementing accepted proposals.\n"
-                "## Poll Format\n"
-                "**Motion.**\n"
-                "- <:cgreen:1437171496857501889> Accept  \n"
-                "- <:cblue:1437171597952811059> Abstain  \n"
-                "- <:cred:1437171288631414966> Deny  \n"
-                "- <:cyellow:1437171198982357073> Accept, with minor revisions (optional)\n"
-                "Poll length must be **three days or longer** if a proposand demands it.\n"
-                "## Vetos\n"
-                "- **Director Veto:** Any staff member with the Director role may veto a proposal at any time. This veto is absolute and does not require consultation or approval from other Directors or Staff members.  \n"
-                "- **Veto Scope:** A veto can be applied to any proposal, regardless of its current vote count or status.  \n"
-                "- **Veto Effect:** Once a veto is issued, the proposal is immediately halted and considered denied. Directors may either ask for revision, or end the proposal outright.\n"
-                "## Scope\n"
-                "While a user could conceivably raise a proposal about anything, Staff are not empowered to make any change they like in staff-proposals. Below is a non-exhaustive list of the types of suggestions that will *not* be considered:\n"
-                "- Suggestions that relate to moderator policies or actions such as timeouts or bans.\n"
-                "  - Staff may request policy changes if majority (75%) of staff agree on the change. This update may *not* be raised in staff-proposals.\n"
-                "- Suggestions pertaining to individual users.\n"
-                "- Suggestions that relate to the core rules and guiding philosophy of the server.\n"
-                "  - Staff may request rule changes if *all* (100%) of staff agree on the change. The update may *not* be raised in staff-proposals.\n"
-                "- Suggestions that relate to updates of staff-proposal-info.\n"
-                "Staff may make suggestions to the items listed above __in the appropriate channel__, such as <#1444452435006590996>, <#1386133249373376665>, or <#1436345318554996976>.\n"
-                "Guild Trustees may *not* suggest the items listed above anywhere in the server. \n\n"
-                "-# **Proposand:** the core idea of a raised proposal.\n"
-                "-# **Guild Trustees:** those with the <@&1463694813525180477> role."
-        ),
-        discord.ui.Separator(
-            visible=True,
-            spacing=discord.SeparatorSpacing.large
-        ),
-        discord.ui.ActionRow(
-            AdministratorsRoles(),
-            ModeratorsRoles(),
-            TrusteeRoles(),
-            CommitteeRoles()
-        ),
-    )
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Staff Proposal Information\n"
+                    f"Staff proposals last updated <t:{timestamp}:D>.\n"
+                    "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>."
+            ),
+            discord.ui.Separator(
+                visible=False,
+                spacing=discord.SeparatorSpacing.small
+            ),
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.small
+            ),
+            discord.ui.Separator(
+                visible=False,
+                spacing=discord.SeparatorSpacing.small
+            ),
+            discord.ui.TextDisplay(
+                content=
+                    "Any member of the **Goobers Staff Team** (Administrators + Moderators + Directors + Owner) is allowed to vote in a proposal, or raise a proposal. All proposals are expected to be beneficial to the Goobers and its community.\n"
+                    "## Important Information\n"
+                    "### Advisory Votes\n"
+                    "Staff Proposal polls are **non-binding advisory votes**. Poll results are visible and recorded, but do not automatically Accept or Deny a proposal. Final decision authority rests with the **Staff Committee**.\n"
+                    "### Abstaining\n"
+                    "Abstentions are recorded as part of the advisory poll. They are not counted toward any threshold and are reviewed by the Staff Committee alongside all other vote data.\n"
+                    "### Staff Count\n"
+                    "Vote totals are tracked for advisory reference during the poll period.\n"
+                    "- **S** = number of Staff voting roles.\n"
+                    "- **Majority** = ⌈(S / 2) + 1⌉.\n"
+                    "This is used as an advisory reference only and does not determine the proposal's outcome.\n"
+                    "### Inactive or Missing Votes\n"
+                    "If a proposal's poll expires with missing Staff votes, it proceeds to the Staff Committee as-is with whatever vote data was collected.\n"
+                    "### Vote Changes\n"
+                    "- Staff may change their votes at any time before the poll ends.\n"
+                    "- Once the poll expires, votes are locked for the record."
+            ),
+            discord.ui.TextDisplay(
+                content=
+                    "## Staff Committee\n"
+                    "After the advisory poll concludes, the **Staff Committee** reviews the proposal. The committee considers vote totals, staff discussion, technical feasibility, and operational concerns before issuing a final decision.\n"
+                    "The Staff Committee may:\n"
+                    "- **Accept**\n"
+                    "- **Accept with minor revisions**\n"
+                    "- **Request revision**\n"
+                    "- **Deny**\n"
+                    "- **Place in Standstill**\n"
+                    "When acting contrary to strong staff consensus, the committee should provide brief reasoning for their decision.\n"
+                    "### Composition\n"
+                    "The Staff Committee is composed of all active Directors and the Owner. A quorum of at least two committee members is required to issue any final decision.\n"
+                    "### Appointment & Removal\n"
+                    "Committee membership is tied to the Director and Owner roles. Members join the committee upon receiving a Director or Owner role and leave upon losing it.\n"
+                    "### Internal Voting Threshold\n"
+                    "A simple majority of present committee members is sufficient to issue Accept, Accept with minor revisions, or Deny decisions. Standstill and Contested status require unanimous agreement among present members.\n"
+                    "### Review Timelines\n"
+                    "The Staff Committee must issue a final decision within **5 days** of the advisory poll concluding. If no decision is reached within this window, the proposal automatically enters Contested status.\n"
+                    "### Interaction with Veto Powers\n"
+                    "Director veto powers operate independently of the Staff Committee review process. A veto may be exercised at any point before the committee issues a final decision. Once a final decision has been issued, veto powers may not be retroactively applied."
+            ),
+            discord.ui.TextDisplay(
+                content=
+                    "## Staff Groups\n"
+                    "**Staff** consists of:\n"
+                    "- **Owner**\n"
+                    "- **Directors**\n"
+                    "- **Administrators**\n"
+                    "- **Moderators**\n"
+                    "All Staff are equal in advisory voting ability. Administrators are responsible for implementing accepted proposals.\n"
+                    "## Poll Format\n"
+                    "**Motion.**\n"
+                    "- <:cgreen:1437171496857501889> Accept  \n"
+                    "- <:cblue:1437171597952811059> Abstain  \n"
+                    "- <:cred:1437171288631414966> Deny  \n"
+                    "- <:cyellow:1437171198982357073> Accept, with minor revisions (optional)\n"
+                    "Poll length must be **three days or longer** if a proposand demands it.\n"
+                    "## Vetos\n"
+                    "- **Director Veto:** Any staff member with the Director role may veto a proposal at any time. This veto is absolute and does not require consultation or approval from other Directors or Staff members.  \n"
+                    "- **Veto Scope:** A veto can be applied to any proposal, regardless of its current vote count or status.  \n"
+                    "- **Veto Effect:** Once a veto is issued, the proposal is immediately halted and considered denied. Directors may either ask for revision, or end the proposal outright.\n"
+                    "## Scope\n"
+                    "While a user could conceivably raise a proposal about anything, Staff are not empowered to make any change they like in staff-proposals. Below is a non-exhaustive list of the types of suggestions that will *not* be considered:\n"
+                    "- Suggestions that relate to moderator policies or actions such as timeouts or bans.\n"
+                    "  - Staff may request policy changes if majority (75%) of staff agree on the change. This update may *not* be raised in staff-proposals.\n"
+                    "- Suggestions pertaining to individual users.\n"
+                    "- Suggestions that relate to the core rules and guiding philosophy of the server.\n"
+                    "  - Staff may request rule changes if *all* (100%) of staff agree on the change. The update may *not* be raised in staff-proposals.\n"
+                    "- Suggestions that relate to updates of staff-proposal-info.\n"
+                    "Staff may make suggestions to the items listed above __in the appropriate channel__, such as <#1444452435006590996>, <#1386133249373376665>, or <#1436345318554996976>.\n"
+                    "Guild Trustees may *not* suggest the items listed above anywhere in the server. \n\n"
+                    "-# **Proposand:** the core idea of a raised proposal.\n"
+                    "-# **Guild Trustees:** those with the <@&1463694813525180477> role."
+            ),
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.large
+            ),
+            discord.ui.ActionRow(
+                AdministratorsRoles(),
+                ModeratorsRoles(),
+                TrusteeRoles(),
+                CommitteeRoles()
+            ),
+        )
 
 class StaffProposalComponents3(discord.ui.LayoutView):   
     container = discord.ui.Container(

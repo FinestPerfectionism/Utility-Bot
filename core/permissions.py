@@ -85,16 +85,13 @@ def admin_only():
 def staff_only():
     return require_role(STAFF_ROLE_ID)
 
+def committee_only():
+    return require_role(STAFF_COMMITTEE_ROLE_ID)
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role Prefix Checks
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def has_committee_role():
-    async def predicate(ctx: commands.Context) -> bool:
-        if not isinstance(ctx.author, discord.Member):
-            return False
-        return any(role.id == STAFF_COMMITTEE_ROLE_ID for role in ctx.author.roles)
-    return commands.check(predicate)
 
 def has_director_role():
     async def predicate(ctx: commands.Context) -> bool:
