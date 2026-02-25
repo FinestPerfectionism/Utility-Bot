@@ -6,8 +6,7 @@ from typing import cast
 
 from core.permissions import (
     main_guild_only,
-    staff_only,
-    has_director_role
+    has_committee_role
 )
 from core.utils import (
     resolve_forum_tags,
@@ -35,7 +34,7 @@ from constants import (
 class ProposalCommands(
     commands.GroupCog,
     name="proposal",
-    description="Staff only —— Proposal commands."):
+    description="Staff Committee only —— Proposal commands."):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         super().__init__()
@@ -77,24 +76,28 @@ class ProposalCommands(
         ],
         reason=[
             app_commands.Choice(
-                name="Majority rule for.",
-                value="Majority rule for."
+                name="Committee accepted.",
+                value="Committee accepted."
             ),
             app_commands.Choice(
-                name="Majority rule against.",
-                value="Majority rule against."
+                name="Committee contested.",
+                value="Committee contested."
             ),
             app_commands.Choice(
-                name="Staff versus Staff.",
-                value="Staff versus Staff."
+                name="Committee denied.",
+                value="Committee denied."
             ),
             app_commands.Choice(
-                name="Unique circumstances.",
-                value="Unique circumstances."
+                name="Out of scope.",
+                value="Out of scope."
             ),
             app_commands.Choice(
                 name="Proposand unimplementable.",
                 value="Proposand unimplementable."
+            ),
+            app_commands.Choice(
+                name="Unique circumstances.",
+                value="Unique circumstances."
             ),
             app_commands.Choice(
                 name="Veto.",
@@ -103,7 +106,7 @@ class ProposalCommands(
         ]
     )
     @main_guild_only()
-    @staff_only()
+    @has_committee_role()
     async def edit(
         self,
         interaction: discord.Interaction,
@@ -128,9 +131,9 @@ class ProposalCommands(
             forum = cast(discord.ForumChannel, getattr(thread, "parent", None))
 
         REASON_WHITELISTS = {
-            "accepted": {"Majority rule for."},
-            "contested": {"Staff versus Staff.", "Proposand unimplementable."},
-            "denied": {"Veto.", "Majority rule against.", "Proposand unimplementable."},
+            "accepted": {"Committee accepted."},
+            "contested": {"Committee contested.", "Proposand unimplementable.", "Out of scope."},
+            "denied": {"Committee denied.", "Veto.", "Proposand unimplementable.", "Out of scope."},
             "standstill": {"Unique circumstances."},
         }
 
@@ -283,7 +286,7 @@ class ProposalCommands(
         reason=LOCK_REASONS
     )
     @main_guild_only()
-    @staff_only()
+    @has_committee_role()
     async def lock_thread(
         self,
         interaction: discord.Interaction,
@@ -353,7 +356,7 @@ class ProposalCommands(
         reason=UNLOCK_REASONS
     )
     @main_guild_only()
-    @staff_only()
+    @has_committee_role()
     async def unlock_thread(
         self,
         interaction: discord.Interaction,
@@ -390,7 +393,7 @@ class ProposalCommands(
         description="Remove the Standstill status from this thread."
     )
     @main_guild_only()
-    @staff_only()
+    @has_committee_role()
     async def unstandstill(self, interaction: discord.Interaction):
 
         try:
@@ -435,7 +438,7 @@ class ProposalCommands(
         name="delete",
         aliases=["d", "del"]
     )
-    @has_director_role()
+    @has_committee_role()
     async def delete_thread(self, ctx: commands.Context):
         if not isinstance(ctx.channel, discord.Thread):
             return

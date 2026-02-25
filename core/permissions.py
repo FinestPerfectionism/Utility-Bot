@@ -6,11 +6,14 @@ from core import state
 
 from constants import (
     DIRECTORS_ROLE_ID,
+    STAFF_COMMITTEE_ROLE_ID,
     MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     STAFF_ROLE_ID,
+
     GUILD_ID,
+
     BOT_OWNER_ID
 )
 
@@ -85,6 +88,13 @@ def staff_only():
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role Prefix Checks
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+def has_committee_role():
+    async def predicate(ctx: commands.Context) -> bool:
+        if not isinstance(ctx.author, discord.Member):
+            return False
+        return any(role.id == STAFF_COMMITTEE_ROLE_ID for role in ctx.author.roles)
+    return commands.check(predicate)
 
 def has_director_role():
     async def predicate(ctx: commands.Context) -> bool:

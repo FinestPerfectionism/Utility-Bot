@@ -18,7 +18,7 @@ class AdministratorsRolesComponents(discord.ui.LayoutView):
             content=
                 "-# **Note:** Administrators are held under the same rules and are expected to also do the same jobs as guild Trustees *and* Moderators. No exceptions."
         ),
-        accent_color=0xff8cdf
+        accent_color=0xff8cd5
     )
 
 class ModeratorsRolesComponents(discord.ui.LayoutView):
@@ -53,6 +53,19 @@ class TrusteeRolesComponents(discord.ui.LayoutView):
                 "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. While Trustees can raise proposals. They do not have access to proposal commands and must ask a staff member for assistance. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
         ),
         accent_color=0xfacd6c
+    )
+
+class CommitteeRolesComponents(discord.ui.LayoutView):
+    container = discord.ui.Container(
+        discord.ui.TextDisplay(
+            content=
+                "# Goobers Staff Committee\n"
+                "The Staff Committee is the final decision-making body for Staff Proposals. After the advisory poll period concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
+                "**Tasks**\n"
+                "> *To review advisory poll results and issue final decisions on Staff Proposals.*\n\n"
+                "The Staff Committee may Accept, Accept with minor revisions, Request revision, Deny, or place a proposal into Standstill. When acting contrary to strong staff consensus, the committee is expected to provide brief reasoning for their decision."
+        ),
+        accent_color=0xf9a56b
     )
 
 class AdministratorsRoles(discord.ui.Button):
@@ -97,6 +110,20 @@ class TrusteeRoles(discord.ui.Button):
             ephemeral=True
         )
 
+class CommitteeRoles(discord.ui.Button):
+    def __init__(self):
+        super().__init__(
+            style=discord.ButtonStyle.secondary,
+            label="Committee's Roles",
+            custom_id="persistent_committee_button"
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message(
+            view=CommitteeRolesComponents(),
+            ephemeral=True
+        )
+
 class StaffProposalComponents1(discord.ui.LayoutView):    
     container = discord.ui.Container(
         discord.ui.TextDisplay(
@@ -133,34 +160,37 @@ class StaffProposalComponents2(discord.ui.LayoutView):
             content=
                 "Any member of the **Goobers Staff Team** (Administrators + Moderators + Directors + Owner) is allowed to vote in a proposal, or raise a proposal. All proposals are expected to be beneficial to the Goobers and its community.\n"
                 "## Important Information\n"
+                "### Advisory Votes\n"
+                "Staff Proposal polls are **non-binding advisory votes**. Poll results are visible and recorded, but do not automatically Accept or Deny a proposal. Final decision authority rests with the **Staff Committee**.\n"
                 "### Abstaining\n"
-                "Abstaining is influenced by the **final** majority vote.\n"
-                "- Abstentions do not count as \"for\" or \"against\" during the poll itself.\n"
-                "- When the poll ends:\n"
-                "  - If the majority is **Accept**, all abstentions are counted as **Accept**.\n"
-                "  - If the majority is **Deny**, all abstentions are counted as **Deny**.\n"
-                "This applies only when determining the final proposal result.\n"
+                "Abstentions are recorded as part of the advisory poll. They are not counted toward any threshold and are reviewed by the Staff Committee alongside all other vote data.\n"
                 "### Staff Count\n"
-                "Proposal calculations must adapt to the current Staff count.\n"
+                "Vote totals are tracked for advisory reference during the poll period.\n"
                 "- **S** = number of Staff voting roles.\n"
                 "- **Majority** = ⌈(S / 2) + 1⌉.\n"
-                "This updates automatically as Staff size changes.\n"
+                "This is used as an advisory reference only and does not determine the proposal's outcome.\n"
                 "### Inactive or Missing Votes\n"
-                "If a proposal cannot reach Majority due to missing Staff votes:\n"
-                "- It remains open until the poll expires naturally.\n"
-                "- If no Majority is reached by the end, it becomes **Contested**.\n"
+                "If a proposal's poll expires with missing Staff votes, it proceeds to the Staff Committee as-is with whatever vote data was collected.\n"
                 "### Vote Changes\n"
                 "- Staff may change their votes at any time before the poll ends.\n"
-                "- If a proposal hits a unanimous result during the poll, it ends instantly.\n"
-                "- Vote changes are still allowed during a Contested period.\n"
-                "- Once a proposal is **Locked**, votes cannot be changed.\n"
+                "- Once the poll expires, votes are locked for the record.\n"
+                "## Staff Committee\n"
+                "After the advisory poll concludes, the **Staff Committee** reviews the proposal. The committee considers vote totals, staff discussion, technical feasibility, and operational concerns before issuing a final decision.\n"
+                "The Staff Committee may:\n"
+                "- **Accept**\n"
+                "- **Accept with minor revisions**\n"
+                "- **Request revision**\n"
+                "- **Deny**\n"
+                "- **Place in Standstill**\n"
+                "When acting contrary to strong staff consensus, the committee should provide brief reasoning for their decision.\n"
+                "-# Staff Committee composition, appointment and removal process, internal voting threshold, review timelines, and interaction with existing veto powers are to be formalized in a follow-up document.\n"
                 "## Staff Groups\n"
                 "**Staff** consists of:\n"
                 "- **Owner**\n"
                 "- **Directors**\n"
                 "- **Administrators**\n"
                 "- **Moderators**\n"
-                "All Staff are equal in voting ability. Administrators are responsible for implementing accepted proposals.\n"
+                "All Staff are equal in advisory voting ability. Administrators are responsible for implementing accepted proposals.\n"
                 "## Poll Format\n"
                 "**Motion.**\n"
                 "- <:cgreen:1437171496857501889> Accept  \n"
@@ -192,7 +222,8 @@ class StaffProposalComponents2(discord.ui.LayoutView):
         discord.ui.ActionRow(
             AdministratorsRoles(),
             ModeratorsRoles(),
-            TrusteeRoles()
+            TrusteeRoles(),
+            CommitteeRoles()
         ),
     )
 
@@ -201,66 +232,49 @@ class StaffProposalComponents3(discord.ui.LayoutView):
         discord.ui.TextDisplay(
             content=
                 "# Proposal Accepted\n"
-                "A proposal is accepted whenever the conditions for acceptance are met.\n"
-                "## Acceptance Requirements\n"
-                "A proposal becomes **Accepted** if:\n"
-                "### 1. Unanimous Accept\n"
-                "All Staff who voted choose **Accept**.\n"
-                "> Ends immediately.\n"
-                "### 2. Majority Accept\n"
-                "Accept votes reach the Majority threshold for current Staff size.\n"
-                "> Locks only if remaining votes cannot overturn the Majority.\n"
-                "### 3. Abstention Adjustment\n"
-                "At poll end:\n"
-                "- If **Accept** holds the Majority → all abstentions convert to Accept.\n"
-                "- Final tally determines acceptance.\n"
-                "### 4. Owner Vote\n"
-                "- The Owner may vote normally at any time.\n"
-                "- The Owner may not override Staff Majority acceptance.\n"
+                "A proposal is Accepted when the Staff Committee issues an Accept decision after reviewing the advisory poll and associated discussion.\n"
+                "## Acceptance\n"
+                "The Staff Committee may Accept a proposal if:\n"
+                "- The advisory vote reflects sufficient staff support.\n"
+                "- The proposand is technically feasible and sufficiently specified.\n"
+                "- No unresolved operational or policy concerns remain.\n"
+                "The committee may also **Accept with minor revisions**, in which case Administrators implement the proposand with the noted adjustments.\n"
                 "### Implementation\n"
                 "Administrators implement all accepted proposals. If the proposal requires the Owner or Supporting Director specifically, the relevant tag is used.\n"
                 "# Proposal Contested\n"
-                "A proposal is Contested whenever its requirements are met.\n"
-                "## Contested Requirements\nA proposal becomes **Contested** if:\n"
-                "### 1. Tie at Poll End\n"
-                "Accept vs Deny are equal after abstention conversion.\n"
-                "### 2. No Majority Achieved\n"
-                "Neither side reaches Majority by the end of the poll.\n"
+                "A proposal is Contested when the Staff Committee determines that the advisory vote and discussion do not produce a clear or actionable outcome.\n"
+                "## Contested Conditions\n"
+                "The Staff Committee may place a proposal into Contested if:\n"
+                "- Advisory votes are closely divided with no clear signal.\n"
+                "- Staff discussion raises significant unresolved disagreements.\n"
+                "- The committee requires additional input before issuing a final decision.\n"
                 "### Contested Period\n"
                 "A **3-day discussion period** begins.\n"
-                "- Staff may revise votes.\n"
-                "- If Majority forms, the proposal resolves immediately.\n"
+                "- Staff may revise their advisory votes.\n"
+                "- Staff may provide additional reasoning or objections.\n"
+                "- If the committee reaches a decision during this period, the proposal resolves immediately.\n"
                 "### After 3 Days\n"
-                "If still no Majority:\n"
-                "- The **Owner** casts a final deciding vote.\n"
-                "- The Owner's vote determines Accepted or Denied.\n"
-                "The Owner cannot override a Staff Majority at any time.\n"
+                "If the committee still cannot reach a decision:\n"
+                "- The **Owner** issues a final deciding determination.\n"
+                "- The Owner's decision determines Accepted or Denied.\n"
+                "The Owner may not override a clear Staff Committee decision at any time.\n"
                 "# Proposal Denied\n"
-                "A proposal is denied whenever the requirements for denial are met.\n"
-                "## Denial Requirements\n"
-                "A proposal becomes **Denied** if:\n"
-                "### 1. Unanimous Deny\n"
-                "All Staff who voted choose **Deny**.\n"
-                "> Ends immediately.\n"
-                "### 2. Majority Deny\n"
-                "Deny votes reach Majority.\n"
-                "> Locks only if remaining votes cannot overturn the Majority.\n"
-                "### 3. Abstention Adjustment\n"
-                "At poll end:\n"
-                "- If **Deny** holds the Majority → all abstentions convert to Deny.\n- Final tally determines denial.\n"
-                "### 4. Owner Vote\n"
-                "- The Owner may vote normally at any time.\n"
-                "- The Owner may not override Staff Majority denial.\n"
+                "A proposal is Denied when the Staff Committee issues a Deny decision after reviewing the advisory poll and associated discussion.\n"
+                "## Denial\n"
+                "The Staff Committee may Deny a proposal if:\n"
+                "- The advisory vote reflects insufficient staff support.\n"
+                "- The proposand is technically infeasible or insufficiently specified.\n"
+                "- Operational, policy, or structural concerns cannot be resolved.\n"
                 "# Proposal Standstill\n"
-                "The **Standstill** status is used only for rare, special circumstances. This status is not triggered automatically and must be entered manually by a staff member.\n"
+                "The **Standstill** status is used only for rare, special circumstances. This status is not triggered automatically and must be entered manually by the Staff Committee.\n"
                 "## Standstill Conditions\n"
                 "A proposal may enter Standstill if:\n"
                 "- Motion and votes conflict severely.\n"
                 "- Staff statements contradict each other.\n"
                 "- The proposal becomes halted for administrative, technical, or logistical reasons.\n"
                 "- The situation is too mixed to evaluate.\n"
-                "- Staff explicitly decide that normal evaluation cannot proceed.\n"
-                "Standstill is a Staff decision, not a vote threshold. A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied."
+                "- The Staff Committee explicitly determines that normal evaluation cannot proceed.\n"
+                "Standstill is a Staff Committee decision, not a vote threshold. A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied."
         ),
     )
 
@@ -270,7 +284,7 @@ class StaffProposalComponents4(discord.ui.LayoutView):
             content=
                 "# Non-Status Tags\n"
                 "## NEEDS REVISION\n"
-                "Used when a proposal receives positive motion, but  Administrator(s) state implementation is not possible in its current form, or, when Directors veto a proposal and the original poster chooses to rewrite.\n"
+                "Used when a proposal receives positive motion, but Administrator(s) state implementation is not possible in its current form, or, when Directors veto a proposal and the original poster chooses to rewrite.\n"
                 "**Rules:**\n"
                 "- A proposal **cannot be locked** while marked Needs Revision.\n"
                 "- OP must revise the proposand.\n"
