@@ -173,9 +173,7 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             msg1 = await channel.send(view=StaffProposalComponents1())
-            msg2 = await channel.send(view=StaffProposalComponents2(
-                timestamp=current_timestamp)
-            )
+            msg2 = await channel.send(view=StaffProposalComponents2(timestamp=current_timestamp))
             msg3 = await channel.send(view=StaffProposalComponents3())
             msg4 = await channel.send(view=StaffProposalComponents4())
 
