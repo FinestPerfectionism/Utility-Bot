@@ -1,72 +1,80 @@
 import discord
 
 class AdministratorsRolesComponents(discord.ui.LayoutView):
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Goobers Administration Team\n"
-                "The Goobers Administration Team is responsible for overseeing server management and ensuring that all approved structural or operational changes are properly carried out.\n\n"
-                "**Tasks**\n"
-                "> *To implement proposals raised by Staff that have reached Accepted status.*\n\n"
-                " When a proposal is accepted, an Administrator(s) is expected to implement its proposand. If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, Administrators may place the proposal into Needs Revision, Standstill, or otherwise delay implementation until it becomes feasible."
-        ),
-        discord.ui.Separator(
-            visible=True,
-            spacing=discord.SeparatorSpacing.large
-        ),
-        discord.ui.TextDisplay(
-            content=
-                "-# **Note:** Administrators are held under the same rules and are expected to also do the same jobs as guild Trustees *and* Moderators. No exceptions."
-        ),
-        accent_color=0xff8cd5
-    )
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Goobers Administration Team\n"
+                    "The Goobers Administration Team is responsible for overseeing server management and ensuring that all approved structural or operational changes are properly carried out.\n\n"
+                    "**Tasks**\n"
+                    "> *To implement proposals raised by Staff that have reached Accepted status.*\n\n"
+                    " When a proposal is accepted, an Administrator(s) is expected to implement its proposand. If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, Administrators may place the proposal into Needs Revision, Standstill, or otherwise delay implementation until it becomes feasible."
+            ),
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.large
+            ),
+            discord.ui.TextDisplay(
+                content=
+                    "-# **Note:** Administrators are held under the same rules and are expected to also do the same jobs as guild Trustees *and* Moderators. No exceptions."
+            ),
+            accent_color=0xff8cd5
+        )
 
 class ModeratorsRolesComponents(discord.ui.LayoutView):
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Goobers Moderation Team\n"
-                "The Goobers Moderation Team is responsible for overseeing rule enforcement, maintaining community safety, and supporting the server's overall stability.\n\n"
-                "**Tasks**\n"
-                "> *To vote on and raise proposals that improve The Goobers server and its community.*\n\n"
-                "All Moderators may raise Staff Proposals and vote on them. Senior Moderators+ may assist in directing or reviewing proposands for clarity or practicality. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
-        ),
-        discord.ui.Separator(
-            visible=True,
-            spacing=discord.SeparatorSpacing.large
-        ),
-        discord.ui.TextDisplay(
-            content=
-                "-# **Note:** Moderators are held under the same rules and are expected to also do the same jobs as guild Trustees. No exceptions."
-        ),
-        accent_color=0x87e9ff
-    )
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Goobers Moderation Team\n"
+                    "The Goobers Moderation Team is responsible for overseeing rule enforcement, maintaining community safety, and supporting the server's overall stability.\n\n"
+                    "**Tasks**\n"
+                    "> *To vote on and raise proposals that improve The Goobers server and its community.*\n\n"
+                    "All Moderators may raise Staff Proposals and vote on them. Senior Moderators+ may assist in directing or reviewing proposands for clarity or practicality. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
+            ),
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.large
+            ),
+            discord.ui.TextDisplay(
+                content=
+                    "-# **Note:** Moderators are held under the same rules and are expected to also do the same jobs as guild Trustees. No exceptions."
+            ),
+            accent_color=0x87e9ff
+        )
 
 class TrusteeRolesComponents(discord.ui.LayoutView):
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Goobers Guild Trustees\n"
-                "Guild Trustees are members of the community who contribute to the server's improvement through proposals and suggestions.\n\n"
-                "**Tasks**\n"
-                "> *To raise proposals that improve The Goobers server and its community.*\n\n"
-                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. While Trustees can raise proposals. They do not have access to proposal commands and must ask a staff member for assistance. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
-        ),
-        accent_color=0xfacd6c
-    )
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Goobers Guild Trustees\n"
+                    "Guild Trustees are members of the community who contribute to the server's improvement through proposals and suggestions.\n\n"
+                    "**Tasks**\n"
+                    "> *To raise proposals that improve The Goobers server and its community.*\n\n"
+                    "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. While Trustees can raise proposals. They do not have access to proposal commands and must ask a staff member for assistance. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
+            ),
+            accent_color=0xfacd6c
+        )
 
 class CommitteeRolesComponents(discord.ui.LayoutView):
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Goobers Staff Committee\n"
-                "The Staff Committee is the final decision-making body for Staff Proposals. After the advisory poll period concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
-                "**Tasks**\n"
-                "> *To review advisory poll results and issue final decisions on Staff Proposals.*\n\n"
-                "The Staff Committee may Accept, Accept with minor revisions, Request revision, Deny, or place a proposal into Standstill. When acting contrary to strong staff consensus, the committee is expected to provide brief reasoning for their decision."
-        ),
-        accent_color=0xf9a56b
-    )
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Goobers Staff Committee\n"
+                    "The Staff Committee is the final decision-making body for Staff Proposals. After the advisory poll period concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
+                    "**Tasks**\n"
+                    "> *To review advisory poll results and issue final decisions on Staff Proposals.*\n\n"
+                    "The Staff Committee may Accept, Accept with minor revisions, Request revision, Deny, or place a proposal into Standstill. When acting contrary to strong staff consensus, the committee is expected to provide brief reasoning for their decision."
+            ),
+            accent_color=0xf9a56b
+        )
 
 class AdministratorsRoles(discord.ui.Button):
     def __init__(self):
@@ -124,14 +132,16 @@ class CommitteeRoles(discord.ui.Button):
             ephemeral=True
         )
 
-class StaffProposalComponents1(discord.ui.LayoutView):    
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Welcome to Staff Proposals!\n"
-                "A branch of the server dedicated to making improvements to the server that will benefit the community and its members."
-      ),
-  )
+class StaffProposalComponents1(discord.ui.LayoutView):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Welcome to Staff Proposals!\n"
+                    "A branch of the server dedicated to making improvements to the server that will benefit the community and its members."
+            ),
+        )
 
 class StaffProposalComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int):
@@ -242,84 +252,88 @@ class StaffProposalComponents2(discord.ui.LayoutView):
             ),
         )
 
-class StaffProposalComponents3(discord.ui.LayoutView):   
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Proposal Accepted\n"
-                "A proposal is Accepted when the Staff Committee issues an Accept decision after reviewing the advisory poll and associated discussion.\n"
-                "## Acceptance\n"
-                "The Staff Committee may Accept a proposal if:\n"
-                "- The advisory vote reflects sufficient staff support.\n"
-                "- The proposand is technically feasible and sufficiently specified.\n"
-                "- No unresolved operational or policy concerns remain.\n"
-                "The committee may also **Accept with minor revisions**, in which case Administrators implement the proposand with the noted adjustments.\n"
-                "### Implementation\n"
-                "Administrators implement all accepted proposals. If the proposal requires the Owner or Supporting Director specifically, the relevant tag is used.\n"
-                "# Proposal Contested\n"
-                "A proposal is Contested when the Staff Committee determines that the advisory vote and discussion do not produce a clear or actionable outcome.\n"
-                "## Contested Conditions\n"
-                "The Staff Committee may place a proposal into Contested if:\n"
-                "- Advisory votes are closely divided with no clear signal.\n"
-                "- Staff discussion raises significant unresolved disagreements.\n"
-                "- The committee requires additional input before issuing a final decision.\n"
-                "### Contested Period\n"
-                "A **3-day discussion period** begins.\n"
-                "- Staff may revise their advisory votes.\n"
-                "- Staff may provide additional reasoning or objections.\n"
-                "- If the committee reaches a decision during this period, the proposal resolves immediately.\n"
-                "### After 3 Days\n"
-                "If the committee still cannot reach a decision:\n"
-                "- The **Owner** issues a final deciding determination.\n"
-                "- The Owner's decision determines Accepted or Denied.\n"
-                "The Owner may not override a clear Staff Committee decision at any time.\n"
-                "# Proposal Denied\n"
-                "A proposal is Denied when the Staff Committee issues a Deny decision after reviewing the advisory poll and associated discussion.\n"
-                "## Denial\n"
-                "The Staff Committee may Deny a proposal if:\n"
-                "- The advisory vote reflects insufficient staff support.\n"
-                "- The proposand is technically infeasible or insufficiently specified.\n"
-                "- Operational, policy, or structural concerns cannot be resolved.\n"
-                "# Proposal Standstill\n"
-                "The **Standstill** status is used only for rare, special circumstances. This status is not triggered automatically and must be entered manually by the Staff Committee.\n"
-                "## Standstill Conditions\n"
-                "A proposal may enter Standstill if:\n"
-                "- Motion and votes conflict severely.\n"
-                "- Staff statements contradict each other.\n"
-                "- The proposal becomes halted for administrative, technical, or logistical reasons.\n"
-                "- The situation is too mixed to evaluate.\n"
-                "- The Staff Committee explicitly determines that normal evaluation cannot proceed.\n"
-                "Standstill is a Staff Committee decision, not a vote threshold. A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied."
-        ),
-    )
+class StaffProposalComponents3(discord.ui.LayoutView):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Proposal Accepted\n"
+                    "A proposal is Accepted when the Staff Committee issues an Accept decision after reviewing the advisory poll and associated discussion.\n"
+                    "## Acceptance\n"
+                    "The Staff Committee may Accept a proposal if:\n"
+                    "- The advisory vote reflects sufficient staff support.\n"
+                    "- The proposand is technically feasible and sufficiently specified.\n"
+                    "- No unresolved operational or policy concerns remain.\n"
+                    "The committee may also **Accept with minor revisions**, in which case Administrators implement the proposand with the noted adjustments.\n"
+                    "### Implementation\n"
+                    "Administrators implement all accepted proposals. If the proposal requires the Owner or Supporting Director specifically, the relevant tag is used.\n"
+                    "# Proposal Contested\n"
+                    "A proposal is Contested when the Staff Committee determines that the advisory vote and discussion do not produce a clear or actionable outcome.\n"
+                    "## Contested Conditions\n"
+                    "The Staff Committee may place a proposal into Contested if:\n"
+                    "- Advisory votes are closely divided with no clear signal.\n"
+                    "- Staff discussion raises significant unresolved disagreements.\n"
+                    "- The committee requires additional input before issuing a final decision.\n"
+                    "### Contested Period\n"
+                    "A **3-day discussion period** begins.\n"
+                    "- Staff may revise their advisory votes.\n"
+                    "- Staff may provide additional reasoning or objections.\n"
+                    "- If the committee reaches a decision during this period, the proposal resolves immediately.\n"
+                    "### After 3 Days\n"
+                    "If the committee still cannot reach a decision:\n"
+                    "- The **Owner** issues a final deciding determination.\n"
+                    "- The Owner's decision determines Accepted or Denied.\n"
+                    "The Owner may not override a clear Staff Committee decision at any time.\n"
+                    "# Proposal Denied\n"
+                    "A proposal is Denied when the Staff Committee issues a Deny decision after reviewing the advisory poll and associated discussion.\n"
+                    "## Denial\n"
+                    "The Staff Committee may Deny a proposal if:\n"
+                    "- The advisory vote reflects insufficient staff support.\n"
+                    "- The proposand is technically infeasible or insufficiently specified.\n"
+                    "- Operational, policy, or structural concerns cannot be resolved.\n"
+                    "# Proposal Standstill\n"
+                    "The **Standstill** status is used only for rare, special circumstances. This status is not triggered automatically and must be entered manually by the Staff Committee.\n"
+                    "## Standstill Conditions\n"
+                    "A proposal may enter Standstill if:\n"
+                    "- Motion and votes conflict severely.\n"
+                    "- Staff statements contradict each other.\n"
+                    "- The proposal becomes halted for administrative, technical, or logistical reasons.\n"
+                    "- The situation is too mixed to evaluate.\n"
+                    "- The Staff Committee explicitly determines that normal evaluation cannot proceed.\n"
+                    "Standstill is a Staff Committee decision, not a vote threshold. A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied."
+            ),
+        )
 
-class StaffProposalComponents4(discord.ui.LayoutView):   
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
-                "# Non-Status Tags\n"
-                "## NEEDS REVISION\n"
-                "Used when a proposal receives positive motion, but Administrator(s) state implementation is not possible in its current form, or, when Directors veto a proposal and the original poster chooses to rewrite.\n"
-                "**Rules:**\n"
-                "- A proposal **cannot be locked** while marked Needs Revision.\n"
-                "- OP must revise the proposand.\n"
-                "- After revision, the proposal restarts evaluation.\n"
-                "## NEEDS IMPLEMENTATION\n"
-                "Used only **after** a proposal is accepted.\n"    
-                "**Rules:**\n"
-                "- A proposal **cannot be locked** until Administrators implement the proposand.\n"
-                "- Tag is removed once implementation is complete.\n"
-                "## OWNER ACTION\n"    
-                "Used for cases where:\n"
-                "- Only the Owner can implement a proposal's requirements.\n"    
-                "Does not affect vote mechanics.\n"
-                "## S. DIRECTOR ACTION\n"    
-                "Used for cases where:\n"
-                "- Only a Supporting Director can implement a proposal's requirements.\n"
-                "Does not affect vote mechanics.\n"
-                "## LOCKED\nA proposal is **Locked** when:\n"
-                "- Its result is final **and**\n"
-                "- The proposand has been implemented.\n"
-                "Moderators may still send messages, but a Locked proposal shouldn't be changed or reopened unless more discussion on the topic is necessary or new issues have arisen."
-        ),
-    )
+class StaffProposalComponents4(discord.ui.LayoutView):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.container = discord.ui.Container(
+            discord.ui.TextDisplay(
+                content=
+                    "# Non-Status Tags\n"
+                    "## NEEDS REVISION\n"
+                    "Used when a proposal receives positive motion, but Administrator(s) state implementation is not possible in its current form, or, when Directors veto a proposal and the original poster chooses to rewrite.\n"
+                    "**Rules:**\n"
+                    "- A proposal **cannot be locked** while marked Needs Revision.\n"
+                    "- OP must revise the proposand.\n"
+                    "- After revision, the proposal restarts evaluation.\n"
+                    "## NEEDS IMPLEMENTATION\n"
+                    "Used only **after** a proposal is accepted.\n"
+                    "**Rules:**\n"
+                    "- A proposal **cannot be locked** until Administrators implement the proposand.\n"
+                    "- Tag is removed once implementation is complete.\n"
+                    "## OWNER ACTION\n"
+                    "Used for cases where:\n"
+                    "- Only the Owner can implement a proposal's requirements.\n"
+                    "Does not affect vote mechanics.\n"
+                    "## S. DIRECTOR ACTION\n"
+                    "Used for cases where:\n"
+                    "- Only a Supporting Director can implement a proposal's requirements.\n"
+                    "Does not affect vote mechanics.\n"
+                    "## LOCKED\nA proposal is **Locked** when:\n"
+                    "- Its result is final **and**\n"
+                    "- The proposand has been implemented.\n"
+                    "Moderators may still send messages, but a Locked proposal shouldn't be changed or reopened unless more discussion on the topic is necessary or new issues have arisen."
+            ),
+        )
