@@ -133,11 +133,10 @@ class StaffProposalComponents1(discord.ui.LayoutView):
         ),
     )
 
-class StaffProposalComponents2(discord.ui.LayoutView):
+class StaffProposalComponents2a(discord.ui.LayoutView):
     def __init__(self, timestamp: int):
         super().__init__(timeout=None)
         self.container = discord.ui.Container(
-
             discord.ui.TextDisplay(
                 content=
                     "# Staff Proposal Information\n"
@@ -198,51 +197,55 @@ class StaffProposalComponents2(discord.ui.LayoutView):
                     "### Interaction with Veto Powers\n"
                     "Director veto powers operate independently of the Staff Committee review process. A veto may be exercised at any point before the committee issues a final decision. Once a final decision has been issued, veto powers may not be retroactively applied."
             ),
-            discord.ui.TextDisplay(
-                content=
-                    "## Staff Groups\n"
-                    "**Staff** consists of:\n"
-                    "- **Owner**\n"
-                    "- **Directors**\n"
-                    "- **Administrators**\n"
-                    "- **Moderators**\n"
-                    "All Staff are equal in advisory voting ability. Administrators are responsible for implementing accepted proposals.\n"
-                    "## Poll Format\n"
-                    "**Motion.**\n"
-                    "- <:cgreen:1437171496857501889> Accept  \n"
-                    "- <:cblue:1437171597952811059> Abstain  \n"
-                    "- <:cred:1437171288631414966> Deny  \n"
-                    "- <:cyellow:1437171198982357073> Accept, with minor revisions (optional)\n"
-                    "Poll length must be **three days or longer** if a proposand demands it.\n"
-                    "## Vetos\n"
-                    "- **Director Veto:** Any staff member with the Director role may veto a proposal at any time. This veto is absolute and does not require consultation or approval from other Directors or Staff members.  \n"
-                    "- **Veto Scope:** A veto can be applied to any proposal, regardless of its current vote count or status.  \n"
-                    "- **Veto Effect:** Once a veto is issued, the proposal is immediately halted and considered denied. Directors may either ask for revision, or end the proposal outright.\n"
-                    "## Scope\n"
-                    "While a user could conceivably raise a proposal about anything, Staff are not empowered to make any change they like in staff-proposals. Below is a non-exhaustive list of the types of suggestions that will *not* be considered:\n"
-                    "- Suggestions that relate to moderator policies or actions such as timeouts or bans.\n"
-                    "  - Staff may request policy changes if majority (75%) of staff agree on the change. This update may *not* be raised in staff-proposals.\n"
-                    "- Suggestions pertaining to individual users.\n"
-                    "- Suggestions that relate to the core rules and guiding philosophy of the server.\n"
-                    "  - Staff may request rule changes if *all* (100%) of staff agree on the change. The update may *not* be raised in staff-proposals.\n"
-                    "- Suggestions that relate to updates of staff-proposal-info.\n"
-                    "Staff may make suggestions to the items listed above __in the appropriate channel__, such as <#1444452435006590996>, <#1386133249373376665>, or <#1436345318554996976>.\n"
-                    "Guild Trustees may *not* suggest the items listed above anywhere in the server. \n\n"
-                    "-# **Proposand:** the core idea of a raised proposal.\n"
-                    "-# **Guild Trustees:** those with the <@&1463694813525180477> role."
-            ),
-            discord.ui.Separator(
-                visible=True,
-                spacing=discord.SeparatorSpacing.large
-            ),
-            discord.ui.ActionRow(
-                AdministratorsRoles(),
-                ModeratorsRoles(),
-                TrusteeRoles(),
-                CommitteeRoles()
-            ),
         )
         self.add_item(self.container)
+
+class StaffProposalComponents2b(discord.ui.LayoutView):
+    container = discord.ui.Container(
+        discord.ui.TextDisplay(
+            content=
+                "## Staff Groups\n"
+                "**Staff** consists of:\n"
+                "- **Owner**\n"
+                "- **Directors**\n"
+                "- **Administrators**\n"
+                "- **Moderators**\n"
+                "All Staff are equal in advisory voting ability. Administrators are responsible for implementing accepted proposals.\n"
+                "## Poll Format\n"
+                "**Motion.**\n"
+                "- <:cgreen:1437171496857501889> Accept  \n"
+                "- <:cblue:1437171597952811059> Abstain  \n"
+                "- <:cred:1437171288631414966> Deny  \n"
+                "- <:cyellow:1437171198982357073> Accept, with minor revisions (optional)\n"
+                "Poll length must be **three days or longer** if a proposand demands it.\n"
+                "## Vetos\n"
+                "- **Director Veto:** Any staff member with the Director role may veto a proposal at any time. This veto is absolute and does not require consultation or approval from other Directors or Staff members.  \n"
+                "- **Veto Scope:** A veto can be applied to any proposal, regardless of its current vote count or status.  \n"
+                "- **Veto Effect:** Once a veto is issued, the proposal is immediately halted and considered denied. Directors may either ask for revision, or end the proposal outright.\n"
+                "## Scope\n"
+                "While a user could conceivably raise a proposal about anything, Staff are not empowered to make any change they like in staff-proposals. Below is a non-exhaustive list of the types of suggestions that will *not* be considered:\n"
+                "- Suggestions that relate to moderator policies or actions such as timeouts or bans.\n"
+                "  - Staff may request policy changes if majority (75%) of staff agree on the change. This update may *not* be raised in staff-proposals.\n"
+                "- Suggestions pertaining to individual users.\n"
+                "- Suggestions that relate to the core rules and guiding philosophy of the server.\n"
+                "  - Staff may request rule changes if *all* (100%) of staff agree on the change. The update may *not* be raised in staff-proposals.\n"
+                "- Suggestions that relate to updates of staff-proposal-info.\n"
+                "Staff may make suggestions to the items listed above __in the appropriate channel__, such as <#1444452435006590996>, <#1386133249373376665>, or <#1436345318554996976>.\n"
+                "Guild Trustees may *not* suggest the items listed above anywhere in the server. \n\n"
+                "-# **Proposand:** the core idea of a raised proposal.\n"
+                "-# **Guild Trustees:** those with the <@&1463694813525180477> role."
+        ),
+        discord.ui.Separator(
+            visible=True,
+            spacing=discord.SeparatorSpacing.large
+        ),
+        discord.ui.ActionRow(
+            AdministratorsRoles(),
+            ModeratorsRoles(),
+            TrusteeRoles(),
+            CommitteeRoles()
+        ),
+    )
 
 class StaffProposalComponents3(discord.ui.LayoutView):
     container = discord.ui.Container(

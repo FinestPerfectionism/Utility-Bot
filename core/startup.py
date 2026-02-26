@@ -21,7 +21,8 @@ from core.state import (
 
 from guild_info.staff_proposals import (
     StaffProposalComponents1,
-    StaffProposalComponents2,
+    StaffProposalComponents2a,
+    StaffProposalComponents2b,
     StaffProposalComponents3,
     StaffProposalComponents4
 )
@@ -153,7 +154,7 @@ class Startup(commands.Cog):
         msg_ids = self.layout_message_ids.get("staff_proposals", [])
 
         all_exist = False
-        if len(msg_ids) == 4:
+        if len(msg_ids) == 5:
             try:
                 for msg_id in msg_ids:
                     await channel.fetch_message(msg_id)
@@ -173,19 +174,20 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             msg1 = await channel.send(view=StaffProposalComponents1())
-            msg2 = await channel.send(view=StaffProposalComponents2(timestamp=current_timestamp))
+            msg2a = await channel.send(view=StaffProposalComponents2a(timestamp=current_timestamp))
+            msg2b = await channel.send(view=StaffProposalComponents2b())
             msg3 = await channel.send(view=StaffProposalComponents3())
             msg4 = await channel.send(view=StaffProposalComponents4())
 
-            self.layout_message_ids["staff_proposals"] = [msg1.id, msg2.id, msg3.id, msg4.id]
+            self.layout_message_ids["staff_proposals"] = [msg1.id, msg2a.id, msg2b.id, msg3.id, msg4.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(StaffProposalComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(StaffProposalComponents2a(timestamp=current_timestamp), message_id=msg2a.id)
             log.info("Staff proposals layout created")
             log.debug("Staff proposals message_ids=%s", self.layout_message_ids["staff_proposals"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(StaffProposalComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(StaffProposalComponents2a(timestamp=current_timestamp), message_id=msg_ids[1])
             log.info("Staff proposals layout restored")
             log.debug("Staff proposals message_ids=%s", msg_ids)
 
