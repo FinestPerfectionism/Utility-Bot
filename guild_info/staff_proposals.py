@@ -177,7 +177,8 @@ class StaffProposalComponents2a(discord.ui.LayoutView):
             ),
             discord.ui.TextDisplay(
                 content=
-                    "## Staff Committee\n"
+                    "## Proposal Review\n"
+                    "### Staff Committee\n"
                     "After the advisory poll concludes, the **Staff Committee** reviews the proposal. The committee considers vote totals, staff discussion, technical feasibility, and operational concerns before issuing a final decision.\n"
                     "The Staff Committee may:\n"
                     "- **Accept**\n"
@@ -189,12 +190,12 @@ class StaffProposalComponents2a(discord.ui.LayoutView):
                     "### Composition\n"
                     "The Staff Committee is composed of all active Directors and the Owner. A quorum of at least two committee members is required to issue any final decision.\n"
                     "### Appointment & Removal\n"
-                    "Committee membership is tied to the Director and Owner roles. Members join the committee upon receiving a Director or Owner role and leave upon losing it.\n"
+                    "Committee membership is tied to the Director and Senior Staff groups. Nominations are casted by directors.\n"
                     "### Internal Voting Threshold\n"
                     "A simple majority of present committee members is sufficient to issue Accept, Accept with minor revisions, or Deny decisions. Standstill and Contested status require unanimous agreement among present members.\n"
                     "### Review Timelines\n"
                     "The Staff Committee must issue a final decision within **5 days** of the advisory poll concluding. If no decision is reached within this window, the proposal automatically enters Contested status.\n"
-                    "### Interaction with Veto Powers\n"
+                    "### Interaction with Vetos\n"
                     "Director veto powers operate independently of the Staff Committee review process. A veto may be exercised at any point before the committee issues a final decision. Once a final decision has been issued, veto powers may not be retroactively applied."
             ),
         )
@@ -294,7 +295,7 @@ class StaffProposalComponents3(discord.ui.LayoutView):
                 "- The proposal becomes halted for administrative, technical, or logistical reasons.\n"
                 "- The situation is too mixed to evaluate.\n"
                 "- The Staff Committee explicitly determines that normal evaluation cannot proceed.\n"
-                "Standstill is a Staff Committee decision, not a vote threshold. A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied."
+                "A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied."
         ),
     )
 

@@ -5,8 +5,8 @@ from discord import app_commands
 from typing import cast
 
 from core.permissions import (
+    has_director_role,
     main_guild_only,
-    committee_only
 )
 from core.utils import (
     resolve_forum_tags,
@@ -24,7 +24,8 @@ from constants import (
     EMOJI_FORUM_ID,
     TAG_STATUS, TAG_SPECIAL,
     EMOJI_STATUS,
-    STAFF_PROPOSALS_CHANNEL_ID
+    STAFF_PROPOSALS_CHANNEL_ID,
+    STAFF_COMMITTEE_ROLE_ID
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -106,7 +107,6 @@ class ProposalCommands(
         ]
     )
     @main_guild_only()
-    @committee_only()
     async def edit(
         self,
         interaction: discord.Interaction,
@@ -117,6 +117,15 @@ class ProposalCommands(
         reason: app_commands.Choice[str],
         notes: str | None = None
     ):
+
+        member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
+        if member is None or not any(r.id == STAFF_COMMITTEE_ROLE_ID for r in member.roles):
+            return await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to run this command.",
+                subtitle="Invalid permissions."
+            )
 
         errors: list[str] = []
 
@@ -286,13 +295,21 @@ class ProposalCommands(
         reason=LOCK_REASONS
     )
     @main_guild_only()
-    @committee_only()
     async def lock_thread(
         self,
         interaction: discord.Interaction,
         reason: app_commands.Choice[str],
         notes: str | None = None
     ):
+
+        member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
+        if member is None or not any(r.id == STAFF_COMMITTEE_ROLE_ID for r in member.roles):
+            return await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to run this command.",
+                subtitle="Invalid permissions."
+            )
 
         try:
             thread, forum = assert_forum_thread(interaction)
@@ -356,13 +373,21 @@ class ProposalCommands(
         reason=UNLOCK_REASONS
     )
     @main_guild_only()
-    @committee_only()
     async def unlock_thread(
         self,
         interaction: discord.Interaction,
         reason: app_commands.Choice[str],
         notes: str | None = None
     ):
+
+        member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
+        if member is None or not any(r.id == STAFF_COMMITTEE_ROLE_ID for r in member.roles):
+            return await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to run this command.",
+                subtitle="Invalid permissions."
+            )
 
         try:
             thread, _forum = assert_forum_thread(interaction)
@@ -393,8 +418,16 @@ class ProposalCommands(
         description="Remove the Standstill status from this thread."
     )
     @main_guild_only()
-    @committee_only()
     async def unstandstill(self, interaction: discord.Interaction):
+
+        member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
+        if member is None or not any(r.id == STAFF_COMMITTEE_ROLE_ID for r in member.roles):
+            return await send_major_error(
+                interaction,
+                title="Unauthorized!",
+                texts="You lack the necessary permissions to run this command.",
+                subtitle="Invalid permissions."
+            )
 
         try:
             thread, forum = assert_forum_thread(interaction)
@@ -438,7 +471,7 @@ class ProposalCommands(
         name="delete",
         aliases=["d", "del"]
     )
-    @committee_only()
+    @has_director_role()
     async def delete_thread(self, ctx: commands.Context):
         if not isinstance(ctx.channel, discord.Thread):
             return

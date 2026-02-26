@@ -92,7 +92,6 @@ def committee_only():
 # Role Prefix Checks
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-
 def has_director_role():
     async def predicate(ctx: commands.Context) -> bool:
         if not isinstance(ctx.author, discord.Member):
