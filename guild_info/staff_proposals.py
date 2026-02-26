@@ -137,6 +137,7 @@ class StaffProposalComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int):
         super().__init__(timeout=None)
         self.container = discord.ui.Container(
+
             discord.ui.TextDisplay(
                 content=
                     "# Staff Proposal Information\n"
@@ -241,6 +242,7 @@ class StaffProposalComponents2(discord.ui.LayoutView):
                 CommitteeRoles()
             ),
         )
+        self.add_item(self.container)
 
 class StaffProposalComponents3(discord.ui.LayoutView):
     container = discord.ui.Container(
