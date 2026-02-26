@@ -113,7 +113,7 @@ class TrusteeRoles(discord.ui.Button):
 class CommitteeRoles(discord.ui.Button):
     def __init__(self):
         super().__init__(
-            style=discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.danger,
             label="Committee's Roles",
             custom_id="persistent_committee_button"
         )
@@ -177,26 +177,46 @@ class StaffProposalComponents2a(discord.ui.LayoutView):
             ),
             discord.ui.TextDisplay(
                 content=
-                    "## Proposal Review\n"
-                    "### Staff Committee\n"
-                    "After the advisory poll concludes, the **Staff Committee** reviews the proposal. The committee considers vote totals, staff discussion, technical feasibility, and operational concerns before issuing a final decision.\n"
-                    "The Staff Committee may:\n"
-                    "- **Accept**\n"
-                    "- **Accept with minor revisions**\n"
-                    "- **Request revision**\n"
-                    "- **Deny**\n"
-                    "- **Place in Standstill**\n"
-                    "When acting contrary to strong staff consensus, the committee should provide brief reasoning for their decision.\n"
-                    "### Composition\n"
-                    "The Staff Committee is composed of all active Directors and the Owner. A quorum of at least two committee members is required to issue any final decision.\n"
-                    "### Appointment & Removal\n"
-                    "Committee membership is tied to the Director and Senior Staff groups. Nominations are casted by directors.\n"
-                    "### Internal Voting Threshold\n"
-                    "A simple majority of present committee members is sufficient to issue Accept, Accept with minor revisions, or Deny decisions. Standstill and Contested status require unanimous agreement among present members.\n"
-                    "### Review Timelines\n"
-                    "The Staff Committee must issue a final decision within **5 days** of the advisory poll concluding. If no decision is reached within this window, the proposal automatically enters Contested status.\n"
-                    "### Interaction with Vetos\n"
-                    "Director veto powers operate independently of the Staff Committee review process. A veto may be exercised at any point before the committee issues a final decision. Once a final decision has been issued, veto powers may not be retroactively applied."
+                    "## Staff Groups\n"
+                    "**Staff** consists of:\n"
+                    "- **Owner**\n"
+                    "- **Directors**\n"
+                    "- **Administrators**\n"
+                    "- **Moderators**\n"
+                    "All Staff are equal in advisory voting ability. Administrators are responsible for implementing accepted proposals.\n"
+                    "## Poll Format\n"
+                    "**Motion.**\n"
+                    "- <:cgreen:1437171496857501889> Accept  \n"
+                    "- <:cblue:1437171597952811059> Abstain  \n"
+                    "- <:cred:1437171288631414966> Deny  \n"
+                    "- <:cyellow:1437171198982357073> Accept, with minor revisions (optional)\n"
+                    "Poll length must be **three days or longer** if a proposand demands it.\n"
+                    "## Vetos\n"
+                    "- **Director Veto:** Any staff member with the Director role may veto a proposal at any time. This veto is absolute and does not require consultation or approval from other Directors or Staff members.  \n"
+                    "- **Veto Scope:** A veto can be applied to any proposal, regardless of its current vote count or status.  \n"
+                    "- **Veto Effect:** Once a veto is issued, the proposal is immediately halted and considered denied. Directors may either ask for revision, or end the proposal outright.\n"
+                    "## Scope\n"
+                    "While a user could conceivably raise a proposal about anything, Staff are not empowered to make any change they like in staff-proposals. Below is a non-exhaustive list of the types of suggestions that will *not* be considered:\n"
+                    "- Suggestions that relate to moderator policies or actions such as timeouts or bans.\n"
+                    "  - Staff may request policy changes if majority (75%) of staff agree on the change. This update may *not* be raised in staff-proposals.\n"
+                    "- Suggestions pertaining to individual users.\n"
+                    "- Suggestions that relate to the core rules and guiding philosophy of the server.\n"
+                    "  - Staff may request rule changes if *all* (100%) of staff agree on the change. The update may *not* be raised in staff-proposals.\n"
+                    "- Suggestions that relate to updates of staff-proposal-info.\n"
+                    "Staff may make suggestions to the items listed above __in the appropriate channel__, such as <#1444452435006590996>, <#1386133249373376665>, or <#1436345318554996976>.\n"
+                    "Guild Trustees may *not* suggest the items listed above anywhere in the server. \n\n"
+                    "-# **Proposand:** the core idea of a raised proposal.\n"
+                    "-# **Guild Trustees:** those with the <@&1463694813525180477> role."
+            ),
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.large
+            ),
+            discord.ui.ActionRow(
+                AdministratorsRoles(),
+                ModeratorsRoles(),
+                CommitteeRoles(),
+                TrusteeRoles(),
             ),
         )
         self.add_item(self.container)
@@ -205,46 +225,47 @@ class StaffProposalComponents2b(discord.ui.LayoutView):
     container = discord.ui.Container(
         discord.ui.TextDisplay(
             content=
-                "## Staff Groups\n"
-                "**Staff** consists of:\n"
-                "- **Owner**\n"
-                "- **Directors**\n"
-                "- **Administrators**\n"
-                "- **Moderators**\n"
-                "All Staff are equal in advisory voting ability. Administrators are responsible for implementing accepted proposals.\n"
-                "## Poll Format\n"
-                "**Motion.**\n"
-                "- <:cgreen:1437171496857501889> Accept  \n"
-                "- <:cblue:1437171597952811059> Abstain  \n"
-                "- <:cred:1437171288631414966> Deny  \n"
-                "- <:cyellow:1437171198982357073> Accept, with minor revisions (optional)\n"
-                "Poll length must be **three days or longer** if a proposand demands it.\n"
-                "## Vetos\n"
-                "- **Director Veto:** Any staff member with the Director role may veto a proposal at any time. This veto is absolute and does not require consultation or approval from other Directors or Staff members.  \n"
-                "- **Veto Scope:** A veto can be applied to any proposal, regardless of its current vote count or status.  \n"
-                "- **Veto Effect:** Once a veto is issued, the proposal is immediately halted and considered denied. Directors may either ask for revision, or end the proposal outright.\n"
-                "## Scope\n"
-                "While a user could conceivably raise a proposal about anything, Staff are not empowered to make any change they like in staff-proposals. Below is a non-exhaustive list of the types of suggestions that will *not* be considered:\n"
-                "- Suggestions that relate to moderator policies or actions such as timeouts or bans.\n"
-                "  - Staff may request policy changes if majority (75%) of staff agree on the change. This update may *not* be raised in staff-proposals.\n"
-                "- Suggestions pertaining to individual users.\n"
-                "- Suggestions that relate to the core rules and guiding philosophy of the server.\n"
-                "  - Staff may request rule changes if *all* (100%) of staff agree on the change. The update may *not* be raised in staff-proposals.\n"
-                "- Suggestions that relate to updates of staff-proposal-info.\n"
-                "Staff may make suggestions to the items listed above __in the appropriate channel__, such as <#1444452435006590996>, <#1386133249373376665>, or <#1436345318554996976>.\n"
-                "Guild Trustees may *not* suggest the items listed above anywhere in the server. \n\n"
-                "-# **Proposand:** the core idea of a raised proposal.\n"
-                "-# **Guild Trustees:** those with the <@&1463694813525180477> role."
-        ),
-        discord.ui.Separator(
-            visible=True,
-            spacing=discord.SeparatorSpacing.large
-        ),
-        discord.ui.ActionRow(
-            AdministratorsRoles(),
-            ModeratorsRoles(),
-            TrusteeRoles(),
-            CommitteeRoles()
+                "## Proposal Review\n"
+                "### Staff Committee\n"
+                "After the advisory poll concludes, the **Staff Committee** reviews the proposal. The committee considers vote totals, staff discussion, technical feasibility, and operational concerns before issuing a final decision.\n"
+                "The Staff Committee may:\n"
+                "- **Accept**\n"
+                "- **Accept with minor revisions**\n"
+                "- **Request revision**\n"
+                "- **Deny**\n"
+                "- **Place in Standstill**\n"
+                "When acting contrary to strong staff consensus, the committee should provide brief reasoning for their decision.\n"
+                "### Composition\n"
+                "The Staff Committee is composed of all active Directors and the Owner. A quorum of at least two committee members is required to issue any final decision.\n"
+                "### Appointment & Removal\n"
+                "Committee membership is tied to the Director and Senior Staff groups. Nominations are casted by directors.\n"
+                "### Internal Voting Threshold\n"
+                "A simple majority of present committee members is sufficient to issue Accept, Accept with minor revisions, or Deny decisions. Standstill and Contested status require unanimous agreement among present members.\n"
+                "### Review Timelines\n"
+                "The Staff Committee must issue a final decision within **5 days** of the advisory poll concluding. If no decision is reached within this window, the proposal automatically enters Contested status.\n"
+                "### Interaction with Vetos\n"
+                "Director veto powers operate independently of the Staff Committee review process. A veto may be exercised at any point before the committee issues a final decision. Once a final decision has been issued, veto powers may not be retroactively applied.\n"
+                "## Directorate Review\n"
+                "Certain proposals are not subject to the standard Staff Committee process and are instead passed directly to the **Directorate** for review. This applies to specific circumstances where the nature of the proposal falls outside the scope of staff advisory voting, such as the addition of bots to the server.\n"
+                "When a proposal is referred to the Directorate:\n"
+                "- The Directorate reviews the proposal internally and issues a decision at their discretion.\n"
+                "- Normal veto, revision, and standstill mechanics still apply within Directorate review.\n"
+                "Staff may still provide input or reasoning in the proposal thread, but the final decision rests entirely with the Directorate.\n"
+                "## Proposal Format\n"
+                "All proposals passed for review must follow the format below. Proposals that do not conform to this format will automatically be back-passed for revisions.\n\n"
+                "```\n"
+                "# {title}\n"
+                "## Details\n"
+                "- DD/MM/YY\n"
+                "- {proposer}\n"
+                "## Proposand Details\n"
+                "### Proposand\n"
+                "> The wanted desired outcome of the proposal.\n"
+                "### Reasons\n"
+                "> Why the proposand should be accepted.\n"
+                "### Additional Notes\n"
+                "> Any additional notes.\n"
+                "```"
         ),
     )
 
@@ -326,6 +347,6 @@ class StaffProposalComponents4(discord.ui.LayoutView):
                 "## LOCKED\nA proposal is **Locked** when:\n"
                 "- Its result is final **and**\n"
                 "- The proposand has been implemented.\n"
-                "Moderators may still send messages, but a Locked proposal shouldn't be changed or reopened unless more discussion on the topic is necessary or new issues have arisen."
+                "Staff may still send messages, but a Locked proposal shouldn't be changed or reopened unless more discussion on the topic is necessary or new issues have arisen."
         ),
     )
