@@ -49,6 +49,9 @@ class MessageSendHandler(commands.Cog):
 
         thread = message.channel
 
+        if thread.name in ["test", "Test", "t", "T"]:
+            return
+
         if (
             isinstance(thread.parent, discord.ForumChannel)
             and thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID
@@ -65,7 +68,7 @@ class MessageSendHandler(commands.Cog):
             await committee_forum.create_thread(
                 name=f"SCR: {thread.name}",
                 content=(
-                    f"<@&{STAFF_COMMITTEE_ROLE_ID}> "
+                    f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
                     f"A new proposal has been posted: {thread.mention}"
                 ),
                 allowed_mentions=discord.AllowedMentions(roles=True),

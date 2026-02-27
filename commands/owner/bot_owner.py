@@ -6,7 +6,14 @@ import json
 import asyncio
 import os
 import sys
-from datetime import datetime, UTC
+from datetime import (
+    datetime,
+    UTC
+)
+import io
+import contextlib
+import textwrap
+import traceback
 
 import logging
 from typing import (
@@ -22,6 +29,8 @@ from core.utils import (
     send_major_error,
     send_minor_error
 )
+
+from bot import bot
 
 from constants import (
     BOT_OWNER_ID,
@@ -137,7 +146,7 @@ class BotOwnerCommands(
                 await send_major_error(
                     interaction,
                     f"Failed to reload cog `{cog}`: {e}",
-                    subtitle="Reload error."
+                    subtitle="Invalid operation."
                 )
                 log.error(f"Failed to reload cog {cog}: {e}")
         else:
@@ -155,7 +164,7 @@ class BotOwnerCommands(
                 _ = await send_minor_error(
                     interaction,
                     f"Reload completed, but some cogs failed:\n{msg}",
-                    subtitle="Reload error."
+                    subtitle="Invalid operation."
                 )
             else:
                 _ = await interaction.response.send_message(
@@ -208,7 +217,7 @@ class BotOwnerCommands(
             await send_major_error(
                 interaction,
                 f"Failed to load `{cog}`: {e}",
-                subtitle="Reload error."
+                subtitle="Invalid operation."
             )
             log.error("Failed to load cog %s: %s", cog, e)
 
@@ -256,7 +265,7 @@ class BotOwnerCommands(
             await send_major_error(
                 interaction,
                 f"Failed to unload `{cog}`: {e}",
-                subtitle="Reload error."
+                subtitle="Invalid operation."
             )
             log.error("Failed to unload cog %s: %s", cog, e)
 
@@ -367,8 +376,8 @@ class BotOwnerCommands(
     @app_commands.describe(
         type="Activity type.",
         text="Status text.",
-        url="Twitch URL (streaming only)",
-        state="Online status",
+        url="Twitch URL.",
+        state="Online status.",
     )
     @app_commands.choices(
         type=[
@@ -485,6 +494,55 @@ class BotOwnerCommands(
             f"Status updated: `{type.name}`: `{text}`",
             ephemeral=True,
         )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .eval Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="eval")
+    async def _eval(self, ctx, *, body: str):
+        if ctx.author.id != BOT_OWNER_ID:
+            return
+    
+        env = {
+            'bot': bot,
+            'ctx': ctx,
+            'channel': ctx.channel,
+            'author': ctx.author,
+            'guild': ctx.guild,
+            'message': ctx.message,
+        }
+    
+        if body.startswith("```") and body.endswith("```"):
+            body = "\n".join(body.split("\n")[1:-1])
+    
+        stdout = io.StringIO()
+        to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
+    
+        try:
+            exec(to_compile, env)
+        except Exception as e:
+            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+    
+        func = env['func']
+        try:
+            with contextlib.redirect_stdout(stdout):
+                ret = await func()
+        except Exception as e:
+            log.error(f"Failed to evaluate: {e}")
+            value = stdout.getvalue()
+            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+        else:
+            value = stdout.getvalue()
+            if ret is None:
+                if value:
+                    await ctx.send(f'```py\n{value}\n```')
+            else:
+                await ctx.send(
+                    "```py\n"
+                    f"{value}{ret}\n"
+                    "```"
+                )
 
 async def setup(bot: commands.Bot):
     cog = BotOwnerCommands(bot)

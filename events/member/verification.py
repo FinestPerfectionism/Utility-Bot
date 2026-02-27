@@ -550,13 +550,19 @@ class VerificationHandler(commands.Cog):
         now = datetime.now()
         to_remove = []
 
-        for user_id, data in self.data["unverified"].items():
+        for user_id, data in list(self.data["unverified"].items()):
             joined_at = datetime.fromisoformat(data["joined_at"])
             time_since_join = now - joined_at
 
             member = None
+            user_id_int = int(user_id)
             for guild in self.bot.guilds:
-                member = guild.get_member(int(user_id))
+                member = guild.get_member(user_id_int)
+                if not member:
+                    try:
+                        member = await guild.fetch_member(user_id_int)
+                    except (discord.NotFound, discord.HTTPException):
+                        continue
                 if member:
                     break
 
@@ -569,31 +575,36 @@ class VerificationHandler(commands.Cog):
                 to_remove.append(user_id)
                 continue
 
-            if time_since_join >= timedelta(days=3):
-                try:
-                    if data.get("warning_message_id"):
-                        try:
-                            channel = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
-                            if channel and isinstance(channel, discord.TextChannel):
-                                msg = await channel.fetch_message(data["warning_message_id"])
-                                await msg.delete()
-                        except Exception:
-                            pass
-
+            is_overdue = time_since_join >= timedelta(days=3)
+            if is_overdue and data.get("warned"):
+                msg_id = data.get("warning_message_id")
+                if msg_id:
                     try:
-                        await member.send(
-                            f"{DENIED_EMOJI_ID} **Guild removal!**\n"
-                            "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
-                            "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
-                        )
-                    except Exception:
+                        channel = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
+                        if isinstance(channel, discord.TextChannel):
+                            msg = await channel.fetch_message(msg_id)
+                            await msg.delete()
+                    except (discord.NotFound, discord.Forbidden, discord.HTTPException):
                         pass
 
+                try:
+                    await member.send(
+                        f"{DENIED_EMOJI_ID} **Guild removal!**\n"
+                        "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
+                        "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
+                    )
+                except (discord.Forbidden, discord.HTTPException):
+                    pass
+
+                try:
                     await member.kick(reason="UB Verification: failure to verify within 72 hours")
                     to_remove.append(user_id)
-
                 except discord.Forbidden:
                     pass
+
+            elif is_overdue and not data.get("warned"):
+                self.data["unverified"][user_id]["joined_at"] = (now - timedelta(days=2)).isoformat()
+                self.save_data()
 
             elif time_since_join >= timedelta(days=2) and not data.get("warned"):
                 warned = False
@@ -606,18 +617,19 @@ class VerificationHandler(commands.Cog):
                         "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                     )
                     warned = True
-                except discord.Forbidden:
+                except (discord.Forbidden, discord.HTTPException):
                     try:
                         channel = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
-                        if channel and isinstance(channel, discord.TextChannel):
+                        if isinstance(channel, discord.TextChannel):
                             msg = await channel.send(
+                                f"{member.mention}\n\n"
                                 f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
                                 "You joined \"The Goobers\" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n"
                                 "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                             )
                             warning_message_id = msg.id
                             warned = True
-                    except Exception:
+                    except (discord.Forbidden, discord.HTTPException):
                         pass
 
                 if warned:

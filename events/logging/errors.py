@@ -22,7 +22,7 @@ from constants import (
     BOT_LOG_CHANNEL_ID,
     BOT_OWNER_ID,
     COLOR_BLURPLE,
-    ERRORS_LOG_CHANNEL_ID,
+    BOT_ERRORS_LOG_CHANNEL_ID,
     COLOR_RED,
     COLOR_YELLOW,
     CONTESTED_EMOJI_ID,
@@ -66,7 +66,7 @@ class ErrorLogger(commands.Cog):
         error_text: str | None = None,
         traceback_text: str | None = None,
     ):
-        channel = self.bot.get_channel(ERRORS_LOG_CHANNEL_ID)
+        channel = self.bot.get_channel(BOT_ERRORS_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
 
