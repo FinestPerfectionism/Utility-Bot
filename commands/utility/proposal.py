@@ -444,7 +444,8 @@ class ProposalCommands(
 
         await interaction.followup.send(
             f"**{action}: {tag_label}**"
-            f"{chr(10) + format_body('', notes) if notes else ''}"
+            f"{chr(10) + format_body('', notes) if notes else ''}",
+            ephemeral=True,
         )
 
         await _update_control_message(
@@ -508,7 +509,9 @@ class ProposalCommands(
                 "This proposal cannot be finalized while Needs Revision is present."
             )
 
-        if _has_tag(thread, TAG_SPECIAL["needs_implementation"]):
+        implementing = reason.value == "Proposand implemented."
+
+        if not implementing and _has_tag(thread, TAG_SPECIAL["needs_implementation"]):
             errors.append(
                 "This proposal cannot be finalized while Needs Implementation is present."
             )
@@ -518,7 +521,10 @@ class ProposalCommands(
 
         await interaction.response.defer()
 
-        tags = [t for t in thread.applied_tags if t.id != TAG_SPECIAL["locked"]]
+        strip_ids = {TAG_SPECIAL["locked"]}
+        if implementing:
+            strip_ids.add(TAG_SPECIAL["needs_implementation"])
+        tags = [t for t in thread.applied_tags if t.id not in strip_ids]
 
         try:
             tags.append(
