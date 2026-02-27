@@ -19,8 +19,11 @@ from constants import (
     COLOR_BLURPLE,
 
     DIRECTOR_TASKS_CHANNEL_ID,
+    STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
+    STAFF_PROPOSALS_CHANNEL_ID,
 
-    DIRECTORS_ROLE_ID
+    DIRECTORS_ROLE_ID,
+    STAFF_COMMITTEE_ROLE_ID
 )
 
 MAX_STRIKES = 5
@@ -40,6 +43,33 @@ class MessageSendHandler(commands.Cog):
             
         if message.author.bot:
             return
+
+        if not isinstance(message.channel, discord.Thread):
+            return
+
+        thread = message.channel
+
+        if (
+            isinstance(thread.parent, discord.ForumChannel)
+            and thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID
+            and message.id == thread.id
+        ):
+            
+            committee_forum = thread.guild.get_channel(
+                STAFF_PROPOSALS_REVIEW_CHANNEL_ID
+            )
+
+            if not isinstance(committee_forum, discord.ForumChannel):
+                return
+
+            await committee_forum.create_thread(
+                name=f"SCR: {thread.name}",
+                content=(
+                    f"<@&{STAFF_COMMITTEE_ROLE_ID}> "
+                    f"A new proposal has been posted: {thread.mention}"
+                ),
+                allowed_mentions=discord.AllowedMentions(roles=True),
+            )
 
         if isinstance(message.channel, discord.Thread):
             thread = message.channel

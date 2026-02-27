@@ -1,14 +1,25 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import (
+    commands,
+    tasks
+)
 
 import json
 import os
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import (
+    datetime,
+    timedelta
+)
 from typing import Dict
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import (
+    Image,
+    ImageDraw,
+    ImageFont,
+    ImageFilter
+)
 import numpy as np
 
 from constants import(
@@ -26,7 +37,7 @@ from constants import(
 
     GOOBERS_ROLE_ID
 )
-from core.utils import send_major_error, send_minor_error
+from core.utils import send_major_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Verification System

@@ -1,16 +1,20 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import (
+    commands,
+    tasks
+)
 
-from datetime import datetime, UTC
+from datetime import (
+    datetime,
+    UTC
+)
 import asyncio
 
 from constants import (
     DIRECTORSHIP_CATEGORY_ID,
 
-    DIRECTOR_TASKS_CHANNEL_ID,
     CHANGE_LOG_CHANNEL_ID,
 
-    DIRECTORS_ROLE_ID,
     COLOR_RED,
     COLOR_YELLOW,
     COLOR_GREEN,
