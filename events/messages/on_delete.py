@@ -87,30 +87,32 @@ class MessageDeleteHandler(commands.Cog):
         embed.add_field(
             name="Author",
             value=f"`{message.author}`\n`{message.author.id}`",
-            inline=False,
+            inline=True,
         )
         embed.add_field(
             name="Deleted By",
             value=deleter,
-            inline=False,
+            inline=True,
         )
         embed.add_field(
             name="Channel",
             value=channel_display(message.channel),
-            inline=False,
+            inline=True,
         )
         content = message.content or "[No content]"
         embed.add_field(
             name="Content",
             value=content[:1021] + "..." if len(content) > 1024 else content,
-            inline=False,
+            inline=True,
         )
         embed.add_field(
             name="Attachments",
             value=format_attachments(message.attachments),
-            inline=False,
+            inline=True,
         )
         await log_channel.send(embed=embed)
+
+        embed.set_footer(text="Please note that the \"Deleted By\" section guesses by checking the audit log, and may not always be accurate")
         
 async def setup(bot: commands.Bot):
     await bot.add_cog(MessageDeleteHandler(bot))

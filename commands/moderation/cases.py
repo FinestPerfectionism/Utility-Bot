@@ -5,7 +5,12 @@ from discord import app_commands
 import json
 import os
 from datetime import datetime
-from typing import Optional, Dict, List, Literal
+from typing import (
+    Optional,
+    Dict,
+    List,
+    Literal
+)
 from enum import Enum
 
 from constants import(
@@ -24,7 +29,10 @@ from constants import(
     MODERATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
 )
-from core.utils import send_minor_error, send_major_error
+from core.utils import (
+    send_minor_error,
+    send_major_error
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Management
@@ -41,6 +49,7 @@ class CaseType(str, Enum):
     LOCKDOWN_ADD = "lockdown_add"
     LOCKDOWN_REMOVE = "lockdown_remove"
     PURGE = "purge"
+    NOTE = "note"
 
 class CasesManager:
     def __init__(self, bot: commands.Bot):
@@ -139,6 +148,7 @@ class CasesManager:
             CaseType.LOCKDOWN_ADD.value: COLOR_GREY,
             CaseType.LOCKDOWN_REMOVE.value: COLOR_GREEN,
             CaseType.PURGE.value: COLOR_BLURPLE,
+            CaseType.NOTE.value: COLOR_BLURPLE
         }
 
         title_map = {
@@ -152,6 +162,7 @@ class CasesManager:
             CaseType.LOCKDOWN_ADD.value: "Lockdown Engaged",
             CaseType.LOCKDOWN_REMOVE.value: "Lockdown Lifted",
             CaseType.PURGE.value: "Messages Purged",
+            CaseType.NOTE.value: "Note Added",
         }
 
         embed = discord.Embed(

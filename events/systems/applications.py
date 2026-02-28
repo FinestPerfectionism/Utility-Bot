@@ -475,7 +475,7 @@ class ApplicationComponents(discord.ui.LayoutView):
             "- **Honesty Required:** Any form of lying or exaggeration will result in automatic rejection.\n"
             "- **Professionalism:** Use respectful language and proper grammar throughout your application.\n\n"
             "After submission, applications will be reviewed by the Directorate team. Do not DM staff for updates, as this will negatively affect your application. Decisions are final (unless stated otherwise), and feedback may not always be provided.\n\n"
-            "**Note:** All applications are and will be taken seriously. Be professional — take your time. You may cancel and delete your application at any point by typing `~cancel`."
+            "**Note:** All applications are and will be taken seriously. Be professional — take your time. You may cancel and delete your application at any point by typing `.cancel`."
         ),
         discord.ui.Separator(
             visible=True,
@@ -575,7 +575,7 @@ class ApplicationMenuView(ui.View):
         dm = await interaction.user.create_dm()
         msg = await dm.send(
             MOD_QUESTIONS[0] +
-            "\n-# You can cancel and delete the application at any point by typing `~cancel`."
+            "\n-# You can cancel and delete the application at any point by typing `.cancel`."
         )
 
         data = ACTIVE_APPLICATIONS[interaction.user.id]
@@ -645,7 +645,7 @@ class ApplicationMenuView(ui.View):
         dm = await interaction.user.create_dm()
         msg = await dm.send(
             ADMIN_QUESTIONS[0] +
-            "\n-# You can cancel and delete the application at any point by typing `~cancel`."
+            "\n-# You can cancel and delete the application at any point by typing `.cancel`."
         )
 
         data = ACTIVE_APPLICATIONS[interaction.user.id]

@@ -34,7 +34,7 @@ class MiscCommands(commands.Cog):
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~super_secret_command Command
+    # .super_secret_command Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(

@@ -19,7 +19,7 @@ class VerificationCommands(commands.Cog):
         pass
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~verify/v Commands
+    # .verify/.v Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.guild_only()
@@ -55,7 +55,7 @@ class VerificationCommands(commands.Cog):
             return
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~un-verify/uv Commands
+    # .un-verify Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.guild_only()

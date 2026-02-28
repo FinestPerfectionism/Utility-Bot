@@ -105,7 +105,7 @@ class CommandLogger(commands.Cog):
 
         embed.add_field(
             name="Command",
-            value=f"`~{ctx.command.qualified_name if ctx.command else 'Unknown'}`",
+            value=f"`.{ctx.command.qualified_name if ctx.command else 'Unknown'}`",
             inline=True,
         )
 

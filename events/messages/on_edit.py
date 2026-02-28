@@ -64,31 +64,31 @@ class MessageEditHandler(commands.Cog):
             timestamp=after.edited_at or discord.utils.utcnow(),
         )
         embed.add_field(
-            name="Editor",
+            name="Edited By",
             value=f"`{before.author}`\n`{before.author.id}`",
-            inline=False,
+            inline=True,
         )
         embed.add_field(
             name="Channel",
             value=channel_display(before.channel),
-            inline=False,
+            inline=True,
         )
         before_text = before.content or "[No content]"
         after_text = after.content or "[No content]"
         embed.add_field(
             name="Before",
             value=before_text[:1021] + "..." if len(before_text) > 1024 else before_text,
-            inline=False,
+            inline=True,
         )
         embed.add_field(
             name="After",
             value=after_text[:1021] + "..." if len(after_text) > 1024 else after_text,
-            inline=False,
+            inline=True,
         )
         embed.add_field(
             name="Attachments (After)",
             value=format_attachments(after.attachments),
-            inline=False,
+            inline=True,
         )
         await log_channel.send(embed=embed)
         

@@ -2,13 +2,22 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from datetime import datetime, timedelta
+from datetime import (
+    datetime,
+    timedelta
+)
 import json
 import os
-from typing import Optional, cast
+from typing import (
+    Optional,
+    cast
+)
 import pytz
 
-from core.help import help_description, ArgumentInfo
+from core.help import (
+    help_description,
+    ArgumentInfo
+)
 from core.utils import (
     send_minor_error,
     send_major_error
@@ -19,6 +28,11 @@ from constants import (
     DIRECTORS_ROLE_ID,
     PERSONAL_LEAVE_ROLE_ID,
     STAFF_ROLE_ID,
+
+    MODERATORS_ROLE_ID,
+
+    TICKET_CHANNEL_ID,
+    STAFF_PROPOSALS_REVIEW_CHANNEL_ID
 )
 
 DATA_FILE = "leave_data.json"
@@ -689,7 +703,7 @@ class UtilityCommands(commands.Cog):
                 )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~ti Command
+    # .ti Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     class TimezoneMatchPaginator(discord.ui.View):
@@ -1010,7 +1024,7 @@ class UtilityCommands(commands.Cog):
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~ui Command
+    # .ui Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     class UserMatchPaginator(discord.ui.View):
@@ -1207,7 +1221,7 @@ class UtilityCommands(commands.Cog):
         await ctx.send(embed=embed)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~ping Command
+    # .ping Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="ping")
@@ -1222,6 +1236,65 @@ class UtilityCommands(commands.Cog):
         await ctx.send(
             view=Ping(latency_ms)
         )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .lock/.l Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    def is_moderator(self, member: discord.Member):
+        return any(role.id == MODERATORS_ROLE_ID for role in member.roles)
+
+    def is_staff(self, member: discord.Member):
+        return any(role.id == STAFF_ROLE_ID for role in member.roles)
+
+    def allowed_in_thread(self, ctx: commands.Context) -> bool:
+        if not isinstance(ctx.channel, discord.Thread):
+            return False
+
+        if not isinstance(ctx.author, discord.Member):
+            return False
+
+        parent = ctx.channel.parent
+        if parent is None:
+            return False
+
+        if parent.id == TICKET_CHANNEL_ID:
+            return self.is_moderator(ctx.author)
+
+        if parent.id == STAFF_PROPOSALS_REVIEW_CHANNEL_ID:
+            return self.is_staff(ctx.author)
+
+        return False
+
+    @commands.command(
+        name="lock",
+        aliases=["l"]
+    )
+    async def lock(self, ctx: commands.Context):
+        if not self.allowed_in_thread(ctx):
+            return
+
+        if not isinstance(ctx.channel, discord.Thread):
+            return
+
+        await ctx.channel.edit(locked=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .close/.c Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(
+        name="close",
+        aliases=["c"]
+    )
+    async def close(self, ctx: commands.Context):
+        if not self.allowed_in_thread(ctx):
+            return
+
+        if not isinstance(ctx.channel, discord.Thread):
+            return
+        
+        await ctx.channel.edit(archived=True)
 
 async def setup(bot):
     await bot.add_cog(UtilityCommands(bot))

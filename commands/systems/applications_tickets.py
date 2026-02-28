@@ -136,13 +136,14 @@ class ApplicationsTicketsCommands(
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~closeticket/~ct Command
+    # .archive/.a Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        aliases=["closeticket", "ct"]
+        name="archive",
+        aliases=["a"]
     )
-    async def close_ticket(self, ctx: commands.Context):
+    async def archive(self, ctx: commands.Context):
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
@@ -237,7 +238,7 @@ class ApplicationsTicketsCommands(
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~cancel Command
+    # .cancel Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
@@ -269,7 +270,7 @@ class ApplicationsTicketsCommands(
         await confirm.delete(delay=300)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~escalate Command
+    # .escalate/.esc/.e Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
@@ -319,8 +320,7 @@ class ApplicationsTicketsCommands(
             )
             return
 
-        new_name = f"sd-ticket——{opener_id}"
-        await channel.edit(name=new_name)
+        await channel.edit(name=f"sd-ticket——{opener_id}")
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
         if director_role:

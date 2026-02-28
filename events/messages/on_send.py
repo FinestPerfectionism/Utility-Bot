@@ -1,3 +1,4 @@
+from types import _ReturnT_co
 import discord
 from discord.ext import commands
 
@@ -16,6 +17,9 @@ from core.state import (
 from events.systems.applications import ApplicationSubmitView
 
 from constants import (
+    ANGRY_UTILITY_BOT_EMOJI_ID,
+    UTILITY_BOT_EMOJI_ID,
+
     COLOR_BLURPLE,
 
     DIRECTOR_TASKS_CHANNEL_ID,
@@ -40,10 +44,21 @@ class MessageSendHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-            
         if message.author.bot:
             return
 
+        keywords = ["hi", "hey", "hello"]
+
+        if self.bot.user in message.mentions and any(word in message.content.lower() for word in keywords):
+            await message.add_reaction(f"{UTILITY_BOT_EMOJI_ID}")
+            await message.reply("Hello!")
+
+        keywords = ["fuck you", "fu", "bitch", "ass", "asshole", "cunt", "dick"]
+
+        if self.bot.user in message.mentions and any(word in message.content.lower() for word in keywords):
+            await message.add_reaction(f"{ANGRY_UTILITY_BOT_EMOJI_ID}")
+            await message.reply("Silence, peasant.")
+            
         if not isinstance(message.channel, discord.Thread):
             return
 
@@ -103,8 +118,7 @@ class MessageSendHandler(commands.Cog):
                 save_automod_strikes()
 
                 warning = await message.channel.send(
-                    f"{message.author.mention} Hey dude, can you like *not* send that GIF? "
-                    "You're really not that funny."
+                    f"{message.author.mention} Hey dude, can you like *not* send that GIF? You're really not that funny."
                 )
                 await warning.delete(delay=15)
 
@@ -118,7 +132,7 @@ class MessageSendHandler(commands.Cog):
                             reason="UB Auto-Moderation: night night",
                         )
                         await message.channel.send(
-                            "..."
+                            f"{message.author.mention} Alright bro, I've given you *five fucking warnings* " "and you still haven't learned. Is a dog pissing on the floor that funny to you? Regardless, sleep tight bitch."
                         )
                         AUTOMOD_STRIKES.pop(message.author.id, None)
                         save_automod_strikes()

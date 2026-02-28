@@ -1,23 +1,26 @@
 import discord
 from discord.ext import commands
+
 import asyncio
 import logging
 import sys
 import io
+
+from events.systems.applications import DecisionView
+
 from core.state import (
     load_active_applications,
     ACTIVE_APPLICATIONS,
     load_automod_strikes,
     save_automod_strikes,
 )
-from events.systems.applications import (
-    DecisionView,
-)
+
 from constants import (
     ACCEPTED_EMOJI_ID,
     APPLICATION_LOG_CHANNEL_ID,
     BOT_CONSOLE_CHANNEL_ID,
 )
+
 log = logging.getLogger("Utility Bot")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -42,13 +45,13 @@ class DiscordStream(io.TextIOBase):
                 if to_send.strip():
                     try:
                         self.queue.put_nowait(to_send)
-                    except asyncio.QueueFull:
-                        pass
+                    except asyncio.QueueFull as e:
+                        print(f"Asyncio queue full error: {e}")
         return len(message)
 
 async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
     await bot.wait_until_ready()
-    channel = bot.get_channel(BOT_CONSOLE_CHANNEL_ID)
+    channel = await bot.fetch_channel(BOT_CONSOLE_CHANNEL_ID)
     if not isinstance(channel, discord.TextChannel):
         return
     pending = []
@@ -58,16 +61,16 @@ async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
             pending.append(line)
             while not queue.empty():
                 pending.append(queue.get_nowait())
-        except asyncio.TimeoutError:
-            pass
+        except asyncio.TimeoutError as e:
+            print(f"Asyncio timeout error: {e}")
         if pending:
             combined = "\n".join(pending)
             chunks = [combined[i:i+1990] for i in range(0, len(combined), 1990)]
             for chunk in chunks:
                 try:
                     await channel.send(f"```\n{chunk}\n```")
-                except discord.HTTPException:
-                    pass
+                except discord.HTTPException as e:
+                    print(f"Failed to send console output: {e}")
             pending.clear()
             await asyncio.sleep(1.5)
             

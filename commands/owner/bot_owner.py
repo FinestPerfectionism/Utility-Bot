@@ -270,7 +270,7 @@ class BotOwnerCommands(
             log.error("Failed to unload cog %s: %s", cog, e)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~restart Command
+    # .restart/.r Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="restart", aliases=["r"])
@@ -543,6 +543,18 @@ class BotOwnerCommands(
                     f"{value}{ret}\n"
                     "```"
                 )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .say Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="say")
+    async def say(self, ctx, *, message: str):
+        if ctx.author.id != BOT_OWNER_ID:
+            return
+            
+        await ctx.send(f"{message}")
+        await ctx.message.delete()
 
 async def setup(bot: commands.Bot):
     cog = BotOwnerCommands(bot)

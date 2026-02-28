@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["zip", "pyright"]
+packages = ["zip", "pyright", "tree"]
 
 [workflows]
 runButton = "Project"

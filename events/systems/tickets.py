@@ -35,7 +35,7 @@ class TicketComponents(discord.ui.LayoutView):
                 "- **Be Specific:** Provide usernames, IDs, timestamps, or screenshots if applicable.\n"
                 "- **Respect Moderators:** Remain calm and respectful at all times.\n\n"
                 "Tickets are handled in the order they are received, and response times may vary.\n\n"
-                "**Note:** You may run `~ct` to close your ticket."
+                "**Note:** You may run `.archive` to close your ticket."
             )
         ),
         discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),

@@ -412,7 +412,7 @@ class ModerationCommands(
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~ban Command
+    # .ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="ban", aliases=["b"])
@@ -590,7 +590,7 @@ class ModerationCommands(
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~unban Command
+    # .unban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="un-ban", aliases=["unban", "ub"])
@@ -763,7 +763,7 @@ class ModerationCommands(
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~kick Command
+    # .kick Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="kick", aliases=["k"])
@@ -950,7 +950,7 @@ class ModerationCommands(
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~timeout Command
+    # .timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="timeout", aliases=["tt", "mute", "m"])
@@ -1112,7 +1112,7 @@ class ModerationCommands(
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # ~un-timeout Command
+    # .un-timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="un-timeout", aliases=["untimeout", "utt", "unmute", "um"])
