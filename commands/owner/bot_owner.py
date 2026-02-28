@@ -552,9 +552,14 @@ class BotOwnerCommands(
     async def say(self, ctx, *, message: str):
         if ctx.author.id != BOT_OWNER_ID:
             return
-            
-        await ctx.send(f"{message}")
+
         await ctx.message.delete()
+
+        if ctx.message.reference:
+            original_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            await original_message.reply(message)
+        else:
+            await ctx.send(message)
 
 async def setup(bot: commands.Bot):
     cog = BotOwnerCommands(bot)
