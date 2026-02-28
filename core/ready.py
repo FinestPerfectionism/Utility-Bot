@@ -43,16 +43,18 @@ class DiscordStream(io.TextIOBase):
                 self.buffer = lines[-1]
                 to_send = "\n".join(lines[:-1])
                 if to_send.strip():
-                    try:
-                        self.queue.put_nowait(to_send)
-                    except asyncio.QueueFull as e:
-                        print(f"Asyncio queue full error: {e}")
+                    asyncio.create_task(self.queue.put(to_send))
         return len(message)
 
 async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
     await bot.wait_until_ready()
-    channel = await bot.fetch_channel(BOT_CONSOLE_CHANNEL_ID)
-    if not isinstance(channel, discord.TextChannel):
+    try:
+        channel = await bot.fetch_channel(BOT_CONSOLE_CHANNEL_ID)
+    except Exception as e:
+        print(f"Channel fetch failed: {e}")
+        return
+    if not isinstance(channel, (discord.TextChannel, discord.Thread)):
+        print(f"Unsupported channel type: {type(channel)}")
         return
     pending = []
     while True:
@@ -61,8 +63,8 @@ async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
             pending.append(line)
             while not queue.empty():
                 pending.append(queue.get_nowait())
-        except asyncio.TimeoutError as e:
-            print(f"Asyncio timeout error: {e}")
+        except asyncio.TimeoutError:
+            pass
         if pending:
             combined = "\n".join(pending)
             chunks = [combined[i:i+1990] for i in range(0, len(combined), 1990)]
@@ -73,7 +75,7 @@ async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
                     print(f"Failed to send console output: {e}")
             pending.clear()
             await asyncio.sleep(1.5)
-            
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Ready Management
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
