@@ -20,6 +20,7 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Message Deletion
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
 class MessageDeleteHandler(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -47,8 +48,9 @@ class MessageDeleteHandler(commands.Cog):
         log_channel = message.guild.get_channel(MESSAGE_DELETE_LOG_CHANNEL_ID)
         if not isinstance(log_channel, discord.abc.Messageable):
             return
+
         deleter = "Unknown"
-        
+
         try:
             async for entry in message.guild.audit_logs(
                 limit=5,
@@ -58,8 +60,10 @@ class MessageDeleteHandler(commands.Cog):
                     continue
                 if entry.target.id != message.author.id:
                     continue
+
                 extra: Any = entry.extra
                 channel = getattr(extra, "channel", None)
+
                 if not isinstance(channel, discord.abc.GuildChannel):
                     continue
                 if channel.id != message.channel.id:
@@ -69,16 +73,16 @@ class MessageDeleteHandler(commands.Cog):
                 if entry.user:
                     deleter = f"`{entry.user}`\n`{entry.user.id}`"
                 break
-                
+
         except (discord.Forbidden, discord.HTTPException):
             pass
-            
+
         if message.id in AUTOMOD_DELETIONS:
             deleter = "Utility Bot: Auto-Moderation"
             AUTOMOD_DELETIONS.discard(message.id)
         elif deleter == "Unknown":
             deleter = "Self"
-            
+
         embed = discord.Embed(
             title="Message Deleted",
             color=COLOR_RED,
@@ -99,10 +103,13 @@ class MessageDeleteHandler(commands.Cog):
             value=channel_display(message.channel),
             inline=True,
         )
-        content = message.content or "[No content]"
+
+        content = message.content or "[No content, likely an embed or attachment]"
+        display_content = (content[:1021] + "...") if len(content) > 1024 else content
+
         embed.add_field(
             name="Content",
-            value=content[:1021] + "..." if len(content) > 1024 else content,
+            value=display_content,
             inline=True,
         )
         embed.add_field(
@@ -110,9 +117,10 @@ class MessageDeleteHandler(commands.Cog):
             value=format_attachments(message.attachments),
             inline=True,
         )
-        await log_channel.send(embed=embed)
 
         embed.set_footer(text="Please note that the \"Deleted By\" section guesses by checking the audit log, and may not always be accurate")
+
+        await log_channel.send(embed=embed)
         
 async def setup(bot: commands.Bot):
     await bot.add_cog(MessageDeleteHandler(bot))

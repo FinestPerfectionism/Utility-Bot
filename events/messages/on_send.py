@@ -54,9 +54,7 @@ class MessageSendHandler(commands.Cog):
 
         if isinstance(message.channel, discord.Thread):
             thread = message.channel
-            logging.getLogger("Utility Bot").info(f"parent_id={thread.parent_id!r} | DIRECTOR_TASKS={DIRECTOR_TASKS_CHANNEL_ID!r} | PROPOSALS={STAFF_PROPOSALS_CHANNEL_ID!r} | msg_id={message.id} thread_id={thread.id}"
-            )
-            if thread.name.lower() not in ["test", "t"] and message.id == thread.id:
+            if thread.name.lower() not in ["test", "t", "Test", "t"] and message.id == thread.id:
                 if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID:
                     committee_forum = self.bot.get_channel(STAFF_PROPOSALS_REVIEW_CHANNEL_ID)
                     if isinstance(committee_forum, discord.ForumChannel):
