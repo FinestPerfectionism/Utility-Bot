@@ -20,7 +20,8 @@ class UtilityBot(commands.Bot):
 
         super().__init__(
             command_prefix=".",
-            intents=intents
+            intents=intents,
+            case_insensitive=True
         )
 
     async def setup_hook(self) -> None:

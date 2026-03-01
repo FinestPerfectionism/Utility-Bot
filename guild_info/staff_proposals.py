@@ -50,7 +50,7 @@ class TrusteeRolesComponents(discord.ui.LayoutView):
                 "Guild Trustees are members of the community who contribute to the server's improvement through proposals and suggestions.\n\n"
                 "**Tasks**\n"
                 "> *To raise proposals that improve The Goobers server and its community.*\n\n"
-                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. While Trustees can raise proposals. They do not have access to proposal commands and must ask a staff member for assistance. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
+                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
         ),
         accent_color=0xfacd6c
     )

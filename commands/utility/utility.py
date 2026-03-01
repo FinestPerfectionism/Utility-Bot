@@ -25,8 +25,11 @@ from core.utils import (
 
 from constants import (
     BOT_OWNER_ID,
+    DIRECTOR_TASKS_CHANNEL_ID,
+
     DIRECTORS_ROLE_ID,
     PERSONAL_LEAVE_ROLE_ID,
+    STAFF_COMMITTEE_ROLE_ID,
     STAFF_ROLE_ID,
 
     MODERATORS_ROLE_ID,
@@ -1247,6 +1250,9 @@ class UtilityCommands(commands.Cog):
     def is_staff(self, member: discord.Member):
         return any(role.id == STAFF_ROLE_ID for role in member.roles)
 
+    def is_staff_committee(self, member: discord.Member):
+        return any(role.id == STAFF_COMMITTEE_ROLE_ID for role in member.roles)
+
     def allowed_in_thread(self, ctx: commands.Context) -> bool:
         if not isinstance(ctx.channel, discord.Thread):
             return False
@@ -1258,11 +1264,14 @@ class UtilityCommands(commands.Cog):
         if parent is None:
             return False
 
+        if parent.id == DIRECTOR_TASKS_CHANNEL_ID:
+            return is_director(ctx.author)
+
         if parent.id == TICKET_CHANNEL_ID:
             return self.is_moderator(ctx.author)
 
         if parent.id == STAFF_PROPOSALS_REVIEW_CHANNEL_ID:
-            return self.is_staff(ctx.author)
+            return self.is_staff_committee(ctx.author)
 
         return False
 

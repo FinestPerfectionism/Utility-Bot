@@ -1,9 +1,17 @@
 import discord
 from discord.ext import commands
 
-from typing import Optional, cast, Union
+from typing import (
+    Optional,
+    cast,
+    Union
+)
 
-from core.help import HelpedCallable, _find_nested_command, _build_help_view
+from core.help import (
+    HelpedCallable,
+    _find_nested_command,
+    _build_help_view
+)
 
 from constants import(
     COLOR_BLURPLE
