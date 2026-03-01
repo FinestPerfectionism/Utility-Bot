@@ -51,34 +51,26 @@ class MessageSendHandler(commands.Cog):
             await message.add_reaction(f"{UTILITY_BOT_EMOJI_ID}")
             await message.reply("Hello!")
 
-        if not isinstance(message.channel, discord.Thread):
-            return
+        if isinstance(message.channel, discord.Thread):
+            thread = message.channel
+            if thread.name.lower() not in ["test", "t"] and message.id == thread.id:
+                if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID:
+                    committee_forum = self.bot.get_channel(STAFF_PROPOSALS_REVIEW_CHANNEL_ID)
+                    if isinstance(committee_forum, discord.ForumChannel):
+                        await committee_forum.create_thread(
+                            name=f"SCR: {thread.name}",
+                            content=(
+                                f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
+                                f"A new proposal has been posted: {thread.mention}"
+                            ),
+                            allowed_mentions=discord.AllowedMentions(roles=True),
+                        )
 
-        thread = message.channel
-
-        if thread.name.lower() in ["test", "t"]:
-            return
-
-        is_starter_post = message.id == thread.id
-
-        if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID and is_starter_post:
-            committee_forum = self.bot.get_channel(STAFF_PROPOSALS_REVIEW_CHANNEL_ID)
-
-            if isinstance(committee_forum, discord.ForumChannel):
-                await committee_forum.create_thread(
-                    name=f"SCR: {thread.name}",
-                    content=(
-                        f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
-                        f"A new proposal has been posted: {thread.mention}"
-                    ),
-                    allowed_mentions=discord.AllowedMentions(roles=True),
-                )
-
-        if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID and is_starter_post:
-            await thread.send(
-                content=f"<@&{DIRECTORS_ROLE_ID}>",
-                allowed_mentions=discord.AllowedMentions(roles=True),
-            )
+                if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID:
+                    await thread.send(
+                        content=f"<@&{DIRECTORS_ROLE_ID}>",
+                        allowed_mentions=discord.AllowedMentions(roles=True),
+                    )
 
         if (
             "https://tenor.com/view/dog-funny-video-funny-funny-dog-dog-peeing-gif-4718562751207105873"
