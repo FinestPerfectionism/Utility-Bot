@@ -51,12 +51,6 @@ class MessageSendHandler(commands.Cog):
             await message.add_reaction(f"{UTILITY_BOT_EMOJI_ID}")
             await message.reply("Hello!")
 
-        keywords = [...]
-
-        if self.bot.user in message.mentions and any(word in message.content.lower() for word in keywords):
-            await message.add_reaction(f"{ANGRY_UTILITY_BOT_EMOJI_ID}")
-            await message.reply("Silence, peasant.")
-
         if not isinstance(message.channel, discord.Thread):
             return
 
