@@ -16,6 +16,7 @@ from core.state import (
 from events.systems.applications import ApplicationSubmitView
 
 from constants import (
+    ACCEPTED_EMOJI_ID,
     UTILITY_BOT_EMOJI_ID,
 
     COLOR_BLURPLE,
@@ -53,6 +54,8 @@ class MessageSendHandler(commands.Cog):
 
         if isinstance(message.channel, discord.Thread):
             thread = message.channel
+            logging.getLogger("Utility Bot").info(f"parent_id={thread.parent_id!r} | DIRECTOR_TASKS={DIRECTOR_TASKS_CHANNEL_ID!r} | PROPOSALS={STAFF_PROPOSALS_CHANNEL_ID!r} | msg_id={message.id} thread_id={thread.id}"
+            )
             if thread.name.lower() not in ["test", "t"] and message.id == thread.id:
                 if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID:
                     committee_forum = self.bot.get_channel(STAFF_PROPOSALS_REVIEW_CHANNEL_ID)
@@ -60,17 +63,20 @@ class MessageSendHandler(commands.Cog):
                         await committee_forum.create_thread(
                             name=f"SCR: {thread.name}",
                             content=(
+                                f"{ACCEPTED_EMOJI_ID} **A new proposal has been posted: {thread.mention}**\n"
                                 f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
-                                f"A new proposal has been posted: {thread.mention}"
                             ),
                             allowed_mentions=discord.AllowedMentions(roles=True),
                         )
 
                 if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID:
-                    await thread.send(
-                        content=f"<@&{DIRECTORS_ROLE_ID}>",
-                        allowed_mentions=discord.AllowedMentions(roles=True),
-                    )
+                    try:
+                        await thread.send(
+                            content=f"<@&{DIRECTORS_ROLE_ID}>",
+                            allowed_mentions=discord.AllowedMentions(roles=True),
+                        )
+                    except Exception as e:
+                       logging.error(f"Failed to send director role mention: {e}")
 
         if (
             "https://tenor.com/view/dog-funny-video-funny-funny-dog-dog-peeing-gif-4718562751207105873"
