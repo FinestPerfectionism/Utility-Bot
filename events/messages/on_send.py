@@ -51,33 +51,36 @@ class MessageSendHandler(commands.Cog):
             await message.add_reaction(f"{UTILITY_BOT_EMOJI_ID}")
             await message.reply("Hello!")
 
+        keywords = [...]
+
+        if self.bot.user in message.mentions and any(word in message.content.lower() for word in keywords):
+            await message.add_reaction(f"{ANGRY_UTILITY_BOT_EMOJI_ID}")
+            await message.reply("Silence, peasant.")
+
         if not isinstance(message.channel, discord.Thread):
             return
 
         thread = message.channel
 
-        if thread.name in ["test", "Test", "t", "T"]:
+        if thread.name.lower() in ["test", "t"]:
             return
 
-        if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID and message.id == thread.id:
+        is_starter_post = message.id == thread.id
 
-            committee_forum = thread.guild.get_channel(
-                STAFF_PROPOSALS_REVIEW_CHANNEL_ID
-            )
+        if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID and is_starter_post:
+            committee_forum = self.bot.get_channel(STAFF_PROPOSALS_REVIEW_CHANNEL_ID)
 
-            if not isinstance(committee_forum, discord.ForumChannel):
-                return
+            if isinstance(committee_forum, discord.ForumChannel):
+                await committee_forum.create_thread(
+                    name=f"SCR: {thread.name}",
+                    content=(
+                        f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
+                        f"A new proposal has been posted: {thread.mention}"
+                    ),
+                    allowed_mentions=discord.AllowedMentions(roles=True),
+                )
 
-            await committee_forum.create_thread(
-                name=f"SCR: {thread.name}",
-                content=(
-                    f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
-                    f"A new proposal has been posted: {thread.mention}"
-                ),
-                allowed_mentions=discord.AllowedMentions(roles=True),
-            )
-            
-        if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID and message.id == thread.id:
+        if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID and is_starter_post:
             await thread.send(
                 content=f"<@&{DIRECTORS_ROLE_ID}>",
                 allowed_mentions=discord.AllowedMentions(roles=True),
