@@ -1227,7 +1227,9 @@ class UtilityCommands(commands.Cog):
     # .ping Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="ping")
+    @commands.command(
+        name="bot-ping",
+    )
     @help_description(
         desc        = "The ping command displays the bot's current latency in milliseconds.",
         prefix      = True,
