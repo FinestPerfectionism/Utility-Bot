@@ -1,4 +1,3 @@
-from types import _ReturnT_co
 import discord
 from discord.ext import commands
 
@@ -17,7 +16,6 @@ from core.state import (
 from events.systems.applications import ApplicationSubmitView
 
 from constants import (
-    ANGRY_UTILITY_BOT_EMOJI_ID,
     UTILITY_BOT_EMOJI_ID,
 
     COLOR_BLURPLE,
@@ -53,12 +51,6 @@ class MessageSendHandler(commands.Cog):
             await message.add_reaction(f"{UTILITY_BOT_EMOJI_ID}")
             await message.reply("Hello!")
 
-        keywords = ["fuck you", "fu", "bitch", "ass", "asshole", "cunt", "dick"]
-
-        if self.bot.user in message.mentions and any(word in message.content.lower() for word in keywords):
-            await message.add_reaction(f"{ANGRY_UTILITY_BOT_EMOJI_ID}")
-            await message.reply("Silence, peasant.")
-            
         if not isinstance(message.channel, discord.Thread):
             return
 
@@ -67,12 +59,8 @@ class MessageSendHandler(commands.Cog):
         if thread.name in ["test", "Test", "t", "T"]:
             return
 
-        if (
-            isinstance(thread.parent, discord.ForumChannel)
-            and thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID
-            and message.id == thread.id
-        ):
-            
+        if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID and message.id == thread.id:
+
             committee_forum = thread.guild.get_channel(
                 STAFF_PROPOSALS_REVIEW_CHANNEL_ID
             )
@@ -88,19 +76,12 @@ class MessageSendHandler(commands.Cog):
                 ),
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
-
-        if isinstance(message.channel, discord.Thread):
-            thread = message.channel
-
-            if (
-                isinstance(thread.parent, discord.ForumChannel)
-                and thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID
-                and message.id == thread.id
-            ):
-                await thread.send(
-                    content=f"<@&{DIRECTORS_ROLE_ID}>",
-                    allowed_mentions=discord.AllowedMentions(roles=True),
-                )
+            
+        if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID and message.id == thread.id:
+            await thread.send(
+                content=f"<@&{DIRECTORS_ROLE_ID}>",
+                allowed_mentions=discord.AllowedMentions(roles=True),
+            )
 
         if (
             "https://tenor.com/view/dog-funny-video-funny-funny-dog-dog-peeing-gif-4718562751207105873"
