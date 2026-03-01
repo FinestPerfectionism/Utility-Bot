@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord import app_commands
 
 import json
 import os
@@ -9,14 +8,11 @@ from typing import (
     Optional,
     Dict,
     List,
+    Tuple,
     cast
 )
 
 from commands.moderation.cases import CaseType
-
-from core.utils import (
-    send_major_error
-)
 
 from constants import (
     COLOR_GREEN,
@@ -30,6 +26,57 @@ from constants import (
 )
 
 from bot import UtilityBot
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Flag Parsing
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+def parse_flags(args: Tuple[str, ...]) -> Dict:
+    flags: Dict = {
+        "silent": False,
+        "user_str": None,
+        "message": None,
+        "id": None,
+    }
+
+    tokens = list(args)
+    i = 0
+    while i < len(tokens):
+        token = tokens[i]
+        if token == "/s":
+            flags["silent"] = True
+            i += 1
+        elif token == "/u":
+            if i + 1 < len(tokens):
+                flags["user_str"] = tokens[i + 1]
+                i += 2
+            else:
+                i += 1
+        elif token == "/m":
+            if i + 1 < len(tokens):
+                remaining = tokens[i + 1:]
+                end = len(remaining)
+                for j, t in enumerate(remaining):
+                    if t.startswith("/"):
+                        end = j
+                        break
+                flags["message"] = " ".join(remaining[:end])
+                i += 1 + end
+            else:
+                i += 1
+        elif token == "/id":
+            if i + 1 < len(tokens):
+                try:
+                    flags["id"] = int(tokens[i + 1])
+                except ValueError:
+                    pass
+                i += 2
+            else:
+                i += 1
+        else:
+            i += 1
+
+    return flags
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Notes Commands
@@ -111,12 +158,19 @@ class NotesCommands(commands.Cog):
     def get_notes_for_user(self, user_id: int) -> List[Dict]:
         return self.data["notes"].get(str(user_id), [])
 
+    async def resolve_user(self, ctx: commands.Context, user_str: str) -> Optional[discord.User]:
+        user_str = user_str.strip("<@!>")
+        try:
+            return await self.bot.fetch_user(int(user_str))
+        except (ValueError, discord.NotFound):
+            return None
+
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .note Command Group
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.group(name="note", aliases=["notes", "n"], invoke_without_command=True)
-    async def note_group(self, ctx: commands.Context, user: Optional[discord.User] = None):
+    async def note_group(self, ctx: commands.Context, *args: str):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -124,17 +178,27 @@ class NotesCommands(commands.Cog):
         if not self.can_manage_notes(actor):
             return
 
+        flags = parse_flags(args)
+
+        if flags["user_str"] is None:
+            return
+
+        user = await self.resolve_user(ctx, flags["user_str"])
         if user is None:
             return
 
-        await self._send_notes_embed(ctx, user)
+        if flags["silent"]:
+            await ctx.message.delete()
+            await self._send_notes_embed(ctx, user)
+        else:
+            await self._send_notes_embed(ctx, user)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .note add Subcommand
+    # .note add Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="add", aliases=["a", "create"])
-    async def note_add(self, ctx: commands.Context, user: discord.User, *, content: str):
+    async def note_add(self, ctx: commands.Context, *args: str):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -146,6 +210,16 @@ class NotesCommands(commands.Cog):
         if not guild:
             return
 
+        flags = parse_flags(args)
+
+        if flags["user_str"] is None or flags["message"] is None:
+            return
+
+        user = await self.resolve_user(ctx, flags["user_str"])
+        if user is None:
+            return
+
+        content = flags["message"]
         note_id = self.get_next_note_id()
         user_key = str(user.id)
 
@@ -173,6 +247,10 @@ class NotesCommands(commands.Cog):
             metadata={"note_id": note_id, "action": "add"}
         )
 
+        if flags["silent"]:
+            await ctx.message.delete()
+            return
+
         embed = discord.Embed(
             title="Note Added",
             color=COLOR_BLURPLE,
@@ -186,11 +264,11 @@ class NotesCommands(commands.Cog):
         await ctx.send(embed=embed)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .note edit Subcommand
+    # .note edit Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="edit", aliases=["update"])
-    async def note_edit(self, ctx: commands.Context, note_id: int, *, new_content: str):
+    async def note_edit(self, ctx: commands.Context, *args: str):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -201,6 +279,14 @@ class NotesCommands(commands.Cog):
         guild = ctx.guild
         if not guild:
             return
+
+        flags = parse_flags(args)
+
+        if flags["id"] is None or flags["message"] is None:
+            return
+
+        note_id = flags["id"]
+        new_content = flags["message"]
 
         note = self.get_note_by_id(note_id)
         if not note:
@@ -232,6 +318,10 @@ class NotesCommands(commands.Cog):
             metadata={"note_id": note_id, "action": "edit", "old_content": old_content}
         )
 
+        if flags["silent"]:
+            await ctx.message.delete()
+            return
+
         embed = discord.Embed(
             title="Note Edited",
             color=COLOR_ORANGE,
@@ -247,11 +337,11 @@ class NotesCommands(commands.Cog):
         await ctx.send(embed=embed)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .note delete Subcommand
+    # .note delete Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="remove", aliases=["rem"])
-    async def note_delete(self, ctx: commands.Context, note_id: int):
+    async def note_delete(self, ctx: commands.Context, *args: str):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -262,6 +352,13 @@ class NotesCommands(commands.Cog):
         guild = ctx.guild
         if not guild:
             return
+
+        flags = parse_flags(args)
+
+        if flags["id"] is None:
+            return
+
+        note_id = flags["id"]
 
         note = self.get_note_by_id(note_id)
         if not note:
@@ -293,6 +390,10 @@ class NotesCommands(commands.Cog):
             metadata={"note_id": note_id, "action": "delete"}
         )
 
+        if flags["silent"]:
+            await ctx.message.delete()
+            return
+
         embed = discord.Embed(
             title="Note Deleted",
             color=COLOR_GREEN,
@@ -307,17 +408,29 @@ class NotesCommands(commands.Cog):
         await ctx.send(embed=embed)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .note view Subcommand
+    # .note view Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="view", aliases=["v", "list", "ls"])
-    async def note_view(self, ctx: commands.Context, user: discord.User):
+    async def note_view(self, ctx: commands.Context, *args: str):
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
 
         if not self.can_manage_notes(actor):
             return
+
+        flags = parse_flags(args)
+
+        if flags["user_str"] is None:
+            return
+
+        user = await self.resolve_user(ctx, flags["user_str"])
+        if user is None:
+            return
+
+        if flags["silent"]:
+            await ctx.message.delete()
 
         await self._send_notes_embed(ctx, user)
 
@@ -353,65 +466,6 @@ class NotesCommands(commands.Cog):
             embed.set_footer(text=f"Showing 25 of {len(notes)} notes")
 
         await ctx.send(embed=embed)
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /notes Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-    notes_group = app_commands.Group(
-        name="notes",
-        description="Moderators only —— Notes management."
-    )
-
-    @notes_group.command(name="view", description="View notes for a user.")
-    @app_commands.describe(user="The user whose notes to view.")
-    async def notes_view_slash(self, interaction: discord.Interaction, user: discord.User):
-        actor = interaction.user
-        if not isinstance(actor, discord.Member):
-            return
-
-        if not self.can_manage_notes(actor):
-            await send_major_error(
-                interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to view notes.",
-                subtitle="Invalid permissions."
-            )
-            return
-
-        await interaction.response.defer(ephemeral=True)
-
-        notes = self.get_notes_for_user(user.id)
-
-        if not notes:
-            embed = discord.Embed(
-                description=f"No notes found for {user.mention}.",
-                color=COLOR_GREEN
-            )
-            await interaction.followup.send(embed=embed, ephemeral=True)
-            return
-
-        embed = discord.Embed(
-            title=f"Notes — {user} ({user.id})",
-            color=COLOR_BLURPLE,
-            timestamp=datetime.now()
-        )
-
-        for note in notes[:25]:
-            created_at = datetime.fromisoformat(note["created_at"])
-            timestamp_str = discord.utils.format_dt(created_at, 'R')
-
-            header = f"#{note['note_id']} · {note['moderator_name']} · {timestamp_str}"
-            if note["edited_at"]:
-                edited_at = datetime.fromisoformat(note["edited_at"])
-                header += f" (edited {discord.utils.format_dt(edited_at, 'R')})"
-
-            embed.add_field(name=header, value=note["content"], inline=False)
-
-        if len(notes) > 25:
-            embed.set_footer(text=f"Showing 25 of {len(notes)} notes")
-
-        await interaction.followup.send(embed=embed, ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(NotesCommands(cast(UtilityBot, bot)))
