@@ -52,7 +52,7 @@ class UtilityBot(commands.Bot):
                 await self.load_extension(cog)
                 log.info("Loaded cog: %s", cog)
             except Exception:
-                log.exception("FAILED to load cog: %s", cog)
+                log.exception("Failed to load cog: %s", cog)
     
         guild = discord.Object(id=GUILD_ID)
         self.tree.copy_global_to(guild=guild)

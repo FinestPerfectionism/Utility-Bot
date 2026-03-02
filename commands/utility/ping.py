@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+import logging
+
 from constants import (
     STAFF_PROPOSALS_CHANNEL_ID,
     DIRECTORS_ROLE_ID,
@@ -11,6 +13,8 @@ from constants import (
     SENIOR_MODERATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
 )
+
+log = logging.getLogger("Utility Bot")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Ping Commands
@@ -28,7 +32,10 @@ class PingCommands(commands.Cog, name="ping"):
         target_role = ctx.guild.get_role(ping_role_id)
 
         if require_role and target_role and require_role in ctx.author.roles:
-            await ctx.send(target_role.mention)
+            try:
+                await ctx.send(target_role.mention)
+            except Exception as e:
+                log.error(f"Failed to ping role {ping_role_id}: {e}")
 
     @commands.group(name="ping", invoke_without_command=True)
     async def ping_group(self, ctx: commands.Context):

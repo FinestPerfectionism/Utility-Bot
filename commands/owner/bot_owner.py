@@ -14,7 +14,6 @@ import io
 import contextlib
 import textwrap
 import traceback
-
 import logging
 from typing import (
     Optional,
@@ -30,11 +29,12 @@ from core.utils import (
     send_minor_error
 )
 
-from bot import bot
-
 from constants import (
     BOT_OWNER_ID,
-    DENIED_EMOJI_ID
+
+    DENIED_EMOJI_ID,
+    CONTESTED_EMOJI_ID,
+    ACCEPTED_EMOJI_ID
 )
 
 log = logging.getLogger("Utility Bot")
@@ -502,47 +502,51 @@ class BotOwnerCommands(
     @commands.command(name="eval")
     async def _eval(self, ctx, *, body: str):
         if ctx.author.id != BOT_OWNER_ID:
+            await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
-    
+
         env = {
-            'bot': bot,
+            'bot': self.bot,
             'ctx': ctx,
             'channel': ctx.channel,
             'author': ctx.author,
             'guild': ctx.guild,
             'message': ctx.message,
+            'discord': discord,
+            'commands': commands,
         }
-    
-        if body.startswith("```") and body.endswith("```"):
+
+        if body.startswith("```"):
             body = "\n".join(body.split("\n")[1:-1])
-    
+        else:
+            body = body.strip("` \n")
+
         stdout = io.StringIO()
         to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
-    
+
         try:
             exec(to_compile, env)
         except Exception as e:
+            await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
             return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
-    
+
         func = env['func']
         try:
             with contextlib.redirect_stdout(stdout):
                 ret = await func()
-        except Exception as e:
-            log.error(f"Failed to evaluate: {e}")
+        except Exception:
             value = stdout.getvalue()
+            await ctx.message.add_reaction(f"{CONTESTED_EMOJI_ID}")
             await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
         else:
             value = stdout.getvalue()
+            await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
+
             if ret is None:
                 if value:
                     await ctx.send(f'```py\n{value}\n```')
             else:
-                await ctx.send(
-                    "```py\n"
-                    f"{value}{ret}\n"
-                    "```"
-                )
+                await ctx.send(f'```py\n{value}{ret}\n```')
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .say Command
@@ -551,6 +555,7 @@ class BotOwnerCommands(
     @commands.command(name="say")
     async def say(self, ctx, *, message: str):
         if ctx.author.id != BOT_OWNER_ID:
+            await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
 
         await ctx.message.delete()
