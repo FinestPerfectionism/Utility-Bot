@@ -26,7 +26,6 @@ from guild_info.staff_proposals import (
     StaffProposalComponents3,
     StaffProposalComponents4
 )
-
 from guild_info.rules import (
     RuleComponents1,
     RuleComponents2
@@ -124,8 +123,8 @@ class Startup(commands.Cog):
         if isinstance(staff_proposals_channel, discord.TextChannel):
             try:
                 await self._handle_staff_proposals_layout(staff_proposals_channel)
-            except Exception:
-                log.exception("Staff proposals layout failed to initialize")
+            except Exception as e:
+                log.exception(f"Staff proposals layout failed to initialize: {e}")
         else:
             log.warning("Staff proposals layout skipped: channel not found")
 
@@ -162,8 +161,8 @@ class Startup(commands.Cog):
             log.info("Verification layout created")
             log.debug("Verification message_id=%s", message.id)
 
-        except Exception:
-            log.exception("Failed creating verification layout")
+        except Exception as e:
+            log.exception(f"Failed creating verification layout: {e}")
 
     async def _handle_rules_layout(self, channel: discord.TextChannel):
         msg_ids = self.layout_message_ids.get("rules", [])
