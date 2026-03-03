@@ -29,7 +29,6 @@ class RuleComponents2(discord.ui.LayoutView):
             ),
             discord.ui.TextDisplay(
                 content=
-                    "# Rules\n"
                    f"Rules last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
