@@ -27,11 +27,17 @@ from guild_info.staff_proposals import (
     StaffProposalComponents4
 )
 
+from guild_info.rules import (
+    RuleComponents1,
+    RuleComponents2
+)
+
 from constants import (
     TICKET_CHANNEL_ID,
     APPLICATION_CHANNEL_ID,
     STAFF_LEAVE_CHANNEL_ID,
     STAFF_PROPOSALS_INFO_CHANNEL_ID,
+    RULES_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
 )
 
@@ -105,12 +111,21 @@ class Startup(commands.Cog):
             except Exception:
                 log.exception("Layout '%s' failed to initialize", key)
 
+        rules_channel = self.bot.get_channel(RULES_CHANNEL_ID)
+        if isinstance(rules_channel, discord.TextChannel):
+            try:
+                await self._handle_rules_layout(rules_channel)
+            except Exception:
+                log.exception("Rules layout failed to initialize")
+        else:
+            log.warning("Rules layout skipped: channel not found")
+
         staff_proposals_channel = self.bot.get_channel(STAFF_PROPOSALS_INFO_CHANNEL_ID)
         if isinstance(staff_proposals_channel, discord.TextChannel):
             try:
                 await self._handle_staff_proposals_layout(staff_proposals_channel)
-            except Exception as e:
-                log.exception(f"Staff proposals layout failed to initialize: {e}")
+            except Exception:
+                log.exception("Staff proposals layout failed to initialize")
         else:
             log.warning("Staff proposals layout skipped: channel not found")
 
@@ -149,6 +164,44 @@ class Startup(commands.Cog):
 
         except Exception:
             log.exception("Failed creating verification layout")
+
+    async def _handle_rules_layout(self, channel: discord.TextChannel):
+        msg_ids = self.layout_message_ids.get("rules", [])
+
+        all_exist = False
+        if len(msg_ids) == 2:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            current_timestamp = int(time.time())
+
+            msg1 = await channel.send(view=RuleComponents1())
+            msg2 = await channel.send(view=RuleComponents2(timestamp=current_timestamp))
+
+            self.layout_message_ids["rules"] = [msg1.id, msg2.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(RuleComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            log.info("Rules layout created")
+            log.debug("Rules message_ids=%s", self.layout_message_ids["rules"])
+        else:
+            current_timestamp = int(time.time())
+            self.bot.add_view(RuleComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            log.info("Rules layout restored")
+            log.debug("Rules message_ids=%s", msg_ids)
 
     async def _handle_staff_proposals_layout(self, channel: discord.TextChannel):
         msg_ids = self.layout_message_ids.get("staff_proposals", [])
