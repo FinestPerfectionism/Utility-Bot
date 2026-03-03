@@ -6,8 +6,16 @@ from bot import UtilityBot
 
 import json
 import os
-from datetime import datetime, timedelta
-from typing import Dict, cast
+from datetime import (
+    datetime,
+    timedelta
+)
+from typing import (
+    Dict,
+    cast
+)
+
+from commands.moderation.cases import CaseType
 
 from constants import(
     BOT_OWNER_ID,
@@ -29,9 +37,11 @@ from constants import(
     JUNIOR_MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 )
-from core.utils import send_major_error, send_minor_error
 
-from commands.moderation.cases import CaseType
+from core.utils import (
+    send_major_error,
+    send_minor_error
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Flag Converters
@@ -39,9 +49,21 @@ from commands.moderation.cases import CaseType
 
 class QuarantineAddFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
+    s: bool = commands.flag(
+        name="s",
+        aliases=["silent", "supress", "shush"],
+        default=False,
+        max_args=0
+    )
 
 class QuarantineRemoveFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
+    s: bool = commands.flag(
+        name="s",
+        aliases=["silent", "supress", "shush"],
+        default=False,
+        max_args=0
+    )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Quarantine Commands
@@ -285,12 +307,17 @@ class QuarantineCommands(commands.Cog):
         await ctx.send(embed=embed)
 
     @quarantine_group.command(name="add", description="Add a member to quarantine.")
-    @app_commands.describe(member="The member to quarantine.", reason="Reason for quarantine.")
+    @app_commands.describe(
+        member="The member to quarantine.",
+        reason="Reason for quarantine.",
+        proof="Optional proof attachment."
+    )
     async def quarantine_add(
         self, 
         interaction: discord.Interaction, 
         member: discord.Member,
-        reason: str
+        reason: str,
+        proof: discord.Attachment | None = None
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -377,13 +404,17 @@ class QuarantineCommands(commands.Cog):
             await member.remove_roles(*roles_to_remove, reason=f"Quarantined by {interaction.user}")
             await member.add_roles(quarantine_role, reason=f"Quarantined by {interaction.user}: {reason}")
 
+            metadata: Dict = {"roles_saved": len(saved_roles)}
+            if proof:
+                metadata["proof_url"] = proof.url
+
             await self.cases_manager.log_case(
                 guild=guild,
                 case_type=CaseType.QUARANTINE_ADD,
                 moderator=actor,
                 reason=reason,
                 target_user=member,
-                metadata={"roles_saved": len(saved_roles)}
+                metadata=metadata
             )
 
             embed = discord.Embed(
@@ -395,6 +426,8 @@ class QuarantineCommands(commands.Cog):
             embed.add_field(name="Moderator", value=interaction.user.mention, inline=True)
             embed.add_field(name="Roles Saved", value=str(len(saved_roles)), inline=True)
             embed.add_field(name="Reason", value=reason, inline=False)
+            if proof:
+                embed.set_image(url=proof.url)
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -479,6 +512,10 @@ class QuarantineCommands(commands.Cog):
                 metadata={"roles_saved": len(saved_roles)}
             )
 
+            if flags.s:
+                await ctx.message.delete()
+                return
+
             embed = discord.Embed(
                 title="Member Quarantined",
                 color=COLOR_RED,
@@ -536,12 +573,17 @@ class QuarantineCommands(commands.Cog):
             pass
 
     @quarantine_group.command(name="remove", description="Remove a member from quarantine.")
-    @app_commands.describe(member="The member to remove from quarantine.", reason="Reason for removal.")
+    @app_commands.describe(
+        member="The member to remove from quarantine.",
+        reason="Reason for removal.",
+        proof="Optional proof attachment."
+    )
     async def quarantine_remove(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str
+        reason: str,
+        proof: discord.Attachment | None = None
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -605,13 +647,17 @@ class QuarantineCommands(commands.Cog):
                 del self.data["quarantined"][str(member.id)]
                 self.save_data()
 
+            metadata: Dict = {"roles_restored": len(roles_to_add)}
+            if proof:
+                metadata["proof_url"] = proof.url
+
             await self.cases_manager.log_case(
                 guild=guild,
                 case_type=CaseType.QUARANTINE_REMOVE,
                 moderator=actor,
                 reason=reason,
                 target_user=member,
-                metadata={"roles_restored": len(roles_to_add)}
+                metadata=metadata
             )
 
             embed = discord.Embed(
@@ -630,6 +676,9 @@ class QuarantineCommands(commands.Cog):
                     value=f"{len(roles_not_found)} role(s) no longer exist and could not be restored.",
                     inline=False
                 )
+
+            if proof:
+                embed.set_image(url=proof.url)
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -706,6 +755,10 @@ class QuarantineCommands(commands.Cog):
                 target_user=member,
                 metadata={"roles_restored": len(roles_to_add)}
             )
+
+            if flags.s:
+                await ctx.message.delete()
+                return
 
             embed = discord.Embed(
                 title="Member Unquarantined",

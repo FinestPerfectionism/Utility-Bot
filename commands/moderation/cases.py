@@ -212,6 +212,10 @@ class CasesManager:
             if "channels_restored" in metadata:
                 embed.add_field(name="Channels Restored", value=str(metadata["channels_restored"]), inline=True)
 
+            if "proof_url" in metadata:
+                embed.add_field(name="Proof", value=metadata["proof_url"], inline=False)
+                embed.set_image(url=metadata["proof_url"])
+
         try:
             await log_channel.send(embed=embed)
         except discord.Forbidden:

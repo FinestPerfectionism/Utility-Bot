@@ -106,7 +106,7 @@ class MessageSendHandler(commands.Cog):
                             reason="UB Auto-Moderation: night night",
                         )
                         await message.channel.send(
-                            f"{message.author.mention} Alright bro, I've given you *five fucking warnings* " "and you still haven't learned. Is a dog pissing on the floor that funny to you? Regardless, sleep tight bitch."
+                            f"{message.author.mention} Alright bro, I've given you *five fucking warnings* and you still haven't learned. Is a dog pissing on the floor that funny to you? Regardless, sleep tight bitch."
                         )
                         AUTOMOD_STRIKES.pop(message.author.id, None)
                         save_automod_strikes()

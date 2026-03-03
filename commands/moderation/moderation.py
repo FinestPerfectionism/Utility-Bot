@@ -17,6 +17,7 @@ from typing import (
 from commands.moderation.cases import CaseType
 
 from bot import UtilityBot
+
 from core.utils import (
     send_major_error,
     send_minor_error
@@ -47,17 +48,41 @@ from constants import(
 class BanFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
     d: int = commands.flag(name="d", aliases=["delete"], default=7)
+    s: bool = commands.flag(
+        name="s",
+        aliases=["silent", "supress", "shush"],
+        default=False,
+        max_args=0
+    )
 
 class KickFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
+    s: bool = commands.flag(
+        name="s",
+        aliases=["silent", "supress", "shush"],
+        default=False,
+        max_args=0
+    )
 
 class TimeoutFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
     d: str = commands.flag(name="d", aliases=["duration"], default=None)
+    s: bool = commands.flag(
+        name="s",
+        aliases=["silent", "supress", "shush"],
+        default=False,
+        max_args=0
+    )
 
 class PurgeFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     u: Optional[discord.Member] = commands.flag(name="u", aliases=["user"], default=None)
     r: str = commands.flag(name="r", aliases=["reason"])
+    s: bool = commands.flag(
+        name="s",
+        aliases=["silent", "supress", "shush"],
+        default=False,
+        max_args=0
+    )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Commands
@@ -317,14 +342,16 @@ class ModerationCommands(
     @app_commands.describe(
         member="The member to ban.",
         reason="Reason for the ban.",
-        delete_messages="Delete messages from the last 1-7 days."
+        delete_messages="Delete messages from the last 1-7 days.",
+        proof="Optional proof attachment."
     )
     async def ban_slash(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
         reason: str,
-        delete_messages: Optional[int] = 0
+        delete_messages: Optional[int] = 0,
+        proof: Optional[discord.Attachment] = None
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -384,13 +411,17 @@ class ModerationCommands(
             }
             self.save_data()
 
+            metadata: Dict = {"delete_message_days": delete_messages}
+            if proof:
+                metadata["proof_url"] = proof.url
+
             await self.cases_manager.log_case(
                 guild=guild,
                 case_type=CaseType.BAN,
                 moderator=actor,
                 reason=reason,
                 target_user=member,
-                metadata={"delete_message_days": delete_messages}
+                metadata=metadata
             )
 
             embed = discord.Embed(
@@ -401,6 +432,8 @@ class ModerationCommands(
             embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
             embed.add_field(name="Moderator", value=actor.mention, inline=True)
             embed.add_field(name="Reason", value=reason, inline=False)
+            if proof:
+                embed.set_image(url=proof.url)
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -476,6 +509,10 @@ class ModerationCommands(
                 target_user=member,
                 metadata={"delete_message_days": delete_messages}
             )
+
+            if flags.s:
+                await ctx.message.delete()
+                return
 
             embed = discord.Embed(
                 title="Member Banned",
@@ -655,6 +692,10 @@ class ModerationCommands(
                 target_user=user_to_unban
             )
 
+            if flags.s:
+                await ctx.message.delete()
+                return
+
             embed = discord.Embed(
                 title="User Unbanned",
                 color=COLOR_GREEN,
@@ -676,13 +717,15 @@ class ModerationCommands(
     @app_commands.command(name="kick", description="Kick a member from the server.")
     @app_commands.describe(
         member="The member to kick.",
-        reason="Reason for the kick."
+        reason="Reason for the kick.",
+        proof="Optional proof attachment."
     )
     async def kick_slash(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
-        reason: str
+        reason: str,
+        proof: Optional[discord.Attachment] = None
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -736,12 +779,17 @@ class ModerationCommands(
             }
             self.save_data()
 
+            metadata: Dict = {}
+            if proof:
+                metadata["proof_url"] = proof.url
+
             await self.cases_manager.log_case(
                 guild=guild,
                 case_type=CaseType.KICK,
                 moderator=actor,
                 reason=reason,
-                target_user=member
+                target_user=member,
+                metadata=metadata if metadata else None
             )
 
             embed = discord.Embed(
@@ -752,6 +800,8 @@ class ModerationCommands(
             embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
             embed.add_field(name="Moderator", value=actor.mention, inline=True)
             embed.add_field(name="Reason", value=reason, inline=False)
+            if proof:
+                embed.set_image(url=proof.url)
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -823,6 +873,10 @@ class ModerationCommands(
                 target_user=member
             )
 
+            if flags.s:
+                await ctx.message.delete()
+                return
+
             embed = discord.Embed(
                 title="Member Kicked",
                 color=COLOR_ORANGE,
@@ -845,14 +899,16 @@ class ModerationCommands(
     @app_commands.describe(
         member="The member to timeout.",
         duration="Duration.",
-        reason="Reason for the timeout."
+        reason="Reason for the timeout.",
+        proof="Optional proof attachment."
     )
     async def timeout_slash(
         self,
         interaction: discord.Interaction,
         member: discord.Member,
         duration: str,
-        reason: str
+        reason: str,
+        proof: Optional[discord.Attachment] = None
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -919,6 +975,10 @@ class ModerationCommands(
             }
             self.save_data()
 
+            metadata: Dict = {"until": until.isoformat()}
+            if proof:
+                metadata["proof_url"] = proof.url
+
             await self.cases_manager.log_case(
                 guild=guild,
                 case_type=CaseType.TIMEOUT,
@@ -926,7 +986,7 @@ class ModerationCommands(
                 reason=reason,
                 target_user=member,
                 duration=duration,
-                metadata={"until": until.isoformat()}
+                metadata=metadata
             )
 
             embed = discord.Embed(
@@ -939,6 +999,8 @@ class ModerationCommands(
             embed.add_field(name="Duration", value=duration, inline=True)
             embed.add_field(name="Expires", value=discord.utils.format_dt(until, 'R'), inline=True)
             embed.add_field(name="Reason", value=reason, inline=False)
+            if proof:
+                embed.set_image(url=proof.url)
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -1023,6 +1085,10 @@ class ModerationCommands(
                 duration=duration,
                 metadata={"until": until.isoformat()}
             )
+
+            if flags.s:
+                await ctx.message.delete()
+                return
 
             embed = discord.Embed(
                 title="Member Timed Out",
@@ -1157,6 +1223,10 @@ class ModerationCommands(
                 target_user=member
             )
 
+            if flags.s:
+                await ctx.message.delete()
+                return
+
             embed = discord.Embed(
                 title="Timeout Removed",
                 color=COLOR_GREEN,
@@ -1179,14 +1249,16 @@ class ModerationCommands(
     @app_commands.describe(
         amount="Number of messages to delete.",
         member="Only delete messages from this member.",
-        reason="Reason for purging messages."
+        reason="Reason for purging messages.",
+        proof="Optional proof attachment."
     )
     async def purge_slash(
         self,
         interaction: discord.Interaction,
         amount: int,
         reason: str,
-        member: Optional[discord.Member] = None
+        member: Optional[discord.Member] = None,
+        proof: Optional[discord.Attachment] = None
     ):
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -1231,16 +1303,20 @@ class ModerationCommands(
                     bulk=True
                 )
 
+            metadata: Dict = {
+                "deleted_messages": len(deleted),
+                "channel_id": channel.id
+            }
+            if proof:
+                metadata["proof_url"] = proof.url
+
             await self.cases_manager.log_case(
                 guild=guild,
                 case_type=CaseType.PURGE,
                 moderator=actor,
                 reason=reason,
                 target_user=member if member else None,
-                metadata={
-                    "deleted_messages": len(deleted),
-                    "channel_id": channel.id
-                }
+                metadata=metadata
             )
 
             embed = discord.Embed(
@@ -1252,6 +1328,8 @@ class ModerationCommands(
             embed.add_field(name="Moderator", value=actor.mention, inline=True)
             if member:
                 embed.add_field(name="From User", value=member.mention, inline=True)
+            if proof:
+                embed.set_image(url=proof.url)
 
             await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -1296,8 +1374,10 @@ class ModerationCommands(
                     limit=amount,
                     check=lambda m: m.author.id == member.id
                 )
+                await ctx.message.delete()
             else:
-                deleted = await channel.purge(limit=amount)
+                deleted = await channel.purge(limit=amount, before=ctx.message)
+                await ctx.message.delete()
 
             await self.cases_manager.log_case(
                 guild=guild,
@@ -1311,6 +1391,10 @@ class ModerationCommands(
                 }
             )
 
+            if flags.s:
+                await ctx.message.delete()
+                return
+
             embed = discord.Embed(
                 title="Messages Purged",
                 color=COLOR_BLURPLE,
@@ -1321,8 +1405,7 @@ class ModerationCommands(
             if member:
                 embed.add_field(name="From User", value=member.mention, inline=True)
 
-            msg = await ctx.send(embed=embed)
-            await msg.delete(delay=5)
+            await ctx.send(embed=embed)
 
         except discord.Forbidden:
             pass

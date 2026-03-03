@@ -7,7 +7,13 @@ from bot import UtilityBot
 import json
 import os
 from datetime import datetime
-from typing import Dict, cast
+from typing import (
+    Dict, cast
+)
+
+from core.utils import (
+    send_major_error, send_minor_error
+)
 
 from constants import(
     BOT_OWNER_ID,
@@ -16,12 +22,10 @@ from constants import(
     COLOR_RED,
 
     CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 
     DIRECTORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
-from core.utils import send_major_error, send_minor_error
 
 from commands.moderation.cases import CaseType
 

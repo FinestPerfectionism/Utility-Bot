@@ -1162,7 +1162,7 @@ class UtilityCommands(commands.Cog):
                 return "Unknown"
             return dt.strftime("%A, %B %d, %Y, at %I:%M %p")
 
-        name = target_user.display_name
+        name = name = target_user.name
         nickname = target_user.nick or "None"
         joined_at = format_dt(target_user.joined_at)
         created_at = format_dt(target_user.created_at)
