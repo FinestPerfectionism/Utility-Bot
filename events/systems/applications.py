@@ -2,6 +2,12 @@ import discord
 from discord.ext import commands
 from discord import ui
 
+from datetime import datetime
+from typing import (
+    cast,
+Any
+)
+
 from core.state import (
     APPLICATIONS_OPEN,
     BLACKLIST,
@@ -44,9 +50,6 @@ MOD_ROLE_IDS = {
     MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 }
-
-async def test():
-    pass
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Applications System
@@ -268,6 +271,96 @@ class DecisionView(ui.View):
                 message_id=msg.id
             )
         )
+
+    @ui.button(label="History", style=discord.ButtonStyle.secondary, custom_id="decision:history")
+    async def history(self, interaction: discord.Interaction, _):
+        msg = interaction.message
+        assert msg is not None
+        data = next(
+            (v for v in ACTIVE_APPLICATIONS.values()
+             if v.get("log_message_id") == msg.id),
+            None
+        )
+        if not data:
+            await interaction.response.send_message(
+                "This application has already been handled.",
+                ephemeral=True
+            )
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        bot = cast(commands.Bot, interaction.client)
+        cases_cog = cast(Any, bot.cogs.get("CasesCommands"))
+        if not cases_cog:
+            await interaction.response.send_message(
+                "Case history is unavailable.",
+                ephemeral=True
+            )
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        applicant_id = data["applicant_id"]
+        cases = cases_cog.cases_manager.get_cases(guild_id=guild.id, user_id=applicant_id)
+
+        if not cases:
+            embed = discord.Embed(
+                description="This applicant has no recorded cases.",
+                color=COLOR_GREEN
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            return
+
+        applicant = interaction.client.get_user(applicant_id)
+        if not applicant:
+            try:
+                applicant = await interaction.client.fetch_user(applicant_id)
+            except discord.NotFound:
+                applicant = None
+
+        title = f"Case History — {applicant if applicant else applicant_id}"
+
+        embed = discord.Embed(
+            title=title,
+            color=COLOR_BLURPLE,
+            timestamp=datetime.now()
+        )
+
+        for case in cases[:25]:
+            case_type_display = case["type"].replace("_", " ").title()
+            timestamp = datetime.fromisoformat(case["timestamp"])
+
+            value_parts = [f"**Type:** {case_type_display}"]
+
+            mod = interaction.client.get_user(case["moderator_id"])
+            if mod:
+                value_parts.append(f"**Moderator:** {mod.mention}")
+            else:
+                try:
+                    mod = await interaction.client.fetch_user(case["moderator_id"])
+                    value_parts.append(f"**Moderator:** {mod.mention}")
+                except discord.NotFound:
+                    value_parts.append(f"**Moderator:** {case['moderator_name']}")
+
+            if case.get("duration"):
+                value_parts.append(f"**Duration:** {case['duration']}")
+
+            value_parts.append(f"**Reason:** {case['reason']}")
+            value_parts.append(f"**When:** {discord.utils.format_dt(timestamp, 'R')}")
+
+            embed.add_field(
+                name=f"Case #{case['case_id']}",
+                value="\n".join(value_parts),
+                inline=False
+            )
+
+        if len(cases) > 25:
+            embed.set_footer(text=f"Showing 25 of {len(cases)} cases")
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Questions / State

@@ -20,11 +20,14 @@ from core.utils import send_minor_error
 
 from constants import (
     BOT_LOG_CHANNEL_ID,
-    BOT_OWNER_ID,
-    COLOR_BLURPLE,
     BOT_ERRORS_LOG_CHANNEL_ID,
+
+    BOT_OWNER_ID,
+
     COLOR_RED,
     COLOR_YELLOW,
+    COLOR_BLURPLE,
+
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 )
