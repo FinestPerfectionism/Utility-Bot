@@ -1,5 +1,9 @@
 import discord
-from constants import STANDSTILL_EMOJI_ID
+from constants import (
+    STANDSTILL_EMOJI_ID,
+
+    TICKET_CHANNEL_ID
+)
 
 class RequirementComponents1(discord.ui.LayoutView):
     container = discord.ui.Container(
@@ -7,6 +11,7 @@ class RequirementComponents1(discord.ui.LayoutView):
             content=
                 "# Welcome to our Partnership Requirements!\n"
                 "Our requirements for server partnerships.\n"
+                "-# **Note:** It is within Directors’ discretion as to whether we choose to partner wtih your server regardless of if the rules they find you to be not qualifying for are listed here. Directors are not required to provide a reason, if any, when denying a partnerhsip."
         ),
     )
 
@@ -58,7 +63,7 @@ class RequirementComponents2(discord.ui.LayoutView):
                     "## §2 Request Procedure\n"
                     "### §2.1 Ticket Requirement\n"
                     "All partnership requests must be initiated through the official tickets system.\n\n"
-                    "- Go to <#{TICKETS_CHANNEL_ID}>.\n"
+                   f"- Go to <#{TICKET_CHANNEL_ID}>.\n"
                     "- Open a ticket directed to the **Directors**. Moderators recieving partnership requests should escalate the ticket to directors using `.escalate`.\n"
                     "- Clearly provide:\n"
                     "  - Server name\n"
