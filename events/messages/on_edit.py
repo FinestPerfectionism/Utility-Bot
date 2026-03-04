@@ -91,6 +91,10 @@ class MessageEditHandler(commands.Cog):
             inline=True,
         )
         await log_channel.send(embed=embed)
+
+        ctx = await self.bot.get_context(after)
+        if ctx.command is not None:
+            await self.bot.invoke(ctx)
         
 async def setup(bot: commands.Bot):
     await bot.add_cog(MessageEditHandler(bot))
