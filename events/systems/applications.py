@@ -5,7 +5,7 @@ from discord import ui
 from datetime import datetime
 from typing import (
     cast,
-Any
+    Any
 )
 
 from core.state import (
