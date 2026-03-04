@@ -31,11 +31,15 @@ from core.permissions import (
 
 from constants import (
     BOT_OWNER_ID,
+
+    DIRECTORS_ROLE_ID,
+    STAFF_ROLE_ID,
+
     DIRECTOR_TASKS_CHANNEL_ID,
+    STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
 
     PERSONAL_LEAVE_ROLE_ID,
     TICKET_CHANNEL_ID,
-    STAFF_PROPOSALS_REVIEW_CHANNEL_ID
 )
 
 DATA_FILE = "leave_data.json"
