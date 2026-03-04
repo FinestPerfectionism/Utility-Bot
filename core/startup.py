@@ -19,7 +19,7 @@ from core.state import (
     save_layout_message_ids
 )
 
-from guild_info.staff_proposals import (
+from guild_info.staff_proposal_info import (
     StaffProposalComponents1,
     StaffProposalComponents2a,
     StaffProposalComponents2b,
@@ -30,6 +30,10 @@ from guild_info.rules import (
     RuleComponents1,
     RuleComponents2
 )
+from guild_info.partnership_requirements import (
+    RequirementComponents1,
+    RequirementComponents2
+)
 
 from constants import (
     TICKET_CHANNEL_ID,
@@ -38,6 +42,7 @@ from constants import (
     STAFF_PROPOSALS_INFO_CHANNEL_ID,
     RULES_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
+    PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
 )
 
 log = logging.getLogger("Utility Bot")
@@ -127,6 +132,15 @@ class Startup(commands.Cog):
                 log.exception(f"Staff proposals layout failed to initialize: {e}")
         else:
             log.warning("Staff proposals layout skipped: channel not found")
+
+        partnership_requirements_channel = self.bot.get_channel(PARTNERSHIP_REQUIREMENTS_CHANNEL_ID)
+        if isinstance(partnership_requirements_channel, discord.TextChannel):
+            try:
+                await self._handle_partnership_requirements_layout(partnership_requirements_channel)
+            except Exception:
+                log.exception("Partnership requirements layout failed to initialize")
+        else:
+            log.warning("Partnership requirements layout skipped: channel not found")
 
     async def _handle_verification_layout(self, channel: discord.TextChannel):
         verification_cog = cast(
@@ -242,6 +256,44 @@ class Startup(commands.Cog):
             self.bot.add_view(StaffProposalComponents2a(timestamp=current_timestamp), message_id=msg_ids[1])
             log.info("Staff proposals layout restored")
             log.debug("Staff proposals message_ids=%s", msg_ids)
+
+    async def _handle_partnership_requirements_layout(self, channel: discord.TextChannel):
+        msg_ids = self.layout_message_ids.get("partnership_requirements", [])
+
+        all_exist = False
+        if len(msg_ids) == 2:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            current_timestamp = int(time.time())
+
+            msg1 = await channel.send(view=RequirementComponents1())
+            msg2 = await channel.send(view=RequirementComponents2(timestamp=current_timestamp))
+
+            self.layout_message_ids["partnership_requirements"] = [msg1.id, msg2.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(RequirementComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            log.info("Partnership requirements layout created")
+            log.debug("Partnership requirements message_ids=%s", self.layout_message_ids["partnership_requirements"])
+        else:
+            current_timestamp = int(time.time())
+            self.bot.add_view(RequirementComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            log.info("Partnership requirements layout restored")
+            log.debug("Partnership requirements message_ids=%s", msg_ids)
 
     async def cog_unload(self):
         pass
