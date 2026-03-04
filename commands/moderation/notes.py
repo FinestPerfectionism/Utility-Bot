@@ -25,6 +25,12 @@ from constants import (
 )
 
 from bot import UtilityBot
+from core.permissions import (
+    is_administrator,
+    is_director,
+    is_moderator,
+    is_senior_moderator,
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Flag Converters
@@ -105,31 +111,17 @@ class NotesCommands(commands.Cog):
         self.save_data()
         return note_id
 
-    def has_role(self, member: discord.Member, role_id: int) -> bool:
-        return any(role.id == role_id for role in member.roles)
-
-    def is_director(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.DIRECTORS_ROLE_ID)
-
-    def is_senior_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.SENIOR_MODERATORS_ROLE_ID)
-
-    def is_administrator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.ADMINISTRATORS_ROLE_ID)
-
-    def is_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.MODERATORS_ROLE_ID)
 
     def can_manage_notes(self, member: discord.Member) -> bool:
         return (
-            self.is_director(member) or
-            self.is_senior_moderator(member) or
-            self.is_administrator(member) or
-            self.is_moderator(member)
+            is_director(member) or
+            is_senior_moderator(member) or
+            is_administrator(member) or
+            is_moderator(member)
         )
 
     def can_delete_notes(self, member: discord.Member) -> bool:
-        return self.is_director(member) or self.is_senior_moderator(member)
+        return is_director(member) or is_senior_moderator(member)
 
     def get_note_by_id(self, note_id: int) -> Optional[Dict]:
         for user_notes in self.data["notes"].values():
@@ -254,7 +246,7 @@ class NotesCommands(commands.Cog):
         if not note:
             return
 
-        if note["moderator_id"] != actor.id and not self.is_director(actor):
+        if note["moderator_id"] != actor.id and not is_director(actor):
             return
 
         old_content = note["content"]
@@ -324,7 +316,7 @@ class NotesCommands(commands.Cog):
         if not note:
             return
 
-        if note["moderator_id"] != actor.id and not self.is_director(actor):
+        if note["moderator_id"] != actor.id and not is_director(actor):
             return
 
         target_user: Optional[discord.User] = None

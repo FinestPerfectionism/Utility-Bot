@@ -10,6 +10,7 @@ from constants import (
     MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
     STAFF_ROLE_ID,
 
     GUILD_ID,
@@ -98,3 +99,31 @@ def has_director_role():
             return False
         return any(role.id == DIRECTORS_ROLE_ID for role in ctx.author.roles)
     return commands.check(predicate)
+
+
+def has_role(member: discord.Member, role_id: int) -> bool:
+    return any(role.id == role_id for role in member.roles)
+
+
+def is_director(member: discord.Member) -> bool:
+    return has_role(member, DIRECTORS_ROLE_ID)
+
+
+def is_staff(member: discord.Member) -> bool:
+    return has_role(member, STAFF_ROLE_ID)
+
+
+def is_staff_committee(member: discord.Member) -> bool:
+    return has_role(member, STAFF_COMMITTEE_ROLE_ID)
+
+
+def is_moderator(member: discord.Member) -> bool:
+    return has_role(member, MODERATORS_ROLE_ID)
+
+
+def is_administrator(member: discord.Member) -> bool:
+    return has_role(member, ADMINISTRATORS_ROLE_ID)
+
+
+def is_senior_moderator(member: discord.Member) -> bool:
+    return has_role(member, SENIOR_MODERATORS_ROLE_ID)

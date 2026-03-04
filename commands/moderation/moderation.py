@@ -22,6 +22,13 @@ from core.utils import (
     send_major_error,
     send_minor_error
 )
+from core.permissions import (
+    has_role,
+    is_administrator,
+    is_director,
+    is_moderator,
+    is_senior_moderator,
+)
 
 from constants import(
     COLOR_GREEN,
@@ -228,38 +235,24 @@ class ModerationCommands(
 
         self.save_data()
 
-    def has_role(self, member: discord.Member, role_id: int) -> bool:
-        return any(role.id == role_id for role in member.roles)
-
     def has_protected_role(self, member: discord.Member) -> bool:
-        return any(self.has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
+        return any(has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
 
-    def is_director(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.DIRECTORS_ROLE_ID)
-
-    def is_senior_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.SENIOR_MODERATORS_ROLE_ID)
-
-    def is_administrator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.ADMINISTRATORS_ROLE_ID)
-
-    def is_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.MODERATORS_ROLE_ID)
 
     def can_view(self, member: discord.Member) -> bool:
-        return (self.is_director(member) or 
-                self.is_senior_moderator(member) or 
-                self.is_administrator(member) or 
-                self.is_moderator(member))
+        return (is_director(member) or 
+                is_senior_moderator(member) or 
+                is_administrator(member) or 
+                is_moderator(member))
 
     def can_moderate(self, member: discord.Member) -> bool:
-        return self.is_senior_moderator(member)
+        return is_senior_moderator(member)
 
     def can_unban_untimeout(self, member: discord.Member) -> bool:
-        return self.is_director(member)
+        return is_director(member)
 
     def can_quarantine(self, member: discord.Member) -> bool:
-        return self.is_senior_moderator(member)
+        return is_senior_moderator(member)
 
     def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
         if target.id == moderator.guild.owner_id:
@@ -268,7 +261,7 @@ class ModerationCommands(
         if moderator.id == moderator.guild.owner_id:
             return True
 
-        if self.is_director(moderator) and self.has_role(target, self.QUARANTINE_ROLE_ID):
+        if is_director(moderator) and has_role(target, self.QUARANTINE_ROLE_ID):
             return True
 
         target_roles = [
@@ -379,7 +372,7 @@ class ModerationCommands(
         if not guild:
             return
 
-        if not self.is_director(actor):
+        if not is_director(actor):
             can_proceed, error_msg = self.check_rate_limit(str(actor.id), "ban")
             if not can_proceed:
                 await send_major_error(
@@ -480,7 +473,7 @@ class ModerationCommands(
         if not guild:
             return
 
-        if not self.is_director(actor):
+        if not is_director(actor):
             can_proceed, _ = self.check_rate_limit(str(actor.id), "ban")
             if not can_proceed:
                 await self.auto_quarantine_moderator(actor, guild)
@@ -753,7 +746,7 @@ class ModerationCommands(
         if not guild:
             return
 
-        if not self.is_director(actor):
+        if not is_director(actor):
             can_proceed, error_msg = self.check_rate_limit(str(actor.id), "kick")
             if not can_proceed:
                 await send_major_error(
@@ -847,7 +840,7 @@ class ModerationCommands(
         if not guild:
             return
 
-        if not self.is_director(actor):
+        if not is_director(actor):
             can_proceed, _ = self.check_rate_limit(str(actor.id), "kick")
             if not can_proceed:
                 await self.auto_quarantine_moderator(actor, guild)
@@ -946,7 +939,7 @@ class ModerationCommands(
         if not guild:
             return
 
-        if not self.is_director(actor):
+        if not is_director(actor):
             can_proceed, error_msg = self.check_rate_limit(str(actor.id), "timeout")
             if not can_proceed:
                 await send_major_error(
@@ -1055,7 +1048,7 @@ class ModerationCommands(
         if not guild:
             return
 
-        if not self.is_director(actor):
+        if not is_director(actor):
             can_proceed, _ = self.check_rate_limit(str(actor.id), "timeout")
             if not can_proceed:
                 await self.auto_quarantine_moderator(actor, guild)

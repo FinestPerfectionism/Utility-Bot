@@ -14,6 +14,7 @@ from typing import (
 from core.utils import (
     send_major_error, send_minor_error
 )
+from core.permissions import is_director
 
 from constants import(
     BOT_OWNER_ID,
@@ -23,7 +24,6 @@ from constants import(
 
     CONTESTED_EMOJI_ID,
 
-    DIRECTORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
 
@@ -39,7 +39,6 @@ class LockdownCommands(commands.Cog):
         self.data_file = "lockdown_data.json"
         self.data = self.load_data()
 
-        self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
         self.STAFF_ROLE_ID = STAFF_ROLE_ID
 
         self.EXEMPT_CATEGORIES = [
@@ -85,17 +84,9 @@ class LockdownCommands(commands.Cog):
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
-    def has_role(self, member: discord.Member, role_id: int) -> bool:
-        return any(role.id == role_id for role in member.roles)
-
-    def is_director(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.DIRECTORS_ROLE_ID)
-
-    def is_staff(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.STAFF_ROLE_ID)
 
     def can_manage_lockdown(self, member: discord.Member) -> bool:
-        return self.is_director(member)
+        return is_director(member)
 
     def is_channel_exempt(self, channel: discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel) -> bool:
         if channel.id in self.EXEMPT_CHANNELS:

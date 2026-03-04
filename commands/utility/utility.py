@@ -22,18 +22,18 @@ from core.utils import (
     send_minor_error,
     send_major_error
 )
+from core.permissions import (
+    is_director,
+    is_moderator,
+    is_staff,
+    is_staff_committee,
+)
 
 from constants import (
     BOT_OWNER_ID,
     DIRECTOR_TASKS_CHANNEL_ID,
 
-    DIRECTORS_ROLE_ID,
     PERSONAL_LEAVE_ROLE_ID,
-    STAFF_COMMITTEE_ROLE_ID,
-    STAFF_ROLE_ID,
-
-    MODERATORS_ROLE_ID,
-
     TICKET_CHANNEL_ID,
     STAFF_PROPOSALS_REVIEW_CHANNEL_ID
 )
@@ -50,12 +50,6 @@ def load_data():
 def save_data(data):
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
-
-def is_staff(member: discord.Member):
-    return any(role.id == STAFF_ROLE_ID for role in member.roles)
-
-def is_director(member: discord.Member):
-    return any(role.id == DIRECTORS_ROLE_ID for role in member.roles)
 
 def extract_name(nickname: str):
     if nickname and "|" in nickname:
@@ -1246,15 +1240,6 @@ class UtilityCommands(commands.Cog):
     # .lock/.l Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    def is_moderator(self, member: discord.Member):
-        return any(role.id == MODERATORS_ROLE_ID for role in member.roles)
-
-    def is_staff(self, member: discord.Member):
-        return any(role.id == STAFF_ROLE_ID for role in member.roles)
-
-    def is_staff_committee(self, member: discord.Member):
-        return any(role.id == STAFF_COMMITTEE_ROLE_ID for role in member.roles)
-
     def allowed_in_thread(self, ctx: commands.Context) -> bool:
         if not isinstance(ctx.channel, discord.Thread):
             return False
@@ -1270,10 +1255,10 @@ class UtilityCommands(commands.Cog):
             return is_director(ctx.author)
 
         if parent.id == TICKET_CHANNEL_ID:
-            return self.is_moderator(ctx.author)
+            return is_moderator(ctx.author)
 
         if parent.id == STAFF_PROPOSALS_REVIEW_CHANNEL_ID:
-            return self.is_staff_committee(ctx.author)
+            return is_staff_committee(ctx.author)
 
         return False
 

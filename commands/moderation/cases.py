@@ -33,6 +33,12 @@ from core.utils import (
     send_minor_error,
     send_major_error
 )
+from core.permissions import (
+    is_administrator,
+    is_director,
+    is_moderator,
+    is_senior_moderator,
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Management
@@ -256,29 +262,15 @@ class CasesCommands(commands.Cog):
         self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
         self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
 
-    def has_role(self, member: discord.Member, role_id: int) -> bool:
-        return any(role.id == role_id for role in member.roles)
-
-    def is_director(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.DIRECTORS_ROLE_ID)
-
-    def is_senior_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.SENIOR_MODERATORS_ROLE_ID)
-
-    def is_administrator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.ADMINISTRATORS_ROLE_ID)
-
-    def is_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.MODERATORS_ROLE_ID)
 
     def can_view(self, member: discord.Member) -> bool:
-        return (self.is_director(member) or 
-                self.is_senior_moderator(member) or 
-                self.is_administrator(member) or 
-                self.is_moderator(member))
+        return (is_director(member) or 
+                is_senior_moderator(member) or 
+                is_administrator(member) or 
+                is_moderator(member))
 
     def can_configure(self, member: discord.Member) -> bool:
-        return self.is_director(member)
+        return is_director(member)
 
     cases_group = app_commands.Group(
         name="cases",
