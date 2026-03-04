@@ -42,6 +42,13 @@ from core.utils import (
     send_major_error,
     send_minor_error
 )
+from core.permissions import (
+    has_role,
+    is_administrator,
+    is_director,
+    is_moderator,
+    is_senior_moderator,
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Flag Converters
@@ -167,35 +174,21 @@ class QuarantineCommands(commands.Cog):
         rl["severe_daily"].append(now)
         self.save_data()
 
-    def has_role(self, member: discord.Member, role_id: int) -> bool:
-        return any(role.id == role_id for role in member.roles)
-
     def has_protected_role(self, member: discord.Member) -> bool:
-        return any(self.has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
+        return any(has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
 
-    def is_director(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.DIRECTORS_ROLE_ID)
-
-    def is_senior_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.SENIOR_MODERATORS_ROLE_ID)
-
-    def is_administrator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.ADMINISTRATORS_ROLE_ID)
-
-    def is_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, self.MODERATORS_ROLE_ID)
 
     def can_view(self, member: discord.Member) -> bool:
-        return (self.is_director(member) or 
-                self.is_senior_moderator(member) or 
-                self.is_administrator(member) or 
-                self.is_moderator(member))
+        return (is_director(member) or 
+                is_senior_moderator(member) or 
+                is_administrator(member) or 
+                is_moderator(member))
 
     def can_add(self, member: discord.Member) -> bool:
-        return self.is_senior_moderator(member)
+        return is_senior_moderator(member)
 
     def can_remove(self, member: discord.Member) -> bool:
-        return self.is_director(member)
+        return is_director(member)
 
     def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
         if target.id == moderator.guild.owner_id:
@@ -354,7 +347,7 @@ class QuarantineCommands(commands.Cog):
 
         if not interaction.guild or not isinstance(interaction.user, discord.Member):
             return
-        if not self.is_director(interaction.user):
+        if not is_director(interaction.user):
             can_proceed, error_msg = self.check_rate_limit(str(actor.id))
             if not can_proceed:
                 await send_major_error(
@@ -473,7 +466,7 @@ class QuarantineCommands(commands.Cog):
         if not guild:
             return
 
-        if not self.is_director(actor):
+        if not is_director(actor):
             can_proceed, _ = self.check_rate_limit(str(actor.id))
             if not can_proceed:
                 await self.auto_quarantine_moderator(actor, guild)

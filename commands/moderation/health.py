@@ -27,6 +27,7 @@ from constants import (
 
 from bot import UtilityBot
 from core.utils import send_major_error
+from core.permissions import is_director, is_senior_moderator
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Health Check
@@ -330,17 +331,9 @@ class HealthCommands(commands.Cog):
     def __init__(self, bot: "UtilityBot"):
         self.bot = bot
 
-    def has_role(self, member: discord.Member, role_id: int) -> bool:
-        return any(role.id == role_id for role in member.roles)
-
-    def is_director(self, member: discord.Member) -> bool:
-        return self.has_role(member, DIRECTORS_ROLE_ID)
-
-    def is_senior_moderator(self, member: discord.Member) -> bool:
-        return self.has_role(member, SENIOR_MODERATORS_ROLE_ID)
 
     def can_use(self, member: discord.Member) -> bool:
-        return self.is_director(member) or self.is_senior_moderator(member)
+        return is_director(member) or is_senior_moderator(member)
 
     async def _run_checks(self, guild: discord.Guild) -> List[Dict]:
         checks: List[Dict] = []
