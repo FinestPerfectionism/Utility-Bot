@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+from typing import Dict
+
 from commands.moderation.cases import CasesManager
 
 import logging
@@ -11,6 +13,7 @@ import logging
 
 class UtilityBot(commands.Bot):
     cases_manager: CasesManager
+    mod_data: Dict
     
     def __init__(self):
         intents = discord.Intents.default()

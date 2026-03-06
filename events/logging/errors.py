@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from discord.app_commands import CommandOnCooldown
+from discord.app_commands.errors import CommandNotFound
 
 from typing import (
     Coroutine,
@@ -126,12 +127,13 @@ class ErrorLogger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_error(self, event, *args, **kwargs):
-        if event in {
-            "on_command_error",
-            "on_interaction",
-        }:
+        if event in {"on_command_error", "on_interaction"}:
             return
+
         exc_type, exc, tb = sys.exc_info()
+
+        if isinstance(exc, CommandNotFound):
+            return
 
         if exc is None:
             await self.send_error(

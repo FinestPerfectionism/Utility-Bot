@@ -6,7 +6,7 @@ from typing import cast
 
 from events.member.verification import VerificationHandler
 
-from commands.moderation.quarantine import QuarantineCommands
+from commands.moderation.secondary.quarantine import QuarantineCommands
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
