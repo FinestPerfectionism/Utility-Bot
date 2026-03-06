@@ -15,20 +15,27 @@ class InviteDeleteCog(AuditCog):
 
     @commands.Cog.listener()
     async def on_invite_delete(self, invite: discord.Invite) -> None:
-        log_channel = await self.get_log_channel(invite.guild)
+        if not isinstance(invite.guild, discord.Guild):
+            return
+
+        log_channel: discord.TextChannel | None = await self.get_log_channel(invite.guild)
         if not log_channel:
             return
 
-        embed = discord.Embed(
+        embed: discord.Embed = discord.Embed(
             title="Invite Deleted",
             color=COLOR_RED,
             timestamp=datetime.now(UTC)
         )
 
         embed.add_field(name="Code", value=f"`{invite.code}`", inline=True)
+
+        channel_name: str = getattr(invite.channel, 'name', 'Unknown Channel')
+        channel_id: str = str(getattr(invite.channel, 'id', 'Unknown ID'))
+
         embed.add_field(
             name="Channel",
-            value=f"`{invite.channel.name}`\n`{invite.channel.id}`",
+            value=f"`{channel_name}`\n`{channel_id}`",
             inline=True
         )
 

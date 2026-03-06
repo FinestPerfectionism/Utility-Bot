@@ -612,14 +612,14 @@ class QuarantineCommands(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         quarantine_data = self.data["quarantined"].get(str(member.id))
-        saved_role_ids = quarantine_data["roles"] if quarantine_data else []
+        saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
 
         try:
             if quarantine_role and quarantine_role in member.roles:
                 await member.remove_roles(quarantine_role, reason=f"Unquarantined by {actor}: {reason}")
 
-            roles_to_add = []
-            roles_not_found = []
+            roles_to_add: list[discord.Role] = []
+            roles_not_found: list[int] = []
 
             for role_id in saved_role_ids:
                 if role_id == self.QUARANTINE_ROLE_ID:
@@ -712,14 +712,14 @@ class QuarantineCommands(commands.Cog):
             return
 
         quarantine_data = self.data["quarantined"].get(str(member.id))
-        saved_role_ids = quarantine_data["roles"] if quarantine_data else []
+        saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
 
         try:
             if quarantine_role and quarantine_role in member.roles:
                 await member.remove_roles(quarantine_role, reason=f"Unquarantined by {actor}: {reason}")
 
-            roles_to_add = []
-            roles_not_found = []
+            roles_to_add: list[discord.Role] = []
+            roles_not_found: list[int] = []
 
             for role_id in saved_role_ids:
                 if role_id == self.QUARANTINE_ROLE_ID:

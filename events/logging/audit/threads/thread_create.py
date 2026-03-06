@@ -5,6 +5,9 @@ from datetime import datetime, UTC
 from constants import COLOR_GREEN
 from .._base import AuditCog, AuditQueue
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Thread Create Audit
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ThreadCreateCog(AuditCog):
     def __init__(self, bot: commands.Bot, queue: AuditQueue) -> None:

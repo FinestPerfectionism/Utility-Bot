@@ -5,6 +5,9 @@ from datetime import datetime, UTC
 from constants import COLOR_BLURPLE
 from .._base import AuditCog, AuditQueue
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Thread Edit Audit
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ThreadEditCog(AuditCog):
     def __init__(self, bot: commands.Bot, queue: AuditQueue) -> None:

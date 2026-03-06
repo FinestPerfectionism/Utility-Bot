@@ -26,7 +26,7 @@ class MemberRemoveCog(AuditCog):
         try:
             await asyncio.sleep(0.5)
             async for entry in member.guild.audit_logs(limit=5, action=discord.AuditLogAction.kick):
-                if entry.target.id == member.id:
+                if entry.target is not None and entry.target.id == member.id:
                     executor = entry.user
                     was_kicked = True
                     break

@@ -15,9 +15,9 @@ reportMissingParameterType = "warning"
 reportMissingReturnType = "warning"
 reportUnnecessaryCast = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
-reportUnknownMemberType = "none"
-reportUnknownVariableType = "none"
-reportUnknownArgumentType = "none"
+reportUnknownMemberType = "warning"
+reportUnknownVariableType = "warning"
+reportUnknownArgumentType = "warning"
 reportGeneralTypeIssues = "error"
 reportOptionalMemberAccess = "error"
 reportOptionalSubscript = "error"
@@ -31,8 +31,12 @@ line-length = 100
 select = [
     "ANN",
     "B",
+    "C4",
     "E",
     "F",
+    "ISC",
+    "PIE",
+    "PT",
     "RET",
     "RUF",
     "S",

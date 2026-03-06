@@ -14,7 +14,7 @@ class StickerAddCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_stickers_update(self, guild: discord.Guild, before, after) -> None:
+    async def on_guild_stickers_update(self, guild: discord.Guild, before: list[discord.GuildSticker], after: list[discord.GuildSticker]) -> None:
         before_ids = {sticker.id for sticker in before}
         added = [sticker for sticker in after if sticker.id not in before_ids]
 

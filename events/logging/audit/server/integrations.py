@@ -20,9 +20,9 @@ class IntegrationsCog(AuditCog):
         if not log_channel:
             return
 
-        executor = None
-        action_type = None
-        target_name = None
+        executor: discord.User | discord.Member | None = None
+        action_type: discord.AuditLogAction | None = None
+        target_name: str | None = None
 
         try:
             await asyncio.sleep(0.5)
@@ -34,8 +34,12 @@ class IntegrationsCog(AuditCog):
                 ]:
                     executor = entry.user
                     action_type = entry.action
-                    if hasattr(entry.target, 'name'):
+
+                    if isinstance(entry.target, discord.Integration):
                         target_name = entry.target.name
+                    elif isinstance(entry.target, discord.Object):
+                        target_name = f"ID: {entry.target.id}"
+
                     break
         except discord.HTTPException as e:
             print(f"Error fetching integration audit log: {e}")

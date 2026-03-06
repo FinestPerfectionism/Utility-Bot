@@ -516,10 +516,7 @@ class BotOwnerCommands(
             'commands': commands,
         }
 
-        if body.startswith("```"):
-            body = "\n".join(body.split("\n")[1:-1])
-        else:
-            body = body.strip("` \n")
+        body = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
 
         stdout = io.StringIO()
         to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'

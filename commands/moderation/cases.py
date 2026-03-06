@@ -329,7 +329,7 @@ class CasesCommands(commands.Cog):
         )
 
         if not cases:
-            filters = []
+            filters: list[str] = []
             if user:
                 filters.append(f"user {user.mention}")
             if moderator:
@@ -347,7 +347,7 @@ class CasesCommands(commands.Cog):
             await interaction.followup.send(embed=embed, ephemeral=True)
             return
 
-        title_parts = []
+        title_parts: list[str] = []
         if user:
             title_parts.append(f"for {user.name}")
         if moderator:
@@ -367,7 +367,7 @@ class CasesCommands(commands.Cog):
             case_type_display = case["type"].replace("_", " ").title()
             timestamp = datetime.fromisoformat(case["timestamp"])
 
-            value_parts = []
+            value_parts: list[str] = []
             value_parts.append(f"**Type:** {case_type_display}")
 
             if case.get("target_user_id"):

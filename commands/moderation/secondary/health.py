@@ -280,9 +280,9 @@ class HealthFixView(discord.ui.View):
 
         checks = await self.cog.run_checks(self.guild)
 
-        passed = sum(1 for c in checks if c["passed"])
+        passed_count = sum(1 for c in checks if c["passed"])
         total = len(checks)
-        score = (passed / total) * 100
+        score = (passed_count / total) * 100
         color = _get_health_color(score)
 
         updated_embed = discord.Embed(
@@ -302,16 +302,24 @@ class HealthFixView(discord.ui.View):
         check_map = {c["id"]: c for c in checks}
 
         for category_name, check_ids in categories:
-            lines = []
+            lines: list[str] = []
             for check_id in check_ids:
                 check = check_map.get(check_id)
                 if not check:
                     continue
-                icon = f"{ACCEPTED_EMOJI_ID}" if check["passed"] else f"{DENIED_EMOJI_ID}"
-                text = check["label"] if check["passed"] else check.get("fail_label", check["label"])
+
+                check_passed: bool = bool(check.get("passed", False))
+                label: str = str(check.get("label", ""))
+                fail_label: str = str(check.get("fail_label", label))
+                detail: str | None = check.get("detail")
+
+                icon = f"{ACCEPTED_EMOJI_ID}" if check_passed else f"{DENIED_EMOJI_ID}"
+                text = label if check_passed else fail_label
                 line = f"{icon} {text}"
-                if not check["passed"] and check.get("detail"):
-                    line += f"\n-# ↳ {check['detail']}"
+
+                if not check_passed and detail:
+                    line += f"\n-# ↳ {detail}"
+
                 lines.append(line)
 
             updated_embed.add_field(
@@ -320,7 +328,7 @@ class HealthFixView(discord.ui.View):
                 inline=False
             )
 
-        updated_embed.set_footer(text=f"{passed}/{total} checks passed")
+        updated_embed.set_footer(text=f"{passed_count}/{total} checks passed")
 
         remaining_fixable = [c["id"] for c in checks if not c["passed"] and c["fixable"]]
         if not remaining_fixable:

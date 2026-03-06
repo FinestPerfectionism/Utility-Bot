@@ -124,7 +124,7 @@ class MinorError(discord.ui.LayoutView):
     def __init__(self, texts: list[str], subtitle: str = "Invalid argument.", title: str = "Error!") -> None:
         super().__init__()
 
-        container = discord.ui.Container(accent_color=COLOR_YELLOW)
+        container = discord.ui.Container(accent_color=COLOR_YELLOW) # type: ignore
 
         container.add_item(
             discord.ui.TextDisplay(
@@ -142,7 +142,7 @@ class MinorError(discord.ui.LayoutView):
                 )
             container.add_item(discord.ui.TextDisplay(content=text))
 
-        self.add_item(container)
+        self.add_item(container) # type: ignore
 
 
 class MajorError(discord.ui.LayoutView):
@@ -154,7 +154,7 @@ class MajorError(discord.ui.LayoutView):
     ) -> None:
         super().__init__()
 
-        container = discord.ui.Container(accent_color=COLOR_RED)
+        container = discord.ui.Container(accent_color=COLOR_RED) # type: ignore
 
         container.add_item(
             discord.ui.TextDisplay(
@@ -172,7 +172,7 @@ class MajorError(discord.ui.LayoutView):
                 )
             container.add_item(discord.ui.TextDisplay(content=text))
 
-        self.add_item(container)
+        self.add_item(container) # type: ignore
 
 
 async def send_minor_error(

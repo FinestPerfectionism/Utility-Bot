@@ -5,6 +5,9 @@ from datetime import datetime, UTC
 from constants import COLOR_RED
 from .._base import AuditCog, AuditQueue
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Thread Delete Audit
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ThreadDeleteCog(AuditCog):
     def __init__(self, bot: commands.Bot, queue: AuditQueue) -> None:
@@ -30,9 +33,17 @@ class ThreadDeleteCog(AuditCog):
             value=f"`{thread.name}`\n`{thread.id}`",
             inline=True
         )
+
+        parent_name: str = "Unknown Channel"
+        parent_id: str = "Unknown ID"
+
+        if thread.parent:
+            parent_name = thread.parent.name
+            parent_id = str(thread.parent.id)
+
         embed.add_field(
             name="Parent Channel",
-            value=f"`{thread.parent.name}`\n`{thread.parent.id}`",
+            value=f"`{parent_name}`\n`{parent_id}`",
             inline=True
         )
 

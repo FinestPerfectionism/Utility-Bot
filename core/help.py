@@ -18,6 +18,8 @@ from typing import (
     ParamSpec,
 )
 if TYPE_CHECKING:
+    from discord.app_commands import Group as AppGroup
+    
     from collections.abc import (
         Callable,
         Awaitable,
@@ -109,7 +111,8 @@ def check_access(
     if not can_run:
         return "none", [], list(data.arguments.keys())
 
-    accessible, inaccessible = [], []
+    accessible:   list[str] = []
+    inaccessible: list[str] = []
     for arg_name, arg_info in data.arguments.items():
         if member_has_role(member, arg_info.role):
             accessible.append(arg_name)
@@ -233,12 +236,12 @@ def build_help_view(
         )
 
     class HelpView(discord.ui.LayoutView):
-        container1 = discord.ui.Container(
-            discord.ui.TextDisplay(content=main_text),
+        container1 = discord.ui.Container( # type: ignore
+            discord.ui.TextDisplay(content=main_text), # type: ignore
             accent_color=COLOR_BLURPLE,
         )
-        container2 = discord.ui.Container(
-            discord.ui.TextDisplay(content=perm_text),
+        container2 = discord.ui.Container( # type: ignore
+            discord.ui.TextDisplay(content=perm_text), # type: ignore
             accent_color=perm_colour,
         )
 
@@ -271,7 +274,7 @@ def find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
         return None
 
     for part in parts[1:]:
-        children = getattr(node, "commands", None) or []
+        children: list[AppGroup] = getattr(node, "commands", None) or []
         found = next((c for c in children if c.name == part), None)
         if found is None:
             return None

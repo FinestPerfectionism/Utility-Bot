@@ -19,7 +19,6 @@ from core.state import (
 from constants import (
     ACCEPTED_EMOJI_ID,
     APPLICATION_LOG_CHANNEL_ID,
-    BOT_CONSOLE_CHANNEL_ID,
 )
 
 log = logging.getLogger("Utility Bot")
@@ -49,36 +48,6 @@ class DiscordStream(io.TextIOBase):
                     self._tasks.add(task)
                     task.add_done_callback(self._tasks.discard)
         return len(message)
-
-async def console_sender(bot: commands.Bot, queue: asyncio.Queue[Any]) -> None:
-    await bot.wait_until_ready()
-    try:
-        channel = await bot.fetch_channel(BOT_CONSOLE_CHANNEL_ID)
-    except Exception as e:
-        print(f"Channel fetch failed: {e}")
-        return
-    if not isinstance(channel, (discord.TextChannel, discord.Thread)):
-        print(f"Unsupported channel type: {type(channel)}")
-        return
-    pending = []
-    while True:
-        try:
-            line = await asyncio.wait_for(queue.get(), timeout=2.0)
-            pending.append(line)
-            while not queue.empty():
-                pending.append(queue.get_nowait())
-        except TimeoutError:
-            pass
-        if pending:
-            combined = "\n".join(pending)
-            chunks = [combined[i:i+1990] for i in range(0, len(combined), 1990)]
-            for chunk in chunks:
-                try:
-                    await channel.send(f"```\n{chunk}\n```")
-                except discord.HTTPException as e:
-                    print(f"Failed to send console output: {e}")
-            pending.clear()
-            await asyncio.sleep(1.5)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Ready Management
@@ -133,7 +102,6 @@ class Ready(commands.Cog):
         )
         sys.stdout = DiscordStream(self._console_queue, sys.__stdout__)
         sys.stderr = DiscordStream(self._console_queue, sys.__stderr__)
-        self._console_task = asyncio.create_task(console_sender(self.bot, self._console_queue))
         load_active_applications()
         load_automod_strikes()
         save_automod_strikes()

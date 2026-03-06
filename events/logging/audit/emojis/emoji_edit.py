@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
+
 from datetime import datetime, UTC
+from collections.abc import Sequence
 
 from constants import COLOR_BLURPLE
 from .._base import AuditCog, AuditQueue
@@ -14,7 +16,7 @@ class EmojiEditCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_emojis_update(self, guild: discord.Guild, before, after) -> None:
+    async def on_guild_emojis_update(self, guild: discord.Guild, before: Sequence[discord.Emoji], after: Sequence[discord.Emoji]) -> None:
         before_map = {emoji.id: emoji for emoji in before}
         after_map = {emoji.id: emoji for emoji in after}
 

@@ -13,7 +13,7 @@ class VerificationCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
-        self.data = {"unverified": {}}
+        self.data: dict[str, dict[str, dict[str, str | bool | int | None]]] = {"unverified": {}}
 
     def save_data(self) -> None:
         pass

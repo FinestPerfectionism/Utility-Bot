@@ -14,7 +14,7 @@ class ChannelCreateCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel) -> None:
+    async def on_guild_channel_create(self, channel: discord.abc.GuildChannel) -> None:
         if self.is_directorship_channel(channel):
             return
 
