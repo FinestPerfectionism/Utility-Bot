@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from typing import (
+    Any
+)
 import contextlib
 import json
 import os
@@ -61,13 +64,13 @@ class CasesManager:
         self.data = self.load_data()
         self.config = self.load_config()
 
-    def load_data(self) -> dict:
+    def load_data(self) -> dict[str, Any]:
         if os.path.exists(self.data_file):
             with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
                 return json.load(f)
         return {"cases": [], "next_case_id": 1}
 
-    def load_config(self) -> dict:
+    def load_config(self) -> dict[str, Any]:
         if os.path.exists(self.config_file):
             with contextlib.suppress(json.JSONDecodeError), open(self.config_file) as f:
                 return json.load(f)
@@ -95,7 +98,7 @@ class CasesManager:
         reason: str,
         target_user: discord.User | discord.Member | None = None,
         duration: str | None = None,
-        metadata: dict | None = None
+        metadata: dict[str, Any] | None = None
     ) -> int:
 
         case_id = self.get_next_case_id()
@@ -122,7 +125,7 @@ class CasesManager:
 
         return case_id
 
-    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict) -> None:
+    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict[str, Any]) -> None:
         channel_id = self.config.get("log_channel_id")
         if not channel_id:
             return
@@ -221,7 +224,7 @@ class CasesManager:
         user_id: int | None = None,
         moderator_id: int | None = None,
         case_type: str | None = None
-    ) -> list[dict]:
+    ) -> list[dict[str, Any]]:
 
         self.data = self.load_data()
 

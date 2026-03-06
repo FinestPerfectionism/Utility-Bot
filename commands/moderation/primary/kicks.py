@@ -107,7 +107,10 @@ class KickCommands(ModerationBase):
             }
             self.save_data()
 
-            metadata: dict = {}
+            from typing import Any
+
+            metadata: dict[str, Any] = {}
+
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -147,7 +150,7 @@ class KickCommands(ModerationBase):
     @commands.command(name="kick", aliases=["k"])
     async def kick_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         member: discord.Member,
         *,
         flags: KickFlags
@@ -240,7 +243,7 @@ class KickCommands(ModerationBase):
             )
 
     @kick_prefix.error
-    async def kick_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def kick_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return

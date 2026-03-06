@@ -10,7 +10,8 @@ timedelta
 )
 from typing import (
     TYPE_CHECKING,
-    cast
+    cast,
+    Any
 )
 from collections import defaultdict
 
@@ -62,7 +63,7 @@ class AntiNukeSystem(commands.Cog):
     def cases_manager(self) -> CasesManager:
         return self.bot.cases_manager
 
-    def load_config(self) -> dict:
+    def load_config(self) -> dict[str, Any]:
         if os.path.exists(self.config_file):
             try:
                 with open(self.config_file) as f:
@@ -71,7 +72,7 @@ class AntiNukeSystem(commands.Cog):
                 return self.get_default_config()
         return self.get_default_config()
 
-    def get_default_config(self) -> dict:
+    def get_default_config(self) -> dict[str, Any]:
         return {
             "enabled": True,
             "limits": {

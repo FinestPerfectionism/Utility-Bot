@@ -99,17 +99,13 @@ class TicketComponents(discord.ui.LayoutView):
 
         if isinstance(user, discord.Member):
             role_ids = {role.id for role in user.roles}
-
-            if isinstance(user, discord.Member):
-                role_ids = {role.id for role in user.roles}
-
-                if DIRECTORS_ROLE_ID in role_ids or STAFF_ROLE_ID in role_ids:
-                    await interaction.response.send_message(
-                        f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
-                        "Please do not open a ticket as a staff member. Instead, contact a higher up or other directors.",
-                        ephemeral=True,
-                    )
-                    return
+            if DIRECTORS_ROLE_ID in role_ids or STAFF_ROLE_ID in role_ids:
+                await interaction.response.send_message(
+                    f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
+                    "Please do not open a ticket as a staff member. Instead, contact a higher up or other directors.",
+                    ephemeral=True,
+                )
+                return
 
         if ticket_type == "moderator":
             thread_name = f"ticket——{user.id}"

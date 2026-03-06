@@ -6,7 +6,8 @@ import contextlib
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
-    cast
+    cast,
+    Any
 )
 
 if TYPE_CHECKING:
@@ -118,7 +119,8 @@ class BanCommands(ModerationBase):
             }
             self.save_data()
 
-            metadata: dict = {"delete_message_days": delete_messages}
+            metadata: dict[str, Any] = {"delete_message_days": delete_messages}
+
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -158,7 +160,7 @@ class BanCommands(ModerationBase):
     @commands.command(name="ban", aliases=["b"])
     async def ban_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         member: discord.Member,
         *,
         flags: BanFlags
@@ -256,7 +258,7 @@ class BanCommands(ModerationBase):
             )
 
     @ban_prefix.error
-    async def ban_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def ban_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
@@ -382,7 +384,7 @@ class BanCommands(ModerationBase):
     @commands.command(name="un-ban", aliases=["unban", "ub"])
     async def unban_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         user: str,
         *,
         flags: KickFlags
@@ -557,7 +559,7 @@ class BanCommands(ModerationBase):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="bans", aliases=["banlist", "bls"])
-    async def bans_prefix(self, ctx: commands.Context) -> None:
+    async def bans_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return

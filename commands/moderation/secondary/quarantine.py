@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-
 import contextlib
 import json
 import os
@@ -11,7 +10,8 @@ from datetime import (
 )
 from typing import (
     TYPE_CHECKING,
-    cast
+    cast,
+    Any
 )
 
 if TYPE_CHECKING:
@@ -114,13 +114,13 @@ class QuarantineCommands(commands.Cog):
     def cases_manager(self) -> CasesManager:
         return self.bot.cases_manager
 
-    def load_data(self) -> dict:
+    def load_data(self) -> dict[str, Any]:
         if os.path.exists(self.data_file):
             with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
                 return json.load(f)
         return self.get_default_data()
 
-    def get_default_data(self) -> dict:
+    def get_default_data(self) -> dict[str, Any]:
         return {
             "quarantined": {},
             "rate_limits": {}
@@ -265,7 +265,7 @@ class QuarantineCommands(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @commands.command(name="quarantine-view", aliases=["qview", "qv"])
-    async def quarantine_view_prefix(self, ctx: commands.Context) -> None:
+    async def quarantine_view_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -360,8 +360,6 @@ class QuarantineCommands(commands.Cog):
                 )
 
                 guild = interaction.guild
-                if guild is None:
-                    return
                 await self.auto_quarantine_moderator(actor, guild)
                 return
 
@@ -370,8 +368,6 @@ class QuarantineCommands(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         guild = interaction.guild
-        if guild is None:
-            return
         quarantine_role = guild.get_role(self.QUARANTINE_ROLE_ID)
         if not quarantine_role:
             await send_major_error(
@@ -399,7 +395,7 @@ class QuarantineCommands(commands.Cog):
             await member.remove_roles(*roles_to_remove, reason=f"Quarantined by {interaction.user}")
             await member.add_roles(quarantine_role, reason=f"Quarantined by {interaction.user}: {reason}")
 
-            metadata: dict = {"roles_saved": len(saved_roles)}
+            metadata: dict[str, Any] = {"roles_saved": len(saved_roles)}
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -439,7 +435,7 @@ class QuarantineCommands(commands.Cog):
     @commands.command(name="quarantine-add", aliases=["qadd", "qa"])
     async def quarantine_add_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         member: discord.Member,
         *,
         flags: QuarantineAddFlags
@@ -642,7 +638,7 @@ class QuarantineCommands(commands.Cog):
                 del self.data["quarantined"][str(member.id)]
                 self.save_data()
 
-            metadata: dict = {"roles_restored": len(roles_to_add)}
+            metadata: dict[str, Any] = {"roles_restored": len(roles_to_add)}
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -687,7 +683,7 @@ class QuarantineCommands(commands.Cog):
     @commands.command(name="quarantine-remove", aliases=["qremove", "qr"])
     async def quarantine_remove_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         member: discord.Member,
         *,
         flags: QuarantineRemoveFlags

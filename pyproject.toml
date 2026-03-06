@@ -9,15 +9,23 @@ dependencies = [
 
 [tool.pyright]
 include = ["."]
-typeCheckingMode = "standard"
+typeCheckingMode = "strict"
+
 reportMissingParameterType = "warning"
 reportMissingReturnType = "warning"
 reportUnnecessaryCast = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownArgumentType = "none"
+reportGeneralTypeIssues = "error"
+reportOptionalMemberAccess = "error"
+reportOptionalSubscript = "error"
+reportPrivateUsage = "warning"
 
 [tool.ruff]
 target-version = "py312"
-line-length = 88
+line-length = 100
 
 [tool.ruff.lint]
 select = [

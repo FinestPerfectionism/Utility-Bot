@@ -24,7 +24,7 @@ class VerificationCommands(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="verify", aliases=["v"])
-    async def manual_verify(self, ctx: commands.Context, member: discord.Member) -> None:
+    async def manual_verify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 
@@ -63,7 +63,7 @@ class VerificationCommands(commands.Cog):
         name="unverify",
         aliases=["un-verify", "uv", "deverify", "de-verify", "dv"]
     )
-    async def unverify(self, ctx: commands.Context, member: discord.Member) -> None:
+    async def unverify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 

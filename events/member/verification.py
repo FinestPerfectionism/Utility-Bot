@@ -4,6 +4,7 @@ from discord.ext import (
     tasks
 )
 
+from typing import Any
 import secrets
 import json
 import os
@@ -104,7 +105,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
             ephemeral=True
         )
 
-class VerificationButton(discord.ui.Button):
+class VerificationButton(discord.ui.Button[discord.ui.View]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
             style=discord.ButtonStyle.primary,
@@ -116,7 +117,7 @@ class VerificationButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction) -> None:
         await self.cog.start_verification(interaction)
 
-class HelpButton(discord.ui.Button):
+class HelpButton(discord.ui.Button[discord.ui.View]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
             style=discord.ButtonStyle.red,
@@ -180,7 +181,7 @@ class VerificationHandler(commands.Cog):
         self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
 
         self.verification_message_id = None
-        self.active_captchas: dict[int, dict] = {}
+        self.active_captchas: dict[int, dict[str, Any]] = {}
 
     async def cog_load(self) -> None:
         self.check_unverified_users.start()
@@ -188,7 +189,7 @@ class VerificationHandler(commands.Cog):
     async def cog_unload(self) -> None:
         self.check_unverified_users.cancel()
 
-    def load_data(self) -> dict:
+    def load_data(self) -> dict[str, Any]:
         if os.path.exists(self.data_file):
             try:
                 with open(self.data_file) as f:
@@ -197,7 +198,7 @@ class VerificationHandler(commands.Cog):
                 return self.get_default_data()
         return self.get_default_data()
 
-    def get_default_data(self) -> dict:
+    def get_default_data(self) -> dict[str, Any]:
         return {
             "unverified": {},
             "verification_message_id": None
@@ -439,7 +440,7 @@ class VerificationHandler(commands.Cog):
 
         verification_cog = self
 
-        class SubmitButton(discord.ui.Button):
+        class SubmitButton(discord.ui.Button[discord.ui.View]):
             def __init__(self) -> None:
                 super().__init__(
                     label="Submit Code",

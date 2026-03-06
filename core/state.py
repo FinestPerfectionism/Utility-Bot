@@ -18,7 +18,7 @@ AUTOMOD_DELETIONS: set[int] = set()
 
 LAYOUT_FILE = Path("data/layout_message_ids.json")
 
-def load_layout_message_ids() -> dict:
+def load_layout_message_ids() -> dict[str, Any]:
     if not LAYOUT_FILE.exists():
         return {"tickets": None, "applications": None, "leave": None}
     try:
@@ -27,7 +27,7 @@ def load_layout_message_ids() -> dict:
     except json.JSONDecodeError:
         return {"tickets": None, "applications": None, "leave": None}
 
-def save_layout_message_ids(layout_ids: dict) -> None:
+def save_layout_message_ids(layout_ids: dict[str, Any]) -> None:
     LAYOUT_FILE.parent.mkdir(exist_ok=True, parents=True)
     with LAYOUT_FILE.open("w", encoding="utf-8") as f:
         json.dump(layout_ids, f)

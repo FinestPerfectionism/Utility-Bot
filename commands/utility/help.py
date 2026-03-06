@@ -19,7 +19,7 @@ from constants import(
 
 async def _run_help(
   bot: commands.Bot,
-  ctx_or_inter: commands.Context | discord.Interaction,
+  ctx_or_inter: commands.Context[commands.Bot] | discord.Interaction,
   command_name: str | None,
 ) -> None:
   if isinstance(ctx_or_inter, commands.Context):
@@ -94,7 +94,7 @@ class HelpCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="help")
-    async def help_prefix(self, ctx: commands.Context, *, command_name: str | None = None) -> None:
+    async def help_prefix(self, ctx: commands.Context[commands.Bot], *, command_name: str | None = None) -> None:
         await _run_help(self.bot, ctx, command_name)
 
 async def setup(bot: commands.Bot) -> None:

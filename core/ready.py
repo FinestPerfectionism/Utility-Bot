@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from typing import Any
 import asyncio
 import logging
 import sys
@@ -28,7 +29,7 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class DiscordStream(io.TextIOBase):
-    def __init__(self, queue: asyncio.Queue, original_stream: io.TextIOBase) -> None:
+    def __init__(self, queue: asyncio.Queue[Any], original_stream: io.TextIOBase) -> None:
         self.queue = queue
         self.original = original_stream
         self.buffer = ""
@@ -49,7 +50,7 @@ class DiscordStream(io.TextIOBase):
                     task.add_done_callback(self._tasks.discard)
         return len(message)
 
-async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
+async def console_sender(bot: commands.Bot, queue: asyncio.Queue[Any]) -> None:
     await bot.wait_until_ready()
     try:
         channel = await bot.fetch_channel(BOT_CONSOLE_CHANNEL_ID)
@@ -87,7 +88,7 @@ class Ready(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self._ran = False
-        self._console_queue: asyncio.Queue = asyncio.Queue(maxsize=500)
+        self._console_queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=500)
 
     async def resume_incomplete_applications(self) -> None:
         for user_id, data in ACTIVE_APPLICATIONS.items():

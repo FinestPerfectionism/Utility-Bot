@@ -700,7 +700,7 @@ class ProposalCommands(
         aliases=["d", "del"]
     )
     @has_director_role()
-    async def delete_thread(self, ctx: commands.Context) -> None:
+    async def delete_thread(self, ctx: commands.Context[commands.Bot]) -> None:
         if not isinstance(ctx.channel, discord.Thread):
             return
 

@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     cast,
+    Any
 )
 
 from constants import (
@@ -103,7 +104,7 @@ class HealthFixView(discord.ui.View):
                     child.disabled = True
                 
     @discord.ui.button(label="Fix Issues", style=discord.ButtonStyle.danger, emoji=f"{STANDSTILL_EMOJI_ID}")
-    async def fix_button(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def fix_button(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
 
@@ -235,7 +236,7 @@ class HealthFixView(discord.ui.View):
         if "ANTINUKE_ENABLED" in self.fixable:
             config_file: str = "antinuke_config.json"
             try:
-                config: dict = {}
+                config: dict[str, Any] = {}
                 if os.path.exists(config_file):
                     with open(config_file) as f:
                         config = json.load(f)
@@ -277,7 +278,7 @@ class HealthFixView(discord.ui.View):
         await interaction.response.edit_message(view=self)
         await interaction.followup.send("Applying fixes...", ephemeral=True)
 
-        checks = await self.cog._run_checks(self.guild)
+        checks = await self.cog.run_checks(self.guild)
 
         passed = sum(1 for c in checks if c["passed"])
         total = len(checks)
@@ -339,8 +340,8 @@ class HealthCommands(commands.Cog):
     def can_use(self, member: discord.Member) -> bool:
         return is_director(member) or is_senior_moderator(member)
 
-    async def _run_checks(self, guild: discord.Guild) -> list[dict]:
-        checks: list[dict] = []
+    async def run_checks(self, guild: discord.Guild) -> list[dict[str, Any]]:
+        checks: list[dict[str, Any]] = []
         bot_member = guild.get_member(self.bot.user.id) if self.bot.user else None
 
         bot_has_admin = bool(bot_member and bot_member.guild_permissions.administrator)
@@ -485,7 +486,7 @@ class HealthCommands(commands.Cog):
         antinuke_log = False
         if os.path.exists(antinuke_config_file):
             with contextlib.suppress(json.JSONDecodeError), open(antinuke_config_file) as f:
-                antinuke_config: dict = json.load(f)
+                antinuke_config: dict[str, Any] = json.load(f)
                 antinuke_enabled: bool = antinuke_config.get("enabled", True)
                 antinuke_log: bool = antinuke_config.get("log_channel_id") is not None
 
@@ -509,7 +510,7 @@ class HealthCommands(commands.Cog):
         cases_log = False
         if os.path.exists(cases_config_file):
             with contextlib.suppress(json.JSONDecodeError), open(cases_config_file) as f:
-                cases_config: dict = json.load(f)
+                cases_config: dict[str, Any] = json.load(f)
                 cases_log: bool = cases_config.get("log_channel_id") is not None
 
         checks.append({
@@ -546,7 +547,7 @@ class HealthCommands(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        checks = await self._run_checks(guild)
+        checks = await self.run_checks(guild)
 
         passed = sum(1 for c in checks if c["passed"])
         total = len(checks)

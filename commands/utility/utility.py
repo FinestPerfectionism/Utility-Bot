@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from typing import Any
 from datetime import (
     datetime,
     timedelta
@@ -43,13 +44,13 @@ from constants import (
 DATA_FILE = "leave_data.json"
 TIMEZONE_FILE = "user_timezones.json"
 
-def load_data() -> dict:
+def load_data() -> dict[str, Any]:
     if not os.path.exists(DATA_FILE):
         return {}
     with open(DATA_FILE) as f:
         return json.load(f)
 
-def save_data(data: dict) -> None:
+def save_data(data: dict[str, Any]) -> None:
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
@@ -97,13 +98,13 @@ class UtilityCommands(commands.Cog):
         self.bot = bot
         self.data = load_data()
 
-    def load_timezones(self) -> dict:
+    def load_timezones(self) -> dict[str, Any]:
         if os.path.exists(TIMEZONE_FILE):
             with open(TIMEZONE_FILE) as f:
                 return json.load(f)
         return {}
 
-    def save_timezones(self, data: dict) -> None:
+    def save_timezones(self, data: dict[str, Any]) -> None:
         with open(TIMEZONE_FILE, "w") as f:
             json.dump(data, f, indent=2)
 
@@ -301,7 +302,7 @@ class UtilityCommands(commands.Cog):
         return sorted(matches)
 
     async def parse_user(
-        self, ctx: commands.Context, value: str | list[str]
+        self, ctx: commands.Context[commands.Bot], value: str | list[str]
     ) -> discord.Member | None:
         if isinstance(value, list):
             value = " ".join(value)
@@ -314,7 +315,7 @@ class UtilityCommands(commands.Cog):
             return None
 
     def format_offset(
-        self, invoker: discord.Member, target: discord.Member, timezones: dict
+        self, invoker: discord.Member, target: discord.Member, timezones: dict[str, Any]
     ) -> str | None:
         invoker_tz_name = timezones.get(str(invoker.id))
         if not invoker_tz_name:
@@ -702,7 +703,7 @@ class UtilityCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     class TimezoneMatchPaginator(discord.ui.View):
-        def __init__(self, ctx: commands.Context, matches: list[str]) -> None:
+        def __init__(self, ctx: commands.Context[commands.Bot], matches: list[str]) -> None:
             super().__init__(timeout=120)
             self.ctx = ctx
             self.matches = matches
@@ -738,7 +739,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = 0
             self.update_buttons()
             await interaction.response.edit_message(
@@ -747,7 +748,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
@@ -757,7 +758,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
@@ -767,7 +768,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = self.max_page
             self.update_buttons()
             await interaction.response.edit_message(
@@ -824,7 +825,7 @@ class UtilityCommands(commands.Cog):
             ),
         }
     )
-    async def timezone(self, ctx: commands.Context, user: discord.User | None = None, *, flags: TimezoneFlags) -> None:
+    async def timezone(self, ctx: commands.Context[commands.Bot], user: discord.User | None = None, *, flags: TimezoneFlags) -> None:
         timezones = self.load_timezones()
         if ctx.guild is None:
             return
@@ -1038,7 +1039,7 @@ class UtilityCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     class UserMatchPaginator(discord.ui.View):
-        def __init__(self, ctx: commands.Context, matches: list[discord.Member]) -> None:
+        def __init__(self, ctx: commands.Context[commands.Bot], matches: list[discord.Member]) -> None:
             super().__init__(timeout=120)
             self.ctx = ctx
             self.matches = matches
@@ -1079,7 +1080,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = 0
             self.update_buttons()
             await interaction.response.edit_message(
@@ -1088,7 +1089,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
@@ -1098,7 +1099,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
@@ -1108,7 +1109,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = self.max_page
             self.update_buttons()
             await interaction.response.edit_message(
@@ -1124,7 +1125,7 @@ class UtilityCommands(commands.Cog):
         has_inverse = False,
         aliases     = ["ui"],
     )
-    async def userinfo(self, ctx: commands.Context, *, user: str | None = None) -> None:
+    async def userinfo(self, ctx: commands.Context[commands.Bot], *, user: str | None = None) -> None:
         if ctx.guild is None:
             return
 
@@ -1243,7 +1244,7 @@ class UtilityCommands(commands.Cog):
         slash       = False,
         has_inverse = False,
     )
-    async def ping(self, ctx: commands.Context) -> None:
+    async def ping(self, ctx: commands.Context[commands.Bot]) -> None:
         latency_ms = round(self.bot.latency * 1000)
         await ctx.send(
             view=Ping(latency_ms)
@@ -1253,7 +1254,7 @@ class UtilityCommands(commands.Cog):
     # .lock/.l Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    def allowed_in_thread(self, ctx: commands.Context) -> bool:
+    def allowed_in_thread(self, ctx: commands.Context[commands.Bot]) -> bool:
         if not isinstance(ctx.channel, discord.Thread):
             return False
 
@@ -1279,7 +1280,7 @@ class UtilityCommands(commands.Cog):
         name="lock",
         aliases=["l"]
     )
-    async def lock(self, ctx: commands.Context) -> None:
+    async def lock(self, ctx: commands.Context[commands.Bot]) -> None:
         if not self.allowed_in_thread(ctx):
             return
 
@@ -1296,7 +1297,7 @@ class UtilityCommands(commands.Cog):
         name="close",
         aliases=["c"]
     )
-    async def close(self, ctx: commands.Context) -> None: 
+    async def close(self, ctx: commands.Context[commands.Bot]) -> None: 
         if not self.allowed_in_thread(ctx):
             return
 

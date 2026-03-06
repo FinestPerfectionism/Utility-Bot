@@ -68,7 +68,7 @@ class CommitteeRolesComponents(discord.ui.LayoutView):
         accent_color=0xf9a56b
     )
 
-class AdministratorsRoles(discord.ui.Button):
+class AdministratorsRoles(discord.ui.Button[discord.ui.View]):
     def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.success,
@@ -82,7 +82,7 @@ class AdministratorsRoles(discord.ui.Button):
             ephemeral=True
         )
 
-class ModeratorsRoles(discord.ui.Button):
+class ModeratorsRoles(discord.ui.Button[discord.ui.View]):
     def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.success,
@@ -96,7 +96,7 @@ class ModeratorsRoles(discord.ui.Button):
             ephemeral=True
         )
 
-class TrusteeRoles(discord.ui.Button):
+class TrusteeRoles(discord.ui.Button[discord.ui.View]):
     def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.primary,
@@ -110,7 +110,7 @@ class TrusteeRoles(discord.ui.Button):
             ephemeral=True
         )
 
-class CommitteeRoles(discord.ui.Button):
+class CommitteeRoles(discord.ui.Button[discord.ui.View]):
     def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.danger,

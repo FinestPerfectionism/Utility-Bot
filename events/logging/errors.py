@@ -187,7 +187,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+    async def on_command_error(self, ctx: commands.Context[commands.Bot], error: commands.CommandError) -> None:
         if hasattr(ctx.command, "on_error"):
             return
 

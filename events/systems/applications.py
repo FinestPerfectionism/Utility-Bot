@@ -223,7 +223,7 @@ class DecisionView(ui.View):
         super().__init__(timeout=None)
 
     @ui.button(label="Accept", style=discord.ButtonStyle.success, custom_id="decision:accept")
-    async def accept(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def accept(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         msg = interaction.message
         if msg is None:
             return
@@ -249,7 +249,7 @@ class DecisionView(ui.View):
         )
 
     @ui.button(label="Deny", style=discord.ButtonStyle.danger, custom_id="decision:deny")
-    async def deny(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def deny(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         msg = interaction.message
         if msg is None:
             return
@@ -275,7 +275,7 @@ class DecisionView(ui.View):
         )
 
     @ui.button(label="History", style=discord.ButtonStyle.secondary, custom_id="decision:history")
-    async def history(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def history(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         msg = interaction.message
         if msg is None:
             return
@@ -458,7 +458,7 @@ class ApplicationSubmitView(ui.View):
         self.user_id = user_id
 
     @ui.button(label="Edit", style=discord.ButtonStyle.secondary)
-    async def edit(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def edit(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             return
@@ -472,7 +472,7 @@ class ApplicationSubmitView(ui.View):
         )
 
     @ui.button(label="Submit", style=discord.ButtonStyle.success)
-    async def submit(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def submit(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             await interaction.response.send_message(
@@ -538,7 +538,7 @@ class ApplicationSubmitView(ui.View):
         )
 
     @ui.button(label="Cancel", style=discord.ButtonStyle.danger)
-    async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         await delete_application_messages(interaction.client, self.user_id)
         await interaction.response.send_message(
             "Your application has been cancelled and deleted.",
@@ -753,10 +753,10 @@ class ApplicationMenuView(ui.View):
             ephemeral=True
         )
 
-    async def mod_btn(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def mod_btn(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         await self.handle_mod_application(interaction)
 
-    async def admin_btn(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
+    async def admin_btn(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
         await self.handle_admin_application(interaction)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -785,7 +785,7 @@ class EditQuestionSelectView(ui.View):
 # Edit Question Select
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class EditQuestionSelect(ui.Select):
+class EditQuestionSelect(discord.ui.Select[discord.ui.View]):
     def __init__(self, options: list[discord.SelectOption], user_id: int) -> None:
         super().__init__(placeholder="Select a question to edit.",
                          options=options)

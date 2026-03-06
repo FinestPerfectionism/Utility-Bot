@@ -99,10 +99,13 @@ class PurgeCommands(ModerationBase):
                     bulk=True
                 )
 
-            metadata: dict = {
+            from typing import Any
+
+            metadata: dict[str, Any] = {
                 "deleted_messages": len(deleted),
                 "channel_id": channel.id
             }
+
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -143,7 +146,7 @@ class PurgeCommands(ModerationBase):
     @commands.command(name="purge", aliases=["p"])
     async def purge_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         amount: int,
         *,
         flags: PurgeFlags
@@ -218,7 +221,7 @@ class PurgeCommands(ModerationBase):
             )
 
     @purge_prefix.error
-    async def purge_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def purge_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return

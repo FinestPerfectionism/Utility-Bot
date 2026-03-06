@@ -24,7 +24,7 @@ class PingCommands(commands.Cog, name="ping"):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    async def _check_and_ping(self, ctx: commands.Context, required_role_id: int, ping_role_id: int) -> None:
+    async def _check_and_ping(self, ctx: commands.Context[commands.Bot], required_role_id: int, ping_role_id: int) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 
@@ -38,7 +38,7 @@ class PingCommands(commands.Cog, name="ping"):
                 log.error(f"Failed to ping role {ping_role_id}: {e}")
 
     @commands.group(name="ping", invoke_without_command=True)
-    async def ping_group(self, ctx: commands.Context) -> None:
+    async def ping_group(self, ctx: commands.Context[commands.Bot]) -> None:
         return
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -52,7 +52,7 @@ class PingCommands(commands.Cog, name="ping"):
             "stf"
         ]
     )
-    async def ping_staff(self, ctx: commands.Context) -> None:
+    async def ping_staff(self, ctx: commands.Context[commands.Bot]) -> None:
         await self._check_and_ping(ctx, STAFF_ROLE_ID, STAFF_ROLE_ID)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -67,7 +67,7 @@ class PingCommands(commands.Cog, name="ping"):
             "seniormoderators" , "seniormods" , "seniormod" , "smods" , "smod" , "sm"
         ]
     )
-    async def ping_senior_moderators(self, ctx: commands.Context) -> None:
+    async def ping_senior_moderators(self, ctx: commands.Context[commands.Bot]) -> None:
         await self._check_and_ping(ctx, MODERATORS_ROLE_ID, SENIOR_MODERATORS_ROLE_ID)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -82,7 +82,7 @@ class PingCommands(commands.Cog, name="ping"):
             "senioradministrators" , "senioradmins" , "senioradmin" , "sadmins" , "sadmin" , "sa"
         ]
     )
-    async def ping_senior_administrators(self, ctx: commands.Context) -> None:
+    async def ping_senior_administrators(self, ctx: commands.Context[commands.Bot]) -> None:
         await self._check_and_ping(ctx, ADMINISTRATORS_ROLE_ID, SENIOR_ADMINISTRATORS_ROLE_ID)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -97,7 +97,7 @@ class PingCommands(commands.Cog, name="ping"):
             "d"
         ]
     )
-    async def ping_directors(self, ctx: commands.Context) -> None:
+    async def ping_directors(self, ctx: commands.Context[commands.Bot]) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 
@@ -121,7 +121,7 @@ class PingCommands(commands.Cog, name="ping"):
             "committee"      , "com"
         ]
     )
-    async def ping_committee(self, ctx: commands.Context) -> None:
+    async def ping_committee(self, ctx: commands.Context[commands.Bot]) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 

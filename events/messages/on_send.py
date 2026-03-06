@@ -17,7 +17,6 @@ from events.systems.applications import ApplicationSubmitView
 
 from constants import (
     ACCEPTED_EMOJI_ID,
-    UTILITY_BOT_EMOJI_ID,
 
     COLOR_BLURPLE,
 
@@ -45,12 +44,6 @@ class MessageSendHandler(commands.Cog):
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
             return
-
-        keywords = ["hi", "hey", "hello"]
-
-        if self.bot.user in message.mentions and any(word in message.content.lower() for word in keywords):
-            await message.add_reaction(f"{UTILITY_BOT_EMOJI_ID}")
-            await message.reply("Hello!")
 
         if isinstance(message.channel, discord.Thread):
             thread = message.channel

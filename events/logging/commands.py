@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from typing import Any
+
 from constants import (
     COLOR_BLURPLE,
 
@@ -24,7 +26,7 @@ class CommandLogger(commands.Cog):
     async def on_app_command_completion(
         self,
         interaction: discord.Interaction,
-        command: app_commands.Command,
+        command: app_commands.Command[Any, Any, Any],
     ) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
@@ -79,7 +81,7 @@ class CommandLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_command_completion(self, ctx: commands.Context) -> None:
+    async def on_command_completion(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return

@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-
 import contextlib
 import json
 import os
@@ -8,9 +7,15 @@ from datetime import (
     datetime,
     timedelta
 )
-from typing import TYPE_CHECKING
+from typing import (
+    TYPE_CHECKING,
+    Any
+)
 
-from commands.moderation.cases import CaseType, CasesManager
+from commands.moderation.cases import (
+    CaseType,
+    CasesManager
+)
 
 if TYPE_CHECKING:
     from bot import UtilityBot
@@ -116,20 +121,20 @@ class ModerationBase(commands.Cog):
         self.SEVERE_DAILY_LIMIT = 8
 
     @property
-    def data(self) -> dict:
+    def data(self) -> dict[str, Any]:
         return self.bot.mod_data
 
     @property
     def cases_manager(self) -> CasesManager:
         return self.bot.cases_manager
 
-    def _load_data(self) -> dict:
+    def _load_data(self) -> dict[str, Any]:
         if os.path.exists("moderation_data.json"):
             with contextlib.suppress(json.JSONDecodeError), open("moderation_data.json") as f:
                 return json.load(f)
         return self._get_default_data()
 
-    def _get_default_data(self) -> dict:
+    def _get_default_data(self) -> dict[str, Any]:
         return {
             "bans": {},
             "timeouts": {},

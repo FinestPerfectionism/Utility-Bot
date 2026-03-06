@@ -1,7 +1,16 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    cast
+)
+if TYPE_CHECKING:
+    from collections.abc import (
+        Callable,
+        Awaitable
+    )
 import json
 import asyncio
 import os
@@ -60,7 +69,7 @@ class BotOwnerCommands(
         self.bot = bot
         self.restarting = False
         self.logger = logging.getLogger("bot")
-        self.COGS = discover_cogs(
+        self.cogs = discover_cogs(
             "commands",
             "events",
             "core",
@@ -146,7 +155,7 @@ class BotOwnerCommands(
                 )
                 log.error(f"Failed to reload cog {cog}: {e}")
         else:
-            failed = []
+            failed: list[tuple[str, Exception]] = []
             for c in self.COGS:
                 try:
                     await self.bot.reload_extension(c)
@@ -154,6 +163,8 @@ class BotOwnerCommands(
                 except Exception as e:
                     failed.append((c, e))
                     log.error(f"Failed to reload cog {c}: {e}")
+            if failed:
+                msg: str = "\n".join(f"{c}: {e}" for c, e in failed)
 
             if failed:
                 msg = "\n".join(f"{c}: {e}" for c, e in failed)
@@ -270,7 +281,7 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="restart", aliases=["r"])
-    async def restart(self, ctx: commands.Context) -> None:
+    async def restart(self, ctx: commands.Context[commands.Bot]) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
@@ -323,7 +334,7 @@ class BotOwnerCommands(
                         asyncio.gather(*pending, return_exceptions=True),
                         timeout=5.0
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     self.logger.warning(
                         "Some tasks did not cancel in time"
                     )
@@ -439,25 +450,25 @@ class BotOwnerCommands(
         match type.value:
             case "playing":
                 activity = discord.Game(name=text)
-
+    
             case "watching":
                 activity = discord.Activity(
                     type=discord.ActivityType.watching,
                     name=text,
                 )
-
+    
             case "listening":
                 activity = discord.Activity(
                     type=discord.ActivityType.listening,
                     name=text,
                 )
-
+    
             case "competing":
                 activity = discord.Activity(
                     type=discord.ActivityType.competing,
                     name=text,
                 )
-
+    
             case "streaming":
                 if not url:
                     await interaction.response.send_message(
@@ -466,12 +477,14 @@ class BotOwnerCommands(
                     )
                     return
                 activity = discord.Streaming(name=text, url=url)
-
+    
             case "custom":
                 activity = discord.Activity(
                     type=discord.ActivityType.custom,
                     state=text,
                 )
+            case _:
+                pass
 
         await self.bot.change_presence(
             activity=activity,
@@ -488,7 +501,7 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="eval")
-    async def _eval(self, ctx: commands.Context, *, body: str) -> None:
+    async def _eval(self, ctx: commands.Context[commands.Bot], *, body: str) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
 
@@ -521,7 +534,8 @@ class BotOwnerCommands(
             await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
             return
 
-        func = env['func']
+        func = cast("Callable[[], Awaitable[Any]]", env["func"])
+
         try:
             with contextlib.redirect_stdout(stdout):
                 ret = await func()
@@ -544,7 +558,7 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="say")
-    async def say(self, ctx: commands.Context, *, message: str) -> None:
+    async def say(self, ctx: commands.Context[commands.Bot], *, message: str) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return

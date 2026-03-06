@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from typing import Any
 import contextlib
 import json
 import os
@@ -65,13 +66,13 @@ class LockdownCommands(commands.Cog):
     def cases_manager(self) -> CasesManager:
         return self.bot.cases_manager
 
-    def load_data(self) -> dict:
+    def load_data(self) -> dict[str, Any]:
         if os.path.exists(self.data_file):
             with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
                 return json.load(f)
         return self.get_default_data()
         
-    def get_default_data(self) -> dict:
+    def get_default_data(self) -> dict[str, Any]:
         return {
             "active": False,
             "activated_at": None,

@@ -293,7 +293,7 @@ def _collect_slash_commands(
         if cb and hasattr(cb, "__help_data__") and id(cb) not in seen_callbacks:
             seen_callbacks.add(id(cb))
             qualified = getattr(app_cmd, "qualified_name", app_cmd.name)
-            lines.append(f"`/{qualified}` — {cast("HelpedCallable", cb).__help_data__.desc}")
+            lines.append(f"`/{qualified}` — {cast('HelpedCallable', cb).__help_data__.desc}")
 
         sub_commands = getattr(app_cmd, "commands", None)
         if sub_commands:

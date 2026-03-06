@@ -100,7 +100,7 @@ def committee_only() -> Callable[[Any], Any]:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def has_director_role() -> Callable[[Any], Any]:
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: commands.Context[commands.Bot]) -> bool:
         if not isinstance(ctx.author, discord.Member):
             return False
         return any(role.id == DIRECTORS_ROLE_ID for role in ctx.author.roles)

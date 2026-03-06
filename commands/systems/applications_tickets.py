@@ -145,7 +145,7 @@ class ApplicationsTicketsCommands(
         name="archive",
         aliases=["a"]
     )
-    async def archive(self, ctx: commands.Context) -> None:
+    async def archive(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
@@ -246,7 +246,7 @@ class ApplicationsTicketsCommands(
     @commands.command(
         name="cancel"
     )
-    async def cancel(self, ctx: commands.Context) -> None:
+    async def cancel(self, ctx: commands.Context[commands.Bot]) -> None:
         if ctx.guild is not None:
             await ctx.send(
                 "This command can only be used in DMs."
@@ -277,7 +277,7 @@ class ApplicationsTicketsCommands(
         name="escalate",
         aliases=["e", "esc"]
     )
-    async def escalate(self, ctx: commands.Context) -> None:
+    async def escalate(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):

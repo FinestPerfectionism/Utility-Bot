@@ -127,7 +127,8 @@ class TimeoutCommands(ModerationBase):
             }
             self.save_data()
 
-            metadata: dict = {"until": until.isoformat()}
+            metadata: dict[str, str] = {"until": until.isoformat()}
+
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -170,7 +171,7 @@ class TimeoutCommands(ModerationBase):
     @commands.command(name="timeout", aliases=["tt", "mute", "m"])
     async def timeout_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         member: discord.Member,
         *,
         flags: TimeoutFlags
@@ -294,7 +295,7 @@ class TimeoutCommands(ModerationBase):
             )
 
     @timeout_prefix.error
-    async def timeout_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def timeout_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
@@ -393,7 +394,7 @@ class TimeoutCommands(ModerationBase):
     @commands.command(name="un-timeout", aliases=["untimeout", "utt", "unmute", "um"])
     async def untimeout_prefix(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[commands.Bot],
         member: discord.Member,
         *,
         flags: KickFlags
@@ -463,7 +464,7 @@ class TimeoutCommands(ModerationBase):
             )
 
     @untimeout_prefix.error
-    async def untimeout_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
+    async def untimeout_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_unban_untimeout(actor):
             return
@@ -557,7 +558,7 @@ class TimeoutCommands(ModerationBase):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="mute-list", aliases=["mutelist", "mutes", "mls", "time-outs", "timeouts", "tls"])
-    async def timeouts_prefix(self, ctx: commands.Context) -> None:
+    async def timeouts_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return

@@ -38,7 +38,7 @@ class MiscCommands(commands.Cog):
     @commands.command(
         name="super_secret_command"
     )
-    async def super_secret_command(self, ctx: commands.Context) -> None:
+    async def super_secret_command(self, ctx: commands.Context[commands.Bot]) -> None:
         author_id = ctx.author.id
 
         if author_id == BOT_OWNER_ID:
