@@ -1,1 +1,9 @@
 run = "python main.py"
+
+[nix]
+channel = "stable-24_11"
+
+modules = ["python-3.12:latest"]
+
+[languages.python]
+entrypoint = "main.py"
