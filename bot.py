@@ -39,8 +39,8 @@ class UtilityBot(commands.Bot):
     
         priority_load = [
             "events.systems.antinuke",
-            "events.member.verification",  
-            "startup"
+            "events.member.verification",
+            "core.startup"
         ]
 
         COGS = discover_cogs(
