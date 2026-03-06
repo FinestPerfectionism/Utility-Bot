@@ -11,12 +11,12 @@ class RequirementComponents1(discord.ui.LayoutView):
             content=
                 "# Welcome to our Partnership Requirements!\n"
                 "Our requirements for server partnerships.\n"
-                "-# **Note:** It is within Directors’ discretion as to whether we choose to partner wtih your server regardless of if the rules they find you to be not qualifying for are listed here. Directors are not required to provide a reason, if any, when denying a partnerhsip."
+                "-# **Note:** It is within Directors' discretion as to whether we choose to partner wtih your server regardless of if the rules they find you to be not qualifying for are listed here. Directors are not required to provide a reason, if any, when denying a partnerhsip."
         ),
     )
 
 class RequirementComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int):
+    def __init__(self, timestamp: int) -> None:
         super().__init__(timeout=None)
         self.container = discord.ui.Container(
             discord.ui.Section(
@@ -85,9 +85,9 @@ class RequirementComponents2(discord.ui.LayoutView):
                     "## §4 Termination\n"
                     "A partnership may be revoked at any time if:\n\n"
                     "- The partner server violates Discord policy.\n"
-                    "- The partner server violates The Goobers’ standards of conduct.\n"
+                    "- The partner server violates The Goobers' standards of conduct.\n"
                     "- The partner becomes inactive or structurally unstable.\n"
-                    "- The Directorate determines continued association is not in the server’s interest.\n\n"
+                    "- The Directorate determines continued association is not in the server's interest.\n\n"
                     "Revocation does not require public justification.\n\n"
                     "## §5 Authority\n"
                     "All partnership decisions are made solely by the Directorate.\n"

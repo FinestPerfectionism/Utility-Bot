@@ -2,6 +2,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from collections.abc import (
+    Callable,
+)
+
+from typing import Any
+
 from core import state
 
 from constants import (
@@ -40,7 +46,7 @@ class PermissionDenied(app_commands.CheckFailure):
 # Main Guild Only Check
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def main_guild_only():
+def main_guild_only() -> Callable[[Any], Any]:
     async def predicate(interaction: discord.Interaction) -> bool:
         if interaction.guild is None or interaction.guild.id != GUILD_ID:
             raise WrongGuild()
@@ -52,7 +58,7 @@ def main_guild_only():
 # Require Role Check
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def require_role(role_id: int):
+def require_role(role_id: int) -> Callable[[Any], Any]:
     async def predicate(interaction: discord.Interaction) -> bool:
         if interaction.user.id == BOT_OWNER_ID and state.OWNER_PRIVILEGE_ENABLED:
             return True
@@ -71,59 +77,52 @@ def require_role(role_id: int):
 # Role Application Checks
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def directors_only():
+def directors_only() -> Callable[[Any], Any]:
     return require_role(DIRECTORS_ROLE_ID)
 
-def mod_and_admin_only():
+def mod_and_admin_only() -> Callable[[Any], Any]:
     return require_role(MODERATORS_AND_ADMINISTRATORS_ROLE_ID)
 
-def mod_only():
+def mod_only() -> Callable[[Any], Any]:
     return require_role(MODERATORS_ROLE_ID)
 
-def admin_only():
+def admin_only() -> Callable[[Any], Any]:
     return require_role(ADMINISTRATORS_ROLE_ID)
 
-def staff_only():
+def staff_only() -> Callable[[Any], Any]:
     return require_role(STAFF_ROLE_ID)
 
-def committee_only():
+def committee_only() -> Callable[[Any], Any]:
     return require_role(STAFF_COMMITTEE_ROLE_ID)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role Prefix Checks
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def has_director_role():
+def has_director_role() -> Callable[[Any], Any]:
     async def predicate(ctx: commands.Context) -> bool:
         if not isinstance(ctx.author, discord.Member):
             return False
         return any(role.id == DIRECTORS_ROLE_ID for role in ctx.author.roles)
     return commands.check(predicate)
 
-
 def has_role(member: discord.Member, role_id: int) -> bool:
     return any(role.id == role_id for role in member.roles)
-
 
 def is_director(member: discord.Member) -> bool:
     return has_role(member, DIRECTORS_ROLE_ID)
 
-
 def is_staff(member: discord.Member) -> bool:
     return has_role(member, STAFF_ROLE_ID)
-
 
 def is_staff_committee(member: discord.Member) -> bool:
     return has_role(member, STAFF_COMMITTEE_ROLE_ID)
 
-
 def is_moderator(member: discord.Member) -> bool:
     return has_role(member, MODERATORS_ROLE_ID)
 
-
 def is_administrator(member: discord.Member) -> bool:
     return has_role(member, ADMINISTRATORS_ROLE_ID)
-
 
 def is_senior_moderator(member: discord.Member) -> bool:
     return has_role(member, SENIOR_MODERATORS_ROLE_ID)

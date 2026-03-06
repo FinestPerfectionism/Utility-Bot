@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 from collections import defaultdict
 from datetime import datetime
 
@@ -36,12 +36,12 @@ def save_layout_message_ids(layout_ids: dict) -> None:
 # Auto-Moderation Management
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def save_automod_strikes():
+def save_automod_strikes() -> None:
     AUTOMOD_STRIKES_FILE.parent.mkdir(parents=True, exist_ok=True)
     data = {str(k): [t.isoformat() for t in v] for k, v in AUTOMOD_STRIKES.items()}
     AUTOMOD_STRIKES_FILE.write_text(json.dumps(data, indent=4))
 
-def load_automod_strikes():
+def load_automod_strikes() -> None:
     if not AUTOMOD_STRIKES_FILE.exists():
         return
     try:
@@ -63,14 +63,14 @@ APPLICATION_STATE_FILE = Path("application_state.json")
 ACTIVE_APPLICATIONS_FILE = Path("active_applications.json")
 BLACKLIST_FILE = Path("blacklist.json")
 
-APPLICATIONS_OPEN: Dict[str, bool] = {
+APPLICATIONS_OPEN: dict[str, bool] = {
     "mod": True,
     "admin": True
 }
 
-ACTIVE_APPLICATIONS: Dict[int, Dict[str, Any]] = {}
+ACTIVE_APPLICATIONS: dict[int, dict[str, Any]] = {}
 
-BLACKLIST: Dict[str, list[int]] = {
+BLACKLIST: dict[str, list[int]] = {
     "applications": [],
     "tickets": []
 }
@@ -119,7 +119,7 @@ def load_active_applications() -> None:
         }
 
 def save_active_applications() -> None:
-    serializable: Dict[str, Dict[str, Any]] = {}
+    serializable: dict[str, dict[str, Any]] = {}
 
     for user_id, data in ACTIVE_APPLICATIONS.items():
         serializable[str(user_id)] = {

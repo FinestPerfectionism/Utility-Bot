@@ -20,27 +20,24 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MessageEditHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    def is_directorship_channel(self, channel):
-        if hasattr(channel, 'category_id') and channel.category_id == DIRECTORSHIP_CATEGORY_ID:
-            return True
-        if hasattr(channel, 'category') and channel.category and channel.category.id == DIRECTORSHIP_CATEGORY_ID:
-            return True
-        if hasattr(channel, 'parent') and channel.parent:
-            if hasattr(channel.parent, 'category_id') and channel.parent.category_id == DIRECTORSHIP_CATEGORY_ID:
-                return True
-            if hasattr(channel.parent, 'category') and channel.parent.category and channel.parent.category.id == DIRECTORSHIP_CATEGORY_ID:
-                return True
-        return False
+    def is_directorship_channel(self, channel: discord.abc.Messageable) -> bool:
+        return (
+            isinstance(channel, (discord.TextChannel, discord.VoiceChannel, discord.StageChannel))
+            and channel.category_id == DIRECTORSHIP_CATEGORY_ID
+        ) or (
+            isinstance(channel, discord.Thread)
+            and getattr(channel.parent, "category_id", None) == DIRECTORSHIP_CATEGORY_ID
+        )
 
     @commands.Cog.listener()
     async def on_message_edit(
         self,
         before: discord.Message,
         after: discord.Message,
-    ):
+    ) -> None:
         
         if before.author.bot or before.guild is None:
             return
@@ -94,5 +91,5 @@ class MessageEditHandler(commands.Cog):
 
         await self.bot.process_commands(after)
         
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MessageEditHandler(bot))

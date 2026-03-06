@@ -28,12 +28,13 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class DiscordStream(io.TextIOBase):
-    def __init__(self, queue: asyncio.Queue, original_stream):
+    def __init__(self, queue: asyncio.Queue, original_stream: io.TextIOBase) -> None:
         self.queue = queue
         self.original = original_stream
         self.buffer = ""
+        self._tasks: set[asyncio.Task[None]] = set()
 
-    def write(self, message: str):
+    def write(self, message: str) -> int:
         self.original.write(message)
         self.original.flush()
         if message.strip():
@@ -43,7 +44,9 @@ class DiscordStream(io.TextIOBase):
                 self.buffer = lines[-1]
                 to_send = "\n".join(lines[:-1])
                 if to_send.strip():
-                    asyncio.create_task(self.queue.put(to_send))
+                    task = asyncio.create_task(self.queue.put(to_send))
+                    self._tasks.add(task)
+                    task.add_done_callback(self._tasks.discard)
         return len(message)
 
 async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
@@ -63,7 +66,7 @@ async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
             pending.append(line)
             while not queue.empty():
                 pending.append(queue.get_nowait())
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
         if pending:
             combined = "\n".join(pending)
@@ -81,7 +84,7 @@ async def console_sender(bot: commands.Bot, queue: asyncio.Queue) -> None:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class Ready(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self._ran = False
         self._console_queue: asyncio.Queue = asyncio.Queue(maxsize=500)
@@ -122,13 +125,14 @@ class Ready(commands.Cog):
         if self._ran:
             return
         self._ran = True
+        self._console_task: asyncio.Task[None] | None = None
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(
             lambda loop, context: self.bot.dispatch("asyncio_error", context)
         )
         sys.stdout = DiscordStream(self._console_queue, sys.__stdout__)
         sys.stderr = DiscordStream(self._console_queue, sys.__stderr__)
-        asyncio.create_task(console_sender(self.bot, self._console_queue))
+        self._console_task = asyncio.create_task(console_sender(self.bot, self._console_queue))
         load_active_applications()
         load_automod_strikes()
         save_automod_strikes()

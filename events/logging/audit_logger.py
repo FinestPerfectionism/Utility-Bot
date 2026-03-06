@@ -8,7 +8,17 @@ from datetime import (
     datetime,
     UTC
 )
+from collections.abc import Sequence
+from typing import Union, cast
 import asyncio
+
+from core.permissions import (
+    is_director,
+    is_staff,
+    is_moderator,
+    is_administrator,
+    is_senior_moderator
+)
 
 from constants import (
     DIRECTORSHIP_CATEGORY_ID,
@@ -21,6 +31,8 @@ from constants import (
     COLOR_BLURPLE
 )
 
+_AnyGuildChannel = discord.TextChannel | discord.VoiceChannel | discord.StageChannel | discord.ForumChannel | discord.CategoryChannel
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Changes Handling
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -28,17 +40,17 @@ from constants import (
 _SEND_INTERVAL = 1.0
 
 class AuditLogger(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.log_channel_id = CHANGE_LOG_CHANNEL_ID
         self._queue: asyncio.Queue[tuple[discord.abc.Messageable, discord.Embed]] = asyncio.Queue()
         self._queue_worker.start()
 
-    async def cog_unload(self):
+    async def cog_unload(self) -> None:
         self._queue_worker.cancel()
 
     @tasks.loop(seconds=_SEND_INTERVAL)
-    async def _queue_worker(self):
+    async def _queue_worker(self) -> None:
         if self._queue.empty():
             return
 
@@ -54,40 +66,44 @@ class AuditLogger(commands.Cog):
             self._queue.task_done()
 
     @_queue_worker.before_loop
-    async def _before_queue_worker(self):
+    async def _before_queue_worker(self) -> None:
         await self.bot.wait_until_ready()
 
-    async def _enqueue(self, channel: discord.abc.Messageable, embed: discord.Embed):
+    async def _enqueue(self, channel: discord.abc.Messageable, embed: discord.Embed) -> None:
         await self._queue.put((channel, embed))
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Helpers
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    async def get_log_channel(self, guild):
+    async def get_log_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
         channel = guild.get_channel(self.log_channel_id)
         if not channel:
             print(f"Warning: Logging channel {self.log_channel_id} not found in {guild.name}")
-        return channel
+        return channel  # type: ignore[return-value]
 
-    def is_directorship_channel(self, channel):
-        if hasattr(channel, 'category_id') and channel.category_id == DIRECTORSHIP_CATEGORY_ID:
-            return True
-        if hasattr(channel, 'category') and channel.category and channel.category.id == DIRECTORSHIP_CATEGORY_ID:
-            return True
-        return False
+    def is_directorship_channel(self, channel: discord.abc.GuildChannel | discord.Thread) -> bool:
+        return (
+            (hasattr(channel, 'category_id') and channel.category_id == DIRECTORSHIP_CATEGORY_ID)
+            or (hasattr(channel, 'category') and channel.category is not None and channel.category.id == DIRECTORSHIP_CATEGORY_ID)
+        )
 
-    async def get_executor(self, guild, action_type, target_id=None):
+    async def get_executor(
+        self,
+        guild: discord.Guild,
+        action_type: discord.AuditLogAction,
+        target_id: int | None = None
+    ) -> discord.abc.User | None:
         try:
             await asyncio.sleep(0.5)
             async for entry in guild.audit_logs(limit=10, action=action_type):
-                if target_id is None or entry.target.id == target_id:
+                if target_id is None or (entry.target is not None and entry.target.id == target_id):
                     return entry.user
         except discord.HTTPException as e:
             print(f"Error fetching audit log: {e}")
         return None
 
-    def format_permissions(self, permissions):
+    def format_permissions(self, permissions: discord.Permissions) -> str:
         if not permissions:
             return "None"
 
@@ -100,7 +116,11 @@ class AuditLogger(commands.Cog):
 
         return "\n".join(perms) if perms else "None"
 
-    def get_overwrite_changes(self, before_overwrites, after_overwrites):
+    def get_overwrite_changes(
+        self,
+        before_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite],
+        after_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite]
+    ) -> list[str]:
         changes = []
 
         all_targets = set(before_overwrites.keys()) | set(after_overwrites.keys())
@@ -113,7 +133,7 @@ class AuditLogger(commands.Cog):
             target_name = target.name if hasattr(target, 'name') else str(target)
             target_id = target.id if hasattr(target, 'id') else "Unknown"
 
-            if before_ow is None:
+            if before_ow is None and after_ow is not None:
                 perms = []
                 for perm, value in after_ow:
                     if value is not None:
@@ -150,15 +170,15 @@ class AuditLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel):
+    async def on_guild_channel_create(self, channel: discord.abc.GuildChannel) -> None:
         if self.is_directorship_channel(channel):
             return
 
-        log_channel = await self.get_log_channel(channel.guild)
-        if not log_channel:
+        executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_create, channel.id)
+        if executor and is_director(executor):
             return
 
-        executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_create, channel.id)
+        log_channel = await self.get_log_channel(channel.guild)
 
         embed = discord.Embed(
             title="Channel Created",
@@ -194,15 +214,15 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_guild_channel_delete(self, channel):
+    async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel) -> None:
         if self.is_directorship_channel(channel):
             return
 
-        log_channel = await self.get_log_channel(channel.guild)
-        if not log_channel:
+        executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_delete, channel.id)
+        if executor and is_director(executor):
             return
 
-        executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_delete, channel.id)
+        log_channel = await self.get_log_channel(channel.guild)
 
         embed = discord.Embed(
             title="Channel Deleted",
@@ -235,14 +255,19 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_guild_channel_update(self, before, after):
+    async def on_guild_channel_update(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel) -> None:
         if self.is_directorship_channel(after):
+            return
+
+        if executor and is_director(executor):
             return
 
         log_channel = await self.get_log_channel(after.guild)
         if not log_channel:
             return
 
+        _before = cast(_AnyGuildChannel, before)
+        _after = cast(_AnyGuildChannel, after)
         changes = []
 
         if before.name != after.name:
@@ -257,42 +282,41 @@ class AuditLogger(commands.Cog):
             if before_cat != after_cat:
                 changes.append(("Category", before_cat, after_cat))
 
-        if hasattr(before, 'topic'):
-            before_topic = before.topic or "None"
-            after_topic = after.topic or "None"
+        if hasattr(_before, 'topic'):
+            before_topic = _before.topic or "None"
+            after_topic = _after.topic or "None"
             if before_topic != after_topic:
                 changes.append(("Topic", before_topic, after_topic))
 
-        if hasattr(before, 'nsfw') and before.nsfw != after.nsfw:
-            changes.append(("NSFW", str(before.nsfw), str(after.nsfw)))
+        if hasattr(_before, 'nsfw') and _before.nsfw != _after.nsfw:
+            changes.append(("NSFW", str(_before.nsfw), str(_after.nsfw)))
 
-        if hasattr(before, 'slowmode_delay') and before.slowmode_delay != after.slowmode_delay:
-            changes.append(("Slowmode Delay", f"{before.slowmode_delay}s", f"{after.slowmode_delay}s"))
+        if hasattr(_before, 'slowmode_delay') and _before.slowmode_delay != _after.slowmode_delay:
+            changes.append(("Slowmode Delay", f"{_before.slowmode_delay}s", f"{_after.slowmode_delay}s"))
 
-        if hasattr(before, 'bitrate') and before.bitrate != after.bitrate:
-            changes.append(("Bitrate", f"{before.bitrate}bps", f"{after.bitrate}bps"))
+        if hasattr(_before, 'bitrate') and _before.bitrate != _after.bitrate:
+            changes.append(("Bitrate", f"{_before.bitrate}bps", f"{_after.bitrate}bps"))
 
-        if hasattr(before, 'user_limit') and before.user_limit != after.user_limit:
-            before_limit = "Unlimited" if before.user_limit == 0 else str(before.user_limit)
-            after_limit = "Unlimited" if after.user_limit == 0 else str(after.user_limit)
+        if hasattr(_before, 'user_limit') and _before.user_limit != _after.user_limit:
+            before_limit = "Unlimited" if _before.user_limit == 0 else str(_before.user_limit)
+            after_limit = "Unlimited" if _after.user_limit == 0 else str(_after.user_limit)
             changes.append(("User Limit", before_limit, after_limit))
 
-        if hasattr(before, 'rtc_region'):
-            before_region = before.rtc_region or "Automatic"
-            after_region = after.rtc_region or "Automatic"
+        if hasattr(_before, 'rtc_region'):
+            before_region = _before.rtc_region or "Automatic"
+            after_region = _after.rtc_region or "Automatic"
             if before_region != after_region:
-                changes.append(("Voice Region", before_region, after_region))
+                changes.append(("Voice Region", str(before_region), str(after_region)))
 
-        if hasattr(before, 'video_quality_mode') and before.video_quality_mode != after.video_quality_mode:
-            changes.append(("Video Quality", str(before.video_quality_mode), str(after.video_quality_mode)))
+        if hasattr(_before, 'video_quality_mode') and _before.video_quality_mode != _after.video_quality_mode:
+            changes.append(("Video Quality", str(_before.video_quality_mode), str(_after.video_quality_mode)))
 
-        if hasattr(before, 'default_auto_archive_duration'):
-            if before.default_auto_archive_duration != after.default_auto_archive_duration:
-                changes.append((
-                    "Auto Archive Duration",
-                    f"{before.default_auto_archive_duration} min",
-                    f"{after.default_auto_archive_duration} min"
-                ))
+        if hasattr(_before, 'default_auto_archive_duration') and _before.default_auto_archive_duration != _after.default_auto_archive_duration:
+            changes.append((
+                "Auto Archive Duration",
+                f"{_before.default_auto_archive_duration} min",
+                f"{_after.default_auto_archive_duration} min"
+            ))
 
         overwrite_changes = []
         if hasattr(before, 'overwrites') and before.overwrites != after.overwrites:
@@ -302,6 +326,8 @@ class AuditLogger(commands.Cog):
             return
 
         executor = await self.get_executor(after.guild, discord.AuditLogAction.channel_update, after.id)
+        if executor and is_director(executor):
+            return
 
         embed = discord.Embed(
             title="Channel Updated",
@@ -346,12 +372,12 @@ class AuditLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_guild_role_create(self, role):
-        log_channel = await self.get_log_channel(role.guild)
-        if not log_channel:
+    async def on_guild_role_create(self, role: discord.Role) -> None:
+        executor = await self.get_executor(role.guild, discord.AuditLogAction.role_create, role.id)
+        if executor and is_director(executor):
             return
 
-        executor = await self.get_executor(role.guild, discord.AuditLogAction.role_create, role.id)
+        log_channel = await self.get_log_channel(role.guild)
 
         embed = discord.Embed(
             title="Role Created",
@@ -384,12 +410,12 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_guild_role_delete(self, role):
-        log_channel = await self.get_log_channel(role.guild)
-        if not log_channel:
+    async def on_guild_role_delete(self, role: discord.Role) -> None:
+        executor = await self.get_executor(role.guild, discord.AuditLogAction.role_delete, role.id)
+        if executor and is_director(executor):
             return
 
-        executor = await self.get_executor(role.guild, discord.AuditLogAction.role_delete, role.id)
+        log_channel = await self.get_log_channel(role.guild)
 
         embed = discord.Embed(
             title="Role Deleted",
@@ -415,10 +441,12 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_guild_role_update(self, before, after):
-        log_channel = await self.get_log_channel(after.guild)
-        if not log_channel:
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role) -> None:
+        executor = await self.get_executor(after.guild, discord.AuditLogAction.role_update, after.id)
+        if executor and is_director(executor):
             return
+
+        log_channel = await self.get_log_channel(after.guild)
 
         changes = []
 
@@ -500,9 +528,12 @@ class AuditLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: discord.Member) -> None:
         log_channel = await self.get_log_channel(member.guild)
         if not log_channel:
+            return
+
+        if executor and is_director(executor):
             return
 
         embed = discord.Embed(
@@ -525,7 +556,7 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: discord.Member) -> None:
         log_channel = await self.get_log_channel(member.guild)
         if not log_channel:
             return
@@ -537,11 +568,11 @@ class AuditLogger(commands.Cog):
         try:
             await asyncio.sleep(0.5)
             async for entry in member.guild.audit_logs(limit=5):
-                if entry.action == discord.AuditLogAction.kick and entry.target.id == member.id:
+                if entry.action == discord.AuditLogAction.kick and entry.target is not None and entry.target.id == member.id:
                     executor = entry.user
                     was_kicked = True
                     break
-                elif entry.action == discord.AuditLogAction.ban and entry.target.id == member.id:
+                if entry.action == discord.AuditLogAction.ban and entry.target is not None and entry.target.id == member.id:
                     executor = entry.user
                     was_banned = True
                     break
@@ -549,9 +580,13 @@ class AuditLogger(commands.Cog):
             print(f"Error fetching audit log: {e}")
 
         if was_kicked:
+            if executor and is_director(executor):
+                return
             title = "Member Kicked"
             color = COLOR_YELLOW
         elif was_banned:
+            if executor and is_director(executor):
+                return
             title = "Member Banned"
             color = COLOR_RED
         else:
@@ -578,6 +613,8 @@ class AuditLogger(commands.Cog):
             )
 
         if executor:
+            if is_director(executor):
+                return
             action_name = "Kicked By" if was_kicked else "Banned By"
             embed.add_field(
                 name=action_name,
@@ -588,12 +625,14 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_member_ban(self, guild, user):
+    async def on_member_ban(self, guild: discord.Guild, user: discord.User) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
 
         executor = await self.get_executor(guild, discord.AuditLogAction.ban, user.id)
+        if executor and is_director(executor):
+            return
 
         embed = discord.Embed(
             title="Member Banned",
@@ -617,7 +656,7 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_member_unban(self, guild, user):
+    async def on_member_unban(self, guild: discord.Guild, user: discord.User) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
@@ -646,7 +685,7 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_member_update(self, before, after):
+    async def on_member_update(self, before: discord.Member, after: discord.Member) -> None:
         if before.nick != after.nick:
             log_channel = await self.get_log_channel(after.guild)
             if not log_channel:
@@ -734,7 +773,7 @@ class AuditLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_guild_update(self, before, after):
+    async def on_guild_update(self, before: discord.Guild, after: discord.Guild) -> None:
         log_channel = await self.get_log_channel(after)
         if not log_channel:
             return
@@ -845,7 +884,7 @@ class AuditLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_guild_emojis_update(self, guild, before, after):
+    async def on_guild_emojis_update(self, guild: discord.Guild, before: Sequence[discord.Emoji], after: Sequence[discord.Emoji]) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
@@ -910,7 +949,7 @@ class AuditLogger(commands.Cog):
             await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_guild_stickers_update(self, guild, before, after):
+    async def on_guild_stickers_update(self, guild: discord.Guild, before: Sequence[discord.GuildSticker], after: Sequence[discord.GuildSticker]) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
@@ -979,9 +1018,81 @@ class AuditLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_invite_create(self, invite):
+    async def on_member_update(self, before: discord.Member, after: discord.Member) -> None:
+        log_channel = await self.get_log_channel(after.guild)
+        if not log_channel:
+            return
+
+        changes = []
+        if before.nick != after.nick:
+            changes.append(("Nickname", before.nick or "None", after.nick or "None"))
+
+        if before.roles != after.roles:
+            added_roles = [role for role in after.roles if role not in before.roles]
+            removed_roles = [role for role in before.roles if role not in after.roles]
+            if added_roles:
+                changes.append(("Roles Added", None, ", ".join(role.name for role in added_roles)))
+            if removed_roles:
+                changes.append(("Roles Removed", None, ", ".join(role.name for role in removed_roles)))
+
+        if not changes:
+            return
+
+        executor = await self.get_executor(after.guild, discord.AuditLogAction.member_update, after.id)
+        if executor and is_director(executor):
+            return
+
+        embed = discord.Embed(
+            title="Member Updated",
+            color=COLOR_BLURPLE,
+            timestamp=datetime.now(UTC)
+        )
+        embed.set_thumbnail(url=after.display_avatar.url)
+        embed.add_field(name="Member", value=f"{after.mention} ({after.id})", inline=False)
+
+        for name, b_val, a_val in changes:
+            value = f"**Before:** {b_val}\n**After:** {a_val}" if b_val is not None else a_val
+            embed.add_field(name=name, value=value, inline=False)
+
+        if executor:
+            embed.add_field(name="Updated By", value=f"{executor.mention} ({executor.id})", inline=False)
+
+        await self._enqueue(log_channel, embed)
+
+    @commands.Cog.listener()
+    async def on_member_unban(self, guild: discord.Guild, user: discord.User) -> None:
+        log_channel = await self.get_log_channel(guild)
+        if not log_channel:
+            return
+
+        executor = await self.get_executor(guild, discord.AuditLogAction.unban, user.id)
+        if executor and is_director(executor):
+            return
+
+        embed = discord.Embed(
+            title="Member Unbanned",
+            color=COLOR_GREEN,
+            timestamp=datetime.now(UTC)
+        )
+        embed.add_field(name="User", value=f"`{user}`\n`{user.id}`", inline=True)
+        if executor:
+            embed.add_field(name="Unbanned By", value=f"`{executor}`\n`{executor.id}`", inline=False)
+        await self._enqueue(log_channel, embed)
+
+    @commands.Cog.listener()
+    async def on_invite_create(self, invite: discord.Invite) -> None:
+        if not isinstance(invite.guild, discord.Guild):
+            return
+
+        if invite.inviter and is_director(invite.inviter): # type: ignore
+             return
+
         log_channel = await self.get_log_channel(invite.guild)
         if not log_channel:
+            return
+
+        channel = invite.channel
+        if channel is None or not hasattr(channel, 'name'):
             return
 
         embed = discord.Embed(
@@ -993,7 +1104,7 @@ class AuditLogger(commands.Cog):
         embed.add_field(name="Code", value=f"`{invite.code}`", inline=True)
         embed.add_field(
             name="Channel",
-            value=f"`{invite.channel.name}`\n`{invite.channel.id}`",
+            value=f"`{channel.name}`\n`{channel.id}`",
             inline=True
         )
 
@@ -1019,9 +1130,20 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_invite_delete(self, invite):
+    async def on_invite_delete(self, invite: discord.Invite) -> None:
+        if not isinstance(invite.guild, discord.Guild):
+            return
+
+        executor = await self.get_executor(invite.guild, discord.AuditLogAction.invite_delete)
+        if executor and is_director(executor):
+            return
+
         log_channel = await self.get_log_channel(invite.guild)
         if not log_channel:
+            return
+
+        channel = invite.channel
+        if channel is None or not hasattr(channel, 'name'):
             return
 
         embed = discord.Embed(
@@ -1033,7 +1155,7 @@ class AuditLogger(commands.Cog):
         embed.add_field(name="Code", value=f"`{invite.code}`", inline=True)
         embed.add_field(
             name="Channel",
-            value=f"`{invite.channel.name}`\n`{invite.channel.id}`",
+            value=f"`{channel.name}`\n`{channel.id}`",
             inline=True
         )
 
@@ -1047,7 +1169,7 @@ class AuditLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_guild_integrations_update(self, guild):
+    async def on_guild_integrations_update(self, guild: discord.Guild) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
@@ -1107,8 +1229,11 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_thread_create(self, thread: discord.Thread):
-        if self.is_directorship_channel(thread.parent):
+    async def on_thread_create(self, thread: discord.Thread) -> None:
+        parent = thread.parent
+        if parent is None:
+            return
+        if self.is_directorship_channel(parent):
             return
 
         log_channel = await self.get_log_channel(thread.guild)
@@ -1126,10 +1251,6 @@ class AuditLogger(commands.Cog):
             value=f"`{thread.name}`\n`{thread.id}`",
             inline=True
         )
-
-        parent = thread.parent
-        if parent is None:
-            return
 
         embed.add_field(
             name="Parent Channel",
@@ -1153,8 +1274,11 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_thread_delete(self, thread):
-        if self.is_directorship_channel(thread.parent):
+    async def on_thread_delete(self, thread: discord.Thread) -> None:
+        parent = thread.parent
+        if parent is None:
+            return
+        if self.is_directorship_channel(parent):
             return
 
         log_channel = await self.get_log_channel(thread.guild)
@@ -1174,15 +1298,15 @@ class AuditLogger(commands.Cog):
         )
         embed.add_field(
             name="Parent Channel",
-            value=f"`{thread.parent.name}`\n`{thread.parent.id}`",
+            value=f"`{parent.name}`\n`{parent.id}`",
             inline=True
         )
 
         await self._enqueue(log_channel, embed)
 
     @commands.Cog.listener()
-    async def on_thread_update(self, before, after):
-        if self.is_directorship_channel(after.parent):
+    async def on_thread_update(self, before: discord.Thread, after: discord.Thread) -> None:
+        if after.parent is None or self.is_directorship_channel(after.parent):
             return
 
         log_channel = await self.get_log_channel(after.guild)
@@ -1232,5 +1356,5 @@ class AuditLogger(commands.Cog):
         await self._enqueue(log_channel, embed)
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(AuditLogger(bot))

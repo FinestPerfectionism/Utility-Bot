@@ -2,7 +2,7 @@
 name = "Utility Bot"
 version = "0.1.0"
 description = "Development for Utility Bot"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "discord.py",
 ]
@@ -16,7 +16,7 @@ reportUnnecessaryCast = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 line-length = 88
 
 [tool.ruff.lint]

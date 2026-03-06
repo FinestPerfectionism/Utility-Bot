@@ -14,13 +14,12 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class LeaveComponents(discord.ui.LayoutView):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(timeout=None)
 
         for item in self.walk_children():
-            if isinstance(item, discord.ui.Button):
-                if item.custom_id == "leave:open":
-                    item.callback = self.open_leave
+            if isinstance(item, discord.ui.Button) and item.custom_id == "leave:open":
+                item.callback = self.open_leave
 
     container1 = discord.ui.Container(
         discord.ui.TextDisplay(
@@ -50,7 +49,7 @@ class LeaveComponents(discord.ui.LayoutView):
         accent_color=COLOR_GREEN,
     )
 
-    async def open_leave(self, interaction: discord.Interaction):
+    async def open_leave(self, interaction: discord.Interaction) -> None:
         if interaction.response.is_done():
             return
 
@@ -116,8 +115,8 @@ class LeaveComponents(discord.ui.LayoutView):
         )
 
 class LeaveSystem(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(LeaveSystem(bot))

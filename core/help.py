@@ -47,7 +47,7 @@ class HelpCallback(Protocol):
 class ArgumentInfo:
     role:        int | None = None
     required:    bool       = True
-    description: int | None = None
+    description: str | None = None
     is_flag:     bool       = False
     choices:     list[str]  = field(default_factory=list)
 
@@ -196,7 +196,7 @@ def _build_help_view(
         f"{inverse_line}"
     )
 
-    status, accessible_args, inaccessible_args = _check_access(member, data)
+    status, accessible_args, _ = _check_access(member, data)
 
     if status == "full":
         perm_colour = COLOR_GREEN

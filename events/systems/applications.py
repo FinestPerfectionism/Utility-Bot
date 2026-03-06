@@ -62,14 +62,14 @@ MOD_ROLE_IDS = {
 class DecisionModal(ui.Modal, title="Decision Reason"):
     notes = ui.TextInput(label="Notes", required=True)
 
-    def __init__(self, applicant_id: int, app_type: str, accepted: bool, message_id: int):
+    def __init__(self, applicant_id: int, app_type: str, accepted: bool, message_id: int) -> None:
         super().__init__()
         self.message_id = message_id
         self.applicant_id = applicant_id
         self.app_type = app_type
         self.accepted = accepted
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(
             ephemeral=True
         )
@@ -110,7 +110,7 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
                         [JUNIOR_MODERATORS_ROLE_ID, MODERATORS_ROLE_ID])
 
             roles = [
-                r for rid in role_ids + [STAFF_ROLE_ID, TRUSTED_ROLE_ID]
+                r for rid in [*role_ids, STAFF_ROLE_ID, TRUSTED_ROLE_ID]
                 if (r := guild.get_role(rid))
             ]
 
@@ -219,13 +219,14 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class DecisionView(ui.View):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(timeout=None)
 
     @ui.button(label="Accept", style=discord.ButtonStyle.success, custom_id="decision:accept")
-    async def accept(self, interaction: discord.Interaction, _):
+    async def accept(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         msg = interaction.message
-        assert msg is not None
+        if msg is None:
+            return
         data = next(
             (v for v in ACTIVE_APPLICATIONS.values()
              if v.get("log_message_id") == msg.id),
@@ -248,9 +249,10 @@ class DecisionView(ui.View):
         )
 
     @ui.button(label="Deny", style=discord.ButtonStyle.danger, custom_id="decision:deny")
-    async def deny(self, interaction: discord.Interaction, _):
+    async def deny(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         msg = interaction.message
-        assert msg is not None
+        if msg is None:
+            return
         data = next(
             (v for v in ACTIVE_APPLICATIONS.values()
              if v.get("log_message_id") == msg.id),
@@ -273,9 +275,10 @@ class DecisionView(ui.View):
         )
 
     @ui.button(label="History", style=discord.ButtonStyle.secondary, custom_id="decision:history")
-    async def history(self, interaction: discord.Interaction, _):
+    async def history(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         msg = interaction.message
-        assert msg is not None
+        if msg is None:
+            return
         data = next(
             (v for v in ACTIVE_APPLICATIONS.values()
              if v.get("log_message_id") == msg.id),
@@ -292,8 +295,8 @@ class DecisionView(ui.View):
         if not guild:
             return
 
-        bot = cast(commands.Bot, interaction.client)
-        cases_cog = cast(Any, bot.cogs.get("CasesCommands"))
+        bot = cast("commands.Bot", interaction.client)
+        cases_cog = cast("Any", bot.cogs.get("CasesCommands"))
         if not cases_cog:
             await interaction.response.send_message(
                 "Case history is unavailable.",
@@ -378,12 +381,12 @@ ADMIN_QUESTIONS = [
     "Which Discord permissions are you most familiar with, and why?",
     "A bot you manage suddenly starts spamming or malfunctioning. What steps do you take?",
     "How would you safely test a new bot or feature before rolling it out server-wide?",
-    "A role’s permissions are accidentally misconfigured, exposing private channels. What do you do first?",
+    "A role's permissions are accidentally misconfigured, exposing private channels. What do you do first?",
     "How do you organize roles and channels to keep a server easy to navigate?",
-    "If an administrator disagrees with another administrator’s setup decision, how would you handle it?",
+    "If an administrator disagrees with another administrator's setup decision, how would you handle it?",
     "How do you document or communicate technical changes to the rest of the staff team?",
     "What security risks should administrators be aware of on Discord?",
-    "If given access to high-level permissions, how would you ensure you don’t misuse them?"
+    "If given access to high-level permissions, how would you ensure you don't misuse them?"
 ]
 
 MOD_QUESTIONS = [
@@ -395,8 +398,8 @@ MOD_QUESTIONS = [
     "What do you think makes a good staff member?",
     "How do you handle responsibility and long-term commitments?",
     "How would you describe your approach to enforcing rules fairly?",
-    "A user breaks a minor rule but claims they didn’t know it existed. How do you respond?",
-    "Two users are arguing aggressively in chat but haven’t broken a rule yet. What do you do?",
+    "A user breaks a minor rule but claims they didn't know it existed. How do you respond?",
+    "Two users are arguing aggressively in chat but haven't broken a rule yet. What do you do?",
     "A user reports harassment, but there is little evidence. How do you proceed?",
     "How do you stay calm when dealing with difficult or disrespectful users?",
     "What would you do if you saw another moderator enforcing rules unfairly?",
@@ -406,7 +409,7 @@ MOD_QUESTIONS = [
     "What does creating a 'safe place for everyone' mean to you in practice?"
 ]
 
-async def delete_application_messages(client: discord.Client, user_id: int):
+async def delete_application_messages(client: discord.Client, user_id: int) -> None:
     data = ACTIVE_APPLICATIONS.get(user_id)
     if not data:
         return
@@ -442,22 +445,20 @@ def can_apply(member: discord.Member, app_type: str) -> bool:
         return False
     if app_type == "admin" and is_admin:
         return False
-    if app_type == "mod" and is_mod:
-        return False
 
-    return True
+    return not (app_type == "mod" and is_mod)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Application Submit View
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ApplicationSubmitView(ui.View):
-    def __init__(self, user_id: int):
+    def __init__(self, user_id: int) -> None:
         super().__init__(timeout=300)
         self.user_id = user_id
 
     @ui.button(label="Edit", style=discord.ButtonStyle.secondary)
-    async def edit(self, interaction: discord.Interaction, _):
+    async def edit(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             return
@@ -471,7 +472,7 @@ class ApplicationSubmitView(ui.View):
         )
 
     @ui.button(label="Submit", style=discord.ButtonStyle.success)
-    async def submit(self, interaction: discord.Interaction, _):
+    async def submit(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             await interaction.response.send_message(
@@ -505,7 +506,7 @@ class ApplicationSubmitView(ui.View):
             color=COLOR_BLURPLE
         )
 
-        for i, (q, a) in enumerate(zip(data["questions"], data["answers"]), start=1):
+        for i, (q, a) in enumerate(zip(data["questions"], data["answers"], strict=True), start=1):
             embed.add_field(
                 name=f"{i}. {q}",
                 value=a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
@@ -537,7 +538,7 @@ class ApplicationSubmitView(ui.View):
         )
 
     @ui.button(label="Cancel", style=discord.ButtonStyle.danger)
-    async def cancel(self, interaction: discord.Interaction, _):
+    async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         await delete_application_messages(interaction.client, self.user_id)
         await interaction.response.send_message(
             "Your application has been cancelled and deleted.",
@@ -549,7 +550,7 @@ class ApplicationSubmitView(ui.View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ApplicationComponents(discord.ui.LayoutView):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(timeout=None)
 
         for item in self.walk_children():
@@ -562,7 +563,7 @@ class ApplicationComponents(discord.ui.LayoutView):
     container1 = discord.ui.Container(
         discord.ui.TextDisplay(
             content="# Staff Applications\n"
-            "Staff applications are reviewed carefully to ensure we select members who are responsible, active, and aligned with the server’s values. Take your time when completing the application and ensure all answers are honest and well thought out.\n\n"
+            "Staff applications are reviewed carefully to ensure we select members who are responsible, active, and aligned with the server's values. Take your time when completing the application and ensure all answers are honest and well thought out.\n\n"
             "- **How to Start:** Fully complete the application form and answer every question to the best of your ability.\n"
             "- **Detail Matters:** Short, low-effort, or vague responses significantly reduce your chances of acceptance.\n"
             "- **Honesty Required:** Any form of lying or exaggeration will result in automatic rejection.\n"
@@ -596,11 +597,11 @@ class ApplicationComponents(discord.ui.LayoutView):
         accent_color=COLOR_GREEN,
     )
 
-    async def mod_btn(self, interaction: discord.Interaction):
+    async def mod_btn(self, interaction: discord.Interaction) -> None:
         view = ApplicationMenuView()
         await view.handle_mod_application(interaction)
 
-    async def admin_btn(self, interaction: discord.Interaction):
+    async def admin_btn(self, interaction: discord.Interaction) -> None:
         view = ApplicationMenuView()
         await view.handle_admin_application(interaction)
 
@@ -609,10 +610,10 @@ class ApplicationComponents(discord.ui.LayoutView):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ApplicationMenuView(ui.View):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(timeout=None)
 
-    async def handle_mod_application(self, interaction: discord.Interaction):
+    async def handle_mod_application(self, interaction: discord.Interaction) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
             await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **You have been blacklisted from opening applications!**\n"
@@ -682,7 +683,7 @@ class ApplicationMenuView(ui.View):
             ephemeral=True
         )
 
-    async def handle_admin_application(self, interaction: discord.Interaction):
+    async def handle_admin_application(self, interaction: discord.Interaction) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
             await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **You have been blacklisted from opening applications!**\n"
@@ -752,10 +753,10 @@ class ApplicationMenuView(ui.View):
             ephemeral=True
         )
 
-    async def mod_btn(self, interaction: discord.Interaction, _):
+    async def mod_btn(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         await self.handle_mod_application(interaction)
 
-    async def admin_btn(self, interaction: discord.Interaction, _):
+    async def admin_btn(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:
         await self.handle_admin_application(interaction)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -763,7 +764,7 @@ class ApplicationMenuView(ui.View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EditQuestionSelectView(ui.View):
-    def __init__(self, user_id: int):
+    def __init__(self, user_id: int) -> None:
         super().__init__(timeout=120)
         self.user_id = user_id
 
@@ -785,12 +786,12 @@ class EditQuestionSelectView(ui.View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EditQuestionSelect(ui.Select):
-    def __init__(self, options, user_id):
+    def __init__(self, options: list[discord.SelectOption], user_id: int) -> None:
         super().__init__(placeholder="Select a question to edit.",
                          options=options)
         self.user_id = user_id
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             return
@@ -806,8 +807,8 @@ class EditQuestionSelect(ui.Select):
         )
 
 class ApplicationsSystem(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ApplicationsSystem(bot))

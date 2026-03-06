@@ -1,10 +1,17 @@
 import discord
 from discord.ext import commands
 
+import contextlib
 import json
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, cast
+from datetime import (
+    datetime,
+timedelta
+)
+from typing import (
+    TYPE_CHECKING,
+    cast
+)
 from collections import defaultdict
 
 from constants import(
@@ -19,9 +26,13 @@ from constants import(
     DIRECTORS_ROLE_ID,
 )
 
-from bot import UtilityBot
+if TYPE_CHECKING:
+    from bot import UtilityBot
 
-from commands.moderation.cases import CaseType
+from commands.moderation.cases import (
+    CaseType,
+CasesManager
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Anti-Nuke System
@@ -36,31 +47,31 @@ class ActionType:
     ROLE_UPDATE = "role_update"
 
 class AntiNukeSystem(commands.Cog):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
         self.config_file = "antinuke_config.json"
         self.config = self.load_config()
         self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
         self.QUARANTINE_ROLE_ID = QUARANTINE_ROLE_ID
 
-        self.action_tracker: Dict[int, Dict[str, Dict[str, List[datetime]]]] = defaultdict(
+        self.action_tracker: dict[int, dict[str, dict[str, list[datetime]]]] = defaultdict(
             lambda: defaultdict(lambda: {"hourly": [], "daily": []})
         )
 
     @property
-    def cases_manager(self):
-        return cast(UtilityBot, self.bot).cases_manager
+    def cases_manager(self) -> CasesManager:
+        return self.bot.cases_manager
 
-    def load_config(self) -> Dict:
+    def load_config(self) -> dict:
         if os.path.exists(self.config_file):
             try:
-                with open(self.config_file, 'r') as f:
+                with open(self.config_file) as f:
                     return json.load(f)
             except json.JSONDecodeError:
                 return self.get_default_config()
         return self.get_default_config()
 
-    def get_default_config(self) -> Dict:
+    def get_default_config(self) -> dict:
         return {
             "enabled": True,
             "limits": {
@@ -74,14 +85,14 @@ class AntiNukeSystem(commands.Cog):
             "log_channel_id": None
         }
 
-    def save_config(self):
+    def save_config(self) -> None:
         with open(self.config_file, 'w') as f:
             json.dump(self.config, f, indent=4)
 
     def is_director(self, member: discord.Member) -> bool:
         return any(role.id == self.DIRECTORS_ROLE_ID for role in member.roles)
 
-    def clean_old_actions(self, user_id: int, action_type: str):
+    def clean_old_actions(self, user_id: int, action_type: str) -> None:
         now = datetime.now()
 
         bucket = self.action_tracker[user_id][action_type]
@@ -154,7 +165,7 @@ class AntiNukeSystem(commands.Cog):
         daily_count: int,
         limit_type: str,
         details: str
-    ):
+    ) -> None:
         member = guild.get_member(user.id)
         if not member:
             return
@@ -208,7 +219,7 @@ class AntiNukeSystem(commands.Cog):
         daily_count: int,
         hourly_limit: int,
         daily_limit: int
-    ):
+    ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:
             return
@@ -228,10 +239,8 @@ class AntiNukeSystem(commands.Cog):
         embed.add_field(name="Hourly", value=f"{hourly_count}/{hourly_limit}", inline=True)
         embed.add_field(name="Daily", value=f"{daily_count}/{daily_limit}", inline=True)
 
-        try:
+        with contextlib.suppress(discord.Forbidden):
             await log_channel.send(embed=embed)
-        except discord.Forbidden:
-            pass
 
     async def send_quarantine_alert(
         self,
@@ -242,7 +251,7 @@ class AntiNukeSystem(commands.Cog):
         daily_count: int,
         limit_type: str,
         details: str
-    ):
+    ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:
             return
@@ -267,17 +276,15 @@ class AntiNukeSystem(commands.Cog):
         if details:
             embed.add_field(name="Details", value=details, inline=False)
 
-        try:
+        with contextlib.suppress(discord.Forbidden):
             await log_channel.send(embed=embed)
-        except discord.Forbidden:
-            pass
 
     async def send_quarantine_failure(
         self,
         guild: discord.Guild,
         member: discord.Member,
         action_type: str
-    ):
+    ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:
             return
@@ -286,20 +293,19 @@ class AntiNukeSystem(commands.Cog):
         if not isinstance(log_channel, (discord.TextChannel, discord.Thread)):
             return
 
-        try:
+        with contextlib.suppress(discord.Forbidden):
             await log_channel.send(
                 f"{DENIED_EMOJI_ID} **Failed to quarantine {member.mention}!**\n"
-                "I lack the necessary permissions to quarantine members. Please contact the owner."
+                "I lack the necessary permissions to quarantine members."
+                "-# Contact the owner."
             )
-        except discord.Forbidden:
-            pass
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Event Listeners
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel):
+    async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel) -> None:
         guild = channel.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_delete):
@@ -317,7 +323,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel: discord.abc.GuildChannel):
+    async def on_guild_channel_create(self, channel: discord.abc.GuildChannel) -> None:
         guild = channel.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create):
@@ -335,7 +341,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_channel_update(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel):
+    async def on_guild_channel_update(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel) -> None:
         if before.name == after.name:
             return
 
@@ -356,7 +362,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_role_delete(self, role: discord.Role):
+    async def on_guild_role_delete(self, role: discord.Role) -> None:
         guild = role.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.role_delete):
@@ -374,7 +380,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_role_create(self, role: discord.Role):
+    async def on_guild_role_create(self, role: discord.Role) -> None:
         guild = role.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.role_create):
@@ -392,7 +398,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role) -> None:
         if before.name == after.name:
             return
 
@@ -412,5 +418,5 @@ class AntiNukeSystem(commands.Cog):
                 )
                 break
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(AntiNukeSystem(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(AntiNukeSystem(cast("UtilityBot", bot)))

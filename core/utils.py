@@ -43,7 +43,7 @@ __all__ = (
 # Channel Display Helper
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def channel_display(channel) -> str:
+def channel_display(channel: discord.abc.Messageable | discord.abc.GuildChannel) -> str:
     if isinstance(channel, Thread):
         parent = channel.parent
         if isinstance(parent, ForumChannel):
@@ -121,7 +121,7 @@ def parse_duration(input_str: str) -> timedelta | None:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MinorError(discord.ui.LayoutView):
-    def __init__(self, texts: list[str], subtitle: str = "Invalid argument.", title: str = "Error!"):
+    def __init__(self, texts: list[str], subtitle: str = "Invalid argument.", title: str = "Error!") -> None:
         super().__init__()
 
         container = discord.ui.Container(accent_color=COLOR_YELLOW)
@@ -151,7 +151,7 @@ class MajorError(discord.ui.LayoutView):
         texts: list[str],
         subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
         title: str = "Error!"
-    ):
+    ) -> None:
         super().__init__()
 
         container = discord.ui.Container(accent_color=COLOR_RED)
@@ -180,11 +180,11 @@ async def send_minor_error(
     texts: list[str] | str,
     subtitle: str = "Invalid argument.",
     title: str = "Error!"
-):
+) -> None:
     if isinstance(texts, str):
         texts = [texts]
 
-    view = cast(discord.ui.View, MinorError(texts, subtitle, title))
+    view = cast("discord.ui.View", MinorError(texts, subtitle, title))
 
     if interaction.response.is_done():
         await interaction.followup.send(
@@ -204,11 +204,11 @@ async def send_major_error(
     texts: list[str] | str,
     subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
     title: str = "Error!"
-):
+) -> None:
     if isinstance(texts, str):
         texts = [texts]
 
-    view = cast(discord.ui.View, MajorError(texts, subtitle, title))
+    view = cast("discord.ui.View", MajorError(texts, subtitle, title))
 
     if interaction.response.is_done():
         await interaction.followup.send(
@@ -257,9 +257,9 @@ def resolve_single_tag(
     try:
         return resolve_forum_tags(forum, [tag_id])[0]
     except ValueError:
-        raise ValueError(label)
+        raise ValueError(label) from None
 
-def format_body(reason: str, notes: str | None):
+def format_body(reason: str, notes: str | None) -> str:
     body = f"-# {reason}"
     if notes:
         body += f"\n-# **Notes:** {notes}"

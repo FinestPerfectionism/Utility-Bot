@@ -69,56 +69,56 @@ class CommitteeRolesComponents(discord.ui.LayoutView):
     )
 
 class AdministratorsRoles(discord.ui.Button):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.success,
             label="Administrator's Roles",
             custom_id="persistent_administrator_button"
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
             view=AdministratorsRolesComponents(),
             ephemeral=True
         )
 
 class ModeratorsRoles(discord.ui.Button):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.success,
             label="Moderator's Roles",
             custom_id="persistent_moderator_button"
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
             view=ModeratorsRolesComponents(),
             ephemeral=True
         )
 
 class TrusteeRoles(discord.ui.Button):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.primary,
             label="Trustee's Roles",
             custom_id="persistent_trustee_button"
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
             view=TrusteeRolesComponents(),
             ephemeral=True
         )
 
 class CommitteeRoles(discord.ui.Button):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             style=discord.ButtonStyle.danger,
             label="Committee's Roles",
             custom_id="persistent_committee_button"
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
             view=CommitteeRolesComponents(),
             ephemeral=True
@@ -134,7 +134,7 @@ class StaffProposalComponents1(discord.ui.LayoutView):
     )
 
 class StaffProposalComponents2a(discord.ui.LayoutView):
-    def __init__(self, timestamp: int):
+    def __init__(self, timestamp: int) -> None:
         super().__init__(timeout=None)
         self.container = discord.ui.Container(
             discord.ui.TextDisplay(

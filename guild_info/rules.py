@@ -7,12 +7,12 @@ class RuleComponents1(discord.ui.LayoutView):
             content=
                 "# Welcome to The Goobers!\n"
                 "A server for dumbassery and gaming.\n"
-                "-# **Note:** It is within moderators’ discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here."
+                "-# **Note:** It is within moderators' discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here."
         ),
     )
 
 class RuleComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int):
+    def __init__(self, timestamp: int) -> None:
         super().__init__(timeout=None)
         self.container = discord.ui.Container(
             discord.ui.Section(
@@ -51,15 +51,15 @@ class RuleComponents2(discord.ui.LayoutView):
                     "### §1.1 Harassment\n"
                     "Any form of harassment, threats, or intimidation is forbidden.\n"
                     "**Example:**\n"
-                    "> “imma kill you if you don’t give tell me”\n\n"
+                    "> “imma kill you if you don't give tell me”\n\n"
                     "### §1.2 Discrimination\n"
                     "Racism, sexism, ableism, or other discriminatory behavior is prohibited.\n"
                     "**Example:**\n"
-                    "> “you’re so acoustic”\n\n"
+                    "> “you're so acoustic”\n\n"
                     "### §1.3 NSFW Content\n"
                     "Sharing explicit content is strictly prohibited in all channels unless explicitly marked NSFW. (Looks like we have none, so no NSFW :])\n"
                     "**Example:**\n"
-                    "> “Here’s the link to my special cam 😘🥵: …”\n\n"
+                    "> “Here's the link to my special cam 😘🥵: …”\n\n"
                     "## §2 Language\n"
                     "### §2.1 No Loophole Language\n"
                     "Attempting to bypass rules through euphemisms, coded language, or indirect references is forbidden.\n"

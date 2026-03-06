@@ -52,14 +52,14 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class Startup(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.layout_message_ids = load_layout_message_ids()
 
-    async def cog_load(self):
+    async def cog_load(self) -> None:
         self.bot.loop.create_task(self._wait_and_restore())
 
-    async def _wait_and_restore(self):
+    async def _wait_and_restore(self) -> None:
         await self.bot.wait_until_ready()
 
         verification_cog = None
@@ -70,7 +70,7 @@ class Startup(commands.Cog):
 
         await self.restore_or_send_layouts()
 
-    async def restore_or_send_layouts(self):
+    async def restore_or_send_layouts(self) -> None:
         view_mapping = {
             "tickets": (TICKET_CHANNEL_ID, TicketComponents),
             "applications": (APPLICATION_CHANNEL_ID, ApplicationComponents),
@@ -142,9 +142,9 @@ class Startup(commands.Cog):
         else:
             log.warning("Partnership requirements layout skipped: channel not found")
 
-    async def _handle_verification_layout(self, channel: discord.TextChannel):
+    async def _handle_verification_layout(self, channel: discord.TextChannel) -> None:
         verification_cog = cast(
-            VerificationHandler,
+            "VerificationHandler",
             self.bot.get_cog("VerificationHandler")
         )
 
@@ -178,7 +178,7 @@ class Startup(commands.Cog):
         except Exception as e:
             log.exception(f"Failed creating verification layout: {e}")
 
-    async def _handle_rules_layout(self, channel: discord.TextChannel):
+    async def _handle_rules_layout(self, channel: discord.TextChannel) -> None:
         msg_ids = self.layout_message_ids.get("rules", [])
 
         all_exist = False
@@ -216,7 +216,7 @@ class Startup(commands.Cog):
             log.info("Rules layout restored")
             log.debug("Rules message_ids=%s", msg_ids)
 
-    async def _handle_staff_proposals_layout(self, channel: discord.TextChannel):
+    async def _handle_staff_proposals_layout(self, channel: discord.TextChannel) -> None:
         msg_ids = self.layout_message_ids.get("staff_proposals", [])
 
         all_exist = False
@@ -257,7 +257,7 @@ class Startup(commands.Cog):
             log.info("Staff proposals layout restored")
             log.debug("Staff proposals message_ids=%s", msg_ids)
 
-    async def _handle_partnership_requirements_layout(self, channel: discord.TextChannel):
+    async def _handle_partnership_requirements_layout(self, channel: discord.TextChannel) -> None:
         msg_ids = self.layout_message_ids.get("partnership_requirements", [])
 
         all_exist = False
@@ -295,8 +295,8 @@ class Startup(commands.Cog):
             log.info("Partnership requirements layout restored")
             log.debug("Partnership requirements message_ids=%s", msg_ids)
 
-    async def cog_unload(self):
+    async def cog_unload(self) -> None:
         pass
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Startup(bot))

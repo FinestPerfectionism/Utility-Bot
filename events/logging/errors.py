@@ -4,10 +4,9 @@ from discord import app_commands
 from discord.app_commands import CommandOnCooldown
 from discord.app_commands.errors import CommandNotFound
 
-from typing import (
-    Coroutine,
-    Any
-)
+from collections.abc import Coroutine
+
+from typing import Any
 import traceback
 import sys
 import asyncio
@@ -68,7 +67,10 @@ USER_INPUT_ERRORS = (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ErrorLogger(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot)  -> None:
+        self.bot = bot
+        self._tasks: set[asyncio.Task[Any]] = set()
+        bot.tree.error(self.app_command_error_handler)
         self.bot = bot
         bot.tree.error(self.app_command_error_handler)
 
@@ -76,7 +78,7 @@ class ErrorLogger(commands.Cog):
     # Central Error Sender
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    async def send_info(self, *, title: str, description: str | None = None):
+    async def send_info(self, *, title: str, description: str | None = None) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
@@ -99,7 +101,7 @@ class ErrorLogger(commands.Cog):
         command_display: str | None = None,
         error_text: str | None = None,
         traceback_text: str | None = None,
-    ):
+    ) -> None:
         channel = self.bot.get_channel(BOT_ERRORS_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
@@ -156,7 +158,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_error(self, event, *args, **kwargs):
+    async def on_error(self, event: str, *args: str, **kwargs: int) -> None:
         if event in {"on_command_error", "on_interaction"}:
             return
 
@@ -185,7 +187,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         if hasattr(ctx.command, "on_error"):
             return
 
@@ -220,7 +222,7 @@ class ErrorLogger(commands.Cog):
         self,
         interaction: discord.Interaction,
         error: app_commands.AppCommandError,
-    ):
+    ) -> None:
         if isinstance(error, CommandOnCooldown):
             await send_minor_error(
                 interaction,
@@ -266,7 +268,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_extension_error(self, extension, error):
+    async def on_extension_error(self, extension: str, error: commands.ExtensionError) -> None:
         tb_text = "".join(
             traceback.format_exception(type(error), error, error.__traceback__)
         )
@@ -282,11 +284,11 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_socket_raw_receive(self, payload):
+    async def on_socket_raw_receive(self, payload: dict[str, Any]) -> None:
         if payload.get("t") == "INVALID_SESSION":
             await self.send_info(title="Invalid Gateway Session")
 
-    async def guard_http(self, coro: Coroutine[Any, Any, Any]):
+    async def guard_http(self, coro: Coroutine[Any, Any, Any]) -> None:
         try:
             return await coro
         except (
@@ -310,16 +312,22 @@ class ErrorLogger(commands.Cog):
     # Task Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    def create_task(self, coro: Coroutine[Any, Any, Any], *, name: str):
+    def create_task(self, coro: Coroutine[Any, Any, Any], *, name: str) -> asyncio.Task[Any]:
         task = asyncio.create_task(coro, name=name)
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
         task.add_done_callback(self.task_done)
         return task
 
-    def task_done(self, task: asyncio.Task):
+    def task_done(self, task: asyncio.Task[Any]) -> None:
         if task.cancelled():
             return
 
-        exc = task.exception()
+        try:
+            exc = task.exception()
+        except asyncio.InvalidStateError:
+            return
+
         if exc is None:
             return
 
@@ -327,12 +335,13 @@ class ErrorLogger(commands.Cog):
             traceback.format_exception(type(exc), exc, exc.__traceback__)
         )
 
-        asyncio.create_task(
+        self.create_task(
             self.send_error(
                 title="Background Task Error",
                 error_text=str(exc),
                 traceback_text=tb_text,
-            )
+            ),
+            name="task_error_reporter"
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -340,36 +349,36 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_disconnect(self):
+    async def on_disconnect(self) -> None:
         await self.send_info(title="Gateway Disconnected")
 
     @commands.Cog.listener()
-    async def on_resumed(self):
+    async def on_resumed(self) -> None:
         await self.send_info(title="Gateway Resumed")
 
     @commands.Cog.listener()
-    async def on_shard_disconnect(self, shard_id):
+    async def on_shard_disconnect(self, shard_id: int) -> None:
         await self.send_info(
             title="Shard Disconnected",
             description=f"Shard {shard_id}"
         )
 
     @commands.Cog.listener()
-    async def on_shard_connect(self, shard_id):
+    async def on_shard_connect(self, shard_id: int) -> None:
         await self.send_info(
             title="Shard Connected",
             description=f"Shard {shard_id}"
         )
 
     @commands.Cog.listener()
-    async def on_shard_ready(self, shard_id):
+    async def on_shard_ready(self, shard_id: int) -> None:
         await self.send_info(
             title="Shard Ready",
             description=f"Shard {shard_id}"
         )
 
     @commands.Cog.listener()
-    async def on_shard_resumed(self, shard_id):
+    async def on_shard_resumed(self, shard_id: int) -> None:
         await self.send_info(
             title="Shard Resumed",
             description=f"Shard {shard_id}"
@@ -379,7 +388,7 @@ class ErrorLogger(commands.Cog):
     # Loop Exception Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    def loop_exception_handler(self, loop, context):
+    def loop_exception_handler(self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]) -> None:
         if loop.is_closed():
             return
         exc = context.get("exception")
@@ -398,7 +407,7 @@ class ErrorLogger(commands.Cog):
             )
         )
 
-    async def cog_load(self):
+    async def cog_load(self) -> None:
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(self.loop_exception_handler)
 
@@ -425,5 +434,5 @@ class PermissionError(discord.ui.LayoutView):
         accent_color=COLOR_RED,
     )
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ErrorLogger(bot))

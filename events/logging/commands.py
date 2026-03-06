@@ -13,7 +13,7 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CommandLogger(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -25,7 +25,7 @@ class CommandLogger(commands.Cog):
         self,
         interaction: discord.Interaction,
         command: app_commands.Command,
-    ):
+    ) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
@@ -79,7 +79,7 @@ class CommandLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_command_completion(self, ctx: commands.Context):
+    async def on_command_completion(self, ctx: commands.Context) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
@@ -121,5 +121,5 @@ class CommandLogger(commands.Cog):
 
         await channel.send(embed=embed)
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(CommandLogger(bot))

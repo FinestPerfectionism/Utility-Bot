@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
+import secrets
 from datetime import timedelta
-import random
 import logging
 
 from core.state import (
@@ -38,11 +38,11 @@ WINDOW = timedelta(days=7)
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MessageSendHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
             return
 
@@ -130,7 +130,7 @@ class MessageSendHandler(commands.Cog):
                 "stfu you meatbag 🥀 omfg icl ts pmo gng smh frfr <:exhausted:1467990265452167362>"
             )
             await message.add_reaction(
-                random.choice(grimace_emojis)
+                secrets.choice(grimace_emojis)
             )
 
         if message.guild is None:
@@ -155,7 +155,7 @@ class MessageSendHandler(commands.Cog):
                     )
 
                     for i, (q, a) in enumerate(
-                        zip(app["questions"], app["answers"]), start=1
+                        zip(app["questions"], app["answers"], strict=True), start=1
                     ):
                         embed.add_field(
                             name=f"{i}. {q}",
@@ -187,7 +187,7 @@ class MessageSendHandler(commands.Cog):
                     )
 
                     for i, (q, a) in enumerate(
-                        zip(app["questions"], app["answers"]), start=1
+                        zip(app["questions"], app["answers"], strict=True), start=1
                     ):
                         embed.add_field(
                             name=f"{i}. {q}",
@@ -210,5 +210,5 @@ class MessageSendHandler(commands.Cog):
                 save_active_applications()
                 return
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MessageSendHandler(bot))

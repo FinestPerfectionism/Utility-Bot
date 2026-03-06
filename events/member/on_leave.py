@@ -1,14 +1,18 @@
 import discord
 from discord.ext import commands
 
-from typing import cast
+from typing import (
+    TYPE_CHECKING,
+    cast
+)
 
 from core.state import (
     ACTIVE_APPLICATIONS,
     save_active_applications
 )
 
-from events.member.verification import VerificationHandler
+if TYPE_CHECKING:
+    from events.member.verification import VerificationHandler
 
 from constants import (
     APPLICATION_LOG_CHANNEL_ID,
@@ -20,11 +24,11 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberLeaveHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
     @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member):
-        verification_cog = cast(VerificationHandler, self.bot.get_cog("VerificationHandler"))
+    async def on_member_remove(self, member: discord.Member) -> None:
+        verification_cog = cast("VerificationHandler", self.bot.get_cog("VerificationHandler"))
         if verification_cog:
             verification_cog.data["unverified"].pop(str(member.id), None)
             verification_cog.save_data()
@@ -67,5 +71,5 @@ class MemberLeaveHandler(commands.Cog):
         ACTIVE_APPLICATIONS.pop(member.id, None)
         save_active_applications()
         
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MemberLeaveHandler(bot))

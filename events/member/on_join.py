@@ -1,24 +1,28 @@
 import discord
 from discord.ext import commands
 
+import contextlib
 from datetime import datetime
-from typing import cast
+from typing import (
+    TYPE_CHECKING,
+    cast
+)
 
-from events.member.verification import VerificationHandler
-
-from commands.moderation.secondary.quarantine import QuarantineCommands
+if TYPE_CHECKING:
+    from events.member.verification import VerificationHandler
+    from commands.moderation.secondary.quarantine import QuarantineCommands
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberJoinHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
-        verification_cog = cast(VerificationHandler, self.bot.get_cog("VerificationHandler"))
+    async def on_member_join(self, member: discord.Member) -> None:
+        verification_cog = cast("VerificationHandler", self.bot.get_cog("VerificationHandler"))
         if not verification_cog:
             return
 
@@ -34,7 +38,7 @@ class MemberJoinHandler(commands.Cog):
         verification_cog.save_data()
 
         quarantine_cog = cast(
-            QuarantineCommands,
+            "QuarantineCommands",
             self.bot.get_cog("QuarantineCommands")
         )
 
@@ -43,13 +47,11 @@ class MemberJoinHandler(commands.Cog):
                 quarantine_cog.QUARANTINE_ROLE_ID
             )
             if quarantine_role:
-                try:
+                with contextlib.suppress(discord.Forbidden):
                     await member.add_roles(
                         quarantine_role,
                         reason="UB Quarantine: rejoined while quarantined"
                     )
-                except discord.Forbidden:
-                    pass
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MemberJoinHandler(bot))

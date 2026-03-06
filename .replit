@@ -26,4 +26,8 @@ modules = ["python-3.12"]
 
 [agent]
 expertMode = true
+
+[[ports]]
+localPort = 5904
+externalPort = 80
   
