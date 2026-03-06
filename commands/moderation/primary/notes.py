@@ -71,7 +71,7 @@ class NoteFlags(
 # Notes Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class NotesCommands(commands.Cog):
+class NoteCommands(commands.Cog):
     def __init__(self, bot: "UtilityBot"):
         self.bot = bot
         self.data_file = "notes_data.json"
@@ -414,4 +414,4 @@ class NotesCommands(commands.Cog):
         await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(NotesCommands(cast(UtilityBot, bot)))
+    await bot.add_cog(NoteCommands(cast(UtilityBot, bot)))

@@ -34,6 +34,36 @@ from constants import (
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# User Input Errors
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+USER_INPUT_ERRORS = (
+    commands.MissingRequiredArgument,
+    commands.MissingRequiredAttachment,
+    commands.TooManyArguments,
+    commands.BadArgument,
+    commands.BadUnionArgument,
+    commands.BadLiteralArgument,
+    commands.ArgumentParsingError,
+    commands.MemberNotFound,
+    commands.UserNotFound,
+    commands.ChannelNotFound,
+    commands.RoleNotFound,
+    commands.EmojiNotFound,
+    commands.GuildNotFound,
+    commands.MessageNotFound,
+    commands.ThreadNotFound,
+    commands.ChannelNotReadable,
+    commands.BadInviteArgument,
+    commands.BadBoolArgument,
+    commands.BadColourArgument,
+    commands.MissingFlagArgument,
+    commands.TooManyFlags,
+    commands.BadFlagArgument,
+    commands.MissingRequiredFlag,
+)
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Errors Handling
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -155,22 +185,30 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context,
-                               error: commands.CommandError):
-        if isinstance(error,
-                      (commands.CheckFailure, commands.CommandNotFound)):
+    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+        if hasattr(ctx.command, "on_error"):
             return
 
-        tb_text = "".join(
-            traceback.format_exception(type(error), error,
-                                       error.__traceback__))
+        actual_error: Exception = error
+        if isinstance(error, commands.CommandInvokeError):
+            actual_error = error.original
+
+        if isinstance(actual_error, (commands.CheckFailure, commands.CommandNotFound)):
+            return
+
+        if isinstance(actual_error, USER_INPUT_ERRORS):
+            return
+
+        tb_text: str = "".join(
+            traceback.format_exception(type(actual_error), actual_error, actual_error.__traceback__)
+        )
 
         await self.send_error(
             title="Prefix Command Error",
             user=ctx.author,
             guild=ctx.guild,
             command_display=ctx.message.content,
-            error_text=str(error),
+            error_text=str(actual_error),
             traceback_text=tb_text,
         )
 
@@ -221,7 +259,7 @@ class ErrorLogger(commands.Cog):
             command_display=cmd_name,
             error_text=str(error),
             traceback_text=tb_text,
-        ) 
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Extension Errors
@@ -303,15 +341,11 @@ class ErrorLogger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_disconnect(self):
-        await self.send_info(
-            title="Gateway Disconnected"
-        )
+        await self.send_info(title="Gateway Disconnected")
 
     @commands.Cog.listener()
     async def on_resumed(self):
-        await self.send_info(
-            title="Gateway Resumed"
-        )
+        await self.send_info(title="Gateway Resumed")
 
     @commands.Cog.listener()
     async def on_shard_disconnect(self, shard_id):
@@ -363,10 +397,6 @@ class ErrorLogger(commands.Cog):
                 traceback_text=tb_text,
             )
         )
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # Cog Load
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     async def cog_load(self):
         loop = asyncio.get_running_loop()
