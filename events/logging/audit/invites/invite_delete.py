@@ -1,0 +1,38 @@
+import discord
+from discord.ext import commands
+from datetime import datetime, UTC
+
+from constants import COLOR_RED
+from .._base import AuditCog, AuditQueue
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Invite Delete Audit
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class InviteDeleteCog(AuditCog):
+    def __init__(self, bot: commands.Bot, queue: AuditQueue) -> None:
+        super().__init__(bot, queue)
+
+    @commands.Cog.listener()
+    async def on_invite_delete(self, invite: discord.Invite) -> None:
+        log_channel = await self.get_log_channel(invite.guild)
+        if not log_channel:
+            return
+
+        embed = discord.Embed(
+            title="Invite Deleted",
+            color=COLOR_RED,
+            timestamp=datetime.now(UTC)
+        )
+
+        embed.add_field(name="Code", value=f"`{invite.code}`", inline=True)
+        embed.add_field(
+            name="Channel",
+            value=f"`{invite.channel.name}`\n`{invite.channel.id}`",
+            inline=True
+        )
+
+        if invite.uses is not None:
+            embed.add_field(name="Uses", value=str(invite.uses), inline=True)
+
+        await self._enqueue(log_channel, embed)

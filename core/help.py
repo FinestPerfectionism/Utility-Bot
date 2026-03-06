@@ -96,22 +96,22 @@ def help_description(
 
     return decorator
 
-def _member_has_role(member: discord.Member, role_id: int | None) -> bool:
+def member_has_role(member: discord.Member, role_id: int | None) -> bool:
     if role_id is None:
         return True
     return any(r.id == role_id for r in member.roles)
 
-def _check_access(
+def check_access(
     member: discord.Member,
     data:   CommandHelpData,
 ) -> tuple[str, list[str], list[str]]:
-    can_run = _member_has_role(member, data.run_role)
+    can_run = member_has_role(member, data.run_role)
     if not can_run:
         return "none", [], list(data.arguments.keys())
 
     accessible, inaccessible = [], []
     for arg_name, arg_info in data.arguments.items():
-        if _member_has_role(member, arg_info.role):
+        if member_has_role(member, arg_info.role):
             accessible.append(arg_name)
         else:
             inaccessible.append(arg_name)
@@ -120,7 +120,7 @@ def _check_access(
         return "partial", accessible, inaccessible
     return "full", accessible, inaccessible
 
-def _build_argument_line(name: str, info: ArgumentInfo) -> str:
+def build_argument_line(name: str, info: ArgumentInfo) -> str:
     if info.choices:
         choices_str = "|".join(info.choices)
         inner = f"{name}: {choices_str}"
@@ -132,14 +132,14 @@ def _build_argument_line(name: str, info: ArgumentInfo) -> str:
 
     return f"{{{name}}}" if info.required else f"[{name}]"
 
-def _build_help_view(
+def build_help_view(
     command_name: str,
     data:         CommandHelpData,
     member:       discord.Member,
 ) -> discord.ui.LayoutView:
 
     arg_tokens = " ".join(
-        _build_argument_line(n, i) for n, i in data.arguments.items()
+        build_argument_line(n, i) for n, i in data.arguments.items()
     )
 
     usage_lines: list[str] = []
@@ -196,7 +196,7 @@ def _build_help_view(
         f"{inverse_line}"
     )
 
-    status, accessible_args, _ = _check_access(member, data)
+    status, accessible_args, _ = check_access(member, data)
 
     if status == "full":
         perm_colour = COLOR_GREEN
@@ -244,7 +244,7 @@ def _build_help_view(
 
     return HelpView()
 
-def _resolve_command(bot: commands.Bot, name: str) -> Callable[..., Awaitable[Any]] | None:
+def resolve_command(bot: commands.Bot, name: str) -> Callable[..., Awaitable[Any]] | None:
     cmd = bot.get_command(name)
     if cmd:
         return cmd.callback
@@ -255,9 +255,9 @@ def _resolve_command(bot: commands.Bot, name: str) -> Callable[..., Awaitable[An
 
     return None
 
-def _find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
+def find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
     full = " ".join(parts)
-    result = _resolve_command(bot, full)
+    result = resolve_command(bot, full)
     if result:
         return result
 
@@ -283,7 +283,7 @@ def _find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
 # Listing helpers
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def _collect_slash_commands(
+def collect_slash_commands(
     app_commands_list: list[Any],
     seen_callbacks:    set[int],
     lines:             list[str],
@@ -297,11 +297,11 @@ def _collect_slash_commands(
 
         sub_commands = getattr(app_cmd, "commands", None)
         if sub_commands:
-            _collect_slash_commands(sub_commands, seen_callbacks, lines)
+            collect_slash_commands(sub_commands, seen_callbacks, lines)
 
-async def _run_help(
+async def run_help(
     bot: commands.Bot,
-    ctx_or_inter: commands.Context | discord.Interaction,
+    ctx_or_inter: commands.Context[commands.Bot] | discord.Interaction,
     command_name: str | None,
 ) -> None:
     if isinstance(ctx_or_inter, commands.Context):
@@ -330,7 +330,7 @@ async def _run_help(
                 seen_callbacks.add(id(cb))
                 lines.append(f"`{cmd.name}` — {cb.__help_data__.desc}")
 
-        _collect_slash_commands(bot.tree.get_commands(), seen_callbacks, lines)
+        collect_slash_commands(bot.tree.get_commands(), seen_callbacks, lines)
 
         if lines:
             await respond(
@@ -345,7 +345,7 @@ async def _run_help(
         return
 
     parts    = command_name.strip().lstrip("/").split()
-    callback = _find_nested_command(bot, parts)
+    callback = find_nested_command(bot, parts)
 
     if callback is None or not hasattr(callback, "__help_data__"):
         await respond(
@@ -356,7 +356,7 @@ async def _run_help(
 
     data = cast("HelpedCallable", callback).__help_data__
 
-    view = _build_help_view(
+    view = build_help_view(
         command_name=" ".join(parts),
         data=data,
         member=member,

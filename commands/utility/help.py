@@ -5,8 +5,8 @@ from typing import cast
 
 from core.help import (
     HelpedCallable,
-    _find_nested_command,
-    _build_help_view
+    find_nested_command,
+    build_help_view
 )
 
 from constants import(
@@ -66,7 +66,7 @@ async def _run_help(
       return
 
   parts = command_name.strip().lstrip("/").split()
-  callback = _find_nested_command(bot, parts)
+  callback = find_nested_command(bot, parts)
 
   if callback is None or not hasattr(callback, "__help_data__"):
       await respond(
@@ -77,7 +77,7 @@ async def _run_help(
 
   data = cast("HelpedCallable", callback).__help_data__
 
-  view = _build_help_view(
+  view = build_help_view(
       command_name=" ".join(parts),
       data=data,
       member=member,

@@ -75,72 +75,42 @@ class Startup(commands.Cog):
             "tickets": (TICKET_CHANNEL_ID, TicketComponents),
             "applications": (APPLICATION_CHANNEL_ID, ApplicationComponents),
             "leave": (STAFF_LEAVE_CHANNEL_ID, LeaveComponents),
-            "verification": (VERIFICATION_CHANNEL_ID, VerificationComponents),
         }
 
         for key, (channel_id, view_cls) in view_mapping.items():
             channel = self.bot.get_channel(channel_id)
-
             if not isinstance(channel, discord.TextChannel):
-                log.warning("Layout '%s' skipped: channel not found", key)
                 continue
 
-            log.info("Initializing layout: %s", key)
-
-            try:
-                if key == "verification":
-                    await self._handle_verification_layout(channel)
+            msg_id = self.layout_message_ids.get(key)
+            if msg_id:
+                try:
+                    await channel.fetch_message(msg_id)
+                    self.bot.add_view(view_cls(), message_id=msg_id)
                     continue
+                except discord.NotFound:
+                    pass
 
-                msg_id = self.layout_message_ids.get(key)
+            msg = await channel.send(view=view_cls())
+            self.layout_message_ids[key] = msg.id
+            self.bot.add_view(view_cls(), message_id=msg.id)
+            save_layout_message_ids(self.layout_message_ids)
 
-                if msg_id:
-                    try:
-                        await channel.fetch_message(msg_id)
-                        self.bot.add_view(view_cls(), message_id=msg_id)
-                        log.info("Layout '%s' restored", key)
-                        log.debug("Layout '%s' message_id=%s", key, msg_id)
-                        continue
-                    except discord.NotFound:
-                        log.debug("Layout '%s' message_id=%s not found", key, msg_id)
-
-                msg = await channel.send(view=view_cls())
-                self.layout_message_ids[key] = msg.id
-                self.bot.add_view(view_cls(), message_id=msg.id)
-                save_layout_message_ids(self.layout_message_ids)
-
-                log.info("Layout '%s' created", key)
-                log.debug("Layout '%s' message_id=%s", key, msg.id)
-
-            except Exception:
-                log.exception("Layout '%s' failed to initialize", key)
+        verification_channel = self.bot.get_channel(VERIFICATION_CHANNEL_ID)
+        if isinstance(verification_channel, discord.TextChannel):
+            await self._handle_verification_layout(verification_channel)
 
         rules_channel = self.bot.get_channel(RULES_CHANNEL_ID)
         if isinstance(rules_channel, discord.TextChannel):
-            try:
-                await self._handle_rules_layout(rules_channel)
-            except Exception:
-                log.exception("Rules layout failed to initialize")
-        else:
-            log.warning("Rules layout skipped: channel not found")
+            await self._handle_rules_layout(rules_channel)
 
         staff_proposals_channel = self.bot.get_channel(STAFF_PROPOSALS_INFO_CHANNEL_ID)
         if isinstance(staff_proposals_channel, discord.TextChannel):
-            try:
-                await self._handle_staff_proposals_layout(staff_proposals_channel)
-            except Exception as e:
-                log.exception(f"Staff proposals layout failed to initialize: {e}")
-        else:
-            log.warning("Staff proposals layout skipped: channel not found")
+            await self._handle_staff_proposals_layout(staff_proposals_channel)
 
         partnership_requirements_channel = self.bot.get_channel(PARTNERSHIP_REQUIREMENTS_CHANNEL_ID)
         if isinstance(partnership_requirements_channel, discord.TextChannel):
-            try:
-                await self._handle_partnership_requirements_layout(partnership_requirements_channel)
-            except Exception:
-                log.exception("Partnership requirements layout failed to initialize")
-        else:
-            log.warning("Partnership requirements layout skipped: channel not found")
+            await self._handle_partnership_requirements_layout(partnership_requirements_channel)
 
     async def _handle_verification_layout(self, channel: discord.TextChannel) -> None:
         verification_cog = cast(
