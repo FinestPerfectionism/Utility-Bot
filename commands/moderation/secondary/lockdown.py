@@ -2,14 +2,17 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from bot import UtilityBot
-
+import contextlib
 import json
 import os
 from datetime import datetime
 from typing import (
-    Dict, cast
+    TYPE_CHECKING,
+    cast
 )
+
+if TYPE_CHECKING:
+    from bot import UtilityBot
 
 from core.utils import (
     send_major_error, send_minor_error
@@ -27,14 +30,14 @@ from constants import(
     STAFF_ROLE_ID,
 )
 
-from commands.moderation.cases import CaseType
+from commands.moderation.cases import CaseType, CasesManager
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Lockdown Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class LockdownCommands(commands.Cog):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
         self.data_file = "lockdown_data.json"
         self.data = self.load_data()
@@ -59,19 +62,16 @@ class LockdownCommands(commands.Cog):
         ]
 
     @property
-    def cases_manager(self):
-        return cast(UtilityBot, self.bot).cases_manager
+    def cases_manager(self) -> CasesManager:
+        return self.bot.cases_manager
 
-    def load_data(self) -> Dict:
+    def load_data(self) -> dict:
         if os.path.exists(self.data_file):
-            try:
-                with open(self.data_file, 'r') as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return self.get_default_data()
+            with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
+                return json.load(f)
         return self.get_default_data()
-
-    def get_default_data(self) -> Dict:
+        
+    def get_default_data(self) -> dict:
         return {
             "active": False,
             "activated_at": None,
@@ -80,7 +80,7 @@ class LockdownCommands(commands.Cog):
             "channel_permissions": {}
         }
 
-    def save_data(self):
+    def save_data(self) -> None:
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
@@ -89,11 +89,10 @@ class LockdownCommands(commands.Cog):
         return is_director(member)
 
     def is_channel_exempt(self, channel: discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel) -> bool:
-        if channel.id in self.EXEMPT_CHANNELS:
-            return True
-        if channel.category_id and channel.category_id in self.EXEMPT_CATEGORIES:
-            return True
-        return False
+        return (
+            channel.id in self.EXEMPT_CHANNELS 
+            or (channel.category_id is not None and channel.category_id in self.EXEMPT_CATEGORIES)
+        )
 
     lockdown_group = app_commands.Group(
         name="lockdown",
@@ -104,7 +103,7 @@ class LockdownCommands(commands.Cog):
         name="status",
         description="View the current lockdown status."
     )
-    async def lockdown_status(self, interaction: discord.Interaction):
+    async def lockdown_status(self, interaction: discord.Interaction) -> None:
         member = interaction.user
         if not isinstance(member, discord.Member):
             return
@@ -172,7 +171,7 @@ class LockdownCommands(commands.Cog):
         self,
         interaction: discord.Interaction,
         reason: str | None = None
-    ):
+    ) -> None:
         reason = reason or f"No reason specified by {interaction.user}"
 
         actor = interaction.user
@@ -218,9 +217,9 @@ class LockdownCommands(commands.Cog):
                 if self.is_channel_exempt(channel):
                     continue
 
-                try:
-                    default_role = guild.default_role
-                    overwrites = channel.overwrites_for(default_role)
+                with contextlib.suppress(discord.Forbidden, Exception):
+                    default_role: discord.Role = guild.default_role
+                    overwrites: discord.PermissionOverwrite = channel.overwrites_for(default_role)
 
                     permission_backup[str(channel.id)] = {
                         "send_messages": overwrites.send_messages,
@@ -247,15 +246,10 @@ class LockdownCommands(commands.Cog):
                             staff_role,
                             send_messages=True,
                             send_messages_in_threads=True,
-                            reason=f"Lockdown engaged by {actor} - Staff exemption"
+                            reason=f"Lockdown engaged by {actor} —— Adding staff overrides"
                         )
 
                     channels_locked += 1
-
-                except discord.Forbidden:
-                    continue
-                except Exception:
-                    continue
 
         self.data["active"] = True
         self.data["activated_at"] = datetime.now().isoformat()
@@ -294,7 +288,7 @@ class LockdownCommands(commands.Cog):
         name="lift",
         description="Lift server lockdown."
     )
-    async def lockdown_lift(self, interaction: discord.Interaction):
+    async def lockdown_lift(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -330,8 +324,8 @@ class LockdownCommands(commands.Cog):
                 channels_not_found += 1
                 continue
 
-            try:
-                default_role = guild.default_role
+            with contextlib.suppress(discord.Forbidden, Exception):
+                default_role: discord.Role = guild.default_role
 
                 await channel.set_permissions(
                     default_role,
@@ -344,22 +338,17 @@ class LockdownCommands(commands.Cog):
                     reason=f"Lockdown lifted by {actor}"
                 )
 
-                staff_role = guild.get_role(self.STAFF_ROLE_ID)
+                staff_role: discord.Role | None = guild.get_role(self.STAFF_ROLE_ID)
                 if staff_role and isinstance(channel, discord.TextChannel):
-                    overwrites = channel.overwrites_for(staff_role)
+                    overwrites: discord.PermissionOverwrite = channel.overwrites_for(staff_role)
                     if overwrites.is_empty():
                         await channel.set_permissions(
                             staff_role,
                             overwrite=None,
-                            reason=f"Lockdown lifted by {actor} —— Removing staff override"
+                            reason=f"Lockdown lifted by {actor} —— Removing staff overrides"
                         )
 
                 channels_restored += 1
-
-            except discord.Forbidden:
-                continue
-            except Exception:
-                continue
 
         self.data["active"] = False
         self.data["activated_at"] = None
@@ -395,7 +384,7 @@ class LockdownCommands(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    async def on_member_join(self, member: discord.Member) -> None:
         if not self.data["active"]:
             return
 
@@ -404,8 +393,8 @@ class LockdownCommands(commands.Cog):
 
         guild = member.guild
 
-        try:
-            bot_member = guild.get_member(self.bot.user.id) if self.bot.user else None
+        with contextlib.suppress(discord.Forbidden, Exception):
+            bot_member: discord.Member | None = guild.get_member(self.bot.user.id) if self.bot.user else None
             if bot_member:
                 await self.cases_manager.log_case(
                     guild=guild,
@@ -418,10 +407,5 @@ class LockdownCommands(commands.Cog):
 
             await member.kick(reason="Server is in lockdown")
 
-        except discord.Forbidden:
-            pass
-        except Exception:
-            pass
-
-async def setup(bot: commands.Bot):
-    await bot.add_cog(LockdownCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(LockdownCommands(cast("UtilityBot", bot)))

@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+import contextlib
+
 from core.permissions import (
     directors_only,
     main_guild_only
@@ -35,7 +37,7 @@ class ApplicationsTicketsCommands(
     name="app-tickets",
     description="Moderators only —— Applications and tickets commands."
 ):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         super().__init__()
 
@@ -82,7 +84,7 @@ class ApplicationsTicketsCommands(
         action: app_commands.Choice[str],
         scope: app_commands.Choice[str],
         user: discord.User
-    ):
+    ) -> None:
         user_id = user.id
         target_list = BLACKLIST[scope.value]
 
@@ -143,7 +145,7 @@ class ApplicationsTicketsCommands(
         name="archive",
         aliases=["a"]
     )
-    async def archive(self, ctx: commands.Context):
+    async def archive(self, ctx: commands.Context) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
@@ -213,12 +215,12 @@ class ApplicationsTicketsCommands(
         ],
     )
     @directors_only()
-    async def closeapp(
+    async def appmodify(
         self,
         interaction: discord.Interaction,
         application: app_commands.Choice[str],
         state: app_commands.Choice[str],
-    ):
+    ) -> None:
         new_state = state.value == "open"
         current_state = APPLICATIONS_OPEN.get(application.value, False)
 
@@ -244,7 +246,7 @@ class ApplicationsTicketsCommands(
     @commands.command(
         name="cancel"
     )
-    async def cancel(self, ctx: commands.Context):
+    async def cancel(self, ctx: commands.Context) -> None:
         if ctx.guild is not None:
             await ctx.send(
                 "This command can only be used in DMs."
@@ -257,10 +259,8 @@ class ApplicationsTicketsCommands(
             )
             return
 
-        try:
+        with contextlib.suppress(discord.Forbidden, discord.NotFound):
             await ctx.message.delete(delay=300)
-        except (discord.Forbidden, discord.NotFound):
-            pass
 
         await delete_application_messages(client=self.bot, user_id=ctx.author.id)
 
@@ -277,7 +277,7 @@ class ApplicationsTicketsCommands(
         name="escalate",
         aliases=["e", "esc"]
     )
-    async def escalate(self, ctx: commands.Context):
+    async def escalate(self, ctx: commands.Context) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
@@ -330,8 +330,6 @@ class ApplicationsTicketsCommands(
             "Ticket has been escalated to Directors."
         )
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     cog = ApplicationsTicketsCommands(bot)
     await bot.add_cog(cog)
-
-    assert cog.app_command is not None

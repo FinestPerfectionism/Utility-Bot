@@ -1,11 +1,7 @@
 import discord
 from discord.ext import commands
 
-from typing import (
-    Optional,
-    cast,
-    Union
-)
+from typing import cast
 
 from core.help import (
     HelpedCallable,
@@ -23,9 +19,9 @@ from constants import(
 
 async def _run_help(
   bot: commands.Bot,
-  ctx_or_inter: Union[commands.Context, discord.Interaction],
-  command_name: Optional[str],
-):
+  ctx_or_inter: commands.Context | discord.Interaction,
+  command_name: str | None,
+) -> None:
   if isinstance(ctx_or_inter, commands.Context):
     if not isinstance(ctx_or_inter.author, discord.Member):
         await ctx_or_inter.send(
@@ -48,12 +44,12 @@ async def _run_help(
   if not command_name:
       lines = []
       for cmd in bot.commands:
-          cb = cast(HelpedCallable, cmd.callback)
+          cb = cast("HelpedCallable", cmd.callback)
           if hasattr(cb, "__help_data__"):
               lines.append(f"`{cmd.name}` — {cb.__help_data__.desc}")
 
       for app_cmd in bot.tree.get_commands():
-          cb = cast(HelpedCallable, getattr(app_cmd, "callback", None))
+          cb = cast("HelpedCallable", getattr(app_cmd, "callback", None))
           if cb and hasattr(cb, "__help_data__"):
               lines.append(f"`/{app_cmd.name}` — {cb.__help_data__.desc}")
 
@@ -79,7 +75,7 @@ async def _run_help(
       )
       return
 
-  data = cast(HelpedCallable, callback).__help_data__
+  data = cast("HelpedCallable", callback).__help_data__
 
   view = _build_help_view(
       command_name=" ".join(parts),
@@ -90,7 +86,7 @@ async def _run_help(
   await respond(view=view)
 
 class HelpCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -98,9 +94,9 @@ class HelpCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="help")
-    async def help_prefix(self, ctx: commands.Context, *, command_name: Optional[str] = None):
+    async def help_prefix(self, ctx: commands.Context, *, command_name: str | None = None) -> None:
         await _run_help(self.bot, ctx, command_name)
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
   cog = HelpCommands(bot)
   await bot.add_cog(cog)

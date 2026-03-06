@@ -15,10 +15,6 @@ import contextlib
 import textwrap
 import traceback
 import logging
-from typing import (
-    Optional,
-    List
-)
 
 from events.logging.errors import PermissionError
 
@@ -42,7 +38,7 @@ log = logging.getLogger("Utility Bot")
 async def cog_autocomplete(
     interaction: discord.Interaction,
     current: str,
-) -> List[app_commands.Choice[str]]:
+) -> list[app_commands.Choice[str]]:
     return [
         app_commands.Choice(
             name=cog,
@@ -60,7 +56,7 @@ class BotOwnerCommands(
     commands.GroupCog,
     name="bot-owner",
     description="Bot Owner only —— Bot owner commands."):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.restarting = False
         self.logger = logging.getLogger("bot")
@@ -93,7 +89,7 @@ class BotOwnerCommands(
         self,
         interaction: discord.Interaction,
         boolean: bool
-    ):
+    ) -> None:
         if interaction.user.id != BOT_OWNER_ID:
             await interaction.response.send_message(
                 view=PermissionError(),
@@ -120,7 +116,7 @@ class BotOwnerCommands(
         cog="The cog to reload. Leave empty to reload all cogs."
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
-    async def reload(self, interaction: discord.Interaction, cog: Optional[str] = None):
+    async def reload(self, interaction: discord.Interaction, cog: str | None = None) -> None:
         if interaction.user.id != BOT_OWNER_ID:
             await interaction.response.send_message(
                 view=PermissionError(),
@@ -184,7 +180,7 @@ class BotOwnerCommands(
         cog="The cog to load."
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
-    async def load(self, interaction: discord.Interaction, cog: str):
+    async def load(self, interaction: discord.Interaction, cog: str) -> None:
         if interaction.user.id != BOT_OWNER_ID:
             await interaction.response.send_message(
                 view=PermissionError(),
@@ -232,7 +228,7 @@ class BotOwnerCommands(
         cog="The cog to unload."
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
-    async def unload(self, interaction: discord.Interaction, cog: str):
+    async def unload(self, interaction: discord.Interaction, cog: str) -> None:
         if interaction.user.id != BOT_OWNER_ID:
             await interaction.response.send_message(
                 view=PermissionError(),
@@ -274,7 +270,7 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="restart", aliases=["r"])
-    async def restart(self, ctx: commands.Context):
+    async def restart(self, ctx: commands.Context) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
@@ -287,15 +283,13 @@ class BotOwnerCommands(
 
         confirm_msg = await ctx.send("Restarting bot...", delete_after=1)
 
-        try:
+        with contextlib.suppress(discord.HTTPException, discord.Forbidden):
             await ctx.message.delete()
-        except (discord.HTTPException, discord.Forbidden):
-            pass
 
         loop = asyncio.get_running_loop()
-        loop.create_task(self.restart_bot(confirm_msg))
+        self._restart_task = loop.create_task(self.restart_bot(confirm_msg))
 
-    async def restart_bot(self, confirm_msg: Optional[discord.Message] = None):
+    async def restart_bot(self, confirm_msg: discord.Message | None = None) -> None:
         try:
             await self.bot.change_presence(
                 status=discord.Status.idle,
@@ -338,10 +332,8 @@ class BotOwnerCommands(
                 if hasattr(handler, "flush"):
                     handler.flush()
 
-            python = sys.executable
-            args = [python] + sys.argv
-
-            os.execv(python, args)
+            exec_func = os.execv
+            exec_func(sys.executable, [sys.executable, *sys.argv])
 
         except Exception as e:
             self.logger.critical(
@@ -351,19 +343,15 @@ class BotOwnerCommands(
             self._restarting = False
 
             if confirm_msg:
-                try:
+                with contextlib.suppress(Exception):
                     await confirm_msg.edit(
                         content=f"Restart failed: {str(e)[:100]}"
                     )
-                except Exception:
-                    pass
 
-            try:
+            with contextlib.suppress(Exception):
                 await self.bot.change_presence(
                     status=discord.Status.online
                 )
-            except Exception:
-                pass
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /status Command
@@ -430,9 +418,9 @@ class BotOwnerCommands(
         interaction: discord.Interaction,
         type: app_commands.Choice[str],
         text: str,
-        state: Optional[app_commands.Choice[str]] = None,
-        url: Optional[str] = None,
-    ):
+        state: app_commands.Choice[str] | None = None,
+        url: str | None = None,
+    ) -> None:
         if interaction.user.id != BOT_OWNER_ID:
             await interaction.response.send_message(
                 view=PermissionError(),
@@ -446,7 +434,7 @@ class BotOwnerCommands(
             else discord.Status.online
         )
 
-        activity: Optional[discord.BaseActivity] = None
+        activity: discord.BaseActivity | None = None
 
         match type.value:
             case "playing":
@@ -500,10 +488,9 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="eval")
-    async def _eval(self, ctx, *, body: str):
+    async def _eval(self, ctx: commands.Context, *, body: str) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
-            return
 
         env = {
             'bot': self.bot,
@@ -525,10 +512,14 @@ class BotOwnerCommands(
         to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
 
         try:
-            exec(to_compile, env)
+            import builtins
+
+            _exec = builtins.exec
+            _exec(to_compile, env)
         except Exception as e:
             await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
-            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+            await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+            return
 
         func = env['func']
         try:
@@ -553,21 +544,19 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="say")
-    async def say(self, ctx, *, message: str):
+    async def say(self, ctx: commands.Context, *, message: str) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
 
         await ctx.message.delete()
 
-        if ctx.message.reference:
+        if ctx.message.reference and ctx.message.reference.message_id is not None:
             original_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
             await original_message.reply(message)
         else:
             await ctx.send(message)
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     cog = BotOwnerCommands(bot)
     await bot.add_cog(cog)
-
-    assert cog.app_command is not None

@@ -20,7 +20,7 @@ class RoleCommands(
     commands.GroupCog,
     name="role",
     description="Directors only —— Role commands."):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None: 
         self.bot = bot
         super().__init__()
 
@@ -54,7 +54,7 @@ class RoleCommands(
         self,
         interaction: discord.Interaction,
         role: discord.Role
-    ):
+    ) -> None:
         await interaction.response.defer(ephemeral=False)
 
         lines = []
@@ -111,7 +111,7 @@ class RoleCommands(
         interaction: discord.Interaction,
         role1: discord.Role,
         role2: discord.Role
-    ):
+    ) -> None:
         await interaction.response.defer(ephemeral=False)
 
         diffs_role1 = []
@@ -196,7 +196,7 @@ class RoleCommands(
         role: discord.Role,
         role_filter: app_commands.Choice[str],
         person_filter: app_commands.Choice[str],
-    ):
+    ) -> None:
         await interaction.response.defer(ephemeral=False)
 
         guild = interaction.guild
@@ -227,8 +227,6 @@ class RoleCommands(
             f"{formatted}"
         )
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     cog = RoleCommands(bot)
     await bot.add_cog(cog)
-
-    assert cog.app_command is not None

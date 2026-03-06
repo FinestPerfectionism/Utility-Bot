@@ -2,8 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from bot import UtilityBot
-
+import contextlib
 import json
 import os
 from datetime import (
@@ -11,11 +10,17 @@ from datetime import (
     timedelta
 )
 from typing import (
-    Dict,
+    TYPE_CHECKING,
     cast
 )
 
-from commands.moderation.cases import CaseType
+if TYPE_CHECKING:
+    from bot import UtilityBot
+
+from commands.moderation.cases import (
+    CaseType,
+    CasesManager
+)
 
 from constants import(
     BOT_OWNER_ID,
@@ -77,7 +82,7 @@ class QuarantineRemoveFlags(commands.FlagConverter, prefix="/", delimiter=" "):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class QuarantineCommands(commands.Cog):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
         self.data_file = "quarantine_data.json"
         self.data = self.load_data()
@@ -106,29 +111,26 @@ class QuarantineCommands(commands.Cog):
         self.SEVERE_DAILY_LIMIT = 24
 
     @property
-    def cases_manager(self):
-        return cast(UtilityBot, self.bot).cases_manager
+    def cases_manager(self) -> CasesManager:
+        return self.bot.cases_manager
 
-    def load_data(self) -> Dict:
+    def load_data(self) -> dict:
         if os.path.exists(self.data_file):
-            try:
-                with open(self.data_file, 'r') as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return self.get_default_data()
+            with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
+                return json.load(f)
         return self.get_default_data()
 
-    def get_default_data(self) -> Dict:
+    def get_default_data(self) -> dict:
         return {
             "quarantined": {},
             "rate_limits": {}
         }
 
-    def save_data(self):
+    def save_data(self) -> None:
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
-    def _ensure_rate_limit_entry(self, user_id: str):
+    def _ensure_rate_limit_entry(self, user_id: str) -> None:
         if user_id not in self.data["rate_limits"]:
             self.data["rate_limits"][user_id] = {}
         rl = self.data["rate_limits"][user_id]
@@ -136,7 +138,7 @@ class QuarantineCommands(commands.Cog):
             if key not in rl:
                 rl[key] = []
 
-    def clean_old_rate_limits(self, user_id: str):
+    def clean_old_rate_limits(self, user_id: str) -> None:
         now = datetime.now()
         self._ensure_rate_limit_entry(user_id)
         rl = self.data["rate_limits"][user_id]
@@ -163,7 +165,7 @@ class QuarantineCommands(commands.Cog):
 
         return True, ""
 
-    def add_rate_limit_entry(self, user_id: str):
+    def add_rate_limit_entry(self, user_id: str) -> None:
         now = datetime.now().isoformat()
         self._ensure_rate_limit_entry(user_id)
         rl = self.data["rate_limits"][user_id]
@@ -218,7 +220,7 @@ class QuarantineCommands(commands.Cog):
         name="view",
         description="View the members in quarantine."
     )
-    async def quarantine_view(self, interaction: discord.Interaction):
+    async def quarantine_view(self, interaction: discord.Interaction) -> None:
         member = interaction.user
         if not isinstance(member, discord.Member):
             return
@@ -263,7 +265,7 @@ class QuarantineCommands(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @commands.command(name="quarantine-view", aliases=["qview", "qv"])
-    async def quarantine_view_prefix(self, ctx: commands.Context):
+    async def quarantine_view_prefix(self, ctx: commands.Context) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -311,7 +313,7 @@ class QuarantineCommands(commands.Cog):
         member: discord.Member,
         reason: str,
         proof: discord.Attachment | None = None
-    ):
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -397,7 +399,7 @@ class QuarantineCommands(commands.Cog):
             await member.remove_roles(*roles_to_remove, reason=f"Quarantined by {interaction.user}")
             await member.add_roles(quarantine_role, reason=f"Quarantined by {interaction.user}: {reason}")
 
-            metadata: Dict = {"roles_saved": len(saved_roles)}
+            metadata: dict = {"roles_saved": len(saved_roles)}
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -441,7 +443,7 @@ class QuarantineCommands(commands.Cog):
         member: discord.Member,
         *,
         flags: QuarantineAddFlags
-    ):
+    ) -> None:
         if not flags.r:
             return
 
@@ -526,7 +528,7 @@ class QuarantineCommands(commands.Cog):
                 del self.data["quarantined"][str(member.id)]
                 self.save_data()
 
-    async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild):
+    async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild) -> None:
         if not guild or not self.bot.user:
             return
 
@@ -577,7 +579,7 @@ class QuarantineCommands(commands.Cog):
         member: discord.Member,
         reason: str,
         proof: discord.Attachment | None = None
-    ):
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -640,7 +642,7 @@ class QuarantineCommands(commands.Cog):
                 del self.data["quarantined"][str(member.id)]
                 self.save_data()
 
-            metadata: Dict = {"roles_restored": len(roles_to_add)}
+            metadata: dict = {"roles_restored": len(roles_to_add)}
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -689,7 +691,7 @@ class QuarantineCommands(commands.Cog):
         member: discord.Member,
         *,
         flags: QuarantineRemoveFlags
-    ):
+    ) -> None:
         if not flags.r:
             return
 
@@ -775,5 +777,5 @@ class QuarantineCommands(commands.Cog):
         except discord.Forbidden:
             pass
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(QuarantineCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(QuarantineCommands(cast("UtilityBot", bot)))

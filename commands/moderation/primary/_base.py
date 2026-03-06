@@ -1,21 +1,19 @@
 import discord
 from discord.ext import commands
 
+import contextlib
 import json
 import os
 from datetime import (
     datetime,
     timedelta
 )
-from typing import (
-    Optional,
-    Dict,
-    cast
-)
+from typing import TYPE_CHECKING
 
-from commands.moderation.cases import CaseType
+from commands.moderation.cases import CaseType, CasesManager
 
-from bot import UtilityBot
+if TYPE_CHECKING:
+    from bot import UtilityBot
 
 from core.permissions import (
     has_role,
@@ -72,7 +70,7 @@ class TimeoutFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     )
 
 class PurgeFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    u: Optional[discord.Member] = commands.flag(name="u", aliases=["user"], default=None)
+    u: discord.Member | None = commands.flag(name="u", aliases=["user"], default=None)
     r: str = commands.flag(name="r", aliases=["reason"])
     s: bool = commands.flag(
         name="s",
@@ -86,7 +84,7 @@ class PurgeFlags(commands.FlagConverter, prefix="/", delimiter=" "):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ModerationBase(commands.Cog):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
 
         if not hasattr(bot, "mod_data"):
@@ -118,23 +116,20 @@ class ModerationBase(commands.Cog):
         self.SEVERE_DAILY_LIMIT = 8
 
     @property
-    def data(self) -> Dict:
-        return cast(UtilityBot, self.bot).mod_data
+    def data(self) -> dict:
+        return self.bot.mod_data
 
     @property
-    def cases_manager(self):
-        return cast(UtilityBot, self.bot).cases_manager
+    def cases_manager(self) -> CasesManager:
+        return self.bot.cases_manager
 
-    def _load_data(self) -> Dict:
+    def _load_data(self) -> dict:
         if os.path.exists("moderation_data.json"):
-            try:
-                with open("moderation_data.json", "r") as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return self._get_default_data()
+            with contextlib.suppress(json.JSONDecodeError), open("moderation_data.json") as f:
+                return json.load(f)
         return self._get_default_data()
 
-    def _get_default_data(self) -> Dict:
+    def _get_default_data(self) -> dict:
         return {
             "bans": {},
             "timeouts": {},
@@ -143,29 +138,28 @@ class ModerationBase(commands.Cog):
             "quarantined": {}
         }
 
-    def save_data(self):
+    def save_data(self) -> None:
         with open("moderation_data.json", "w") as f:
             json.dump(self.data, f, indent=4)
 
-    def parse_duration(self, duration_str: str) -> Optional[int]:
+    def parse_duration(self, duration_str: str) -> int | None:
         duration_str = duration_str.lower().strip()
         try:
             if duration_str.endswith("s"):
                 return int(duration_str[:-1])
-            elif duration_str.endswith("m"):
+            if duration_str.endswith("m"):
                 return int(duration_str[:-1]) * 60
-            elif duration_str.endswith("h"):
+            if duration_str.endswith("h"):
                 return int(duration_str[:-1]) * 3600
-            elif duration_str.endswith("d"):
+            if duration_str.endswith("d"):
                 return int(duration_str[:-1]) * 86400
-            elif duration_str.endswith("w"):
+            if duration_str.endswith("w"):
                 return int(duration_str[:-1]) * 604800
-            else:
-                return int(duration_str) * 60
+            return int(duration_str) * 60
         except ValueError:
             return None
 
-    def _ensure_rate_limit_entry(self, user_id: str):
+    def _ensure_rate_limit_entry(self, user_id: str) -> None:
         if user_id not in self.data["rate_limits"]:
             self.data["rate_limits"][user_id] = {}
         rl = self.data["rate_limits"][user_id]
@@ -173,7 +167,7 @@ class ModerationBase(commands.Cog):
             if key not in rl:
                 rl[key] = []
 
-    def clean_old_rate_limits(self, user_id: str):
+    def clean_old_rate_limits(self, user_id: str) -> None:
         now = datetime.now()
         self._ensure_rate_limit_entry(user_id)
         rl = self.data["rate_limits"][user_id]
@@ -204,7 +198,7 @@ class ModerationBase(commands.Cog):
 
         return True, ""
 
-    def add_rate_limit_entry(self, user_id: str, action: str):
+    def add_rate_limit_entry(self, user_id: str, action: str) -> None:
         now = datetime.now().isoformat()
         self._ensure_rate_limit_entry(user_id)
         rl = self.data["rate_limits"][user_id]
@@ -261,18 +255,16 @@ class ModerationBase(commands.Cog):
         if self.has_protected_role(target):
             if self.can_quarantine(moderator):
                 return False, "You cannot ban/kick/mute staff members. Use `/quarantine add` instead."
-            else:
-                return False, "You cannot ban/kick/mute staff members."
+            return False, "You cannot ban/kick/mute staff members."
 
         if not self.check_hierarchy(moderator, target):
             if self.can_quarantine(moderator):
                 return False, "Target user is greater than or equal to your highest role. Use `/quarantine add` instead."
-            else:
-                return False, "Target user is greater than or equal to your highest role."
+            return False, "Target user is greater than or equal to your highest role."
 
         return True, ""
 
-    async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild):
+    async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild) -> None:
         if not guild or not self.bot.user:
             return
 

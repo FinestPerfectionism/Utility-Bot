@@ -2,8 +2,6 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-import random
-
 from core.utils import send_minor_error
 
 from constants import (
@@ -16,7 +14,7 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MiscCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -27,7 +25,7 @@ class MiscCommands(commands.Cog):
         name="femboy",
         description="Such a good little utility kitten."
     )
-    async def femboy(self, interaction: discord.Interaction):
+    async def femboy(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
         await interaction.followup.send(
             "i-i'm such a submissive wittle kitty UwU. *snuggles* I hewp cwose proposals... naa~~"
@@ -40,7 +38,7 @@ class MiscCommands(commands.Cog):
     @commands.command(
         name="super_secret_command"
     )
-    async def super_secret_command(self, ctx: commands.Context):
+    async def super_secret_command(self, ctx: commands.Context) -> None:
         author_id = ctx.author.id
 
         if author_id == BOT_OWNER_ID:
@@ -56,7 +54,7 @@ class MiscCommands(commands.Cog):
             return
 
         await ctx.send(
-            "Hmm… I don’t think you’re super super secret enough to use this super super secret command."
+            "Hmm… I don't think you're super super secret enough to use this super super secret command."
         ) 
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -67,7 +65,7 @@ class MiscCommands(commands.Cog):
         name="roulette",
         description="Have fun..."
     )
-    async def roulette(self, interaction: discord.Interaction):
+    async def roulette(self, interaction: discord.Interaction) -> None:
         guild = interaction.guild
         member = interaction.user
 
@@ -81,7 +79,9 @@ class MiscCommands(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        chamber = random.randint(1, 6)
+        import secrets
+
+        chamber = secrets.randbelow(6) + 1
 
         if chamber == 1:
             try:
@@ -94,13 +94,13 @@ class MiscCommands(commands.Cog):
                 )
             except discord.Forbidden:
                 await interaction.followup.send(
-                    "*Click,* ***Ba***… wait… the gun’s jammed!"
+                    "*Click,* ***Ba***… wait… the gun's jammed!"
                 )
         else:
             await interaction.followup.send(
                 "*Click.* You live."
             )
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     cog = MiscCommands(bot)
     await bot.add_cog(cog)

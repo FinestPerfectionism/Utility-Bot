@@ -10,12 +10,12 @@ from constants import GOOBERS_ROLE_ID, STAFF_ROLE_ID
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class VerificationCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
         self.data = {"unverified": {}}
 
-    def save_data(self):
+    def save_data(self) -> None:
         pass
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -24,7 +24,7 @@ class VerificationCommands(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="verify", aliases=["v"])
-    async def manual_verify(self, ctx: commands.Context, member: discord.Member):
+    async def manual_verify(self, ctx: commands.Context, member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 
@@ -63,7 +63,7 @@ class VerificationCommands(commands.Cog):
         name="unverify",
         aliases=["un-verify", "uv", "deverify", "de-verify", "dv"]
     )
-    async def unverify(self, ctx: commands.Context, member: discord.Member):
+    async def unverify(self, ctx: commands.Context, member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
 
@@ -96,5 +96,5 @@ class VerificationCommands(commands.Cog):
         except discord.Forbidden:
             return
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(VerificationCommands(bot))

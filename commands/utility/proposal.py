@@ -2,10 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-import re
-import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import ClassVar
+import re
+import time
 
 from core.permissions import (
     has_director_role,
@@ -209,7 +210,7 @@ class ProposalCommands(
     name="proposal",
     description="Staff Committee only —— Proposal commands.",
 ):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         super().__init__()
 
@@ -217,7 +218,7 @@ class ProposalCommands(
     # /proposal status Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    REASON_WHITELISTS: dict[str, set[str]] = {
+    REASON_WHITELISTS: ClassVar[dict[str, set[str]]] = {
         "accepted":   {"Committee accepted."},
         "contested":  {"Committee contested.", "Proposand unimplementable.", "Out of scope."},
         "denied":     {"Committee denied.", "Veto.", "Proposand unimplementable.", "Out of scope."},
@@ -257,7 +258,7 @@ class ProposalCommands(
         status: app_commands.Choice[str],
         reason: app_commands.Choice[str],
         notes: str | None = None,
-    ):
+    ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
@@ -332,11 +333,13 @@ class ProposalCommands(
             set_decision=True,
         )
 
+        return None
+
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /proposal tag Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    PROCESS_TAG_LABELS: dict[str, str] = {
+    PROCESS_TAG_LABELS: ClassVar[dict[str, str]] = {
         "needs_revision":       "Needs Revision",
         "needs_implementation": "Needs Implementation",
         "owner_action":         "Owner Action",
@@ -367,7 +370,7 @@ class ProposalCommands(
         tag: app_commands.Choice[str],
         enabled: bool,
         notes: str | None = None,
-    ):
+    ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
@@ -454,6 +457,8 @@ class ProposalCommands(
             set_implementation=(not enabled and tag_key == "needs_implementation"),
         )
 
+        return None
+
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /proposal finalize Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -478,7 +483,7 @@ class ProposalCommands(
         interaction: discord.Interaction,
         reason: app_commands.Choice[str],
         notes: str | None = None,
-    ):
+    ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
@@ -550,6 +555,8 @@ class ProposalCommands(
             set_finalization=True,
         )
 
+        return None
+
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /proposal unlock Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -574,7 +581,7 @@ class ProposalCommands(
         interaction: discord.Interaction,
         reason: app_commands.Choice[str],
         notes: str | None = None,
-    ):
+    ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
@@ -611,6 +618,8 @@ class ProposalCommands(
             clear_finalization=True,
         )
 
+        return None
+
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /proposal unstandstill Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -636,7 +645,7 @@ class ProposalCommands(
         interaction: discord.Interaction,
         reason: app_commands.Choice[str],
         notes: str | None = None,
-    ):
+    ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
@@ -680,6 +689,8 @@ class ProposalCommands(
             thread, self.bot, tags, member,
         )
 
+        return None
+
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .delete/.del/.d Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -689,7 +700,7 @@ class ProposalCommands(
         aliases=["d", "del"]
     )
     @has_director_role()
-    async def delete_thread(self, ctx: commands.Context):
+    async def delete_thread(self, ctx: commands.Context) -> None:
         if not isinstance(ctx.channel, discord.Thread):
             return
 
@@ -698,8 +709,6 @@ class ProposalCommands(
 
         await ctx.channel.delete()
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     cog = ProposalCommands(bot)
     await bot.add_cog(cog)
-
-    assert cog.app_command is not None

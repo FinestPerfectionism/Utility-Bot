@@ -1,6 +1,5 @@
 import importlib
 import pkgutil
-from typing import List, Optional
 import logging
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -9,7 +8,7 @@ import logging
 
 log = logging.getLogger("Utility Bot")
 
-def discover_cogs(*package_names: str, priority: Optional[List[str]] = None) -> List[str]:
+def discover_cogs(*package_names: str, priority: list[str] | None = None) -> list[str]:
     cogs: list[str] = []
 
     for package_name in package_names:

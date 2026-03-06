@@ -4,14 +4,14 @@ from discord import app_commands
 
 from datetime import datetime
 from typing import (
-    Optional,
-    Dict,
+    TYPE_CHECKING,
     cast
 )
 
 from commands.moderation.cases import CaseType
 
-from bot import UtilityBot
+if TYPE_CHECKING:
+    from bot import UtilityBot
 
 from core.utils import (
     send_major_error,
@@ -34,7 +34,7 @@ from ._base import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class PurgeCommands(ModerationBase):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         super().__init__(bot)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -53,9 +53,9 @@ class PurgeCommands(ModerationBase):
         interaction: discord.Interaction,
         amount: int,
         reason: str,
-        member: Optional[discord.Member] = None,
-        proof: Optional[discord.Attachment] = None
-    ):
+        member: discord.Member | None = None,
+        proof: discord.Attachment | None = None
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -99,7 +99,7 @@ class PurgeCommands(ModerationBase):
                     bulk=True
                 )
 
-            metadata: Dict = {
+            metadata: dict = {
                 "deleted_messages": len(deleted),
                 "channel_id": channel.id
             }
@@ -147,7 +147,7 @@ class PurgeCommands(ModerationBase):
         amount: int,
         *,
         flags: PurgeFlags
-    ):
+    ) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -218,7 +218,7 @@ class PurgeCommands(ModerationBase):
             )
 
     @purge_prefix.error
-    async def purge_prefix_error(self, ctx: commands.Context, error: Exception):
+    async def purge_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
@@ -246,5 +246,5 @@ class PurgeCommands(ModerationBase):
             )
 
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(PurgeCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(PurgeCommands(cast("UtilityBot", bot)))

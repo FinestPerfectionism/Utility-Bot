@@ -2,10 +2,14 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+import contextlib
 import json
 import os
 from datetime import datetime
-from typing import cast, List, Dict, Optional
+from typing import (
+    TYPE_CHECKING,
+    cast,
+)
 
 from constants import (
     ACCEPTED_EMOJI_ID,
@@ -22,10 +26,11 @@ from constants import (
     SUPPORTING_DIRECTOR_ROLE_ID,
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
 )
 
-from bot import UtilityBot
+if TYPE_CHECKING:
+    from bot import UtilityBot
+
 from core.utils import send_major_error
 from core.permissions import is_director, is_senior_moderator
 
@@ -33,7 +38,7 @@ from core.permissions import is_director, is_senior_moderator
 # Health Check
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-DANGEROUS_PERMISSIONS: List[str] = [
+DANGEROUS_PERMISSIONS: list[str] = [
     "administrator",
     "manage_channels",
     "manage_roles",
@@ -49,7 +54,7 @@ DANGEROUS_PERMISSIONS: List[str] = [
     "manage_threads",
 ]
 
-QUARANTINE_DENY_PERMS: List[str] = [
+QUARANTINE_DENY_PERMS: list[str] = [
     "view_channel",
     "create_instant_invite",
     "send_messages",
@@ -58,7 +63,7 @@ QUARANTINE_DENY_PERMS: List[str] = [
     "create_private_threads",
 ]
 
-NATIVE_MOD_PERMS: List[str] = [
+NATIVE_MOD_PERMS: list[str] = [
     "kick_members",
     "ban_members",
     "moderate_members",
@@ -67,7 +72,7 @@ NATIVE_MOD_PERMS: List[str] = [
 def _perm_value(perms: discord.Permissions, name: str) -> bool:
     return bool(getattr(perms, name, False))
 
-def _overwrite_value(overwrite: discord.PermissionOverwrite, name: str) -> Optional[bool]:
+def _overwrite_value(overwrite: discord.PermissionOverwrite, name: str) -> bool | None:
     return getattr(overwrite, name, None)
 
 def _get_health_color(score: float) -> discord.Color:
@@ -86,7 +91,7 @@ def _get_health_color(score: float) -> discord.Color:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class HealthFixView(discord.ui.View):
-    def __init__(self, guild: discord.Guild, fixable: List[str], cog: "HealthCommands"):
+    def __init__(self, guild: discord.Guild, fixable: list[str], cog: "HealthCommands") -> None:
         super().__init__(timeout=300)
         self.guild = guild
         self.fixable = fixable
@@ -98,14 +103,14 @@ class HealthFixView(discord.ui.View):
                     child.disabled = True
                 
     @discord.ui.button(label="Fix Issues", style=discord.ButtonStyle.danger, emoji=f"{STANDSTILL_EMOJI_ID}")
-    async def fix_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def fix_button(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
 
         await interaction.response.defer(ephemeral=True)
 
-        fixed: List[str] = []
-        failed: List[str] = []
+        fixed: list[str] = []
+        failed: list[str] = []
         guild = self.guild
 
         if "EVERYONE_ROLE_PERMS" in self.fixable:
@@ -150,7 +155,7 @@ class HealthFixView(discord.ui.View):
                 fixed.append("Cleared dangerous @everyone channel overrides")
 
         if "NATIVE_MOD_PERMS" in self.fixable:
-            role_errors: List[str] = []
+            role_errors: list[str] = []
             for role in guild.roles:
                 if role.id in (guild.default_role.id, DIRECTORS_ROLE_ID):
                     continue
@@ -228,18 +233,18 @@ class HealthFixView(discord.ui.View):
                     fixed.append("Set quarantine deny overrides in all channels")
 
         if "ANTINUKE_ENABLED" in self.fixable:
-            config_file = "antinuke_config.json"
+            config_file: str = "antinuke_config.json"
             try:
-                config: Dict = {}
+                config: dict = {}
                 if os.path.exists(config_file):
-                    with open(config_file, 'r') as f:
+                    with open(config_file) as f:
                         config = json.load(f)
                 config["enabled"] = True
-                with open(config_file, 'w') as f:
+                with open(config_file, "w") as f:
                     json.dump(config, f, indent=4)
                 fixed.append("Enabled the anti-nuke system")
-            except Exception:
-                failed.append("Could not update anti-nuke config file")
+            except Exception as e:
+                failed.append(f"Could not update anti-nuke config file: {e}")
 
         embed = discord.Embed(
             title="Health Fix Results",
@@ -328,15 +333,14 @@ class HealthFixView(discord.ui.View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class HealthCommands(commands.Cog):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
-
 
     def can_use(self, member: discord.Member) -> bool:
         return is_director(member) or is_senior_moderator(member)
 
-    async def _run_checks(self, guild: discord.Guild) -> List[Dict]:
-        checks: List[Dict] = []
+    async def _run_checks(self, guild: discord.Guild) -> list[dict]:
+        checks: list[dict] = []
         bot_member = guild.get_member(self.bot.user.id) if self.bot.user else None
 
         bot_has_admin = bool(bot_member and bot_member.guild_permissions.administrator)
@@ -376,7 +380,7 @@ class HealthCommands(commands.Cog):
             "detail": f"Active: {', '.join(everyone_bad_role_perms)}" if everyone_bad_role_perms else "",
         })
 
-        channel_violations: List[str] = []
+        channel_violations: list[str] = []
         for channel in guild.channels:
             if isinstance(channel, discord.CategoryChannel):
                 continue
@@ -396,7 +400,7 @@ class HealthCommands(commands.Cog):
             ) if channel_violations else "",
         })
 
-        bad_roles: List[str] = []
+        bad_roles: list[str] = []
         for role in guild.roles:
             if role.id in (guild.default_role.id, SUPPORTING_DIRECTOR_ROLE_ID):
                 continue
@@ -433,7 +437,7 @@ class HealthCommands(commands.Cog):
         })
 
         if quarantine_role:
-            channels_missing_deny: List[str] = []
+            channels_missing_deny: list[str] = []
             for channel in guild.channels:
                 if isinstance(channel, discord.CategoryChannel):
                     continue
@@ -480,13 +484,10 @@ class HealthCommands(commands.Cog):
         antinuke_enabled = False
         antinuke_log = False
         if os.path.exists(antinuke_config_file):
-            try:
-                with open(antinuke_config_file, 'r') as f:
-                    antinuke_config = json.load(f)
-                antinuke_enabled = antinuke_config.get("enabled", True)
-                antinuke_log = antinuke_config.get("log_channel_id") is not None
-            except json.JSONDecodeError:
-                pass
+            with contextlib.suppress(json.JSONDecodeError), open(antinuke_config_file) as f:
+                antinuke_config: dict = json.load(f)
+                antinuke_enabled: bool = antinuke_config.get("enabled", True)
+                antinuke_log: bool = antinuke_config.get("log_channel_id") is not None
 
         checks.append({
             "id": "ANTINUKE_ENABLED",
@@ -507,12 +508,9 @@ class HealthCommands(commands.Cog):
         cases_config_file = "cases_config.json"
         cases_log = False
         if os.path.exists(cases_config_file):
-            try:
-                with open(cases_config_file, 'r') as f:
-                    cases_config = json.load(f)
-                cases_log = cases_config.get("log_channel_id") is not None
-            except json.JSONDecodeError:
-                pass
+            with contextlib.suppress(json.JSONDecodeError), open(cases_config_file) as f:
+                cases_config: dict = json.load(f)
+                cases_log: bool = cases_config.get("log_channel_id") is not None
 
         checks.append({
             "id": "CASES_LOG",
@@ -528,7 +526,7 @@ class HealthCommands(commands.Cog):
         name="health",
         description="View server health and run automated fixes."
     )
-    async def health(self, interaction: discord.Interaction):
+    async def health(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -572,7 +570,7 @@ class HealthCommands(commands.Cog):
         check_map = {c["id"]: c for c in checks}
 
         for category_name, check_ids in categories:
-            lines: List[str] = []
+            lines: list[str] = []
             for check_id in check_ids:
                 check = check_map.get(check_id)
                 if not check:
@@ -610,5 +608,5 @@ class HealthCommands(commands.Cog):
 
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(HealthCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(HealthCommands(cast("UtilityBot", bot)))

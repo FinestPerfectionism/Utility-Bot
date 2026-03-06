@@ -5,7 +5,6 @@ from discord import app_commands
 import random
 import aiohttp
 import asyncio
-from typing import Optional
 from collections import deque
 
 from core.utils import send_major_error
@@ -32,15 +31,15 @@ IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".webp")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemeCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
         self.seen_memes = deque(maxlen=50)
 
-    async def cog_load(self):
+    async def cog_load(self) -> None:
         self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10))
 
-    async def cog_unload(self):
+    async def cog_unload(self) -> None:
         if self.session:
             await self.session.close()
 
@@ -51,7 +50,9 @@ class MemeCommands(commands.Cog):
         last_error = None
 
         for _ in range(5):
-            subreddit = random.choice(SUBREDDITS)
+            import secrets
+
+            subreddit: str = secrets.choice(SUBREDDITS)
             url = f"https://meme-api.com/gimme/{subreddit}/5"
 
             try:
@@ -94,7 +95,7 @@ class MemeCommands(commands.Cog):
         description="Get a random meme."
     )
     @app_commands.checks.cooldown(1, 5.0)
-    async def meme(self, interaction: discord.Interaction):
+    async def meme(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
 
         try:
@@ -126,5 +127,5 @@ class MemeCommands(commands.Cog):
 
         await interaction.followup.send(embed=embed)
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MemeCommands(bot))

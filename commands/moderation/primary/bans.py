@@ -2,12 +2,17 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+import contextlib
 from datetime import datetime
-from typing import Optional, Dict, cast
+from typing import (
+    TYPE_CHECKING,
+    cast
+)
+
+if TYPE_CHECKING:
+    from bot import UtilityBot
 
 from commands.moderation.cases import CaseType
-
-from bot import UtilityBot
 
 from core.utils import (
     send_major_error,
@@ -33,7 +38,7 @@ from ._base import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class BanCommands(ModerationBase):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         super().__init__(bot)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -52,9 +57,9 @@ class BanCommands(ModerationBase):
         interaction: discord.Interaction,
         member: discord.Member,
         reason: str,
-        delete_messages: Optional[int] = 0,
-        proof: Optional[discord.Attachment] = None
-    ):
+        delete_messages: int | None = 0,
+        proof: discord.Attachment | None = None
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -113,7 +118,7 @@ class BanCommands(ModerationBase):
             }
             self.save_data()
 
-            metadata: Dict = {"delete_message_days": delete_messages}
+            metadata: dict = {"delete_message_days": delete_messages}
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -157,7 +162,7 @@ class BanCommands(ModerationBase):
         member: discord.Member,
         *,
         flags: BanFlags
-    ):
+    ) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -251,7 +256,7 @@ class BanCommands(ModerationBase):
             )
 
     @ban_prefix.error
-    async def ban_prefix_error(self, ctx: commands.Context, error: Exception):
+    async def ban_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
@@ -286,7 +291,7 @@ class BanCommands(ModerationBase):
         interaction: discord.Interaction,
         user: str,
         reason: str
-    ):
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -306,13 +311,11 @@ class BanCommands(ModerationBase):
 
         await interaction.response.defer(ephemeral=True)
 
-        user_to_unban = None
+        user_to_unban: discord.User | None = None
 
         if user.isdigit():
-            try:
+            with contextlib.suppress(discord.NotFound):
                 user_to_unban = await self.bot.fetch_user(int(user))
-            except discord.NotFound:
-                pass
 
         if not user_to_unban:
             try:
@@ -383,7 +386,7 @@ class BanCommands(ModerationBase):
         user: str,
         *,
         flags: KickFlags
-    ):
+    ) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -404,13 +407,11 @@ class BanCommands(ModerationBase):
         if not guild:
             return
 
-        user_to_unban = None
+        user_to_unban: discord.User | None = None
 
         if user.isdigit():
-            try:
+            with contextlib.suppress(discord.NotFound):
                 user_to_unban = await self.bot.fetch_user(int(user))
-            except discord.NotFound:
-                pass
 
         if not user_to_unban:
             try:
@@ -485,7 +486,7 @@ class BanCommands(ModerationBase):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="bans", description="View all banned members.")
-    async def bans_slash(self, interaction: discord.Interaction):
+    async def bans_slash(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -556,7 +557,7 @@ class BanCommands(ModerationBase):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="bans", aliases=["banlist", "bls"])
-    async def bans_prefix(self, ctx: commands.Context):
+    async def bans_prefix(self, ctx: commands.Context) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -614,6 +615,5 @@ class BanCommands(ModerationBase):
                 f"-# Contact the owner."
             )
 
-
-async def setup(bot: commands.Bot):
-    await bot.add_cog(BanCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(BanCommands(cast("UtilityBot", bot)))

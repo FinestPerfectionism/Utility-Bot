@@ -3,13 +3,15 @@ from discord import app_commands
 from discord.ext import commands
 
 from datetime import datetime
-from typing import List, TYPE_CHECKING, cast
+from typing import (
+    TYPE_CHECKING,
+    cast
+)
 
 from core.utils import send_major_error, send_minor_error
 
 from constants import(
     ACCEPTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 
     COLOR_RED,
     COLOR_ORANGE,
@@ -24,7 +26,7 @@ if TYPE_CHECKING:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class AntiNukeCommands(commands.Cog):
-    def __init__(self, antinuke_system: "AntiNukeSystem"):
+    def __init__(self, antinuke_system: "AntiNukeSystem") -> None:
         self.antinuke_system = antinuke_system
         self.config = antinuke_system.config
         self.is_director = antinuke_system.is_director
@@ -39,7 +41,7 @@ class AntiNukeCommands(commands.Cog):
         name="status",
         description="Status of the anti-nuke system."
     )
-    async def antinuke_status(self, interaction: discord.Interaction):
+    async def antinuke_status(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -94,7 +96,7 @@ class AntiNukeCommands(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @antinuke_group.command(name="toggle", description="Enable or disable anti-nuke protection.")
-    async def antinuke_toggle(self, interaction: discord.Interaction):
+    async def antinuke_toggle(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -134,7 +136,7 @@ class AntiNukeCommands(commands.Cog):
         action: str,
         hourly: int,
         daily: int
-    ):
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -186,7 +188,7 @@ class AntiNukeCommands(commands.Cog):
         self,
         interaction: discord.Interaction,
         current: str,
-    ) -> List[app_commands.Choice[str]]:
+    ) -> list[app_commands.Choice[str]]:
         actions = list(self.config["limits"].keys())
         return [
             app_commands.Choice(name=action.replace("_", " ").title(), value=action)
@@ -202,7 +204,7 @@ class AntiNukeCommands(commands.Cog):
         self,
         interaction: discord.Interaction,
         channel: discord.TextChannel
-    ):
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -228,7 +230,7 @@ class AntiNukeCommands(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     antinuke_system = bot.get_cog("AntiNukeSystem")
     if antinuke_system is None:
         raise RuntimeError("AntiNukeSystem cog must be loaded before AntiNukeCommands")

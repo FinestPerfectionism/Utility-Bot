@@ -2,15 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+import contextlib
 import json
 import os
 from datetime import datetime
-from typing import (
-    Optional,
-    Dict,
-    List,
-    Literal
-)
+from typing import Literal
 from enum import Enum
 
 from constants import(
@@ -58,36 +54,30 @@ class CaseType(str, Enum):
     NOTE = "note"
 
 class CasesManager:
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.data_file = "cases_data.json"
         self.config_file = "cases_config.json"
         self.data = self.load_data()
         self.config = self.load_config()
 
-    def load_data(self) -> Dict:
+    def load_data(self) -> dict:
         if os.path.exists(self.data_file):
-            try:
-                with open(self.data_file, 'r') as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return {"cases": [], "next_case_id": 1}
+            with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
+                return json.load(f)
         return {"cases": [], "next_case_id": 1}
 
-    def load_config(self) -> Dict:
+    def load_config(self) -> dict:
         if os.path.exists(self.config_file):
-            try:
-                with open(self.config_file, 'r') as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return {"log_channel_id": None}
+            with contextlib.suppress(json.JSONDecodeError), open(self.config_file) as f:
+                return json.load(f)
         return {"log_channel_id": None}
 
-    def save_data(self):
+    def save_data(self) -> None:
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
-    def save_config(self):
+    def save_config(self) -> None:
         with open(self.config_file, 'w') as f:
             json.dump(self.config, f, indent=4)
 
@@ -103,9 +93,9 @@ class CasesManager:
         case_type: CaseType,
         moderator: discord.Member,
         reason: str,
-        target_user: Optional[discord.User | discord.Member] = None,
-        duration: Optional[str] = None,
-        metadata: Optional[Dict] = None
+        target_user: discord.User | discord.Member | None = None,
+        duration: str | None = None,
+        metadata: dict | None = None
     ) -> int:
 
         case_id = self.get_next_case_id()
@@ -132,7 +122,7 @@ class CasesManager:
 
         return case_id
 
-    async def _send_to_log_channel(self, guild: discord.Guild, case_data: Dict):
+    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict) -> None:
         channel_id = self.config.get("log_channel_id")
         if not channel_id:
             return
@@ -222,18 +212,16 @@ class CasesManager:
                 embed.add_field(name="Proof", value=metadata["proof_url"], inline=False)
                 embed.set_image(url=metadata["proof_url"])
 
-        try:
+        with contextlib.suppress(discord.Forbidden):
             await log_channel.send(embed=embed)
-        except discord.Forbidden:
-            pass
 
     def get_cases(
         self,
         guild_id: int,
-        user_id: Optional[int] = None,
-        moderator_id: Optional[int] = None,
-        case_type: Optional[str] = None
-    ) -> List[Dict]:
+        user_id: int | None = None,
+        moderator_id: int | None = None,
+        case_type: str | None = None
+    ) -> list[dict]:
 
         self.data = self.load_data()
 
@@ -253,7 +241,7 @@ class CasesManager:
         return cases
 
 class CasesCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.cases_manager = CasesManager(bot)
 
@@ -261,7 +249,6 @@ class CasesCommands(commands.Cog):
         self.SENIOR_MODERATORS_ROLE_ID = SENIOR_MODERATORS_ROLE_ID
         self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
         self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
-
 
     def can_view(self, member: discord.Member) -> bool:
         return (is_director(member) or 
@@ -286,10 +273,10 @@ class CasesCommands(commands.Cog):
     async def cases_view(
         self,
         interaction: discord.Interaction,
-        user: Optional[discord.User] = None,
-        moderator: Optional[discord.User] = None,
-        case_type: Optional[Literal["ban", "unban", "kick", "timeout", "untimeout", "quarantine", "unquarantine", "lockdown", "unlockdown", "purge"]] = None
-    ):
+        user: discord.User | None = None,
+        moderator: discord.User | None = None,
+        case_type: Literal["ban", "unban", "kick", "timeout", "untimeout", "quarantine", "unquarantine", "lockdown", "unlockdown", "purge"] | None = None
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -418,7 +405,7 @@ class CasesCommands(commands.Cog):
         self,
         interaction: discord.Interaction,
         channel: discord.TextChannel
-    ):
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -444,5 +431,5 @@ class CasesCommands(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(CasesCommands(bot))

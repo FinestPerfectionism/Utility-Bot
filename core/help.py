@@ -9,18 +9,20 @@ from dataclasses import (
     field
 )
 from typing import (
-    Awaitable,
-    Optional,
-    Union,
+    TYPE_CHECKING,
     Protocol,
-    Callable,
     Any,
     runtime_checkable,
     cast,
     TypeVar,
     ParamSpec,
-    Coroutine
 )
+if TYPE_CHECKING:
+    from collections.abc import (
+        Callable,
+        Awaitable,
+        Coroutine
+    )
 
 from constants import(
     ACCEPTED_EMOJI_ID,
@@ -43,19 +45,19 @@ class HelpCallback(Protocol):
 
 @dataclass
 class ArgumentInfo:
-    role:        Optional[int] = None
-    required:    bool          = True
-    description: Optional[str] = None
-    is_flag:     bool          = False
-    choices:     list[str]     = field(default_factory=list)
+    role:        int | None = None
+    required:    bool       = True
+    description: int | None = None
+    is_flag:     bool       = False
+    choices:     list[str]  = field(default_factory=list)
 
 @dataclass
 class CommandHelpData:
     desc:         str
     prefix:       bool
     slash:        bool
-    run_role:     Optional[int]
-    has_inverse:  Union[bool, str]
+    run_role:     int | None
+    has_inverse:  bool | str
     arguments:    dict[str, ArgumentInfo] = field(default_factory=dict)
     aliases:      list[str]               = field(default_factory=list)
 
@@ -66,11 +68,11 @@ def help_description(
     desc: str,
     prefix: bool = False,
     slash: bool = True,
-    run_role: Optional[int] = None,
-    has_inverse: Union[bool, str] = False,
-    arguments: Optional[dict[str, ArgumentInfo]] = None,
-    aliases: Optional[list[str]] = None,
-):
+    run_role: int | None = None,
+    has_inverse: bool | str = False,
+    arguments: dict[str, ArgumentInfo] | None = None,
+    aliases: list[str] | None = None,
+) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     arguments = arguments or {}
     aliases   = aliases   or []
 
@@ -89,12 +91,12 @@ def help_description(
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             return await func(*args, **kwargs)
 
-        cast(HelpedCallable, wrapper).__help_data__ = data
+        cast("HelpedCallable", wrapper).__help_data__ = data
         return wrapper
 
     return decorator
 
-def _member_has_role(member: discord.Member, role_id: Optional[int]) -> bool:
+def _member_has_role(member: discord.Member, role_id: int | None) -> bool:
     if role_id is None:
         return True
     return any(r.id == role_id for r in member.roles)
@@ -242,7 +244,7 @@ def _build_help_view(
 
     return HelpView()
 
-def _resolve_command(bot: commands.Bot, name: str) -> Optional[Callable[..., Awaitable[Any]]]:
+def _resolve_command(bot: commands.Bot, name: str) -> Callable[..., Awaitable[Any]] | None:
     cmd = bot.get_command(name)
     if cmd:
         return cmd.callback
@@ -253,7 +255,7 @@ def _resolve_command(bot: commands.Bot, name: str) -> Optional[Callable[..., Awa
 
     return None
 
-def _find_nested_command(bot: commands.Bot, parts: list[str]) -> Optional[object]:
+def _find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
     full = " ".join(parts)
     result = _resolve_command(bot, full)
     if result:
@@ -291,7 +293,7 @@ def _collect_slash_commands(
         if cb and hasattr(cb, "__help_data__") and id(cb) not in seen_callbacks:
             seen_callbacks.add(id(cb))
             qualified = getattr(app_cmd, "qualified_name", app_cmd.name)
-            lines.append(f"`/{qualified}` — {cast(HelpedCallable, cb).__help_data__.desc}")
+            lines.append(f"`/{qualified}` — {cast("HelpedCallable", cb).__help_data__.desc}")
 
         sub_commands = getattr(app_cmd, "commands", None)
         if sub_commands:
@@ -299,9 +301,9 @@ def _collect_slash_commands(
 
 async def _run_help(
     bot: commands.Bot,
-    ctx_or_inter: Union[commands.Context, discord.Interaction],
-    command_name: Optional[str],
-):
+    ctx_or_inter: commands.Context | discord.Interaction,
+    command_name: str | None,
+) -> None:
     if isinstance(ctx_or_inter, commands.Context):
         if not isinstance(ctx_or_inter.author, discord.Member):
             await ctx_or_inter.send("Cannot resolve guild member context.")
@@ -323,7 +325,7 @@ async def _run_help(
         lines: list[str] = []
 
         for cmd in bot.commands:
-            cb = cast(HelpedCallable, cmd.callback)
+            cb = cast("HelpedCallable", cmd.callback)
             if hasattr(cb, "__help_data__"):
                 seen_callbacks.add(id(cb))
                 lines.append(f"`{cmd.name}` — {cb.__help_data__.desc}")
@@ -352,7 +354,7 @@ async def _run_help(
         )
         return
 
-    data = cast(HelpedCallable, callback).__help_data__
+    data = cast("HelpedCallable", callback).__help_data__
 
     view = _build_help_view(
         command_name=" ".join(parts),

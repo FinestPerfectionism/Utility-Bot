@@ -1,17 +1,19 @@
 import discord
 from discord.ext import commands
 
+import contextlib
 import json
 import os
 from datetime import datetime
 from typing import (
-    Optional,
-    Dict,
-    List,
+    TYPE_CHECKING,
     cast
 )
 
-from commands.moderation.cases import CaseType
+from commands.moderation.cases import (
+    CaseType,
+CasesManager
+)
 
 from constants import (
     COLOR_GREEN,
@@ -24,7 +26,9 @@ from constants import (
     ADMINISTRATORS_ROLE_ID,
 )
 
-from bot import UtilityBot
+if TYPE_CHECKING:
+    from bot import UtilityBot
+    
 from core.permissions import (
     is_administrator,
     is_director,
@@ -41,12 +45,12 @@ class NoteFlags(
     prefix="/",
     delimiter=" "
 ):
-    u: Optional[discord.User] = commands.flag(
+    u: discord.User | None = commands.flag(
         name="u",
         aliases=["user"],
         default=None
     )
-    m: Optional[str] = commands.flag(
+    m: str | None = commands.flag(
         name="m",
         aliases=["message"],
         default=None,
@@ -62,7 +66,7 @@ class NoteFlags(
         default=False,
         max_args=0
     )
-    id: Optional[int] = commands.flag(
+    id: int | None = commands.flag(
         name="id",
         default=None
     )
@@ -72,7 +76,7 @@ class NoteFlags(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class NoteCommands(commands.Cog):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
         self.data_file = "notes_data.json"
         self.data = self.load_data()
@@ -83,25 +87,25 @@ class NoteCommands(commands.Cog):
         self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
 
     @property
-    def cases_manager(self):
-        return cast(UtilityBot, self.bot).cases_manager
+    def cases_manager(self) -> CasesManager:
+        return self.bot.cases_manager
 
-    def load_data(self) -> Dict:
+    def load_data(self) -> dict:
         if os.path.exists(self.data_file):
             try:
-                with open(self.data_file, 'r') as f:
+                with open(self.data_file) as f:
                     return json.load(f)
             except json.JSONDecodeError:
                 return self.get_default_data()
         return self.get_default_data()
 
-    def get_default_data(self) -> Dict:
+    def get_default_data(self) -> dict:
         return {
             "notes": {},
             "next_note_id": 1
         }
 
-    def save_data(self):
+    def save_data(self) -> None:
         with open(self.data_file, 'w') as f:
             json.dump(self.data, f, indent=4)
 
@@ -123,14 +127,14 @@ class NoteCommands(commands.Cog):
     def can_delete_notes(self, member: discord.Member) -> bool:
         return is_director(member) or is_senior_moderator(member)
 
-    def get_note_by_id(self, note_id: int) -> Optional[Dict]:
+    def get_note_by_id(self, note_id: int) -> dict | None:
         for user_notes in self.data["notes"].values():
             for note in user_notes:
                 if note["note_id"] == note_id:
                     return note
         return None
 
-    def get_notes_for_user(self, user_id: int) -> List[Dict]:
+    def get_notes_for_user(self, user_id: int) -> list[dict]:
         return self.data["notes"].get(str(user_id), [])
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -138,7 +142,7 @@ class NoteCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.group(name="note", aliases=["notes", "n"], invoke_without_command=True)
-    async def note_group(self, ctx: commands.Context, *, flags: NoteFlags):
+    async def note_group(self, ctx: commands.Context, *, flags: NoteFlags) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -159,7 +163,7 @@ class NoteCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="add", aliases=["a", "create"])
-    async def note_add(self, ctx: commands.Context, *, flags: NoteFlags):
+    async def note_add(self, ctx: commands.Context, *, flags: NoteFlags) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -224,7 +228,7 @@ class NoteCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="edit", aliases=["update"])
-    async def note_edit(self, ctx: commands.Context, *, flags: NoteFlags):
+    async def note_edit(self, ctx: commands.Context, *, flags: NoteFlags) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -254,13 +258,11 @@ class NoteCommands(commands.Cog):
         note["edited_at"] = datetime.now().isoformat()
         self.save_data()
 
-        target_user: Optional[discord.User] = None
+        target_user: discord.User | None = None
         for user_id, user_notes in self.data["notes"].items():
             if any(n["note_id"] == note_id for n in user_notes):
-                try:
+                with contextlib.suppress(discord.NotFound):
                     target_user = await self.bot.fetch_user(int(user_id))
-                except discord.NotFound:
-                    pass
                 break
 
         await self.cases_manager.log_case(
@@ -295,7 +297,7 @@ class NoteCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="remove", aliases=["rem"])
-    async def note_delete(self, ctx: commands.Context, *, flags: NoteFlags):
+    async def note_delete(self, ctx: commands.Context, *, flags: NoteFlags) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -319,13 +321,13 @@ class NoteCommands(commands.Cog):
         if note["moderator_id"] != actor.id and not is_director(actor):
             return
 
-        target_user: Optional[discord.User] = None
+        import contextlib
+
+        target_user: discord.User | None = None
         for user_id, user_notes in self.data["notes"].items():
             if any(n["note_id"] == note_id for n in user_notes):
-                try:
+                with contextlib.suppress(discord.NotFound):
                     target_user = await self.bot.fetch_user(int(user_id))
-                except discord.NotFound:
-                    pass
                 self.data["notes"][user_id] = [n for n in user_notes if n["note_id"] != note_id]
                 if not self.data["notes"][user_id]:
                     del self.data["notes"][user_id]
@@ -364,7 +366,7 @@ class NoteCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @note_group.command(name="view", aliases=["v", "list", "ls"])
-    async def note_view(self, ctx: commands.Context, *, flags: NoteFlags):
+    async def note_view(self, ctx: commands.Context, *, flags: NoteFlags) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -380,7 +382,7 @@ class NoteCommands(commands.Cog):
 
         await self._send_notes_embed(ctx, flags.u)
 
-    async def _send_notes_embed(self, ctx: commands.Context, user: discord.User):
+    async def _send_notes_embed(self, ctx: commands.Context, user: discord.User) -> None:
         notes = self.get_notes_for_user(user.id)
 
         if not notes:
@@ -413,5 +415,5 @@ class NoteCommands(commands.Cog):
 
         await ctx.send(embed=embed)
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(NoteCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(NoteCommands(cast("UtilityBot", bot)))

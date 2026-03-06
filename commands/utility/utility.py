@@ -8,10 +8,8 @@ from datetime import (
 )
 import json
 import os
-from typing import (
-    Optional,
-    cast
-)
+from typing import cast
+import contextlib
 import pytz
 
 from core.help import (
@@ -45,22 +43,22 @@ from constants import (
 DATA_FILE = "leave_data.json"
 TIMEZONE_FILE = "user_timezones.json"
 
-def load_data():
+def load_data() -> dict:
     if not os.path.exists(DATA_FILE):
         return {}
-    with open(DATA_FILE, "r") as f:
+    with open(DATA_FILE) as f:
         return json.load(f)
 
-def save_data(data):
+def save_data(data: dict) -> None:
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
-def extract_name(nickname: str):
+def extract_name(nickname: str) -> str:
     if nickname and "|" in nickname:
         return nickname.split("|")[-1].strip()
     return nickname
 
-def can_manage_leave(invocator: discord.Member, target: discord.Member):
+def can_manage_leave(invocator: discord.Member, target: discord.Member) -> bool:
     if not is_staff(invocator):
         return False
 
@@ -72,7 +70,7 @@ def can_manage_leave(invocator: discord.Member, target: discord.Member):
     return True
 
 class Ping(discord.ui.LayoutView):
-    def __init__(self, ping: int):
+    def __init__(self, ping: int) -> None:
         super().__init__()
 
         self.add_item(
@@ -95,13 +93,13 @@ class Ping(discord.ui.LayoutView):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class UtilityCommands(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.data = load_data()
 
     def load_timezones(self) -> dict:
         if os.path.exists(TIMEZONE_FILE):
-            with open(TIMEZONE_FILE, "r") as f:
+            with open(TIMEZONE_FILE) as f:
                 return json.load(f)
         return {}
 
@@ -361,7 +359,7 @@ class UtilityCommands(commands.Cog):
         name="leave",
         description="Staff only —— Leave commands."
     )
-    
+
     @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
     @help_description(
         desc        = f"The leave add command adds the <@{PERSONAL_LEAVE_ROLE_ID}> role to a staff member, and changes their nickname to \"P. Leave | username\". Their username is stored and restored upon /leave remove.",
@@ -382,7 +380,7 @@ class UtilityCommands(commands.Cog):
         self,
         interaction: discord.Interaction,
         target: discord.Member | None = None
-    ):
+    ) -> None:
         if not interaction.guild:
             await send_minor_error(
                 interaction,
@@ -493,10 +491,8 @@ class UtilityCommands(commands.Cog):
 
         except discord.Forbidden:
             if role_added:
-                try:
+                with contextlib.suppress(discord.HTTPException):
                     await target_member.remove_roles(role)
-                except discord.HTTPException:
-                    pass
 
             if not role_added:
                 await send_major_error(
@@ -523,10 +519,8 @@ class UtilityCommands(commands.Cog):
 
         except discord.HTTPException:
             if role_added:
-                try:
+                with contextlib.suppress(discord.HTTPException):
                     await target_member.remove_roles(role)
-                except discord.HTTPException:
-                    pass
 
             await send_major_error(
                 interaction,
@@ -556,7 +550,7 @@ class UtilityCommands(commands.Cog):
         self,
         interaction: discord.Interaction,
         target: discord.Member | None = None
-    ):
+    ) -> None:
         if not interaction.guild:
             await send_minor_error(
                 interaction,
@@ -708,7 +702,7 @@ class UtilityCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     class TimezoneMatchPaginator(discord.ui.View):
-        def __init__(self, ctx: commands.Context, matches: list[str]):
+        def __init__(self, ctx: commands.Context, matches: list[str]) -> None:
             super().__init__(timeout=120)
             self.ctx = ctx
             self.matches = matches
@@ -718,7 +712,7 @@ class UtilityCommands(commands.Cog):
 
             self.update_buttons()
 
-        def update_buttons(self):
+        def update_buttons(self) -> None:
             total_pages = self.max_page
             no_pagination_needed = len(self.matches) <= self.per_page
 
@@ -744,7 +738,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             self.page = 0
             self.update_buttons()
             await interaction.response.edit_message(
@@ -753,7 +747,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
@@ -763,7 +757,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
@@ -773,7 +767,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             self.page = self.max_page
             self.update_buttons()
             await interaction.response.edit_message(
@@ -830,7 +824,7 @@ class UtilityCommands(commands.Cog):
             ),
         }
     )
-    async def timezone(self, ctx: commands.Context, user: Optional[discord.User] = None, *, flags: TimezoneFlags):
+    async def timezone(self, ctx: commands.Context, user: discord.User | None = None, *, flags: TimezoneFlags) -> None:
         timezones = self.load_timezones()
         if ctx.guild is None:
             return
@@ -843,17 +837,19 @@ class UtilityCommands(commands.Cog):
                 target = ctx.author
 
             if not flags.tz:
-                return await ctx.send(
+                await ctx.send(
                     "You must provide a timezone with `/tz`. Example: `.ti /s @user /tz EST`"
                 )
+                return
 
             tz_str = flags.tz.strip()
             result = self.resolve_timezone(tz_str)
 
             if result is None:
-                return await ctx.send(
+                await ctx.send(
                     f"Unknown timezone `{tz_str}`."
                 )
+                return
 
             if isinstance(result, list):
                 view = self.TimezoneMatchPaginator(ctx, result)
@@ -866,12 +862,14 @@ class UtilityCommands(commands.Cog):
             tz = result
 
             if target.id == 1436054709700919477:
-                return await ctx.send("One should not dare to alter the clock of the immortal.")
+                await ctx.send("One should not dare to alter the clock of the immortal.")
+                return
 
             if target.bot:
-                return await ctx.send(
+                await ctx.send(
                     f"**{target.display_name}** is a bot and cannot have a timezone."
                 )
+                return
 
             timezones[str(target.id)] = tz.zone
             self.save_timezones(timezones)
@@ -879,27 +877,31 @@ class UtilityCommands(commands.Cog):
             abbr = datetime.now(tz).strftime("%Z")
 
             if target.id == ctx.author.id:
-                return await ctx.send(
+                await ctx.send(
                     f"Your timezone has been set to **{abbr}**."
                 )
+                return
 
-            return await ctx.send(
+            await ctx.send(
                 f"Timezone for **{target.display_name}** has been set to **{abbr}**."
             )
+            return
 
         if user is not None and flags.s is None:
             if user.id == 1436054709700919477:
-                return await ctx.send(f"Is my time ∞:∞..? Or maybe null... It's whatever you wish, {ctx.author.mention}.")
-            
+                await ctx.send(f"Is my time ∞:∞..? Or maybe null... It's whatever you wish, {ctx.author.mention}.")
+                return
+
             if user.id == ctx.author.id:
                 return
 
-            target_user: Optional[discord.Member] = None
+            target_user: discord.Member | None = None
 
             if user.bot:
-                return await ctx.send(
+                await ctx.send(
                     f"**{user.display_name}** is a bot and doesn't have a timezone."
                 )
+                return
 
             for member in ctx.guild.members:
                 if (
@@ -931,15 +933,16 @@ class UtilityCommands(commands.Cog):
             uid = str(target_user.id)
 
             if uid not in timezones:
-                return await ctx.send(
+                await ctx.send(
                     f"**{target_user.display_name}** hasn't set a timezone yet."
                 )
+                return
 
             tz = pytz.timezone(timezones[uid])
             now = datetime.now(tz)
             time_str = now.strftime("%H:%M")
             offset = self.format_offset(
-                cast(discord.Member, ctx.author),
+                cast("discord.Member", ctx.author),
                 target_user,
                 timezones
             )
@@ -947,35 +950,40 @@ class UtilityCommands(commands.Cog):
             abbr = now.strftime("%Z")
 
             if offset is None:
-                return await ctx.send(
+                await ctx.send(
                     f"It is **{time_str}** for **{target_user.display_name}**. "
                     f"Their timezone is **{abbr}**."
                 )
+                return
 
             if offset == "the same timezone as you!":
-                return await ctx.send(
+                await ctx.send(
                     f"It is **{time_str}** for **{target_user.display_name}**. "
                     f"Their timezone is **{abbr}**, the same timezone as you!"
                 )
+                return
 
-            return await ctx.send(
+            await ctx.send(
                 f"It is **{time_str}** for **{target_user.display_name}**. "
                 f"Their timezone is **{abbr}**, {offset}"
             )
+            return
 
         if flags.at is not None:
             tz_str = flags.at.strip()
             if not tz_str:
-                return await ctx.send(
+                await ctx.send(
                     "You must provide a timezone. Example: `.ti /@ PDT`"
                 )
+                return
 
             result = self.resolve_timezone(tz_str)
 
             if result is None:
-                return await ctx.send(
+                await ctx.send(
                     f"Unknown timezone `{tz_str}`."
                 )
+                return
 
             if isinstance(result, list):
                 view = self.TimezoneMatchPaginator(ctx, result)
@@ -984,7 +992,7 @@ class UtilityCommands(commands.Cog):
                     view=view
                 )
 
-                def check(m: discord.Message):
+                def check(m: discord.Message) -> bool:
                     return (
                         m.author == ctx.author
                         and m.channel == ctx.channel
@@ -1011,16 +1019,17 @@ class UtilityCommands(commands.Cog):
             now = datetime.now(tz)
             formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
             abbr = now.strftime("%Z")
-            return await ctx.send(
+            await ctx.send(
                 f"Current time in **{abbr}**: `{formatted}`"
             )
+            return
 
         await ctx.send(
             "**Timezone command usage:**\n"
             "```\n"
-            ".ti @user                      –– View a user's current time\n"
-            ".ti /s [user] /tz {timezone}   –– Set a timezone\n"
-            ".ti /@ {timezone}              –– View current time in a timezone\n"
+            ".ti @user                      —— View a user's current time\n"
+            ".ti /s [user] /tz {timezone}   —— Set a timezone\n"
+            ".ti /@ {timezone}              —— View current time in a timezone\n"
             "```"
         )
 
@@ -1029,7 +1038,7 @@ class UtilityCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     class UserMatchPaginator(discord.ui.View):
-        def __init__(self, ctx: commands.Context, matches: list[discord.Member]):
+        def __init__(self, ctx: commands.Context, matches: list[discord.Member]) -> None:
             super().__init__(timeout=120)
             self.ctx = ctx
             self.matches = matches
@@ -1039,7 +1048,7 @@ class UtilityCommands(commands.Cog):
 
             self.update_buttons()
 
-        def update_buttons(self):
+        def update_buttons(self) -> None:
             total_pages = self.max_page
             no_pagination_needed = len(self.matches) <= self.per_page
 
@@ -1063,14 +1072,14 @@ class UtilityCommands(commands.Cog):
                 + "\n".join(lines)
             )
 
-        async def update_message(self, interaction: discord.Interaction):
+        async def update_message(self, interaction: discord.Interaction) -> None:
             await interaction.response.edit_message(
                 content=self.get_page_content(),
                 view=self
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             self.page = 0
             self.update_buttons()
             await interaction.response.edit_message(
@@ -1079,7 +1088,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
@@ -1089,7 +1098,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
@@ -1099,7 +1108,7 @@ class UtilityCommands(commands.Cog):
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
             self.page = self.max_page
             self.update_buttons()
             await interaction.response.edit_message(
@@ -1115,11 +1124,11 @@ class UtilityCommands(commands.Cog):
         has_inverse = False,
         aliases     = ["ui"],
     )
-    async def userinfo(self, ctx: commands.Context, *, user: Optional[str] = None):
+    async def userinfo(self, ctx: commands.Context, *, user: str | None = None) -> None:
         if ctx.guild is None:
             return
 
-        target_user = cast(discord.Member, ctx.author)
+        target_user = cast("discord.Member", ctx.author)
 
         if ctx.message.reference and user is None:
             replied = ctx.message.reference.resolved
@@ -1155,7 +1164,7 @@ class UtilityCommands(commands.Cog):
 
         guild = ctx.guild
 
-        def format_dt(dt: Optional[datetime]) -> str:
+        def format_dt(dt: datetime | None) -> str:
             if not dt:
                 return "Unknown"
             return dt.strftime("%A, %B %d, %Y, at %I:%M %p")
@@ -1234,7 +1243,7 @@ class UtilityCommands(commands.Cog):
         slash       = False,
         has_inverse = False,
     )
-    async def ping(self, ctx: commands.Context):
+    async def ping(self, ctx: commands.Context) -> None:
         latency_ms = round(self.bot.latency * 1000)
         await ctx.send(
             view=Ping(latency_ms)
@@ -1270,7 +1279,7 @@ class UtilityCommands(commands.Cog):
         name="lock",
         aliases=["l"]
     )
-    async def lock(self, ctx: commands.Context):
+    async def lock(self, ctx: commands.Context) -> None:
         if not self.allowed_in_thread(ctx):
             return
 
@@ -1287,14 +1296,14 @@ class UtilityCommands(commands.Cog):
         name="close",
         aliases=["c"]
     )
-    async def close(self, ctx: commands.Context):
+    async def close(self, ctx: commands.Context) -> None: 
         if not self.allowed_in_thread(ctx):
             return
 
         if not isinstance(ctx.channel, discord.Thread):
             return
-        
+
         await ctx.channel.edit(archived=True)
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(UtilityCommands(bot))

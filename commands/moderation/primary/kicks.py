@@ -3,11 +3,15 @@ from discord.ext import commands
 from discord import app_commands
 
 from datetime import datetime
-from typing import Optional, Dict, cast
+from typing import (
+    TYPE_CHECKING,
+    cast
+)
 
 from commands.moderation.cases import CaseType
 
-from bot import UtilityBot
+if TYPE_CHECKING:
+    from bot import UtilityBot
 
 from core.utils import (
     send_major_error,
@@ -31,7 +35,7 @@ from ._base import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class KickCommands(ModerationBase):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         super().__init__(bot)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -49,8 +53,8 @@ class KickCommands(ModerationBase):
         interaction: discord.Interaction,
         member: discord.Member,
         reason: str,
-        proof: Optional[discord.Attachment] = None
-    ):
+        proof: discord.Attachment | None = None
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -103,7 +107,7 @@ class KickCommands(ModerationBase):
             }
             self.save_data()
 
-            metadata: Dict = {}
+            metadata: dict = {}
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -147,7 +151,7 @@ class KickCommands(ModerationBase):
         member: discord.Member,
         *,
         flags: KickFlags
-    ):
+    ) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -236,7 +240,7 @@ class KickCommands(ModerationBase):
             )
 
     @kick_prefix.error
-    async def kick_prefix_error(self, ctx: commands.Context, error: Exception):
+    async def kick_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
@@ -258,5 +262,5 @@ class KickCommands(ModerationBase):
             )
 
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(KickCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(KickCommands(cast("UtilityBot", bot)))

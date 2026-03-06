@@ -7,14 +7,14 @@ from datetime import (
     timedelta
 )
 from typing import (
-    Optional,
-    Dict,
+    TYPE_CHECKING,
     cast
 )
 
 from commands.moderation.cases import CaseType
 
-from bot import UtilityBot
+if TYPE_CHECKING:
+    from bot import UtilityBot
 
 from core.utils import (
     send_major_error,
@@ -40,7 +40,7 @@ from ._base import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class TimeoutCommands(ModerationBase):
-    def __init__(self, bot: "UtilityBot"):
+    def __init__(self, bot: "UtilityBot") -> None:
         super().__init__(bot)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -60,8 +60,8 @@ class TimeoutCommands(ModerationBase):
         member: discord.Member,
         duration: str,
         reason: str,
-        proof: Optional[discord.Attachment] = None
-    ):
+        proof: discord.Attachment | None = None
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -127,7 +127,7 @@ class TimeoutCommands(ModerationBase):
             }
             self.save_data()
 
-            metadata: Dict = {"until": until.isoformat()}
+            metadata: dict = {"until": until.isoformat()}
             if proof:
                 metadata["proof_url"] = proof.url
 
@@ -174,7 +174,7 @@ class TimeoutCommands(ModerationBase):
         member: discord.Member,
         *,
         flags: TimeoutFlags
-    ):
+    ) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -294,7 +294,7 @@ class TimeoutCommands(ModerationBase):
             )
 
     @timeout_prefix.error
-    async def timeout_prefix_error(self, ctx: commands.Context, error: Exception):
+    async def timeout_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
@@ -329,7 +329,7 @@ class TimeoutCommands(ModerationBase):
         interaction: discord.Interaction,
         member: discord.Member,
         reason: str
-    ):
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -397,7 +397,7 @@ class TimeoutCommands(ModerationBase):
         member: discord.Member,
         *,
         flags: KickFlags
-    ):
+    ) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -463,7 +463,7 @@ class TimeoutCommands(ModerationBase):
             )
 
     @untimeout_prefix.error
-    async def untimeout_prefix_error(self, ctx: commands.Context, error: Exception):
+    async def untimeout_prefix_error(self, ctx: commands.Context, error: Exception) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member) or not self.can_unban_untimeout(actor):
             return
@@ -489,7 +489,7 @@ class TimeoutCommands(ModerationBase):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="timeouts", description="View all timed out members.")
-    async def timeouts_slash(self, interaction: discord.Interaction):
+    async def timeouts_slash(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -557,7 +557,7 @@ class TimeoutCommands(ModerationBase):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="mute-list", aliases=["mutelist", "mutes", "mls", "time-outs", "timeouts", "tls"])
-    async def timeouts_prefix(self, ctx: commands.Context):
+    async def timeouts_prefix(self, ctx: commands.Context) -> None:
         actor = ctx.author
         if not isinstance(actor, discord.Member):
             return
@@ -613,5 +613,5 @@ class TimeoutCommands(ModerationBase):
         await ctx.send(embed=embed)
 
 
-async def setup(bot: commands.Bot):
-    await bot.add_cog(TimeoutCommands(cast(UtilityBot, bot)))
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(TimeoutCommands(cast("UtilityBot", bot)))
