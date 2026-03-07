@@ -260,7 +260,7 @@ class TicketControlPanel(discord.ui.LayoutView):
                 item.callback = self._claim
 
     panel_container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay(content="-# Ticket Controls"), # type: ignore
+        discord.ui.TextDisplay(content="# Ticket Controls"), # type: ignore
         discord.ui.ActionRow( # type: ignore
             discord.ui.Button(
                 label="Archive Ticket",
@@ -351,7 +351,7 @@ class TicketControlPanel(discord.ui.LayoutView):
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
         await interaction.response.send_message("Closing ticket.")
-        await channel.delete()
+        await interaction.channel.edit(archived=True)
 
     async def _add_members(self, interaction: discord.Interaction) -> None:
         if not isinstance(interaction.user, discord.Member):

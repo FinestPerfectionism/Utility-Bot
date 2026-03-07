@@ -195,10 +195,7 @@ class ApplicationsTicketsCommands(
     # .claim/.c Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(
-        name="claim",
-        aliases=["c"]
-    )
+    @commands.command(name="claim")
     async def claim(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
