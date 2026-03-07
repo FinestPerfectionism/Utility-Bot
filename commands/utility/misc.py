@@ -87,7 +87,8 @@ class MiscCommands(commands.Cog):
             try:
                 await guild.ban(
                     member,
-                    reason="Played a stupid game, won a stupid prize."
+                    reason="Played a stupid game, won a stupid prize.",
+                    delete_message_seconds=0
                 )
                 await interaction.followup.send(
                     "<a:CatShoot:1466460098955313294> *Click,* ***BAM***."

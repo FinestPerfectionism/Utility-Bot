@@ -34,6 +34,10 @@ from guild_info.partnership_requirements import (
     RequirementComponents1,
     RequirementComponents2
 )
+from guild_info.hierarchy import (
+    HierarchyComponents1,
+    HierarchyComponents2
+)
 
 from constants import (
     TICKET_CHANNEL_ID,
@@ -43,6 +47,7 @@ from constants import (
     RULES_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
     PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
+    HIERARCHY_CHANNEL_ID,
 )
 
 log = logging.getLogger("Utility Bot")
@@ -111,6 +116,10 @@ class Startup(commands.Cog):
         partnership_requirements_channel = self.bot.get_channel(PARTNERSHIP_REQUIREMENTS_CHANNEL_ID)
         if isinstance(partnership_requirements_channel, discord.TextChannel):
             await self._handle_partnership_requirements_layout(partnership_requirements_channel)
+
+        hierarchy_channel = self.bot.get_channel(HIERARCHY_CHANNEL_ID)
+        if isinstance(hierarchy_channel, discord.TextChannel):
+            await self._handle_hierarchy_layout(hierarchy_channel)
 
     async def _handle_verification_layout(self, channel: discord.TextChannel) -> None:
         verification_cog = cast(
@@ -264,6 +273,44 @@ class Startup(commands.Cog):
             self.bot.add_view(RequirementComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
             log.info("Partnership requirements layout restored")
             log.debug("Partnership requirements message_ids=%s", msg_ids)
+
+    async def _handle_hierarchy_layout(self, channel: discord.TextChannel) -> None:
+        msg_ids = self.layout_message_ids.get("hierarchy", [])
+
+        all_exist = False
+        if len(msg_ids) == 2:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            current_timestamp = int(time.time())
+
+            msg1 = await channel.send(view=HierarchyComponents1())
+            msg2 = await channel.send(view=HierarchyComponents2(timestamp=current_timestamp))
+
+            self.layout_message_ids["hierarchy"] = [msg1.id, msg2.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(HierarchyComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            log.info("Hierarchy layout created")
+            log.debug("Hierarchy message_ids=%s", self.layout_message_ids["hierarchy"])
+        else:
+            current_timestamp = int(time.time())
+            self.bot.add_view(HierarchyComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            log.info("Hierarchy layout restored")
+            log.debug("Hierarchy message_ids=%s", msg_ids)
 
     async def cog_unload(self) -> None:
         pass
