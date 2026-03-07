@@ -1,4 +1,5 @@
 import discord
+from constants import STANDSTILL_EMOJI_ID
 
 class HierarchyComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
@@ -14,9 +15,20 @@ class HierarchyComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout=None)
         self.container = discord.ui.Container( # type: ignore
+            discord.ui.Section( # type: ignore
+                discord.ui.TextDisplay(
+                    content=
+                        "# Hierarchy"
+                ),
+                accessory=discord.ui.Button(
+                    url   =  "https://discord.com/terms",
+                    style = discord.ButtonStyle.link,
+                    label =  "Discord Terms of Service",
+                    emoji = f"{STANDSTILL_EMOJI_ID}",
+                ),
+            ),
             discord.ui.TextDisplay( # type: ignore
                 content=
-                    "# Hierarchy"
                    f"Hierarchy last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
@@ -56,70 +68,105 @@ class HierarchyComponents2(discord.ui.LayoutView):
                     "**Requirements**\n"
                     "- Must hold **Senior Staff status** within both the Moderation Team and the Administration Team.\n"
                     "- Must be an active member of the **Staff Committee**.\n\n"
-                    "> This position is obtainable only through **appointment by the existing Directorate**.\n\n"
-                    "## Staff Committee\n"
-                    "The **Staff Committee** is the final decision-making body for Staff Proposals. It is composed of all active Directors and the Owner. After an advisory poll concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
-                    "For full details on the Staff Committee's composition, procedures, voting thresholds, and review timelines, refer to the staff proposal information.\n\n"
-                    "> This position is obtainable through **appointment by the Directorate**.\n\n"
-                    "## Goobers Staff Team\n"
-                    "The **Goobers Staff Team** consists of members within the **Moderation Team**, the **Administration Team**, or both. Staff members assist with maintaining the community and may submit and vote on proposals intended to improve server operations. Staff members may hold positions in both teams simultaneously.\n\n"
-                    "Staff membership may be obtained through:\n"
-                    "- Partnerships.\n"
-                    "- Appointment to the **Staff Committee**.\n"
-                    "- Joining the **Moderation Team** or **Administration Team**.\n\n"
-                    "## Goobers Administration Team\n"
-                    "The **Administration Team** is responsible for managing the server's structure and maintaining public-facing policies as directed by the Directorate. Administrators implement approved proposals and oversee the server's technical infrastructure. The Administration Team is **not the same as the Moderation Team**, though staff may exist within both.\n\n"
-                    "**Primary Responsibilities**\n"
-                    "- Implement approved Staff Proposals.\n"
-                    "- Maintain server infrastructure, including channels, roles, events, expressions, and configuration.\n"
-                    "- Manage bot configurations and integrations.\n"
-                    "- Manage server-level settings such as verification level and security configuration.\n"
-                    "- Carry out external policies as directed by the Directorate.\n\n"
-                    "### Senior Administrators\n"
-                    "**Senior Administrators** hold all Junior Administrator permissions and are additionally responsible for expanded infrastructure management, including bot and integration oversight and server-level settings.\n\n"
-                    "**Permissions**\n"
-                    "- Manage the guild.\n"
-                    "- Manage roles.\n"
-                    "- Manage events.\n"
-                    "- Manage webhooks.\n"
-                    "- Create expressions.\n"
-                    "- Manage bot configurations and integrations.\n"
-                    "- Manage server-level settings.\n\n"
-                    "> Promotion is granted through **appointment by the Directorate**.\n\n"
-                    "### Junior Administrators\n"
-                    "**Junior Administrators** assist with routine structural maintenance under the direction of Senior Administrators and the Directorate.\n\n"
-                    "**Permissions**\n"
-                    "- Manage expressions.\n"
-                    "- Manage channels.\n"
-                    "- Manage nicknames.\n"
-                    "- Create events.\n\n"
-                    "> This position is obtained through a **successful application**. Applications are not always open.\n\n"
-                    "## Goobers Moderation Team\n"
-                    "The **Moderation Team** enforces server rules, manages reports and tickets, and ensures community standards are upheld. The Moderation Team is **not the same as the Administration Team**, though staff may exist within both.\n\n"
-                    "**Ticket System**\n"
-                    "The server operates a two-track ticket system. **Moderator tickets** handle questions and issues involving members. **Director tickets** handle partnership requests and issues involving staff. All Moderators are expected to handle tickets within their scope and escalate out-of-scope tickets to Directors using `.escalate`.\n\n"
-                    "### Senior Moderators\n"
-                    "**Senior Moderators** hold all Junior Moderator permissions and are additionally authorized to take stronger enforcement action. Senior Moderators are expected to assist Junior Moderators upon request or when a situation proves difficult to manage.\n\n"
-                    "**Additional Permissions**\n"
-                    "- Quarantine members.\n"
-                    "- Kick members.\n"
-                    "- Ban members.\n\n"
-                    "> Promotion is granted through **appointment by the Directorate**.\n\n"
-                    "### Junior Moderators\n"
-                    "**Junior Moderators** assist with routine moderation tasks and handle tickets, escalating to director tickets when a ticket falls outside their scope or becomes difficult to manage.\n\n"
-                    "**Permissions**\n"
-                    "- Create moderation notes.\n"
-                    "- View moderation notes.\n"
-                    "- Mute members.\n\n"
-                    "> This position is obtained through a **successful application**. Applications are not always open.\n\n"
-                    "## Guild Trustees\n"
-                    "**Guild Trustees** are community members who have demonstrated a level of trust and engagement within the server. They may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.\n\n"
-                    "Guild Trustees are not Staff, but are a recognized contributor group within the community. Members holding this role are more likely to be considered for nomination to the Moderation Team, Administration Team, or Staff Committee.\n\n"
-                    "For full details on what Guild Trustees may and may not propose, refer to the staff proposal information.\n\n"
-                    "> This role is obtainable through **nomination**.\n\n"
-                    "## Verified\n"
-                    "The **Verified** role is granted upon passing the server's entry verification. It serves as an anti-raid gate and is required to gain access to the server's channels.\n\n"
-                    "> This role is obtained automatically upon **completing server verification**."
+                    "> This position is obtainable only through **appointment by the existing Directorate**."
             ),
         )
         self.add_item(self.container) # type: ignore
+
+class HierarchyComponents3(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
+                "## Staff Committee\n"
+                "The **Staff Committee** is the final decision-making body for Staff Proposals. It is composed of all active Directors and the Owner. After an advisory poll concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
+                "For full details on the Staff Committee's composition, procedures, voting thresholds, and review timelines, refer to the staff proposal information.\n\n"
+                "> This position is obtainable through **appointment by the Directorate**."
+        ),
+    )
+
+class HierarchyComponents4(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
+                "## Goobers Administration Team\n"
+                "The **Administration Team** is responsible for managing the server's structure and maintaining public-facing policies as directed by the Directorate. Administrators implement approved proposals and oversee the server's technical infrastructure. The Administration Team is **not the same as the Moderation Team**, though staff may exist within both.\n\n"
+                "**Primary Responsibilities**\n"
+                "- Implement approved Staff Proposals.\n"
+                "- Maintain server infrastructure, including channels, roles, events, expressions, and configuration.\n"
+                "- Manage bot configurations and integrations.\n"
+                "- Manage server-level settings such as verification level and security configuration.\n"
+                "- Carry out external policies as directed by the Directorate.\n\n"
+                "### Senior Administrators\n"
+                "**Senior Administrators** hold all Junior Administrator permissions and are additionally responsible for expanded infrastructure management, including bot and integration oversight and server-level settings.\n\n"
+                "**Permissions**\n"
+                "- Manage the guild.\n"
+                "- Manage roles.\n"
+                "- Manage events.\n"
+                "- Manage webhooks.\n"
+                "- Create expressions.\n"
+                "- Manage bot configurations and integrations.\n"
+                "- Manage server-level settings.\n\n"
+                "> Promotion is granted through **appointment by the Directorate**.\n\n"
+                "### Junior Administrators\n"
+                "**Junior Administrators** assist with routine structural maintenance under the direction of Senior Administrators and the Directorate.\n\n"
+                "**Permissions**\n"
+                "- Manage expressions.\n"
+                "- Manage channels.\n"
+                "- Manage nicknames.\n"
+                "- Create events.\n\n"
+                "> This position is obtained through a **successful application**. Applications are not always open.\n\n"
+                "## Goobers Moderation Team\n"
+                "The **Moderation Team** enforces server rules, manages reports and tickets, and ensures community standards are upheld. The Moderation Team is **not the same as the Administration Team**, though staff may exist within both.\n\n"
+                "**Ticket System**\n"
+                "The server operates a two-track ticket system. **Moderator tickets** handle questions and issues involving members. **Director tickets** handle partnership requests and issues involving staff. All Moderators are expected to handle tickets within their scope and escalate out-of-scope tickets to Directors using `.escalate`.\n\n"
+                "### Senior Moderators\n"
+                "**Senior Moderators** hold all Junior Moderator permissions and are additionally authorized to take stronger enforcement action. Senior Moderators are expected to assist Junior Moderators upon request or when a situation proves difficult to manage.\n\n"
+                "**Additional Permissions**\n"
+                "- Quarantine members.\n"
+                "- Kick members.\n"
+                "- Ban members.\n\n"
+                "> Promotion is granted through **appointment by the Directorate**.\n\n"
+                "### Junior Moderators\n"
+                "**Junior Moderators** assist with routine moderation tasks and handle tickets, escalating to director tickets when a ticket falls outside their scope or becomes difficult to manage.\n\n"
+                "**Permissions**\n"
+                "- Create moderation notes.\n"
+                "- View moderation notes.\n"
+                "- Mute members.\n\n"
+                "> This position is obtained through a **successful application**. Applications are not always open."
+        ),
+    )
+
+class HierarchyComponents5(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
+                "## Goobers Staff Team\n"
+                "The **Goobers Staff Team** consists of members within the **Moderation Team**, the **Administration Team**, or both. Staff members assist with maintaining the community and may submit and vote on proposals intended to improve server operations. Staff members may hold positions in both teams simultaneously.\n\n"
+                "Staff membership may be obtained through:\n"
+                "- Partnerships.\n"
+                "- Appointment to the **Staff Committee**.\n"
+                "- Joining the **Moderation Team** or **Administration Team**."
+        ),
+    )
+
+class HierarchyComponents6(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
+                "## Guild Trustees\n"
+                "**Guild Trustees** are community members who have demonstrated a level of trust and engagement within the server. They may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.\n\n"
+                "Guild Trustees are not Staff, but are a recognized contributor group within the community. Members holding this role are more likely to be considered for nomination to the Moderation Team, Administration Team, or Staff Committee.\n\n"
+                "For full details on what Guild Trustees may and may not propose, refer to the staff proposal information.\n\n"
+                "> This role is obtainable through **nomination**."
+        ),
+    )
+
+class HierarchyComponents7(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
+                "## Verified\n"
+                "The **Verified** role is granted upon passing the server's entry verification. It serves as an anti-raid gate and is required to gain access to the server's channels.\n\n"
+                "> This role is obtained automatically upon **completing server verification**."
+        ),
+    )

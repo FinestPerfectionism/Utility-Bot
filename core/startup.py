@@ -36,7 +36,12 @@ from guild_info.partnership_requirements import (
 )
 from guild_info.hierarchy import (
     HierarchyComponents1,
-    HierarchyComponents2
+    HierarchyComponents2,
+    HierarchyComponents3,
+    HierarchyComponents4,
+    HierarchyComponents5,
+    HierarchyComponents6,
+    HierarchyComponents7,
 )
 
 from constants import (
@@ -278,7 +283,7 @@ class Startup(commands.Cog):
         msg_ids = self.layout_message_ids.get("hierarchy", [])
 
         all_exist = False
-        if len(msg_ids) == 2:
+        if len(msg_ids) == 7:
             try:
                 for msg_id in msg_ids:
                     await channel.fetch_message(msg_id)
@@ -299,8 +304,13 @@ class Startup(commands.Cog):
 
             msg1 = await channel.send(view=HierarchyComponents1())
             msg2 = await channel.send(view=HierarchyComponents2(timestamp=current_timestamp))
+            msg3 = await channel.send(view=HierarchyComponents3())
+            msg4 = await channel.send(view=HierarchyComponents4())
+            msg5 = await channel.send(view=HierarchyComponents5())
+            msg6 = await channel.send(view=HierarchyComponents6())
+            msg7 = await channel.send(view=HierarchyComponents7())
 
-            self.layout_message_ids["hierarchy"] = [msg1.id, msg2.id]
+            self.layout_message_ids["hierarchy"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id, msg6.id, msg7.id]
             save_layout_message_ids(self.layout_message_ids)
 
             self.bot.add_view(HierarchyComponents2(timestamp=current_timestamp), message_id=msg2.id)
