@@ -1,5 +1,4 @@
 import discord
-from constants import STANDSTILL_EMOJI_ID
 
 class HierarchyComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
@@ -15,23 +14,12 @@ class HierarchyComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout=None)
         self.container = discord.ui.Container( # type: ignore
-            discord.ui.Section( # type: ignore
-                discord.ui.TextDisplay(
-                    content=
-                        "# Hierarchy"
-                ),
-                accessory=discord.ui.Button(
-                    url   =  "https://discord.com/terms",
-                    style = discord.ButtonStyle.link,
-                    label =  "Discord Terms of Service",
-                    emoji = f"{STANDSTILL_EMOJI_ID}",
-                ),
-            ),
             discord.ui.TextDisplay( # type: ignore
                 content=
+                    "# Hierarchy\n"
                    f"Hierarchy last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>; assisted by <@1167207694424350740>, <@1135600413954019339>, and <@1333839098485542949>.\n"
             ),
             discord.ui.Separator( # type: ignore
                 visible=False,
