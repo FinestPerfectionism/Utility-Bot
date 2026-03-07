@@ -134,8 +134,8 @@ class VerificationComponents(discord.ui.LayoutView):
         super().__init__(timeout=None)
         self.cog = cog
 
-        container = discord.ui.Container(
-            discord.ui.TextDisplay(
+        container = discord.ui.Container( # type: ignore
+            discord.ui.TextDisplay( # type: ignore
                 content=(
                     "# Verification\n"
                     "This verification system ensures that spammers get harshly limited and bots get completely blocked. "
@@ -148,21 +148,21 @@ class VerificationComponents(discord.ui.LayoutView):
                     "You will be warned at 48 hours. This is __not__ a ban and you can rejoin and start the process again!"
                 )
             ),
-            discord.ui.Separator(
+            discord.ui.Separator( # type: ignore
                 visible=True,
                 spacing=discord.SeparatorSpacing.large
             ),
-            discord.ui.TextDisplay(
+            discord.ui.TextDisplay( # type: ignore
                 content=(
                     "Welcome to the server! We look forward to meeting you,\n"
                     "-# The Goobers community."
                 )
             ),
-            discord.ui.Separator(
+            discord.ui.Separator( # type: ignore
                 visible=True,
                 spacing=discord.SeparatorSpacing.large
             ),
-            discord.ui.ActionRow(
+            discord.ui.ActionRow( # type: ignore
                 VerificationButton(cog),
                 HelpButton(cog),
             ),
@@ -392,8 +392,8 @@ class VerificationHandler(commands.Cog):
             super().__init__(timeout=None)
             self.cog = cog
 
-            container = discord.ui.Container(
-                discord.ui.TextDisplay(
+            container = discord.ui.Container( # type: ignore
+                discord.ui.TextDisplay( # type: ignore
                     content=(
                         "# Stuck?\n"
                         "Ocasionally, the CAPTCHA system may be difficult to pass. Here are some tips:\n\n"
@@ -406,7 +406,7 @@ class VerificationHandler(commands.Cog):
                 accent_color=COLOR_RED,
             )
 
-            self.add_item(container)
+            self.add_item(container) # type: ignore
 
     async def start_help(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
@@ -466,8 +466,8 @@ class VerificationHandler(commands.Cog):
 
         layout = discord.ui.LayoutView()
 
-        container = discord.ui.Container(
-            discord.ui.TextDisplay(
+        container = discord.ui.Container( # type: ignore
+            discord.ui.TextDisplay( # type: ignore
                 content=(
                     "## CAPTCHA Verification\n"
                     "Enter the code shown in the image below.\n"
@@ -475,24 +475,24 @@ class VerificationHandler(commands.Cog):
                     "- You have **5 minutes**."
                 )
             ),
-            discord.ui.Separator(
+            discord.ui.Separator( # type: ignore
                 visible=True,
                 spacing=discord.SeparatorSpacing.large
             ),
-            discord.ui.MediaGallery(
+            discord.ui.MediaGallery( # type: ignore
                 discord.MediaGalleryItem(
                     media="attachment://captcha.png"
                 ),
             ),
-            discord.ui.Separator(
+            discord.ui.Separator( # type: ignore
                 visible=True,
                 spacing=discord.SeparatorSpacing.large
             ),
-            discord.ui.ActionRow(SubmitButton()),
+            discord.ui.ActionRow(SubmitButton()), # type: ignore
             accent_color=COLOR_BLURPLE,
         )
 
-        layout.add_item(container)
+        layout.add_item(container) # type: ignore
 
         await interaction.response.send_message(
             view=layout,

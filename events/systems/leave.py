@@ -21,8 +21,8 @@ class LeaveComponents(discord.ui.LayoutView):
             if isinstance(item, discord.ui.Button) and item.custom_id == "leave:open":
                 item.callback = self.open_leave
 
-    container1 = discord.ui.Container(
-        discord.ui.TextDisplay(
+    container1 = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
             content=(
                 "# Staff Leave\n"
                 "When you plan to be unavailable for a period of time, you must notify directors using this channel. "
@@ -34,12 +34,12 @@ class LeaveComponents(discord.ui.LayoutView):
                 "**Note:** If you do not have the personal leave role, you are expected to be online and active."
             )
         ),
-        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
-        discord.ui.TextDisplay(
+        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large), # type: ignore
+        discord.ui.TextDisplay( # type: ignore
             content="Sincerely,\n-# The Goobers Directorate team."
         ),
-        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large),
-        discord.ui.ActionRow(
+        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large), # type: ignore
+        discord.ui.ActionRow( # type: ignore
             discord.ui.Button(
                 style=discord.ButtonStyle.primary,
                 label="Open Leave Request",

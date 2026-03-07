@@ -144,7 +144,7 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
             await user.send(
                 f"{ACCEPTED_EMOJI_ID} **Application Accepted**\n"
                 f"-# Your application has been accepted! Welcome to the staff team!\n"
-                f"-# **Notes:** {self.notes.value}"
+                f"-# **Notes:** {self.notes.value}" 
             )
         else:
             await user.send(
@@ -560,8 +560,8 @@ class ApplicationComponents(discord.ui.LayoutView):
                 elif item.custom_id == "application_menu:apply_admin":
                     item.callback = self.admin_btn
 
-    container1 = discord.ui.Container(
-        discord.ui.TextDisplay(
+    container1 = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
             content="# Staff Applications\n"
             "Staff applications are reviewed carefully to ensure we select members who are responsible, active, and aligned with the server's values. Take your time when completing the application and ensure all answers are honest and well thought out.\n\n"
             "- **How to Start:** Fully complete the application form and answer every question to the best of your ability.\n"
@@ -571,18 +571,18 @@ class ApplicationComponents(discord.ui.LayoutView):
             "After submission, applications will be reviewed by the Directorate team. Do not DM staff for updates, as this will negatively affect your application. Decisions are final (unless stated otherwise), and feedback may not always be provided.\n\n"
             "**Note:** All applications are and will be taken seriously. Be professional — take your time. You may cancel and delete your application at any point by typing `.cancel`."
         ),
-        discord.ui.Separator(
+        discord.ui.Separator( # type: ignore
             visible=True,
             spacing=discord.SeparatorSpacing.large
         ),
-        discord.ui.TextDisplay(
+        discord.ui.TextDisplay( # type: ignore
             content="We look forward to reviewing any and all applications! Sincerely,\n-# The Goobers Directorate team."
         ),
-        discord.ui.Separator(
+        discord.ui.Separator( # type: ignore
             visible=True,
             spacing=discord.SeparatorSpacing.large
         ),
-        discord.ui.ActionRow(
+        discord.ui.ActionRow( # type: ignore
                 discord.ui.Button(
                     style=discord.ButtonStyle.primary,
                     label="Open Moderators Application",

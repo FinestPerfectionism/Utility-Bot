@@ -14,16 +14,24 @@ from core.state import (
     save_application_state,
     save_blacklist
 )
+from core.ticket_state import (
+    THREAD_OPENERS,
+    TICKET_CLAIMS,
+    TICKET_TYPES,
+    unregister_ticket,
+    save_ticket_state,
+)
 from core.utils import send_minor_error
 
 from events.systems.applications import (
     delete_application_messages,
     ACTIVE_APPLICATIONS
 )
+from events.systems.tickets import stop_resolution
 
 from constants import (
-    DIRECTORS_ROLE_ID, 
-    MODERATORS_ROLE_ID, 
+    DIRECTORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
 
     TICKET_CHANNEL_ID
 )
@@ -170,7 +178,7 @@ class ApplicationsTicketsCommands(
         mod_role = guild.get_role(MODERATORS_ROLE_ID)
         is_mod = mod_role is not None and mod_role in ctx.author.roles
 
-        opener_id = int(channel.name.split("——")[1])
+        opener_id = THREAD_OPENERS.get(channel.id)
 
         if not is_mod and ctx.author.id != opener_id:
             await ctx.send(
@@ -178,7 +186,66 @@ class ApplicationsTicketsCommands(
             )
             return
 
+        stop_resolution(channel.id)
+        unregister_ticket(channel.id)
+        await ctx.send("Archiving ticket.")
         await channel.edit(locked=True, archived=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .claim/.c Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(
+        name="claim",
+        aliases=["c"]
+    )
+    async def claim(self, ctx: commands.Context[commands.Bot]) -> None:
+        channel = ctx.channel
+
+        if not isinstance(channel, discord.Thread):
+            await ctx.send(
+                "This command can only be used in a ticket thread."
+            )
+            return
+
+        if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
+            await ctx.send(
+                "This command can only be used in a ticket thread."
+            )
+            return
+
+        if not isinstance(ctx.author, discord.Member):
+            return
+
+        guild = ctx.guild
+        if guild is None:
+            return
+
+        mod_role = guild.get_role(MODERATORS_ROLE_ID)
+        director_role = guild.get_role(DIRECTORS_ROLE_ID)
+        is_staff = (
+            (mod_role is not None and mod_role in ctx.author.roles)
+            or (director_role is not None and director_role in ctx.author.roles)
+        )
+
+        if not is_staff:
+            await ctx.send(
+                "Only moderators and directors can claim tickets."
+            )
+            return
+
+        existing_claimer_id = TICKET_CLAIMS.get(channel.id)
+        if existing_claimer_id == ctx.author.id:
+            await ctx.send(
+                "You have already claimed this ticket."
+            )
+            return
+
+        TICKET_CLAIMS[channel.id] = ctx.author.id
+        save_ticket_state()
+        await ctx.send(
+            f"Ticket claimed by {ctx.author.mention}."
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /state-modify Command
@@ -306,21 +373,29 @@ class ApplicationsTicketsCommands(
             )
             return
 
-        if not channel.name.startswith("ticket——"):
+        if TICKET_TYPES.get(channel.id) != "moderator":
             await ctx.send(
                 "This ticket is not a moderator ticket or is already escalated."
             )
             return
 
-        try:
-            opener_id = int(channel.name.split("——", 1)[1])
-        except (IndexError, ValueError):
+        opener_id = THREAD_OPENERS.get(channel.id)
+        if opener_id is None:
             await ctx.send(
-                "Invalid ticket name format."
+                "Could not find the ticket opener. The ticket may not be tracked."
             )
             return
 
-        await channel.edit(name=f"sd-ticket——{opener_id}")
+        try:
+            opener = guild.get_member(opener_id) or await guild.fetch_member(opener_id)
+            new_name = f"dir-ticket · {opener.display_name}"[:100]
+        except (discord.NotFound, discord.HTTPException):
+            new_name = f"dir-ticket · {channel.name.removeprefix('ticket · ')}"[:100]
+
+        TICKET_TYPES[channel.id] = "director"
+        save_ticket_state()
+
+        await channel.edit(name=new_name)
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
         if director_role:

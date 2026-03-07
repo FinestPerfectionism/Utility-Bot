@@ -6,8 +6,8 @@ from constants import (
 )
 
 class RequirementComponents1(discord.ui.LayoutView):
-    container = discord.ui.Container(
-        discord.ui.TextDisplay(
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
             content=
                 "# Welcome to our Partnership Requirements!\n"
                 "Our requirements for server partnerships.\n"
@@ -18,8 +18,8 @@ class RequirementComponents1(discord.ui.LayoutView):
 class RequirementComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout=None)
-        self.container = discord.ui.Container(
-            discord.ui.Section(
+        self.container = discord.ui.Container( # type: ignore
+            discord.ui.Section( # type: ignore
                 discord.ui.TextDisplay(
                     content=
                         "# Partnership Requirements"
@@ -31,25 +31,25 @@ class RequirementComponents2(discord.ui.LayoutView):
                     emoji = f"{STANDSTILL_EMOJI_ID}",
                 ),
             ),
-            discord.ui.TextDisplay(
+            discord.ui.TextDisplay( # type: ignore
                 content=
                    f"Partnership Requirements last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
             ),
-            discord.ui.Separator(
+            discord.ui.Separator( # type: ignore
                 visible=False,
                 spacing=discord.SeparatorSpacing.small
             ),
-            discord.ui.Separator(
+            discord.ui.Separator( # type: ignore
                 visible=True,
                 spacing=discord.SeparatorSpacing.small
             ),
-            discord.ui.Separator(
+            discord.ui.Separator( # type: ignore
                 visible=False,
                 spacing=discord.SeparatorSpacing.small
             ),
-            discord.ui.TextDisplay(
+            discord.ui.TextDisplay( # type: ignore
                 content=
                     "## §1 Eligibility\n"
                     "To be considered for partnership, a server must:\n\n"
@@ -94,4 +94,4 @@ class RequirementComponents2(discord.ui.LayoutView):
                     "No other staff member or role may independently approve, promise, or negotiate a partnership.\n"
             ),
         )
-        self.add_item(self.container)
+        self.add_item(self.container) # type: ignore
