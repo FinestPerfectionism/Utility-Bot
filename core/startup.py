@@ -58,6 +58,7 @@ from guild_info.guidelines.staff_guidelines import (
     StaffComponents1,
     StaffComponents2,
     StaffComponents3,
+    StaffComponents4,
 )
 from guild_info.guidelines.director_guidelines import (
     DirectorateComponents1,
@@ -495,7 +496,7 @@ class Startup(commands.Cog):
         msg_ids = self.layout_message_ids.get("staff_guidelines", [])
 
         all_exist = False
-        if len(msg_ids) == 3:
+        if len(msg_ids) == 4:
             try:
                 for msg_id in msg_ids:
                     await channel.fetch_message(msg_id)
@@ -521,11 +522,13 @@ class Startup(commands.Cog):
                 msg2 = await channel.send(view=StaffComponents2(timestamp=current_timestamp))
                 log.debug("Staff guidelines: sending component 3")
                 msg3 = await channel.send(view=StaffComponents3())
+                log.debug("Staff guidelines: sending component 4")
+                msg4 = await channel.send(view=StaffComponents4())
             except discord.HTTPException as e:
                 log.exception(f"Staff guidelines layout failed during send: {e}")
                 return
 
-            self.layout_message_ids["staff_guidelines"] = [msg1.id, msg2.id, msg3.id]
+            self.layout_message_ids["staff_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id]
             save_layout_message_ids(self.layout_message_ids)
 
             self.bot.add_view(StaffComponents2(timestamp=current_timestamp), message_id=msg2.id)

@@ -88,7 +88,14 @@ class StaffComponents3(discord.ui.LayoutView):
                 "### §5.4 Impartiality\n"
                 "Staff must not take action — whether moderation or administrative — in situations where a personal conflict of interest exists. Hand the situation off to a colleague or escalate to a Director immediately.\n\n"
                 "### §5.5 Out-of-Role Conduct\n"
-                "Staff are community members outside their staff capacity. They are not held to a stricter behavioral standard in casual conversation, but sustained conduct that would reflect poorly on the staff team — targeted harassment, bad-faith disruption, or behavior inconsistent with the server's standards — may be reviewed by the Directorate regardless of whether it occurred in a staff capacity.\n\n"
+                "Staff are community members outside their staff capacity. They are not held to a stricter behavioral standard in casual conversation, but sustained conduct that would reflect poorly on the staff team — targeted harassment, bad-faith disruption, or behavior inconsistent with the server's standards — may be reviewed by the Directorate regardless of whether it occurred in a staff capacity."
+        ),
+    )
+
+class StaffComponents4(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
                 "## §6 Shared Expectations\n"
                 "### §6.1 Activity\n"
                 "All staff are expected to remain reasonably active within their role. The standard for acceptable activity may differ by team and seniority, but prolonged inactivity without prior notice is grounds for removal at Directorate discretion regardless of team.\n\n"
