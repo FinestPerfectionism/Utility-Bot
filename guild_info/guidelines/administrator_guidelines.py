@@ -50,24 +50,31 @@ class AdministratorComponents2(discord.ui.LayoutView):
                     "### §2.2 Feasibility and NEEDS REVISION\n"
                     "If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, an Administrator must flag this immediately. The proposal may be placed into NEEDS REVISION, Standstill, or otherwise delayed. Do not silently leave an accepted proposal unimplemented.\n\n"
                     "### §2.3 Owner and Director Action Tags\n"
-                    "Some proposals carry OWNER ACTION or S. DIRECTOR ACTION tags, indicating that only the Owner or a Supporting Director can carry out implementation. Do not attempt to implement these independently — flag them to the appropriate party.\n\n"
-                    "## §3 Infrastructure Management\n"
-                    "All structural changes to the server must be deliberate and purposeful. Do not make changes that have not been approved through a proposal or explicitly directed by the Directorate. Document all significant changes in the appropriate staff channel after implementation.\n\n"
-                    "### §3.1 Channels\n"
-                    "Channel creation, deletion, renaming, or reconfiguration must correspond to an accepted proposal or a direct Directorate instruction. Do not adjust channel permissions, visibility, or structure speculatively.\n\n"
-                    "### §3.2 Roles\n"
-                    "Role creation, deletion, or permission changes are Senior Administrator+. Role changes must be sanctioned by the Directorate or correspond to an accepted proposal. Do not modify role permissions speculatively or as a test.\n\n"
-                    "### §3.3 Expressions\n"
-                    "Expressions (emojis, stickers, soundboard entries) may be added or removed by Junior and Senior Administrators. Changes must be consistent with server standards and sanctioned by the Directorate or a proposal.\n\n"
-                    "### §3.4 Events\n"
-                    "Junior Administrators may create events. Senior Administrators may additionally manage or edit existing events. All events must be sanctioned by the Directorate or correspond to an accepted proposal.\n\n"
-                    "### §3.5 Nicknames\n"
-                    "Junior Administrators may manage member nicknames where necessary for structural or organizational purposes. Nickname changes must not be used as an enforcement action — defer to the Moderation Team for anything conduct-related."
+                    "Some proposals carry OWNER ACTION or S. DIRECTOR ACTION tags, indicating that only the Owner or a Supporting Director can carry out implementation. Do not attempt to implement these independently — flag them to the appropriate party."
             ),
         )
         self.add_item(self.container) # type: ignore
 
 class AdministratorComponents3(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
+                "## §3 Infrastructure Management\n"
+                "All structural changes to the server must be deliberate and purposeful. Do not make changes that have not been approved through a proposal or explicitly directed by the Directorate. Document all significant changes in the appropriate staff channel after implementation.\n\n"
+                "### §3.1 Channels\n"
+                "Channel creation, deletion, renaming, or reconfiguration must correspond to an accepted proposal or a direct Directorate instruction. Do not adjust channel permissions, visibility, or structure speculatively.\n\n"
+                "### §3.2 Roles\n"
+                "Role creation, deletion, or permission changes are Senior Administrator+. Role changes must be sanctioned by the Directorate or correspond to an accepted proposal. Do not modify role permissions speculatively or as a test.\n\n"
+                "### §3.3 Expressions\n"
+                "Expressions (emojis, stickers, soundboard entries) may be added or removed by Junior and Senior Administrators. Changes must be consistent with server standards and sanctioned by the Directorate or a proposal.\n\n"
+                "### §3.4 Events\n"
+                "Junior Administrators may create events. Senior Administrators may additionally manage or edit existing events. All events must be sanctioned by the Directorate or correspond to an accepted proposal.\n\n"
+                "### §3.5 Nicknames\n"
+                "Junior Administrators may manage member nicknames where necessary for structural or organizational purposes. Nickname changes must not be used as an enforcement action — defer to the Moderation Team for anything conduct-related."
+        ),
+    )
+
+class AdministratorComponents4(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=
