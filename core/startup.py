@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import discord
 from discord.ext import commands
 
@@ -18,6 +20,10 @@ from core.state import (
     load_layout_message_ids,
     save_layout_message_ids
 )
+from core.partnership_state import (
+    PartnershipData,
+    load_partnership_data,
+)
 
 from guild_info.staff_proposal_info import (
     StaffProposalComponents1,
@@ -33,6 +39,10 @@ from guild_info.rules import (
 from guild_info.partnership_requirements import (
     RequirementComponents1,
     RequirementComponents2
+)
+from guild_info.partnerships import (
+    split_partnerships,
+    rebuild_partnership_layout,
 )
 from guild_info.hierarchy import (
     HierarchyComponents1,
@@ -76,6 +86,7 @@ from constants import (
     RULES_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
     PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
+    PARTNERSHIPS_CHANNEL_ID,
     HIERARCHY_CHANNEL_ID,
     MODERATORS_GUIDELINES_CHANNEL_ID,
     ADMINISTRATORS_GUIDELINES_CHANNEL_ID,
@@ -92,7 +103,7 @@ log = logging.getLogger("Utility Bot")
 class Startup(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.layout_message_ids = load_layout_message_ids()
+        self.layout_message_ids: dict[str, int | list[int]] = load_layout_message_ids()
 
     async def cog_load(self) -> None:
         self.bot.loop.create_task(self._wait_and_restore())
@@ -100,19 +111,19 @@ class Startup(commands.Cog):
     async def _wait_and_restore(self) -> None:
         await self.bot.wait_until_ready()
 
-        verification_cog = None
-        while not verification_cog:
+        verification_cog: commands.Cog | None = None
+        while verification_cog is None:
             verification_cog = self.bot.get_cog("VerificationHandler")
-            if not verification_cog:
+            if verification_cog is None:
                 await asyncio.sleep(0.25)
 
         await self.restore_or_send_layouts()
 
     async def restore_or_send_layouts(self) -> None:
-        view_mapping = {
-            "tickets": (TICKET_CHANNEL_ID, TicketComponents),
-            "applications": (APPLICATION_CHANNEL_ID, ApplicationComponents),
-            "leave": (STAFF_LEAVE_CHANNEL_ID, LeaveComponents),
+        view_mapping: dict[str, tuple[int, type[discord.ui.View]]] = {
+            "tickets": (TICKET_CHANNEL_ID, cast("type[discord.ui.View]", TicketComponents)),
+            "applications": (APPLICATION_CHANNEL_ID, cast("type[discord.ui.View]", ApplicationComponents)),
+            "leave": (STAFF_LEAVE_CHANNEL_ID, cast("type[discord.ui.View]", LeaveComponents)),
         }
 
         for key, (channel_id, view_cls) in view_mapping.items():
@@ -120,8 +131,9 @@ class Startup(commands.Cog):
             if not isinstance(channel, discord.TextChannel):
                 continue
 
-            msg_id = self.layout_message_ids.get(key)
-            if msg_id:
+            raw_id = self.layout_message_ids.get(key)
+            msg_id = raw_id if isinstance(raw_id, int) else None
+            if msg_id is not None:
                 try:
                     await channel.fetch_message(msg_id)
                     self.bot.add_view(view_cls(), message_id=msg_id)
@@ -149,6 +161,10 @@ class Startup(commands.Cog):
         partnership_requirements_channel = self.bot.get_channel(PARTNERSHIP_REQUIREMENTS_CHANNEL_ID)
         if isinstance(partnership_requirements_channel, discord.TextChannel):
             await self._handle_partnership_requirements_layout(partnership_requirements_channel)
+
+        partnership_channel = self.bot.get_channel(PARTNERSHIPS_CHANNEL_ID)
+        if isinstance(partnership_channel, discord.TextChannel):
+            await self._handle_partnership_layout(partnership_channel)
 
         hierarchy_channel = self.bot.get_channel(HIERARCHY_CHANNEL_ID)
         if isinstance(hierarchy_channel, discord.TextChannel):
@@ -192,8 +208,8 @@ class Startup(commands.Cog):
                 return
             except discord.NotFound:
                 log.debug("Verification message_id=%s not found", msg_id)
-            except Exception as e:
-                log.exception(f"Failed restoring verification layout: {e}")
+            except discord.HTTPException as e:
+                log.exception("Failed restoring verification layout: %s", e)
 
         try:
             message = await channel.send(view=view)
@@ -203,11 +219,12 @@ class Startup(commands.Cog):
             log.info("Verification layout created")
             log.debug("Verification message_id=%s", message.id)
 
-        except Exception as e:
-            log.exception(f"Failed creating verification layout: {e}")
+        except discord.HTTPException as e:
+            log.exception("Failed creating verification layout: %s", e)
 
     async def _handle_rules_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("rules", [])
+        raw = self.layout_message_ids.get("rules")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 2:
@@ -219,13 +236,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -235,7 +251,7 @@ class Startup(commands.Cog):
                 log.info("Rules: sending component 2")
                 msg2 = await channel.send(view=RuleComponents2(timestamp=current_timestamp))
             except discord.HTTPException as e:
-                log.exception(f"Rules layout failed during send: {e}")
+                log.exception("Rules layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["rules"] = [msg1.id, msg2.id]
@@ -251,7 +267,8 @@ class Startup(commands.Cog):
             log.debug("Rules message_ids=%s", msg_ids)
 
     async def _handle_staff_proposals_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("staff_proposals", [])
+        raw = self.layout_message_ids.get("staff_proposals")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 5:
@@ -263,13 +280,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -285,7 +301,7 @@ class Startup(commands.Cog):
                 log.info("Staff proposals: sending component 4")
                 msg4 = await channel.send(view=StaffProposalComponents4())
             except discord.HTTPException as e:
-                log.exception(f"Staff proposals layout failed during send: {e}")
+                log.exception("Staff proposals layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["staff_proposals"] = [msg1.id, msg2a.id, msg2b.id, msg3.id, msg4.id]
@@ -301,7 +317,8 @@ class Startup(commands.Cog):
             log.debug("Staff proposals message_ids=%s", msg_ids)
 
     async def _handle_partnership_requirements_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("partnership_requirements", [])
+        raw = self.layout_message_ids.get("partnership_requirements")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 2:
@@ -313,13 +330,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -329,7 +345,7 @@ class Startup(commands.Cog):
                 log.info("Partnership requirements: sending component 2")
                 msg2 = await channel.send(view=RequirementComponents2(timestamp=current_timestamp))
             except discord.HTTPException as e:
-                log.exception(f"Partnership requirements layout failed during send: {e}")
+                log.exception("Partnership requirements layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["partnership_requirements"] = [msg1.id, msg2.id]
@@ -344,8 +360,39 @@ class Startup(commands.Cog):
             log.info("Partnership requirements layout restored")
             log.debug("Partnership requirements message_ids=%s", msg_ids)
 
+    async def _handle_partnership_layout(self, channel: discord.TextChannel) -> None:
+        data: PartnershipData = load_partnership_data()
+        partnerships = data["partnerships"]
+        header_msg_id = data["header_message_id"]
+        msg_ids = data["message_ids"]
+
+        expected_count = len(split_partnerships(partnerships)) if partnerships else 0
+
+        all_exist = False
+        if header_msg_id is not None and len(msg_ids) == expected_count:
+            try:
+                await channel.fetch_message(header_msg_id)
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if all_exist:
+            log.info("Partnership layout restored")
+            log.debug("Partnership header_message_id=%s message_ids=%s", header_msg_id, msg_ids)
+            return
+
+        try:
+            await rebuild_partnership_layout(channel, data)
+            log.info("Partnership layout created")
+            log.debug("Partnership header_message_id=%s message_ids=%s", data["header_message_id"], data["message_ids"])
+        except discord.HTTPException as e:
+            log.exception("Partnership layout failed: %s", e)
+
     async def _handle_hierarchy_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("hierarchy", [])
+        raw = self.layout_message_ids.get("hierarchy")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 7:
@@ -357,13 +404,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -383,7 +429,7 @@ class Startup(commands.Cog):
                 log.info("Hierarchy: sending component 7")
                 msg7 = await channel.send(view=HierarchyComponents7())
             except discord.HTTPException as e:
-                log.exception(f"Hierarchy layout failed during send: {e}")
+                log.exception("Hierarchy layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["hierarchy"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id, msg6.id, msg7.id]
@@ -399,7 +445,8 @@ class Startup(commands.Cog):
             log.debug("Hierarchy message_ids=%s", msg_ids)
 
     async def _handle_moderation_guidelines_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("moderation_guidelines", [])
+        raw = self.layout_message_ids.get("moderation_guidelines")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 3:
@@ -411,13 +458,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -429,7 +475,7 @@ class Startup(commands.Cog):
                 log.info("Moderation guidelines: sending component 3")
                 msg3 = await channel.send(view=ModerationComponents3())
             except discord.HTTPException as e:
-                log.exception(f"Moderation guidelines layout failed during send: {e}")
+                log.exception("Moderation guidelines layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["moderation_guidelines"] = [msg1.id, msg2.id, msg3.id]
@@ -445,7 +491,8 @@ class Startup(commands.Cog):
             log.debug("Moderation guidelines message_ids=%s", msg_ids)
 
     async def _handle_administrator_guidelines_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("administrator_guidelines", [])
+        raw = self.layout_message_ids.get("administrator_guidelines")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 4:
@@ -457,13 +504,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -477,7 +523,7 @@ class Startup(commands.Cog):
                 log.info("Administrator guidelines: sending component 4")
                 msg4 = await channel.send(view=AdministratorComponents4())
             except discord.HTTPException as e:
-                log.exception(f"Administrator guidelines layout failed during send: {e}")
+                log.exception("Administrator guidelines layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["administrator_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id]
@@ -493,7 +539,8 @@ class Startup(commands.Cog):
             log.debug("Administrator guidelines message_ids=%s", msg_ids)
 
     async def _handle_staff_guidelines_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("staff_guidelines", [])
+        raw = self.layout_message_ids.get("staff_guidelines")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 4:
@@ -505,13 +552,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -525,7 +571,7 @@ class Startup(commands.Cog):
                 log.info("Staff guidelines: sending component 4")
                 msg4 = await channel.send(view=StaffComponents4())
             except discord.HTTPException as e:
-                log.exception(f"Staff guidelines layout failed during send: {e}")
+                log.exception("Staff guidelines layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["staff_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id]
@@ -541,7 +587,8 @@ class Startup(commands.Cog):
             log.debug("Staff guidelines message_ids=%s", msg_ids)
 
     async def _handle_directorate_guidelines_layout(self, channel: discord.TextChannel) -> None:
-        msg_ids = self.layout_message_ids.get("directorate_guidelines", [])
+        raw = self.layout_message_ids.get("directorate_guidelines")
+        msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         if len(msg_ids) == 5:
@@ -553,13 +600,12 @@ class Startup(commands.Cog):
                 pass
 
         if not all_exist:
-            if msg_ids:
-                for msg_id in msg_ids:
-                    try:
-                        msg = await channel.fetch_message(msg_id)
-                        await msg.delete()
-                    except (discord.NotFound, discord.HTTPException):
-                        pass
+            for msg_id in msg_ids:
+                try:
+                    msg = await channel.fetch_message(msg_id)
+                    await msg.delete()
+                except (discord.NotFound, discord.HTTPException):
+                    pass
 
             current_timestamp = int(time.time())
 
@@ -575,7 +621,7 @@ class Startup(commands.Cog):
                 log.info("Directorate guidelines: sending component 5")
                 msg5 = await channel.send(view=DirectorateComponents5())
             except discord.HTTPException as e:
-                log.exception(f"Directorate guidelines layout failed during send: {e}")
+                log.exception("Directorate guidelines layout failed during send: %s", e)
                 return
 
             self.layout_message_ids["directorate_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id]
@@ -592,6 +638,7 @@ class Startup(commands.Cog):
 
     async def cog_unload(self) -> None:
         pass
+
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Startup(bot))

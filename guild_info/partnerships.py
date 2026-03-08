@@ -1,0 +1,157 @@
+from __future__ import annotations
+
+import time
+import logging
+from typing import Any
+
+import discord
+
+from constants import PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, TICKET_CHANNEL_ID
+from core.partnership_state import (
+    IMAGE_DIR,
+    PartnershipData,
+    PartnershipEntry,
+    save_partnership_data,
+)
+
+log = logging.getLogger("Utility Bot")
+
+_CHARS_PER_GROUP_LIMIT: int = 3200
+
+
+class PartnershipComponents1(discord.ui.LayoutView):
+    container = discord.ui.Container(  # type: ignore
+        discord.ui.TextDisplay(  # type: ignore
+            content=(
+                "# Welcome to our Partnerships!\n"
+                f"Our server partnerships. Looking to partner? View <#{PARTNERSHIP_REQUIREMENTS_CHANNEL_ID}>"
+                f" then open a __director__ ticket in <#{TICKET_CHANNEL_ID}>.\n"
+                "-# **Note:** It is within Directors' discretion as to whether we choose to partner with your server. "
+                "Directors are not required to provide a reason when denying a partnership."
+            )
+        ),
+    )
+
+
+class PartnershipComponents2(discord.ui.LayoutView):
+    def __init__(self, partnerships: list[PartnershipEntry], timestamp: int) -> None:
+        super().__init__(timeout=None)
+
+        children: list[Any] = [
+            discord.ui.TextDisplay(
+                content=(
+                    "# Partnerships\n"
+                    f"Partnerships last updated <t:{timestamp}:D>.\n"
+                    "-# All partnerships below are subject to removal or update at any time based on Directorate decision.\n"
+                    "-# Partnerships assembled by the Directorate team."
+                )
+            ),
+            discord.ui.Separator(visible=False, spacing=discord.SeparatorSpacing.small),
+            discord.ui.Separator(visible=True,  spacing=discord.SeparatorSpacing.small),
+            discord.ui.Separator(visible=False, spacing=discord.SeparatorSpacing.small),
+        ]
+
+        for i, p in enumerate(partnerships):
+            children.append(
+                discord.ui.Section(
+                    discord.ui.TextDisplay(
+                        content=(
+                            f"{p['server_name']}\n"
+                            "**Description:**\n"
+                            f"> {p['server_description']}\n"
+                            "**Server Owner**\n"
+                            f"> <@{p['server_owner_id']}>\n"
+                            f"[Join Here!]({p['server_link']})"
+                        )
+                    ),
+                    accessory=discord.ui.Thumbnail(
+                        media=f"attachment://{p['image_filename']}"
+                    ),
+                )
+            )
+            if i < len(partnerships) - 1:
+                children.append(
+                    discord.ui.Separator(
+                        visible=True,
+                        spacing=discord.SeparatorSpacing.large,
+                    )
+                )
+
+        self.container = discord.ui.Container(*children)
+        self.add_item(self.container)
+
+
+def _estimate_chars(p: PartnershipEntry) -> int:
+    return len(
+        f"{p['server_name']}\n"
+        "**Description:**\n"
+        f"> {p['server_description']}\n"
+        "**Server Owner**\n"
+        f"> <@{p['server_owner_id']}>\n"
+        f"[Join Here!]({p['server_link']})"
+    )
+
+
+def split_partnerships(
+    partnerships: list[PartnershipEntry],
+) -> list[list[PartnershipEntry]]:
+    groups: list[list[PartnershipEntry]] = []
+    current: list[PartnershipEntry] = []
+    current_chars: int = 0
+
+    for p in partnerships:
+        p_chars = _estimate_chars(p)
+        if current and current_chars + p_chars > _CHARS_PER_GROUP_LIMIT:
+            groups.append(current)
+            current = [p]
+            current_chars = p_chars
+        else:
+            current.append(p)
+            current_chars += p_chars
+
+    if current:
+        groups.append(current)
+
+    return groups
+
+
+async def rebuild_partnership_layout(
+    channel: discord.TextChannel,
+    data: PartnershipData,
+) -> None:
+    for msg_id in data["message_ids"]:
+        try:
+            msg = await channel.fetch_message(msg_id)
+            await msg.delete()
+        except (discord.NotFound, discord.HTTPException):
+            pass
+
+    header_msg_id = data["header_message_id"]
+    if header_msg_id is not None:
+        try:
+            msg = await channel.fetch_message(header_msg_id)
+            await msg.delete()
+        except (discord.NotFound, discord.HTTPException):
+            pass
+
+    timestamp: int = int(time.time())
+    header_msg = await channel.send(view=PartnershipComponents1())
+
+    partnerships = data["partnerships"]
+    new_message_ids: list[int] = []
+
+    for group in (split_partnerships(partnerships) if partnerships else []):
+        files: list[discord.File] = [
+            discord.File(
+                str(IMAGE_DIR / p["image_filename"]),
+                filename=p["image_filename"],
+            )
+            for p in group
+        ]
+        msg = await channel.send(view=PartnershipComponents2(group, timestamp), files=files)
+        new_message_ids.append(msg.id)
+
+    data["header_message_id"] = header_msg.id
+    data["message_ids"] = new_message_ids
+    data["timestamp"] = timestamp
+    save_partnership_data(data)
