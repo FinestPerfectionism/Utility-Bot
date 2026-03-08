@@ -3,11 +3,31 @@ from discord.ext import commands
 from discord import app_commands
 
 from core.utils import send_minor_error
+from core.help import help_description
 
 from constants import (
     BOT_OWNER_ID,
     HOLY_FATHER_ID,
 )
+
+class Ping(discord.ui.LayoutView):
+    def __init__(self, ping: int) -> None:
+        super().__init__()
+
+        self.add_item(
+            discord.ui.TextDisplay(content="# I HAVE BEEN AWAKENEDDDD.")
+        )
+        self.add_item(
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.small
+            )
+        )
+        self.add_item(
+            discord.ui.TextDisplay(
+                content=f"*cough cough* My ping is {ping} milliseconds."
+            )
+        )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Miscellaneous Commands
@@ -101,6 +121,25 @@ class MiscCommands(commands.Cog):
             await interaction.followup.send(
                 "*Click.* You live."
             )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .ping Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(
+        name="bot-ping",
+    )
+    @help_description(
+        desc        = "The ping command displays the bot's current latency in milliseconds.",
+        prefix      = True,
+        slash       = False,
+        has_inverse = False,
+    )
+    async def ping(self, ctx: commands.Context[commands.Bot]) -> None:
+        latency_ms = round(self.bot.latency * 1000)
+        await ctx.send(
+            view=Ping(latency_ms)
+        )
 
 async def setup(bot: commands.Bot) -> None:
     cog = MiscCommands(bot)

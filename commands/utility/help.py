@@ -104,16 +104,24 @@ class HelpCommands(commands.Cog):
         *,
         command_name: str | None = None,
     ) -> None:
-        if command_name and command_name.lower() == "<cmd>":
-            await ctx.send(
-                "Brocacho... you're supposed to replace `<cmd>` with the command you want help with.\n"
-                "-# Genuinely wondering how one makes it this far without realizing this. 🥀"
-            )
-            return
-        if command_name and command_name.lower() == "help":
-            await ctx.send("Help²")
-            return
-        await _run_help(self.bot, ctx, command_name)
+        if not command_name:
+            return await _run_help(self.bot, ctx, None)
+
+        query = command_name.lower().strip()
+
+        snarky_responses = {
+            "<cmd>": "Brocacho... you're supposed to replace `<cmd>` with the command you want help with.\n"
+                     "-# Genuinely wondering how one makes it this far without realizing something as simple as this. 🥀",
+            "super_secret_command": "There is no super secret command in ba sing se.",
+            "help": "Help²",
+            "me": "No. <:laugh5:1474263882746040361>"
+        }
+
+        if query in snarky_responses:
+            await ctx.send(snarky_responses[query])
+            return None
+
+        return await _run_help(self.bot, ctx, command_name)
 
 async def setup(bot: commands.Bot) -> None:
     cog = HelpCommands(bot)
