@@ -19,14 +19,14 @@ from typing import (
 )
 if TYPE_CHECKING:
     from discord.app_commands import Group as AppGroup
-    
+
     from collections.abc import (
         Callable,
         Awaitable,
         Coroutine
     )
 
-from constants import(
+from constants import (
     ACCEPTED_EMOJI_ID,
     DENIED_EMOJI_ID,
     CONTESTED_EMOJI_ID,
@@ -46,8 +46,13 @@ class HelpCallback(Protocol):
     def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[Any]: ...
 
 @dataclass
+class RoleConfig:
+    role_id:  int
+    channels: list[int] = field(default_factory=list)
+
+@dataclass
 class ArgumentInfo:
-    role:        int | None = None
+    roles:       list[int]  = field(default_factory=list)
     required:    bool       = True
     description: str | None = None
     is_flag:     bool       = False
@@ -55,26 +60,27 @@ class ArgumentInfo:
 
 @dataclass
 class CommandHelpData:
-    desc:         str
-    prefix:       bool
-    slash:        bool
-    run_role:     int | None
-    has_inverse:  bool | str
-    arguments:    dict[str, ArgumentInfo] = field(default_factory=dict)
-    aliases:      list[str]               = field(default_factory=list)
+    desc:        str
+    prefix:      bool
+    slash:       bool
+    run_roles:   list[RoleConfig]
+    has_inverse: bool | str
+    arguments:   dict[str, ArgumentInfo] = field(default_factory=dict)
+    aliases:     list[str]               = field(default_factory=list)
 
 class HelpedCallable:
     __help_data__: CommandHelpData
 
 def help_description(
-    desc: str,
-    prefix: bool = False,
-    slash: bool = True,
-    run_role: int | None = None,
-    has_inverse: bool | str = False,
-    arguments: dict[str, ArgumentInfo] | None = None,
-    aliases: list[str] | None = None,
+    desc:        str,
+    prefix:      bool                   = False,
+    slash:       bool                   = True,
+    run_roles:   list[RoleConfig] | None = None,
+    has_inverse: bool | str             = False,
+    arguments:   dict[str, ArgumentInfo] | None = None,
+    aliases:     list[str] | None       = None,
 ) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
+    run_roles = run_roles or []
     arguments = arguments or {}
     aliases   = aliases   or []
 
@@ -83,7 +89,7 @@ def help_description(
             desc=desc,
             prefix=prefix,
             slash=slash,
-            run_role=run_role,
+            run_roles=run_roles,
             has_inverse=has_inverse,
             arguments=arguments,
             aliases=aliases,
@@ -98,30 +104,44 @@ def help_description(
 
     return decorator
 
-def member_has_role(member: discord.Member, role_id: int | None) -> bool:
-    if role_id is None:
-        return True
+def member_has_role(member: discord.Member, role_id: int) -> bool:
     return any(r.id == role_id for r in member.roles)
 
 def check_access(
-    member: discord.Member,
-    data:   CommandHelpData,
-) -> tuple[str, list[str], list[str]]:
-    can_run = member_has_role(member, data.run_role)
-    if not can_run:
-        return "none", [], list(data.arguments.keys())
+    member:     discord.Member,
+    data:       CommandHelpData,
+    channel_id: int | None = None,
+) -> tuple[str, list[str], list[str], list[int]]:
+    member_role_ids = {r.id for r in member.roles}
+
+    if data.run_roles:
+        matching = [rc for rc in data.run_roles if rc.role_id in member_role_ids]
+        if not matching:
+            return "none", [], list(data.arguments.keys()), []
+
+        unrestricted = any(not rc.channels for rc in matching)
+        if unrestricted:
+            allowed_channels: list[int] = []
+        else:
+            seen: set[int] = set()
+            for rc in matching:
+                seen.update(rc.channels)
+            allowed_channels = sorted(seen)
+    else:
+        allowed_channels = []
 
     accessible:   list[str] = []
     inaccessible: list[str] = []
     for arg_name, arg_info in data.arguments.items():
-        if member_has_role(member, arg_info.role):
+        if not arg_info.roles or member_role_ids.intersection(arg_info.roles):
             accessible.append(arg_name)
         else:
             inaccessible.append(arg_name)
 
-    if inaccessible:
-        return "partial", accessible, inaccessible
-    return "full", accessible, inaccessible
+    channel_restricted = bool(allowed_channels)
+    if inaccessible or channel_restricted:
+        return "partial", accessible, inaccessible, allowed_channels
+    return "full", accessible, inaccessible, allowed_channels
 
 def build_argument_line(name: str, info: ArgumentInfo) -> str:
     if info.choices:
@@ -147,7 +167,7 @@ def build_help_view(
 
     usage_lines: list[str] = []
     if data.prefix:
-        usage_lines.append(f"{command_name} {arg_tokens}".strip())
+        usage_lines.append(f".{command_name} {arg_tokens}".strip())
     if data.slash:
         usage_lines.append(f"/{command_name} {arg_tokens}".strip())
     usage_block = "\n".join(usage_lines)
@@ -167,6 +187,9 @@ def build_help_view(
             line += " [Flag]"
         if arg_info.choices:
             line += " [Choices]"
+        if arg_info.roles:
+            roles_str = " ".join(f"<@&{rid}>" for rid in arg_info.roles)
+            line += f" [Roles: {roles_str}]"
         if arg_info.description:
             line += f"\n{arg_info.description}"
         arg_details_lines.append(line)
@@ -184,9 +207,23 @@ def build_help_view(
     if data.has_inverse and isinstance(data.has_inverse, str):
         inverse_line = f"\nThis command has an inverse, **{data.has_inverse}**."
 
+    roles_lines: list[str] = []
+    if data.run_roles:
+        for rc in data.run_roles:
+            role_mention = f"<@&{rc.role_id}>"
+            if rc.channels:
+                channels_str = " ".join(f"<#{cid}>" for cid in rc.channels)
+                roles_lines.append(f"- {role_mention} *(channels: {channels_str})*")
+            else:
+                roles_lines.append(f"- {role_mention}")
+        roles_block = "\n".join(roles_lines)
+    else:
+        roles_block = "- No role restriction."
+
     main_text = (
         f"# \"{command_name}\" Command\n"
         f"## Description:\n{data.desc}\n"
+        f"## Required Roles:\n{roles_block}\n"
         f"## Arguments:\n"
         f"```python\n{usage_block}\n```\n"
         f"-# {{…}} denotes a required argument\n"
@@ -199,7 +236,7 @@ def build_help_view(
         f"{inverse_line}"
     )
 
-    status, accessible_args, _ = check_access(member, data)
+    status, accessible_args, _, allowed_channels = check_access(member, data)
 
     if status == "full":
         perm_colour = COLOR_GREEN
@@ -221,18 +258,22 @@ def build_help_view(
         perm_colour = COLOR_YELLOW
 
         if not accessible_args:
-            detail = (
-                "None —— You lack access to all of this command's arguments."
-            )
+            args_detail = "None —— You lack access to all of this command's arguments."
         else:
-            detail = ", ".join(f"`{a}`" for a in accessible_args)
+            args_detail = ", ".join(f"`{a}`" for a in accessible_args)
+
+        channel_detail = ""
+        if allowed_channels:
+            channels_str = " ".join(f"<#{cid}>" for cid in allowed_channels)
+            channel_detail = f"\nYou may only use this command in: {channels_str}"
 
         perm_text = (
             f"### {CONTESTED_EMOJI_ID} Partially Authorized.\n"
             f"-# Partially valid permissions.\n"
             f"You have the necessary permissions to run this command, "
             f"but not all of its arguments. Specifically, you have access "
-            f"to these arguments:\n- {detail}"
+            f"to these arguments:\n- {args_detail}"
+            f"{channel_detail}"
         )
 
     class HelpView(discord.ui.LayoutView):
@@ -303,7 +344,7 @@ def collect_slash_commands(
             collect_slash_commands(sub_commands, seen_callbacks, lines)
 
 async def run_help(
-    bot: commands.Bot,
+    bot:          commands.Bot,
     ctx_or_inter: commands.Context[commands.Bot] | discord.Interaction,
     command_name: str | None,
 ) -> None:
