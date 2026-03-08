@@ -24,7 +24,7 @@ from constants import (
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 
-    SUPPORTING_DIRECTOR_ROLE_ID,
+    SUPPORTING_DIRECTORS_ROLE_ID,
     QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
 )
@@ -411,7 +411,7 @@ class HealthCommands(commands.Cog):
 
         bad_roles: list[str] = []
         for role in guild.roles:
-            if role.id in (guild.default_role.id, SUPPORTING_DIRECTOR_ROLE_ID):
+            if role.id in (guild.default_role.id, SUPPORTING_DIRECTORS_ROLE_ID):
                 continue
             if role.managed:
                 continue
