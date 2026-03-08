@@ -4,7 +4,8 @@ __pycache__/
 venv/
 .env
 data/*
-storage/*.db
+storage/*
+verification_data.json
 !data/runtime/.gitkeep
 !storage/.gitkeep
 data/configs/antinuke_config.json
