@@ -10,6 +10,7 @@ import json
 import os
 import random
 import string
+import contextlib
 from datetime import (
     datetime,
     timedelta
@@ -35,6 +36,7 @@ from constants import(
     DENIED_EMOJI_ID,
 
     VERIFICATION_CHANNEL_ID,
+    MODERATORS_CHANNEL_ID,
 
     GOOBERS_ROLE_ID
 )
@@ -484,7 +486,7 @@ class VerificationHandler(commands.Cog):
             files=[file],
             ephemeral=True
         )
-    
+
     async def verify_user(self, interaction: discord.Interaction) -> None:
         user = interaction.user
         guild = interaction.guild
@@ -528,16 +530,30 @@ class VerificationHandler(commands.Cog):
                 subtitle="Invalid configuration. Contact the owner."
             )
 
+    async def _send_mod_notification(self, guild: discord.Guild, lines: list[str]) -> None:
+        if not lines:
+            return
+        mod_channel = guild.get_channel(MODERATORS_CHANNEL_ID)
+        if not isinstance(mod_channel, discord.TextChannel):
+            return
+        with contextlib.suppress(discord.Forbidden, discord.HTTPException):
+            await mod_channel.send("\n".join(lines))
+
     @tasks.loop(minutes=30)
     async def check_unverified_users(self) -> None:
         now: datetime = datetime.now()
         to_remove: list[str] = []
+
+        kicked_log: list[str] = []
+        warned_log: list[str] = []
+
         for user_id_raw, data in list(self.data["unverified"].items()):
             user_id: str = str(user_id_raw)
             joined_at: datetime = datetime.fromisoformat(data["joined_at"])
             time_since_join: timedelta = now - joined_at
             member: discord.Member | None = None
             user_id_int: int = int(user_id)
+
             for guild in self.bot.guilds:
                 member = guild.get_member(user_id_int)
                 if not member:
@@ -547,42 +563,46 @@ class VerificationHandler(commands.Cog):
                         continue
                 if member:
                     break
+
             if not member:
                 to_remove.append(user_id)
                 continue
+
             goobers_role: discord.Role | None = member.guild.get_role(self.GOOBERS_ROLE_ID)
             if goobers_role and goobers_role in member.roles:
                 to_remove.append(user_id)
                 continue
+
             is_overdue: bool = time_since_join >= timedelta(days=3)
-            if is_overdue and data.get("warned"):
+
+            if is_overdue:
                 msg_id: int | None = data.get("warning_message_id")
                 if msg_id:
-                    try:
+                    with contextlib.suppress(discord.NotFound, discord.Forbidden, discord.HTTPException):
                         channel: discord.abc.GuildChannel | discord.Thread | None = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
                         if isinstance(channel, discord.TextChannel):
                             msg: discord.Message = await channel.fetch_message(msg_id)
                             await msg.delete()
-                    except (discord.NotFound, discord.Forbidden, discord.HTTPException):
-                        pass
-                import contextlib
+
                 with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                     await member.send(
                         f"{DENIED_EMOJI_ID} **Guild removal!**\n"
                         "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
                         "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                     )
+
                 try:
                     await member.kick(reason="UB Verification: failure to verify within 72 hours")
                     to_remove.append(user_id)
+                    kicked_log.append(f"{DENIED_EMOJI_ID} **{discord.utils.escape_markdown(str(member))}** (`{member.id}`) was kicked for failing to verify within 72 hours.")
                 except discord.Forbidden:
                     pass
-            elif is_overdue and not data.get("warned"):
-                self.data["unverified"][user_id]["joined_at"] = (now - timedelta(days=2)).isoformat()
-                self.save_data()
+
             elif time_since_join >= timedelta(days=2) and not data.get("warned"):
                 warned: bool = False
                 warning_message_id: int | None = None
+                where: str = ""
+
                 try:
                     await member.send(
                         f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
@@ -590,29 +610,39 @@ class VerificationHandler(commands.Cog):
                         "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                     )
                     warned = True
+                    where = "DM"
                 except (discord.Forbidden, discord.HTTPException):
                     try:
-                        channel: discord.abc.GuildChannel | discord.Thread | None = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
-                        if isinstance(channel, discord.TextChannel):
-                            msg: discord.Message = await channel.send(
+                        warn_channel: discord.abc.GuildChannel | discord.Thread | None = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
+                        if isinstance(warn_channel, discord.TextChannel):
+                            warn_msg: discord.Message = await warn_channel.send(
                                 f"{member.mention}\n\n"
                                 f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
                                 "You joined \"The Goobers\" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n"
                                 "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                             )
-                            warning_message_id = msg.id
+                            warning_message_id = warn_msg.id
                             warned = True
+                            where = "verification channel"
                     except (discord.Forbidden, discord.HTTPException):
                         pass
+
                 if warned:
                     self.data["unverified"][user_id]["warned"] = True
                     self.data["unverified"][user_id]["warning_message_id"] = warning_message_id
                     self.save_data()
+                    warned_log.append(f"{CONTESTED_EMOJI_ID} **{discord.utils.escape_markdown(str(member))}** (`{member.id}`) was warned via {where}.")
+
         for user_id_to_del in to_remove:
             if user_id_to_del in self.data["unverified"]:
                 del self.data["unverified"][user_id_to_del]
         if to_remove:
             self.save_data()
+
+        notification_lines: list[str] = warned_log + kicked_log
+        if notification_lines:
+            for guild in self.bot.guilds:
+                await self._send_mod_notification(guild, notification_lines)
 
     @check_unverified_users.before_loop
     async def before_check_unverified_users(self) -> None:

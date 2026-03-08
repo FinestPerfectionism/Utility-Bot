@@ -1,9 +1,14 @@
 import discord
 from discord.ext import commands
-
 from datetime import datetime
-
+from typing import (
+    TYPE_CHECKING,
+    cast
+)
 from constants import GOOBERS_ROLE_ID, STAFF_ROLE_ID
+
+if TYPE_CHECKING:
+    from events.member.verification import VerificationHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Verification Commands
@@ -13,10 +18,9 @@ class VerificationCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
-        self.data: dict[str, dict[str, dict[str, str | bool | int | None]]] = {"unverified": {}}
 
-    def save_data(self) -> None:
-        pass
+    def _get_verification_cog(self) -> "VerificationHandler | None":
+        return cast("VerificationHandler", self.bot.get_cog("VerificationHandler"))
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .verify/.v Command
@@ -27,12 +31,10 @@ class VerificationCommands(commands.Cog):
     async def manual_verify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
-
         if not any(role.id == STAFF_ROLE_ID for role in ctx.author.roles):
             return
 
         goobers_role = ctx.guild.get_role(self.GOOBERS_ROLE_ID)
-
         if not goobers_role or goobers_role in member.roles:
             return
 
@@ -41,11 +43,10 @@ class VerificationCommands(commands.Cog):
                 goobers_role,
                 reason=f"Manual verification by {ctx.author}"
             )
-
-            if str(member.id) in self.data["unverified"]:
-                del self.data["unverified"][str(member.id)]
-                self.save_data()
-
+            verification_cog = self._get_verification_cog()
+            if verification_cog and str(member.id) in verification_cog.data["unverified"]:
+                del verification_cog.data["unverified"][str(member.id)]
+                verification_cog.save_data()
         except discord.Forbidden:
             return
 
@@ -66,12 +67,10 @@ class VerificationCommands(commands.Cog):
     async def unverify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
-
         if not any(role.id == STAFF_ROLE_ID for role in ctx.author.roles):
             return
 
         goobers_role = ctx.guild.get_role(self.GOOBERS_ROLE_ID)
-
         if not goobers_role or goobers_role not in member.roles:
             return
 
@@ -80,14 +79,14 @@ class VerificationCommands(commands.Cog):
                 goobers_role,
                 reason=f"Manual de-verification by {ctx.author}"
             )
-
-            self.data["unverified"][str(member.id)] = {
-                "joined_at": datetime.now().isoformat(),
-                "warned": False,
-                "warning_message_id": None
-            }
-            self.save_data()
-
+            verification_cog = self._get_verification_cog()
+            if verification_cog:
+                verification_cog.data["unverified"][str(member.id)] = {
+                    "joined_at": datetime.now().isoformat(),
+                    "warned": False,
+                    "warning_message_id": None
+                }
+                verification_cog.save_data()
         except discord.Forbidden:
             return
 
