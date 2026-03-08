@@ -92,7 +92,7 @@ class AuditCog(commands.Cog):
         if not permissions:
             return "None"
 
-        perms = []
+        perms: list[str] = []
         for perm, value in permissions:
             if value is not None:
                 status = "Allow" if value else "Deny"
@@ -106,7 +106,7 @@ class AuditCog(commands.Cog):
         before_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite], 
         after_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite]
     ) -> list[str]:
-        changes = []
+        changes: list[str] = []
         all_targets = set(before_overwrites.keys()) | set(after_overwrites.keys())
 
         for target in all_targets:
@@ -118,7 +118,7 @@ class AuditCog(commands.Cog):
             target_id = target.id if hasattr(target, 'id') else "Unknown"
 
             if before_ow is None and after_ow is not None:
-                perms = []
+                perms: list[str] = []
                 for perm, value in after_ow:
                     if value is not None:
                         status = "Allow" if value else "Deny"
@@ -132,10 +132,10 @@ class AuditCog(commands.Cog):
                 changes.append(f"**Removed {target_type}** `{target_name}`\n`{target_id}`")
 
             else:
-                before_perms = {perm: value for perm, value in before_ow} if before_ow is not None else {}
-                after_perms = {perm: value for perm, value in after_ow}
+                before_perms: dict[str, bool | None] = dict(before_ow) if before_ow is not None else {}
+                after_perms: dict[str, bool | None] = dict(after_ow)
 
-                modified_perms = []
+                modified_perms: list[str] = []
                 for perm in set(before_perms.keys()) | set(after_perms.keys()):
                     before_val = before_perms.get(perm)
                     after_val = after_perms.get(perm)

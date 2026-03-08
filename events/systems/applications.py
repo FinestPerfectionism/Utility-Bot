@@ -60,7 +60,7 @@ MOD_ROLE_IDS = {
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class DecisionModal(ui.Modal, title="Decision Reason"):
-    notes = ui.TextInput(label="Notes", required=True)
+    notes: ui.TextInput[ui.Modal] = ui.TextInput(label="Notes", required=True)
 
     def __init__(self, applicant_id: int, app_type: str, accepted: bool, message_id: int) -> None:
         super().__init__()

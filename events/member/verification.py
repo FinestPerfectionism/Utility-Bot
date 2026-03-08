@@ -45,19 +45,18 @@ from core.utils import send_major_error
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
+    code_input: discord.ui.TextInput[discord.ui.Modal] = discord.ui.TextInput(
+        label="CAPTCHA Code",
+        placeholder="Enter the code from the image.",
+        required=True,
+        max_length=6,
+        min_length=6
+    )
+
     def __init__(self, correct_code: str, cog: "VerificationHandler") -> None:
         super().__init__(timeout=300)
-        self.correct_code = correct_code
-        self.cog = cog
-
-        self.code_input = discord.ui.TextInput(
-            label="CAPTCHA Code",
-            placeholder="Enter the code from the image.",
-            required=True,
-            max_length=6,
-            min_length=6
-        )
-        self.add_item(self.code_input)
+        self.correct_code: str = correct_code
+        self.cog: VerificationHandler = cog
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         session = self.cog.active_captchas.get(interaction.user.id)
@@ -79,7 +78,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
             )
             return
 
-        entered_code = self.code_input.value.strip().upper()
+        entered_code: str = self.code_input.value.strip().upper()
 
         session["attempts"] += 1
 
@@ -169,7 +168,7 @@ class VerificationComponents(discord.ui.LayoutView):
             accent_color=COLOR_GREEN,
         )
 
-        self.add_item(container)
+        self.add_item(container) # type: ignore
 
 class VerificationHandler(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -210,18 +209,18 @@ class VerificationHandler(commands.Cog):
 
     @staticmethod
     def generate_captcha() -> tuple[str, BytesIO]:
-        code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+        code: str = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
         def sine_distort(img: Image.Image) -> Image.Image:
             w, h = img.size
-            amplitude = random.SystemRandom().randint(3, 6)
-            period = 40 + (secrets.randbelow(310) / 10.0)
+            amplitude: int = random.SystemRandom().randint(3, 6)
+            period: float = 40 + (secrets.randbelow(310) / 10.0)
 
-            src = np.array(img)
-            dst = np.zeros_like(src)
+            src: np.ndarray[Any, Any] = np.array(img)
+            dst: np.ndarray[Any, Any] = np.zeros_like(src)
 
             for x in range(w):
-                offset = int(
+                offset: int = int(
                     amplitude * np.sin(2 * np.pi * x / period)
                     + random.SystemRandom().randint(-2, 2)
                 )
@@ -235,24 +234,28 @@ class VerificationHandler(commands.Cog):
 
             return Image.fromarray(dst, "RGBA")
 
-        width, height = 320, 120
+        width: int = 320
+        height: int = 120
 
-        background = Image.new("RGB", (width, height))
-        bg_draw = ImageDraw.Draw(background)
+        background: Image.Image = Image.new("RGB", (width, height))
+        bg_draw: ImageDraw.ImageDraw = ImageDraw.Draw(background)
 
         for y in range(height):
-            r = 230 - int((y / height) * 20)
-            g = 230 - int((y / height) * 20)
-            b = 255
+            r: int = 230 - int((y / height) * 20)
+            g: int = 230 - int((y / height) * 20)
+            b: int = 255
             bg_draw.line([(0, y), (width, y)], fill=(r, g, b))
 
         background = background.filter(ImageFilter.GaussianBlur(1))
 
-        noise_layer = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-        noise_draw = ImageDraw.Draw(noise_layer)
+        noise_layer: Image.Image = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        noise_draw: ImageDraw.ImageDraw = ImageDraw.Draw(noise_layer)
 
-        text_layer = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-        text_draw = ImageDraw.Draw(text_layer)
+        text_layer: Image.Image = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        text_draw: ImageDraw.ImageDraw = ImageDraw.Draw(text_layer)
+
+        font: Any
+        small_font: Any
 
         try:
             font = ImageFont.truetype(
@@ -265,41 +268,31 @@ class VerificationHandler(commands.Cog):
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
 
-        char_images = []
-
-        char_images = []
+        char_images: list[Image.Image] = []
         for char in code:
-            char_img = Image.new("RGBA", (70, 80), (255, 255, 255, 0))
-            char_draw = ImageDraw.Draw(char_img)
-
-            base = random.SystemRandom().randint(70, 120)
-            color = (
-                base + random.SystemRandom().randint(-20, 20),
-                base + random.SystemRandom().randint(-20, 20),
-                base + random.SystemRandom().randint(-20, 20),
+            char_img: Image.Image = Image.new("RGBA", (70, 80), (255, 255, 255, 0))
+            char_draw: ImageDraw.ImageDraw = ImageDraw.Draw(char_img)
+            c_base: int = random.SystemRandom().randint(70, 120)
+            color: tuple[int, int, int, int] = (
+                c_base + random.SystemRandom().randint(-20, 20),
+                c_base + random.SystemRandom().randint(-20, 20),
+                c_base + random.SystemRandom().randint(-20, 20),
                 random.SystemRandom().randint(160, 210)
             )
-
             char_draw.text((10, 10), char, fill=color, font=font)
-
-            angle = random.SystemRandom().randint(-30, 30)
+            angle: int = random.SystemRandom().randint(-30, 30)
             char_img = char_img.rotate(angle, expand=True)
             char_img = sine_distort(char_img)
             char_images.append(char_img)
 
-        section_width = width // len(code)
-        baseline_points = []
-
+        section_width: int = width // len(code)
+        baseline_points: list[tuple[int, int]] = []
         for i, char_img in enumerate(char_images):
-            section_center = (i * section_width) + (section_width // 2)
-
-            x_pos = section_center - (char_img.size[0] // 2) + random.SystemRandom().randint(-5, 5)
-            y_offset = random.SystemRandom().randint(25, 45)
-
+            section_center: int = (i * section_width) + (section_width // 2)
+            x_pos: int = section_center - (char_img.size[0] // 2) + random.SystemRandom().randint(-5, 5)
+            y_offset: int = random.SystemRandom().randint(25, 45)
             x_pos = max(5, min(x_pos, width - char_img.size[0] - 5))
-
             text_layer.paste(char_img, (x_pos, y_offset), char_img)
-
             baseline_points.append(
                 (
                     x_pos + char_img.size[0] // 2,
@@ -316,36 +309,28 @@ class VerificationHandler(commands.Cog):
             )
 
         for _ in range(25):
-            fake_char = secrets.choice(string.ascii_uppercase + string.digits)
-
-            x = random.SystemRandom().randint(0, width - 40)
-            y = random.SystemRandom().randint(0, height - 40)
-
-            base = random.SystemRandom().randint(80, 150)
-
-            fake_color = (
-                base + random.SystemRandom().randint(-20, 20),
-                base + random.SystemRandom().randint(-20, 20),
-                base + random.SystemRandom().randint(-20, 20),
+            fake_char: str = secrets.choice(string.ascii_uppercase + string.digits)
+            fx: int = random.SystemRandom().randint(0, width - 40)
+            fy: int = random.SystemRandom().randint(0, height - 40)
+            n_base: int = random.SystemRandom().randint(80, 150)
+            fake_color: tuple[int, int, int, int] = (
+                n_base + random.SystemRandom().randint(-20, 20),
+                n_base + random.SystemRandom().randint(-20, 20),
+                n_base + random.SystemRandom().randint(-20, 20),
                 random.SystemRandom().randint(160, 220)
             )
-
-            fake_img = Image.new("RGBA", (50, 50), (255, 255, 255, 0))
-            fake_draw = ImageDraw.Draw(fake_img)
-
+            fake_img: Image.Image = Image.new("RGBA", (50, 50), (255, 255, 255, 0))
+            fake_draw: ImageDraw.ImageDraw = ImageDraw.Draw(fake_img)
             fake_draw.text((10, 5), fake_char, font=small_font, fill=fake_color)
-
             fake_img = fake_img.rotate(random.SystemRandom().randint(-45, 45), expand=True)
             fake_img = sine_distort(fake_img)
-
-            noise_layer.paste(fake_img, (x, y), fake_img)
+            noise_layer.paste(fake_img, (fx, fy), fake_img)
 
         for _ in range(5):
-            x1 = random.SystemRandom().randint(0, width)
-            y1 = random.SystemRandom().randint(0, height)
-            x2 = x1 + random.SystemRandom().randint(30, 80)
-            y2 = y1 + random.SystemRandom().randint(15, 50)
-
+            x1: int = random.SystemRandom().randint(0, width)
+            y1: int = random.SystemRandom().randint(0, height)
+            x2: int = x1 + random.SystemRandom().randint(30, 80)
+            y2: int = y1 + random.SystemRandom().randint(15, 50)
             noise_draw.ellipse(
                 (x1, y1, x2, y2),
                 fill=(
@@ -359,15 +344,15 @@ class VerificationHandler(commands.Cog):
         text_layer = sine_distort(text_layer)
         text_layer = text_layer.filter(ImageFilter.GaussianBlur(0.4))
 
-        base = Image.alpha_composite(background.convert("RGBA"), noise_layer)
-        final_image = Image.alpha_composite(base, text_layer)
+        canvas: Image.Image = Image.alpha_composite(background.convert("RGBA"), noise_layer)
+        final_image: Image.Image = Image.alpha_composite(canvas, text_layer)
 
-        final_draw = ImageDraw.Draw(final_image)
+        final_draw: ImageDraw.ImageDraw = ImageDraw.Draw(final_image)
         for _ in range(150):
-            x = random.SystemRandom().randint(0, width - 1)
-            y = random.SystemRandom().randint(0, height - 1)
+            px: int = random.SystemRandom().randint(0, width - 1)
+            py: int = random.SystemRandom().randint(0, height - 1)
             final_draw.point(
-                (x, y),
+                (px, py),
                 fill=(
                     random.SystemRandom().randint(0, 255),
                     random.SystemRandom().randint(0, 255),
@@ -376,12 +361,12 @@ class VerificationHandler(commands.Cog):
                 ),
             )
 
-        grain = np.random.normal(0, 10, (height, width, 3)).astype(np.int16)
-        img_np = np.array(final_image.convert("RGB")).astype(np.int16)
+        grain: np.ndarray[Any, Any] = np.random.normal(0, 10, (height, width, 3)).astype(np.int16)
+        img_np: np.ndarray[Any, Any] = np.array(final_image.convert("RGB")).astype(np.int16)
         img_np = np.clip(img_np + grain, 0, 255).astype(np.uint8)
         final_image = Image.fromarray(img_np, "RGB")
 
-        buffer = BytesIO()
+        buffer: BytesIO = BytesIO()
         final_image.save(buffer, format="PNG")
         buffer.seek(0)
 
@@ -545,15 +530,14 @@ class VerificationHandler(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def check_unverified_users(self) -> None:
-        now = datetime.now()
-        to_remove = []
-
-        for user_id, data in list(self.data["unverified"].items()):
-            joined_at = datetime.fromisoformat(data["joined_at"])
-            time_since_join = now - joined_at
-
-            member = None
-            user_id_int = int(user_id)
+        now: datetime = datetime.now()
+        to_remove: list[str] = []
+        for user_id_raw, data in list(self.data["unverified"].items()):
+            user_id: str = str(user_id_raw)
+            joined_at: datetime = datetime.fromisoformat(data["joined_at"])
+            time_since_join: timedelta = now - joined_at
+            member: discord.Member | None = None
+            user_id_int: int = int(user_id)
             for guild in self.bot.guilds:
                 member = guild.get_member(user_id_int)
                 if not member:
@@ -563,51 +547,42 @@ class VerificationHandler(commands.Cog):
                         continue
                 if member:
                     break
-
             if not member:
                 to_remove.append(user_id)
                 continue
-
-            goobers_role = member.guild.get_role(self.GOOBERS_ROLE_ID)
+            goobers_role: discord.Role | None = member.guild.get_role(self.GOOBERS_ROLE_ID)
             if goobers_role and goobers_role in member.roles:
                 to_remove.append(user_id)
                 continue
-
-            is_overdue = time_since_join >= timedelta(days=3)
+            is_overdue: bool = time_since_join >= timedelta(days=3)
             if is_overdue and data.get("warned"):
-                msg_id = data.get("warning_message_id")
+                msg_id: int | None = data.get("warning_message_id")
                 if msg_id:
                     try:
-                        channel = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
+                        channel: discord.abc.GuildChannel | discord.Thread | None = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
                         if isinstance(channel, discord.TextChannel):
-                            msg = await channel.fetch_message(msg_id)
+                            msg: discord.Message = await channel.fetch_message(msg_id)
                             await msg.delete()
                     except (discord.NotFound, discord.Forbidden, discord.HTTPException):
                         pass
-
                 import contextlib
-
                 with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                     await member.send(
-                    f"{DENIED_EMOJI_ID} **Guild removal!**\n"
-                    "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
-                    "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
-                )
-
+                        f"{DENIED_EMOJI_ID} **Guild removal!**\n"
+                        "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
+                        "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
+                    )
                 try:
                     await member.kick(reason="UB Verification: failure to verify within 72 hours")
                     to_remove.append(user_id)
                 except discord.Forbidden:
                     pass
-
             elif is_overdue and not data.get("warned"):
                 self.data["unverified"][user_id]["joined_at"] = (now - timedelta(days=2)).isoformat()
                 self.save_data()
-
             elif time_since_join >= timedelta(days=2) and not data.get("warned"):
-                warned = False
-                warning_message_id = None
-
+                warned: bool = False
+                warning_message_id: int | None = None
                 try:
                     await member.send(
                         f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
@@ -617,9 +592,9 @@ class VerificationHandler(commands.Cog):
                     warned = True
                 except (discord.Forbidden, discord.HTTPException):
                     try:
-                        channel = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
+                        channel: discord.abc.GuildChannel | discord.Thread | None = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
                         if isinstance(channel, discord.TextChannel):
-                            msg = await channel.send(
+                            msg: discord.Message = await channel.send(
                                 f"{member.mention}\n\n"
                                 f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
                                 "You joined \"The Goobers\" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n"
@@ -629,16 +604,13 @@ class VerificationHandler(commands.Cog):
                             warned = True
                     except (discord.Forbidden, discord.HTTPException):
                         pass
-
                 if warned:
                     self.data["unverified"][user_id]["warned"] = True
                     self.data["unverified"][user_id]["warning_message_id"] = warning_message_id
                     self.save_data()
-
-        for user_id in to_remove:
-            if user_id in self.data["unverified"]:
-                del self.data["unverified"][user_id]
-
+        for user_id_to_del in to_remove:
+            if user_id_to_del in self.data["unverified"]:
+                del self.data["unverified"][user_id_to_del]
         if to_remove:
             self.save_data()
 

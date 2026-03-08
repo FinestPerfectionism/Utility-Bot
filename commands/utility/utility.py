@@ -1185,7 +1185,7 @@ class UtilityCommands(commands.Cog):
         )
 
         user_index = sorted_members.index(target_user)
-        join_order_lines = []
+        join_order_lines: list[str] = []
 
         width = len(str(len(sorted_members)))
 

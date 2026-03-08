@@ -19,7 +19,7 @@ class RoleEditCog(AuditCog):
         if not log_channel:
             return
 
-        changes = []
+        changes: list[tuple[str, str, str | None]] = []
 
         if before.name != after.name:
             changes.append(("Name", before.name, after.name))
@@ -40,7 +40,7 @@ class RoleEditCog(AuditCog):
             before_perms = dict(before.permissions)
             after_perms = dict(after.permissions)
 
-            perm_changes = []
+            perm_changes: list[str] = []
             for perm in set(before_perms.keys()) | set(after_perms.keys()):
                 if before_perms.get(perm) != after_perms.get(perm):
                     perm_name = perm.replace('_', ' ').title()
@@ -71,6 +71,9 @@ class RoleEditCog(AuditCog):
             inline=False
         )
 
+        change_name: str
+        before_val: str
+        after_val: str | None
         for change_name, before_val, after_val in changes:
             if after_val is None:
                 embed.add_field(

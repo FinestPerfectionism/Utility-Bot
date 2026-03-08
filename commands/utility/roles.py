@@ -61,13 +61,13 @@ class RoleCommands(
     ) -> None:
         await interaction.response.defer(ephemeral=False)
 
-        lines = []
+        lines: list[str] = []
         for perm_name, value in role.permissions:
-            label = perm_name.replace("_", " ").title()
-            mark = ACCEPTED_EMOJI_ID if value else DENIED_EMOJI_ID
+            label: str = perm_name.replace("_", " ").title()
+            mark: str = ACCEPTED_EMOJI_ID if value else DENIED_EMOJI_ID
             lines.append(f"- {label} {mark}")
 
-        embed = discord.Embed(
+        embed: discord.Embed = discord.Embed(
             title=f"Permissions for {role.name}",
             description=f"**{role.name}:**\n" + "\n".join(lines),
             color=COLOR_BLURPLE
@@ -118,20 +118,20 @@ class RoleCommands(
     ) -> None:
         await interaction.response.defer(ephemeral=False)
 
-        diffs_role1 = []
-        diffs_role2 = []
+        diffs_role1: list[str] = []
+        diffs_role2: list[str] = []
 
         for perm_name, value1 in role1.permissions:
-            value2 = getattr(role2.permissions, perm_name)
+            value2: bool = getattr(role2.permissions, perm_name)
             if value1 != value2:
-                label = perm_name.replace("_", " ").title()
-                mark1 = ACCEPTED_EMOJI_ID if value1 else DENIED_EMOJI_ID
-                mark2 = ACCEPTED_EMOJI_ID if value2 else DENIED_EMOJI_ID
+                label: str = perm_name.replace("_", " ").title()
+                mark1: str = ACCEPTED_EMOJI_ID if value1 else DENIED_EMOJI_ID
+                mark2: str = ACCEPTED_EMOJI_ID if value2 else DENIED_EMOJI_ID
 
                 diffs_role1.append(f"- {label} {mark1}")
                 diffs_role2.append(f"- {label} {mark2}")
 
-        embed = discord.Embed(
+        embed: discord.Embed = discord.Embed(
             title=f"Permission Differences for {role1.name} and {role2.name}",
             color=COLOR_BLURPLE
         )
@@ -149,10 +149,6 @@ class RoleCommands(
                 value="\n".join(diffs_role2),
                 inline=True
             )
-
-        await interaction.followup.send(
-            embed=embed
-        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /role members Command

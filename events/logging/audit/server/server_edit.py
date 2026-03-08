@@ -19,7 +19,7 @@ class ServerEditCog(AuditCog):
         if not log_channel:
             return
 
-        changes = []
+        changes: list[tuple[str, str | int | None, str | int | None]] = []
 
         if before.name != after.name:
             changes.append(("Name", before.name, after.name))
@@ -110,6 +110,9 @@ class ServerEditCog(AuditCog):
             inline=False
         )
 
+        change_name: str
+        before_val: str | int | None
+        after_val: str | int | None
         for change_name, before_val, after_val in changes:
             embed.add_field(
                 name=f"{change_name} Changed",

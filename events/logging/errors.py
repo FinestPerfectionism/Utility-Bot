@@ -416,8 +416,8 @@ class ErrorLogger(commands.Cog):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class WrongGuildError(discord.ui.LayoutView):
-    container1 = discord.ui.Container(
-        discord.ui.TextDisplay(content=(
+    container1 = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay(content=( # type: ignore
             f"### {CONTESTED_EMOJI_ID} Error!\n"
             "-# Bad command environment.\n"
             "Although you have the necessary permissions to run this command (Bot Owner), using it in this current Guild/DM will not work."
@@ -426,8 +426,8 @@ class WrongGuildError(discord.ui.LayoutView):
     )
 
 class PermissionError(discord.ui.LayoutView):
-    container1 = discord.ui.Container(
-        discord.ui.TextDisplay(content=(
+    container1 = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay(content=( # type: ignore
             f"### {DENIED_EMOJI_ID} Unauthorized!\n"
             "-# Invalid permissions.\n"
             "You lack the necessary permissions to run this command.")),
