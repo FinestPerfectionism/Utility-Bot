@@ -3,7 +3,7 @@ __pycache__/
 .replit
 venv/
 .env
-data/runtime/*
+data/*
 storage/*.db
 !data/runtime/.gitkeep
 !storage/.gitkeep
