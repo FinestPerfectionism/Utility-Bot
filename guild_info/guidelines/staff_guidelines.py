@@ -50,17 +50,7 @@ class StaffComponents2(discord.ui.LayoutView):
                     "### §2.1 Directors as Senior Staff\n"
                     "Directors hold Senior Staff status in both teams and may exercise Senior Moderator and Senior Administrator authority when necessary. This exists to allow intervention in escalated situations — not as an invitation to routinely handle frontline moderation or administration.\n\n"
                     "### §2.2 Dual-Role Expectations\n"
-                    "Holding a role in both teams does not exempt a staff member from either team's standards. When acting as a Moderator, Moderation guidelines govern; when acting as an Administrator, Administration guidelines govern.\n\n"
-                    "## §3 Proposals as a Shared System\n"
-                    "The Staff Proposal system is the primary formal mechanism through which all staff teams interact.\n\n"
-                    "### §3.1 Who Can Raise Proposals\n"
-                    "Any member of the Staff Team — Moderators, Administrators, Directors, and the Owner — may raise a Staff Proposal. Guild Trustees may also raise proposals within their defined scope. All proposals are expected to be formal, precise, and beneficial to the server.\n\n"
-                    "### §3.2 Advisory Voting\n"
-                    "All staff are equal in advisory voting ability. A vote cast by a Junior Moderator carries the same advisory weight as one cast by a Senior Administrator. The advisory poll is non-binding — final authority rests with the Staff Committee.\n\n"
-                    "### §3.3 Implementation is Administration's Responsibility\n"
-                    "Once a proposal is accepted, implementation is the Administration Team's responsibility. If an accepted proposal affects moderation workflows, Administrators must coordinate with the Moderation Team before and during implementation.\n\n"
-                    "### §3.4 Scope Restrictions\n"
-                    "Proposals may not touch moderation policy, the core rules, or staff proposal procedures. These require separate processes and different thresholds. Staff may raise concerns about these topics in the appropriate internal channels."
+                    "Holding a role in both teams does not exempt a staff member from either team's standards. When acting as a Moderator, Moderation guidelines govern; when acting as an Administrator, Administration guidelines govern."
             ),
         )
         self.add_item(self.container) # type: ignore
@@ -69,6 +59,16 @@ class StaffComponents3(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=
+                "## §3 Proposals as a Shared System\n"
+                "The Staff Proposal system is the primary formal mechanism through which all staff teams interact.\n\n"
+                "### §3.1 Who Can Raise Proposals\n"
+                "Any member of the Staff Team — Moderators, Administrators, Directors, and the Owner — may raise a Staff Proposal. Guild Trustees may also raise proposals within their defined scope. All proposals are expected to be formal, precise, and beneficial to the server.\n\n"
+                "### §3.2 Advisory Voting\n"
+                "All staff are equal in advisory voting ability. A vote cast by a Junior Moderator carries the same advisory weight as one cast by a Senior Administrator. The advisory poll is non-binding — final authority rests with the Staff Committee.\n\n"
+                "### §3.3 Implementation is Administration's Responsibility\n"
+                "Once a proposal is accepted, implementation is the Administration Team's responsibility. If an accepted proposal affects moderation workflows, Administrators must coordinate with the Moderation Team before and during implementation.\n\n"
+                "### §3.4 Scope Restrictions\n"
+                "Proposals may not touch moderation policy, the core rules, or staff proposal procedures. These require separate processes and different thresholds. Staff may raise concerns about these topics in the appropriate internal channels.\n\n"
                 "## §4 Cross-Team Communication\n"
                 "The Moderation and Administration Teams share staff spaces and will regularly encounter situations that require coordination. Clear communication between teams is essential to avoid conflicting actions, gaps in coverage, and duplicated effort.\n\n"
                 "### §4.1 Notifying the Other Team\n"
@@ -76,7 +76,14 @@ class StaffComponents3(discord.ui.LayoutView):
                 "### §4.2 Referring Across Teams\n"
                 "If a staff member encounters an issue outside their team's scope, they must refer it promptly rather than ignoring it or attempting to handle it independently. Use the appropriate staff channel and tag the relevant team or a Director.\n\n"
                 "### §4.3 Avoiding Conflicting Actions\n"
-                "When both teams are simultaneously involved in a situation — such as a raid requiring both moderation action and potential lockdown — actions must be coordinated through Directors. Do not carry out structural or enforcement changes in parallel without a shared understanding of who is doing what.\n\n"
+                "When both teams are simultaneously involved in a situation — such as a raid requiring both moderation action and potential lockdown — actions must be coordinated through Directors. Do not carry out structural or enforcement changes in parallel without a shared understanding of who is doing what."
+        ),
+    )
+
+class StaffComponents4(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=
                 "## §5 Shared Conduct Standards\n"
                 "The following standards apply to all staff regardless of team or seniority.\n\n"
                 "### §5.1 Professionalism\n"
@@ -88,14 +95,7 @@ class StaffComponents3(discord.ui.LayoutView):
                 "### §5.4 Impartiality\n"
                 "Staff must not take action — whether moderation or administrative — in situations where a personal conflict of interest exists. Hand the situation off to a colleague or escalate to a Director immediately.\n\n"
                 "### §5.5 Out-of-Role Conduct\n"
-                "Staff are community members outside their staff capacity. They are not held to a stricter behavioral standard in casual conversation, but sustained conduct that would reflect poorly on the staff team — targeted harassment, bad-faith disruption, or behavior inconsistent with the server's standards — may be reviewed by the Directorate regardless of whether it occurred in a staff capacity."
-        ),
-    )
-
-class StaffComponents4(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
-            content=
+                "Staff are community members outside their staff capacity. They are not held to a stricter behavioral standard in casual conversation, but sustained conduct that would reflect poorly on the staff team — targeted harassment, bad-faith disruption, or behavior inconsistent with the server's standards — may be reviewed by the Directorate regardless of whether it occurred in a staff capacity.\n\n"
                 "## §6 Shared Expectations\n"
                 "### §6.1 Activity\n"
                 "All staff are expected to remain reasonably active within their role. The standard for acceptable activity may differ by team and seniority, but prolonged inactivity without prior notice is grounds for removal at Directorate discretion regardless of team.\n\n"

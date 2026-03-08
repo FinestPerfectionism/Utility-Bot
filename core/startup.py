@@ -230,9 +230,9 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Rules: sending component 1")
+                log.info("Rules: sending component 1")
                 msg1 = await channel.send(view=RuleComponents1())
-                log.debug("Rules: sending component 2")
+                log.info("Rules: sending component 2")
                 msg2 = await channel.send(view=RuleComponents2(timestamp=current_timestamp))
             except discord.HTTPException as e:
                 log.exception(f"Rules layout failed during send: {e}")
@@ -274,15 +274,15 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Staff proposals: sending component 1")
+                log.info("Staff proposals: sending component 1")
                 msg1 = await channel.send(view=StaffProposalComponents1())
-                log.debug("Staff proposals: sending component 2a")
+                log.info("Staff proposals: sending component 2a")
                 msg2a = await channel.send(view=StaffProposalComponents2a(timestamp=current_timestamp))
-                log.debug("Staff proposals: sending component 2b")
+                log.info("Staff proposals: sending component 2b")
                 msg2b = await channel.send(view=StaffProposalComponents2b())
-                log.debug("Staff proposals: sending component 3")
+                log.info("Staff proposals: sending component 3")
                 msg3 = await channel.send(view=StaffProposalComponents3())
-                log.debug("Staff proposals: sending component 4")
+                log.info("Staff proposals: sending component 4")
                 msg4 = await channel.send(view=StaffProposalComponents4())
             except discord.HTTPException as e:
                 log.exception(f"Staff proposals layout failed during send: {e}")
@@ -324,9 +324,9 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Partnership requirements: sending component 1")
+                log.info("Partnership requirements: sending component 1")
                 msg1 = await channel.send(view=RequirementComponents1())
-                log.debug("Partnership requirements: sending component 2")
+                log.info("Partnership requirements: sending component 2")
                 msg2 = await channel.send(view=RequirementComponents2(timestamp=current_timestamp))
             except discord.HTTPException as e:
                 log.exception(f"Partnership requirements layout failed during send: {e}")
@@ -368,19 +368,19 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Hierarchy: sending component 1")
+                log.info("Hierarchy: sending component 1")
                 msg1 = await channel.send(view=HierarchyComponents1())
-                log.debug("Hierarchy: sending component 2")
+                log.info("Hierarchy: sending component 2")
                 msg2 = await channel.send(view=HierarchyComponents2(timestamp=current_timestamp))
-                log.debug("Hierarchy: sending component 3")
+                log.info("Hierarchy: sending component 3")
                 msg3 = await channel.send(view=HierarchyComponents3())
-                log.debug("Hierarchy: sending component 4")
+                log.info("Hierarchy: sending component 4")
                 msg4 = await channel.send(view=HierarchyComponents4())
-                log.debug("Hierarchy: sending component 5")
+                log.info("Hierarchy: sending component 5")
                 msg5 = await channel.send(view=HierarchyComponents5())
-                log.debug("Hierarchy: sending component 6")
+                log.info("Hierarchy: sending component 6")
                 msg6 = await channel.send(view=HierarchyComponents6())
-                log.debug("Hierarchy: sending component 7")
+                log.info("Hierarchy: sending component 7")
                 msg7 = await channel.send(view=HierarchyComponents7())
             except discord.HTTPException as e:
                 log.exception(f"Hierarchy layout failed during send: {e}")
@@ -422,11 +422,11 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Moderation guidelines: sending component 1")
+                log.info("Moderation guidelines: sending component 1")
                 msg1 = await channel.send(view=ModerationComponents1())
-                log.debug("Moderation guidelines: sending component 2")
+                log.info("Moderation guidelines: sending component 2")
                 msg2 = await channel.send(view=ModerationComponents2(timestamp=current_timestamp))
-                log.debug("Moderation guidelines: sending component 3")
+                log.info("Moderation guidelines: sending component 3")
                 msg3 = await channel.send(view=ModerationComponents3())
             except discord.HTTPException as e:
                 log.exception(f"Moderation guidelines layout failed during send: {e}")
@@ -468,13 +468,13 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Administrator guidelines: sending component 1")
+                log.info("Administrator guidelines: sending component 1")
                 msg1 = await channel.send(view=AdministratorComponents1())
-                log.debug("Administrator guidelines: sending component 2")
+                log.info("Administrator guidelines: sending component 2")
                 msg2 = await channel.send(view=AdministratorComponents2(timestamp=current_timestamp))
-                log.debug("Administrator guidelines: sending component 3")
+                log.info("Administrator guidelines: sending component 3")
                 msg3 = await channel.send(view=AdministratorComponents3())
-                log.debug("Administrator guidelines: sending component 4")
+                log.info("Administrator guidelines: sending component 4")
                 msg4 = await channel.send(view=AdministratorComponents4())
             except discord.HTTPException as e:
                 log.exception(f"Administrator guidelines layout failed during send: {e}")
@@ -516,13 +516,13 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Staff guidelines: sending component 1")
+                log.info("Staff guidelines: sending component 1")
                 msg1 = await channel.send(view=StaffComponents1())
-                log.debug("Staff guidelines: sending component 2")
+                log.info("Staff guidelines: sending component 2")
                 msg2 = await channel.send(view=StaffComponents2(timestamp=current_timestamp))
-                log.debug("Staff guidelines: sending component 3")
+                log.info("Staff guidelines: sending component 3")
                 msg3 = await channel.send(view=StaffComponents3())
-                log.debug("Staff guidelines: sending component 4")
+                log.info("Staff guidelines: sending component 4")
                 msg4 = await channel.send(view=StaffComponents4())
             except discord.HTTPException as e:
                 log.exception(f"Staff guidelines layout failed during send: {e}")
@@ -564,15 +564,15 @@ class Startup(commands.Cog):
             current_timestamp = int(time.time())
 
             try:
-                log.debug("Directorate guidelines: sending component 1")
+                log.info("Directorate guidelines: sending component 1")
                 msg1 = await channel.send(view=DirectorateComponents1())
-                log.debug("Directorate guidelines: sending component 2")
+                log.info("Directorate guidelines: sending component 2")
                 msg2 = await channel.send(view=DirectorateComponents2(timestamp=current_timestamp))
-                log.debug("Directorate guidelines: sending component 3")
+                log.info("Directorate guidelines: sending component 3")
                 msg3 = await channel.send(view=DirectorateComponents3())
-                log.debug("Directorate guidelines: sending component 4")
+                log.info("Directorate guidelines: sending component 4")
                 msg4 = await channel.send(view=DirectorateComponents4())
-                log.debug("Directorate guidelines: sending component 5")
+                log.info("Directorate guidelines: sending component 5")
                 msg5 = await channel.send(view=DirectorateComponents5())
             except discord.HTTPException as e:
                 log.exception(f"Directorate guidelines layout failed during send: {e}")
