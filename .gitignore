@@ -8,8 +8,5 @@ storage/*
 verification_data.json
 !data/runtime/.gitkeep
 !storage/.gitkeep
-data/configs/antinuke_config.json
-data/configs/cases_config.json
-data/configs/application_state.json
 *.log
 restart_info.json

@@ -43,6 +43,28 @@ from guild_info.hierarchy import (
     HierarchyComponents6,
     HierarchyComponents7,
 )
+from guild_info.guidelines.moderator_guildelines import (
+    ModerationComponents1,
+    ModerationComponents2,
+    ModerationComponents3,
+)
+from guild_info.guidelines.administrator_guidelines import (
+    AdministratorComponents1,
+    AdministratorComponents2,
+    AdministratorComponents3,
+)
+from guild_info.guidelines.staff_guidelines import (
+    StaffComponents1,
+    StaffComponents2,
+    StaffComponents3,
+)
+from guild_info.guidelines.director_guidelines import (
+    DirectorateComponents1,
+    DirectorateComponents2,
+    DirectorateComponents3,
+    DirectorateComponents4,
+    DirectorateComponents5,
+)
 
 from constants import (
     TICKET_CHANNEL_ID,
@@ -53,6 +75,10 @@ from constants import (
     VERIFICATION_CHANNEL_ID,
     PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
     HIERARCHY_CHANNEL_ID,
+    MODERATORS_GUIDELINES_CHANNEL_ID,
+    ADMINISTRATORS_GUIDELINES_CHANNEL_ID,
+    STAFF_GUIDELINES_CHANNEL_ID,
+    DIRECTORATE_GUIDELINES_CHANNEL_ID,
 )
 
 log = logging.getLogger("Utility Bot")
@@ -125,6 +151,22 @@ class Startup(commands.Cog):
         hierarchy_channel = self.bot.get_channel(HIERARCHY_CHANNEL_ID)
         if isinstance(hierarchy_channel, discord.TextChannel):
             await self._handle_hierarchy_layout(hierarchy_channel)
+
+        moderation_guidelines_channel = self.bot.get_channel(MODERATORS_GUIDELINES_CHANNEL_ID)
+        if isinstance(moderation_guidelines_channel, discord.TextChannel):
+            await self._handle_moderation_guidelines_layout(moderation_guidelines_channel)
+
+        administrator_guidelines_channel = self.bot.get_channel(ADMINISTRATORS_GUIDELINES_CHANNEL_ID)
+        if isinstance(administrator_guidelines_channel, discord.TextChannel):
+            await self._handle_administrator_guidelines_layout(administrator_guidelines_channel)
+
+        staff_guidelines_channel = self.bot.get_channel(STAFF_GUIDELINES_CHANNEL_ID)
+        if isinstance(staff_guidelines_channel, discord.TextChannel):
+            await self._handle_staff_guidelines_layout(staff_guidelines_channel)
+
+        directorate_guidelines_channel = self.bot.get_channel(DIRECTORATE_GUIDELINES_CHANNEL_ID)
+        if isinstance(directorate_guidelines_channel, discord.TextChannel):
+            await self._handle_directorate_guidelines_layout(directorate_guidelines_channel)
 
     async def _handle_verification_layout(self, channel: discord.TextChannel) -> None:
         verification_cog = cast(
@@ -321,6 +363,164 @@ class Startup(commands.Cog):
             self.bot.add_view(HierarchyComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
             log.info("Hierarchy layout restored")
             log.debug("Hierarchy message_ids=%s", msg_ids)
+
+    async def _handle_moderation_guidelines_layout(self, channel: discord.TextChannel) -> None:
+        msg_ids = self.layout_message_ids.get("moderation_guidelines", [])
+
+        all_exist = False
+        if len(msg_ids) == 3:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            current_timestamp = int(time.time())
+
+            msg1 = await channel.send(view=ModerationComponents1())
+            msg2 = await channel.send(view=ModerationComponents2(timestamp=current_timestamp))
+            msg3 = await channel.send(view=ModerationComponents3())
+
+            self.layout_message_ids["moderation_guidelines"] = [msg1.id, msg2.id, msg3.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(ModerationComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            log.info("Moderation guidelines layout created")
+            log.debug("Moderation guidelines message_ids=%s", self.layout_message_ids["moderation_guidelines"])
+        else:
+            current_timestamp = int(time.time())
+            self.bot.add_view(ModerationComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            log.info("Moderation guidelines layout restored")
+            log.debug("Moderation guidelines message_ids=%s", msg_ids)
+
+    async def _handle_administrator_guidelines_layout(self, channel: discord.TextChannel) -> None:
+        msg_ids = self.layout_message_ids.get("administrator_guidelines", [])
+
+        all_exist = False
+        if len(msg_ids) == 3:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            current_timestamp = int(time.time())
+
+            msg1 = await channel.send(view=AdministratorComponents1())
+            msg2 = await channel.send(view=AdministratorComponents2(timestamp=current_timestamp))
+            msg3 = await channel.send(view=AdministratorComponents3())
+
+            self.layout_message_ids["administrator_guidelines"] = [msg1.id, msg2.id, msg3.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(AdministratorComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            log.info("Administrator guidelines layout created")
+            log.debug("Administrator guidelines message_ids=%s", self.layout_message_ids["administrator_guidelines"])
+        else:
+            current_timestamp = int(time.time())
+            self.bot.add_view(AdministratorComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            log.info("Administrator guidelines layout restored")
+            log.debug("Administrator guidelines message_ids=%s", msg_ids)
+
+    async def _handle_staff_guidelines_layout(self, channel: discord.TextChannel) -> None:
+        msg_ids = self.layout_message_ids.get("staff_guidelines", [])
+
+        all_exist = False
+        if len(msg_ids) == 3:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            current_timestamp = int(time.time())
+
+            msg1 = await channel.send(view=StaffComponents1())
+            msg2 = await channel.send(view=StaffComponents2(timestamp=current_timestamp))
+            msg3 = await channel.send(view=StaffComponents3())
+
+            self.layout_message_ids["staff_guidelines"] = [msg1.id, msg2.id, msg3.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(StaffComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            log.info("Staff guidelines layout created")
+            log.debug("Staff guidelines message_ids=%s", self.layout_message_ids["staff_guidelines"])
+        else:
+            current_timestamp = int(time.time())
+            self.bot.add_view(StaffComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            log.info("Staff guidelines layout restored")
+            log.debug("Staff guidelines message_ids=%s", msg_ids)
+
+    async def _handle_directorate_guidelines_layout(self, channel: discord.TextChannel) -> None:
+        msg_ids = self.layout_message_ids.get("directorate_guidelines", [])
+
+        all_exist = False
+        if len(msg_ids) == 5:
+            try:
+                for msg_id in msg_ids:
+                    await channel.fetch_message(msg_id)
+                all_exist = True
+            except discord.NotFound:
+                pass
+
+        if not all_exist:
+            if msg_ids:
+                for msg_id in msg_ids:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.delete()
+                    except (discord.NotFound, discord.HTTPException):
+                        pass
+
+            current_timestamp = int(time.time())
+
+            msg1 = await channel.send(view=DirectorateComponents1())
+            msg2 = await channel.send(view=DirectorateComponents2(timestamp=current_timestamp))
+            msg3 = await channel.send(view=DirectorateComponents3())
+            msg4 = await channel.send(view=DirectorateComponents4())
+            msg5 = await channel.send(view=DirectorateComponents5())
+
+            self.layout_message_ids["directorate_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id]
+            save_layout_message_ids(self.layout_message_ids)
+
+            self.bot.add_view(DirectorateComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            log.info("Directorate guidelines layout created")
+            log.debug("Directorate guidelines message_ids=%s", self.layout_message_ids["directorate_guidelines"])
+        else:
+            current_timestamp = int(time.time())
+            self.bot.add_view(DirectorateComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            log.info("Directorate guidelines layout restored")
+            log.debug("Directorate guidelines message_ids=%s", msg_ids)
 
     async def cog_unload(self) -> None:
         pass
