@@ -14,6 +14,7 @@ import contextlib
 import pytz
 
 from core.help import (
+    RoleConfig,
     help_description,
     ArgumentInfo
 )
@@ -366,13 +367,13 @@ class UtilityCommands(commands.Cog):
         desc        = f"The leave add command adds the <@{PERSONAL_LEAVE_ROLE_ID}> role to a staff member, and changes their nickname to \"P. Leave | username\". Their username is stored and restored upon /leave remove.",
         prefix      = False,
         slash       = True,
-        run_role    = DIRECTORS_ROLE_ID,
+        run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         has_inverse = "/leave remove",
         arguments   = {
             "target": ArgumentInfo(
-                role=DIRECTORS_ROLE_ID,
-                required=False,
-                description="The user to add personal leave to."
+                roles    = [DIRECTORS_ROLE_ID],
+                required = False,
+                description = "The user to add personal leave to."
             ),
         },
     )
@@ -537,11 +538,11 @@ class UtilityCommands(commands.Cog):
         desc        = f"The leave remove command removes the <@{PERSONAL_LEAVE_ROLE_ID}> role from a staff member, and changes their nickname back to before they were on leave.",
         prefix      = False,
         slash       = True,
-        run_role    = STAFF_ROLE_ID,
+        run_roles   = [RoleConfig(role_id=STAFF_ROLE_ID)],
         has_inverse = "/leave add",
         arguments   = {
             "target": ArgumentInfo(
-                role=DIRECTORS_ROLE_ID,
+                roles=[DIRECTORS_ROLE_ID],
                 required=False,
                 description="The user to remove leave from."
             ),
@@ -806,19 +807,19 @@ class UtilityCommands(commands.Cog):
         aliases     = ["ti"],
         arguments   = {
             "s": ArgumentInfo(
-                role=None,
+                roles=[],
                 required=False,
                 description="Set timezone for yourself or a user.",
                 is_flag=True,
             ),
             "user": ArgumentInfo(
-                role=None,
+                roles=[],
                 required=False,
                 description="The user to view the timezone of.",
                 is_flag=False,
             ),
             "tz": ArgumentInfo(
-                role=None,
+                roles=[],
                 required=False,
                 description="The timezone to view or set to.",
                 is_flag=True,

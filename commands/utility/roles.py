@@ -2,7 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from core.help import help_description, ArgumentInfo
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig
+)
 from core.permissions import directors_only
 
 from constants import (
@@ -36,11 +40,11 @@ class RoleCommands(
         desc        = "The role permissions command lists all permissions for a selected role.",
         prefix      = False,
         slash       = True,
-        run_role    = DIRECTORS_ROLE_ID,
+        run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         has_inverse = False,
         arguments   = {
             "role": ArgumentInfo(
-                role=DIRECTORS_ROLE_ID,
+                roles=[DIRECTORS_ROLE_ID],
                 required=True,
                 description="The role to list permissions for."
             ),
@@ -90,16 +94,16 @@ class RoleCommands(
         desc        = "The role permissions-compare command lists all differing permissions for two selected roles.",
         prefix      = False,
         slash       = True,
-        run_role    = DIRECTORS_ROLE_ID,
+        run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         has_inverse = False,
         arguments   = {
             "role-1": ArgumentInfo(
-                role=DIRECTORS_ROLE_ID,
+                roles=[DIRECTORS_ROLE_ID],
                 required=True,
                 description="The first role to compare."
             ),
             "role-2": ArgumentInfo(
-                role=DIRECTORS_ROLE_ID,
+                roles=[DIRECTORS_ROLE_ID],
                 required=True,
                 description="The second role to compare."
             ),
