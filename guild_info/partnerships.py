@@ -6,7 +6,10 @@ from typing import Any
 
 import discord
 
-from constants import PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, TICKET_CHANNEL_ID
+from constants import (
+    PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
+    TICKET_CHANNEL_ID
+)
 from core.partnership_state import (
     IMAGE_DIR,
     PartnershipData,
@@ -17,7 +20,11 @@ from core.partnership_state import (
 log = logging.getLogger("Utility Bot")
 
 _CHARS_PER_GROUP_LIMIT: int = 3200
+_NO_PINGS = discord.AllowedMentions(users=False)
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Partnership Views
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class PartnershipComponents1(discord.ui.LayoutView):
     container = discord.ui.Container(  # type: ignore
@@ -42,7 +49,7 @@ class PartnershipComponents2(discord.ui.LayoutView):
                 content=(
                     "# Partnerships\n"
                     f"Partnerships last updated <t:{timestamp}:D>.\n"
-                    "-# All partnerships below are subject to removal or update at any time based on Directorate decision.\n"
+                    "-# All partnerships below are subject to removal or update at any time based on Directorate decision. Partnerships are not influenced by the public or other staff.\n"
                     "-# Partnerships assembled by the Directorate team."
                 )
             ),
@@ -51,39 +58,49 @@ class PartnershipComponents2(discord.ui.LayoutView):
             discord.ui.Separator(visible=False, spacing=discord.SeparatorSpacing.small),
         ]
 
-        for i, p in enumerate(partnerships):
+        if not partnerships:
             children.append(
-                discord.ui.Section(
-                    discord.ui.TextDisplay(
-                        content=(
-                            f"{p['server_name']}\n"
-                            "**Description:**\n"
-                            f"> {p['server_description']}\n"
-                            "**Server Owner**\n"
-                            f"> <@{p['server_owner_id']}>\n"
-                            f"[Join Here!]({p['server_link']})"
-                        )
-                    ),
-                    accessory=discord.ui.Thumbnail(
-                        media=f"attachment://{p['image_filename']}"
-                    ),
+                discord.ui.TextDisplay(
+                    content="Looks like this server has no partnerships! :["
                 )
             )
-            if i < len(partnerships) - 1:
+        else:
+            for i, p in enumerate(partnerships):
                 children.append(
-                    discord.ui.Separator(
-                        visible=True,
-                        spacing=discord.SeparatorSpacing.large,
+                    discord.ui.Section(
+                        discord.ui.TextDisplay(
+                            content=(
+                                f"# {p['server_name']}\n"
+                                "**Description:**\n"
+                                f"> {p['server_description']}\n"
+                                "**Server Owner**\n"
+                                f"> <@{p['server_owner_id']}>\n"
+                                f"[Join Here!]({p['server_link']})"
+                            )
+                        ),
+                        accessory=discord.ui.Thumbnail(
+                            media=f"attachment://{p['image_filename']}"
+                        ),
                     )
                 )
+                if i < len(partnerships) - 1:
+                    children.append(
+                        discord.ui.Separator(
+                            visible=True,
+                            spacing=discord.SeparatorSpacing.large,
+                        )
+                    )
 
         self.container = discord.ui.Container(*children)
         self.add_item(self.container)
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Helpers
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def _estimate_chars(p: PartnershipEntry) -> int:
     return len(
-        f"{p['server_name']}\n"
+        f"# {p['server_name']}\n"
         "**Description:**\n"
         f"> {p['server_description']}\n"
         "**Server Owner**\n"
@@ -140,16 +157,27 @@ async def rebuild_partnership_layout(
     partnerships = data["partnerships"]
     new_message_ids: list[int] = []
 
-    for group in (split_partnerships(partnerships) if partnerships else []):
-        files: list[discord.File] = [
-            discord.File(
-                str(IMAGE_DIR / p["image_filename"]),
-                filename=p["image_filename"],
+    if not partnerships:
+        empty_msg = await channel.send(
+            view=PartnershipComponents2([], timestamp),
+            allowed_mentions=_NO_PINGS,
+        )
+        new_message_ids.append(empty_msg.id)
+    else:
+        for group in split_partnerships(partnerships):
+            files: list[discord.File] = [
+                discord.File(
+                    str(IMAGE_DIR / p["image_filename"]),
+                    filename=p["image_filename"],
+                )
+                for p in group
+            ]
+            msg = await channel.send(
+                view=PartnershipComponents2(group, timestamp),
+                files=files,
+                allowed_mentions=_NO_PINGS,
             )
-            for p in group
-        ]
-        msg = await channel.send(view=PartnershipComponents2(group, timestamp), files=files)
-        new_message_ids.append(msg.id)
+            new_message_ids.append(msg.id)
 
     data["header_message_id"] = header_msg.id
     data["message_ids"] = new_message_ids

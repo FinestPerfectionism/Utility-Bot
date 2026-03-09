@@ -57,7 +57,7 @@ class RoleCommands(
     async def rolepermissions(
         self,
         interaction: discord.Interaction,
-        role: discord.Role
+        role:        discord.Role
     ) -> None:
         await interaction.response.defer(ephemeral=False)
 
@@ -113,8 +113,8 @@ class RoleCommands(
     async def rolepermissionscompare(
         self,
         interaction: discord.Interaction,
-        role1: discord.Role,
-        role2: discord.Role
+        role1:       discord.Role,
+        role2:       discord.Role
     ) -> None:
         await interaction.response.defer(ephemeral=False)
 
@@ -192,9 +192,9 @@ class RoleCommands(
     @directors_only()
     async def members(
         self,
-        interaction: discord.Interaction,
-        role: discord.Role,
-        role_filter: app_commands.Choice[str],
+        interaction:   discord.Interaction,
+        role:          discord.Role,
+        role_filter:   app_commands.Choice[str],
         person_filter: app_commands.Choice[str],
     ) -> None:
         await interaction.response.defer(ephemeral=False)

@@ -51,9 +51,9 @@ def extract_name(nickname: str) -> str:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class NominationFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    action: str = commands.flag(aliases=["a"])
-    user: discord.Member | None = commands.flag(aliases=["u"], default=None)
-    case_id: str | None = commands.flag(name="id", default=None)
+    action:  str = commands.flag(aliases=["a"])
+    user:    discord.Member | None = commands.flag(aliases=["u"], default=None)
+    case_id: str            | None = commands.flag(name="id", default=None)
 
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -81,7 +81,7 @@ class NominationCommands(commands.Cog):
     @commands.command(name="nomination", aliases=["nom"])
     async def nomination(
         self,
-        ctx: commands.Context[commands.Bot],
+        ctx:   commands.Context[commands.Bot],
         *,
         flags: NominationFlags,
     ) -> None:

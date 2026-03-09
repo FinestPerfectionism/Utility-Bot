@@ -255,9 +255,9 @@ class ProposalCommands(
     async def status(
         self,
         interaction: discord.Interaction,
-        status: app_commands.Choice[str],
-        reason: app_commands.Choice[str],
-        notes: str | None = None,
+        status:      app_commands.Choice[str],
+        reason:      app_commands.Choice[str],
+        notes:       str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
@@ -367,9 +367,9 @@ class ProposalCommands(
     async def tag(
         self,
         interaction: discord.Interaction,
-        tag: app_commands.Choice[str],
-        enabled: bool,
-        notes: str | None = None,
+        tag:         app_commands.Choice[str],
+        enabled:     bool,
+        notes:       str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
@@ -481,8 +481,8 @@ class ProposalCommands(
     async def finalize(
         self,
         interaction: discord.Interaction,
-        reason: app_commands.Choice[str],
-        notes: str | None = None,
+        reason:      app_commands.Choice[str],
+        notes:       str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
@@ -579,8 +579,8 @@ class ProposalCommands(
     async def unlock_thread(
         self,
         interaction: discord.Interaction,
-        reason: app_commands.Choice[str],
-        notes: str | None = None,
+        reason:      app_commands.Choice[str],
+        notes:       str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
@@ -643,8 +643,8 @@ class ProposalCommands(
     async def unstandstill(
         self,
         interaction: discord.Interaction,
-        reason: app_commands.Choice[str],
-        notes: str | None = None,
+        reason:      app_commands.Choice[str],
+        notes:       str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
