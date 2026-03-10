@@ -53,7 +53,7 @@ from guild_info.hierarchy import (
     HierarchyComponents6,
     HierarchyComponents7,
 )
-from guild_info.guidelines.moderator_guildelines import (
+from guild_info.guidelines.moderator_guidelines import (
     ModerationComponents1,
     ModerationComponents2,
     ModerationComponents3,
