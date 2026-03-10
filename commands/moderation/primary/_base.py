@@ -47,7 +47,7 @@ from constants import (
 
 class BanFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     r: str = commands.flag(name="r", aliases=["reason"], default=None)
-    d: int = commands.flag(name="d", aliases=["delete"], default=7)
+    d: int = commands.flag(name="d", aliases=["delete", "days"], default=7)
     s: bool = commands.flag(
         name="s",
         aliases=["silent", "supress", "shush"],

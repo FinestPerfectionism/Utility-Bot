@@ -4,6 +4,8 @@ from discord.ext import (
     tasks
 )
 
+import asyncio
+import logging
 from typing import Any
 import secrets
 import json
@@ -41,6 +43,8 @@ from constants import(
     GOOBERS_ROLE_ID
 )
 from core.utils import send_major_error
+
+logger = logging.getLogger("Utility Bot")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Verification System
@@ -116,7 +120,15 @@ class VerificationButton(discord.ui.Button[discord.ui.View]):
         self.cog = cog
 
     async def callback(self, interaction: discord.Interaction) -> None:
-        await self.cog.start_verification(interaction)
+        try:  
+            await self.cog.start_verification(interaction)
+        except Exception as e:
+            await send_major_error(
+                interaction,
+                texts="An error occurred while starting verification.",
+                subtitle=f"Invalid operation. Contact the <@{BOT_OWNER_ID}>."
+            )
+            logger.exception(f"Error in verification: {e}")
 
 class HelpButton(discord.ui.Button[discord.ui.View]):
     def __init__(self, cog: "VerificationHandler") -> None:
@@ -402,6 +414,8 @@ class VerificationHandler(commands.Cog):
         )
 
     async def start_verification(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
+
         user = interaction.user
         guild = interaction.guild
 
@@ -410,14 +424,13 @@ class VerificationHandler(commands.Cog):
 
         goobers_role = guild.get_role(self.GOOBERS_ROLE_ID)
         if goobers_role and goobers_role in user.roles:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"**{CONTESTED_EMOJI_ID} Failed to open verification session!**\n"
-                "You are already verified!",
-                ephemeral=True
+                "You are already verified!"
             )
             return
 
-        code, image_buffer = self.generate_captcha()
+        code, image_buffer = await asyncio.to_thread(self.generate_captcha)
 
         self.active_captchas[user.id] = {
             "code": code,
@@ -484,7 +497,6 @@ class VerificationHandler(commands.Cog):
         await interaction.response.send_message(
             view=layout,
             files=[file],
-            ephemeral=True
         )
 
     async def verify_user(self, interaction: discord.Interaction) -> None:

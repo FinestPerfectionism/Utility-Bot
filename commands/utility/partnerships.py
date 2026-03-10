@@ -37,13 +37,13 @@ _INVITE_RE = re.compile(
 # Partnership Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class PartnershipCommand(commands.Cog):
+class PartnershipCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     partnership = app_commands.Group(
         name="partnership",
-        description="Manage server partnerships.",
+        description="Directors only —— Manage server partnerships.",
     )
 
     async def _get_channel(
@@ -54,7 +54,7 @@ class PartnershipCommand(commands.Cog):
         if not isinstance(channel, discord.TextChannel):
             await send_major_error(
                 interaction,
-                texts    =  "Partnership channel not configured.",
+                texts    =    "Partnership channel not configured.",
                 subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>",
             )
             return None
@@ -77,6 +77,13 @@ class PartnershipCommand(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @partnership.command(name="add", description="Add a server partnership.")
+    @app_commands.describe(
+        server_picture     = "The server's picture.",
+        server_name        = "The server's name.",
+        server_description = "The server's description.",
+        server_owner       = "The server's owner.",
+        server_link        = "The server's invite link. Must be a valid Discord invite of the form `https://discord.gg/example`."
+    )
     @directors_only()
     async def partnership_add(
         self,
@@ -160,7 +167,7 @@ class PartnershipCommand(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @partnership.command(name="remove", description="Remove a server partnership.")
-    @app_commands.autocomplete(server_name=_server_name_autocomplete)
+    @app_commands.describe(server_name="The name of the server to remove.")
     @directors_only()
     async def partnership_remove(
         self,
@@ -212,6 +219,14 @@ class PartnershipCommand(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @partnership.command(name="update", description="Update an existing server partnership.")
+    @app_commands.describe(
+        server_name        = "The name of the server to update.",
+        server_picture     = "The server's new picture.",
+        new_server_name    = "The server's new name.",
+        server_description = "The server's new description.",
+        server_owner       = "The server's new owner.",
+        server_link        = "The server's new invite link. Must be a valid Discord invite of the form `https://discord.gg/example`."
+    )
     @app_commands.autocomplete(server_name=_server_name_autocomplete)
     @directors_only()
     async def partnership_update(
@@ -309,4 +324,4 @@ class PartnershipCommand(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(PartnershipCommand(bot))
+    await bot.add_cog(PartnershipCommands(bot))

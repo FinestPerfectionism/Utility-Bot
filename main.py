@@ -35,14 +35,14 @@ async def main() -> None:
     log.info("Starting Discord connection")
     try:    
         await bot.start(TOKEN.strip())
-    except Exception:
-        log.exception("Bot crashed during runtime")
+    except Exception as e:
+        log.exception(f"Bot crashed during runtime {e}")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         log.info("Received shutdown signal —— KeyboardInterrupt")
-    except Exception:
-        log.exception("Fatal error during startup")
+    except Exception as e:
+        log.exception(f"Fatal error during startup: {e}")
         sys.exit(1)

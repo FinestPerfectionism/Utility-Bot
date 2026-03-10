@@ -571,8 +571,8 @@ class ProposalCommands(
     )
     @app_commands.choices(
         reason=[
-            app_commands.Choice(name="New issue.",                  value="New issue."),
-            app_commands.Choice(name="Further discussion needed.",   value="Further discussion needed."),
+            app_commands.Choice(name="New issue.",                 value="New issue."),
+            app_commands.Choice(name="Further discussion needed.", value="Further discussion needed."),
         ]
     )
     @main_guild_only()
@@ -696,8 +696,8 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name="delete",
-        aliases=["d", "del"]
+        name    = "delete",
+        aliases = ["d", "del"]
     )
     @has_director_role()
     async def delete_thread(self, ctx: commands.Context[commands.Bot]) -> None:

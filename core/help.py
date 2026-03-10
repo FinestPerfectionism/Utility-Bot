@@ -72,13 +72,13 @@ class HelpedCallable:
     __help_data__: CommandHelpData
 
 def help_description(
-    desc:        str,
-    prefix:      bool                   = False,
-    slash:       bool                   = True,
-    run_roles:   list[RoleConfig] | None = None,
-    has_inverse: bool | str             = False,
+    desc:                                  str,
+    prefix:                                bool = False,
+    slash:                                 bool = True,
+    run_roles:          list[RoleConfig] | None = None,
+    has_inverse:                    bool | str  = False,
     arguments:   dict[str, ArgumentInfo] | None = None,
-    aliases:     list[str] | None       = None,
+    aliases:                   list[str] | None = None,
 ) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     run_roles = run_roles or []
     arguments = arguments or {}

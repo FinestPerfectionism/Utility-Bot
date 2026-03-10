@@ -105,11 +105,11 @@ class ApplicationsTicketsCommands(
 
         guild = interaction.guild
         if guild and isinstance(user, discord.Member):
-            director_role = guild.get_role(DIRECTORS_ROLE_ID)
-            if director_role and director_role in user.roles:
+            staff_role = guild.get_role(DIRECTORS_ROLE_ID)
+            if staff_role and staff_role in user.roles:
                 await send_minor_error(
                     interaction,
-                    "You cannot blacklist directors.",
+                    "You cannot blacklist staff.",
                 )
                 return
 
