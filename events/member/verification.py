@@ -426,7 +426,8 @@ class VerificationHandler(commands.Cog):
         if goobers_role and goobers_role in user.roles:
             await interaction.followup.send(
                 f"**{CONTESTED_EMOJI_ID} Failed to open verification session!**\n"
-                "You are already verified!"
+                "You are already verified!",
+                ephemeral=True
             )
             return
 

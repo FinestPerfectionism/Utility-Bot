@@ -18,7 +18,9 @@ from core.state import (
 
 from constants import (
     ACCEPTED_EMOJI_ID,
+
     APPLICATION_LOG_CHANNEL_ID,
+    BOT_CONSOLE_CHANNEL_ID
 )
 
 log = logging.getLogger("Utility Bot")
@@ -59,6 +61,26 @@ class Ready(commands.Cog):
         self._ran = False
         self._console_queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=500)
 
+    async def console_worker(self) -> None:
+        await self.bot.wait_until_ready()
+        channel = self.bot.get_channel(BOT_CONSOLE_CHANNEL_ID)
+        if not isinstance(channel, discord.TextChannel):
+            return
+        buffer: list[str] = []
+        while True:
+            msg: str = await self._console_queue.get()
+            buffer.append(msg)
+            text = "\n".join(buffer)
+            if len(text) > 1800:
+                await channel.send(f"```{text}```")
+                buffer.clear()
+            else:
+                await asyncio.sleep(1)
+                if buffer:
+                    text = "\n".join(buffer)
+                    await channel.send(f"```{text}```")
+                    buffer.clear()
+
     async def resume_incomplete_applications(self) -> None:
         for user_id, data in ACTIVE_APPLICATIONS.items():
             if data.get("log_message_id") or not data.get("channel_id") or data.get("index") is None:
@@ -95,13 +117,13 @@ class Ready(commands.Cog):
         if self._ran:
             return
         self._ran = True
-        self._console_task: asyncio.Task[None] | None = None
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(
             lambda loop, context: self.bot.dispatch("asyncio_error", context)
         )
         sys.stdout = DiscordStream(self._console_queue, sys.__stdout__)
         sys.stderr = DiscordStream(self._console_queue, sys.__stderr__)
+        self._console_task = asyncio.create_task(self.console_worker())
         load_active_applications()
         load_automod_strikes()
         save_automod_strikes()
