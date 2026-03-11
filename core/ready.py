@@ -1,11 +1,10 @@
 import discord
 from discord.ext import commands
 
+import contextlib
 from typing import Any
 import asyncio
 import logging
-import sys
-import io
 
 from events.systems.applications import DecisionView
 
@@ -29,27 +28,14 @@ log = logging.getLogger("Utility Bot")
 # Console Mirror
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class DiscordStream(io.TextIOBase):
-    def __init__(self, queue: asyncio.Queue[Any], original_stream: io.TextIOBase) -> None:
+class DiscordLogHandler(logging.Handler):
+    def __init__(self, queue: asyncio.Queue[Any]) -> None:
+        super().__init__()
         self.queue = queue
-        self.original = original_stream
-        self.buffer = ""
-        self._tasks: set[asyncio.Task[None]] = set()
 
-    def write(self, message: str) -> int:
-        self.original.write(message)
-        self.original.flush()
-        if message.strip():
-            self.buffer += message
-            if "\n" in self.buffer:
-                lines = self.buffer.split("\n")
-                self.buffer = lines[-1]
-                to_send = "\n".join(lines[:-1])
-                if to_send.strip():
-                    task = asyncio.create_task(self.queue.put(to_send))
-                    self._tasks.add(task)
-                    task.add_done_callback(self._tasks.discard)
-        return len(message)
+    def emit(self, record: logging.LogRecord) -> None:
+        with contextlib.suppress(asyncio.QueueFull):
+            self.queue.put_nowait(self.format(record))
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Ready Management
@@ -148,8 +134,9 @@ class Ready(commands.Cog):
         loop.set_exception_handler(
             lambda loop, context: self.bot.dispatch("asyncio_error", context)
         )
-        sys.stdout = DiscordStream(self._console_queue, sys.__stdout__)
-        sys.stderr = DiscordStream(self._console_queue, sys.__stderr__)
+        handler = DiscordLogHandler(self._console_queue)
+        handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s"))
+        logging.getLogger().addHandler(handler)
         self._console_task = asyncio.create_task(self.console_worker())
         load_active_applications()
         load_automod_strikes()
