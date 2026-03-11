@@ -115,15 +115,21 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self.roles_to_remove = roles_to_remove
         self.message: discord.WebhookMessage | None = None
 
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(accent_colour=COLOR_RED)
+        self._confirm_button: discord.ui.Button[HardCleanConfirmView]          = discord.ui.Button(label="Accept", style=discord.ButtonStyle.danger)
+        self._confirm_button.callback = self._confirm_callback
+        self._cancel_button: discord.ui.Button[HardCleanConfirmView]           = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.primary)
+        self._cancel_button.callback  = self._cancel_callback
+
+        self._container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_colour=COLOR_RED)
+        self._container.add_item(self._confirm_button)
+        self._container.add_item(self._cancel_button)
+        self.add_item(self._container)
 
     def _disable_buttons(self) -> None:
-        for item in self.container.children:
-            if isinstance(item, discord.ui.Button):
-                item.disabled = True
+        self._confirm_button.disabled = True
+        self._cancel_button.disabled  = True
 
-    @container.button(label="Accept", style=discord.ButtonStyle.danger)  # type: ignore[attr-defined]
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.LayoutView]) -> None:
+    async def _confirm_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
             await send_minor_error(interaction, "This confirmation is not for you.", subtitle="Invalid operation.")
             return
@@ -155,8 +161,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
             view=self
         )
 
-    @container.button(label="Cancel", style=discord.ButtonStyle.primary)  # type: ignore[attr-defined]
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.LayoutView]) -> None:
+    async def _cancel_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
             await send_minor_error(interaction, "This confirmation is not for you.", subtitle="Invalid operation.")
             return
