@@ -195,7 +195,7 @@ class LeaveCommands(commands.Cog):
         self.data = load_data()
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /leave add Command
+    # /leave Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     leave_group = app_commands.Group(
@@ -383,7 +383,7 @@ class LeaveCommands(commands.Cog):
 
             self.data[str(target_member.id)] = {
                 "original_nick": original_full_nick,
-                "type":          leave_type.value,
+                "leave_type":    leave_type.value,
                 "removed_roles": [r.id for r in roles_to_remove],
             }
             save_data(self.data)
@@ -505,27 +505,31 @@ class LeaveCommands(commands.Cog):
             await send_minor_error(interaction, "Bots cannot go on personal leave.")
             return
 
-        if not is_staff(invocator):
-            await send_major_error(
-                interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
-            )
-            return
+        is_self_removal  = target_member.id == invocator.id
+        is_self_on_leave = str(invocator.id) in self.data
 
-        if not is_staff(target_member):
-            await send_minor_error(interaction, "Target must exist within the Goobers Staff Team.")
-            return
+        if not (is_self_removal and is_self_on_leave):
+            if not is_staff(invocator):
+                await send_major_error(
+                    interaction,
+                    title="Unauthorized!",
+                    texts="You lack the necessary permissions to run this command.",
+                    subtitle="Invalid permissions."
+                )
+                return
 
-        if not can_manage_leave(invocator, target_member):
-            await send_major_error(
-                interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to remove personal leave from other Staff Members.",
-                subtitle="Invalid permissions."
-            )
-            return
+            if not is_staff(target_member):
+                await send_minor_error(interaction, "Target must exist within the Goobers Staff Team.")
+                return
+
+            if not can_manage_leave(invocator, target_member):
+                await send_major_error(
+                    interaction,
+                    title="Unauthorized!",
+                    texts="You lack the necessary permissions to remove personal leave from other Staff Members.",
+                    subtitle="Invalid permissions."
+                )
+                return
 
         raw_entry = self.data.get(str(target_member.id))
         if not raw_entry:
