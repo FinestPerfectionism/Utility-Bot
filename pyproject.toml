@@ -2,12 +2,13 @@
 name = "Utility Bot"
 version = "0.1.0"
 description = "Development for Utility Bot"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "discord.py",
 ]
 
 [tool.pyright]
+pythonVersion = "3.11"
 include = ["."]
 typeCheckingMode = "strict"
 
@@ -24,7 +25,7 @@ reportOptionalSubscript = "error"
 reportPrivateUsage = "warning"
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py311"
 line-length = 100
 
 [tool.ruff.lint]
