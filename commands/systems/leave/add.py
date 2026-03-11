@@ -635,7 +635,3 @@ class LeaveAdd(commands.Cog):
                 texts="A Discord API error occurred. Please try again later.",
                 subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}> if this persists."
             )
-
-
-async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(LeaveAdd(bot))

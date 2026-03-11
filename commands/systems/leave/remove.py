@@ -247,7 +247,3 @@ class LeaveRemove(commands.Cog):
                     f"{target_member.mention} has been removed from personal leave.",
                     ephemeral=True
                 )
-
-
-async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(LeaveRemove(bot))
