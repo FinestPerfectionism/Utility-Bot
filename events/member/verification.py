@@ -126,7 +126,7 @@ class VerificationButton(discord.ui.Button[discord.ui.View]):
             await send_major_error(
                 interaction,
                 texts="An error occurred while starting verification.",
-                subtitle=f"Invalid operation. Contact the <@{BOT_OWNER_ID}>."
+                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
             )
             logger.exception(f"Error in verification: {e}")
 
@@ -495,9 +495,10 @@ class VerificationHandler(commands.Cog):
 
         layout.add_item(container) # type: ignore
 
-        await interaction.response.send_message(
+        await interaction.followup.send(
             view=layout,
             files=[file],
+            ephemeral=True,
         )
 
     async def verify_user(self, interaction: discord.Interaction) -> None:
