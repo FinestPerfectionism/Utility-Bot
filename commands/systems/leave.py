@@ -2,10 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from typing import (
-    Any,
-    cast
-)
+from typing import Any
 import json
 import os
 import contextlib
@@ -108,6 +105,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         invocator_id: int,
         target: discord.Member,
         roles_to_remove: list[discord.Role],
+        warning_text: str
     ) -> None:
         super().__init__(timeout=60)
         self.invocator_id    = invocator_id
@@ -125,11 +123,14 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self._action_row.add_item(self._confirm_button)
         self._action_row.add_item(self._cancel_button)
 
-        self._container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
-        self._container.add_item(discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large))
-        self._container.add_item(self._action_row)
+        text: discord.ui.TextDisplay[HardCleanConfirmView] = discord.ui.TextDisplay(content=warning_text)
 
-        self.add_item(self._container)
+        container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
+        container.add_item(text)
+        container.add_item(discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large))
+        container.add_item(self._action_row)
+
+        self.add_item(container)
 
     def _disable_buttons(self) -> None:
         self._confirm_button.disabled = True
@@ -305,19 +306,23 @@ class LeaveCommands(commands.Cog):
                 await send_minor_error(interaction, "Target has no staff roles to remove.")
                 return
 
-            view      = HardCleanConfirmView(
-                invocator_id    = invocator.id,
-                target          = target_member,
-                roles_to_remove = roles_to_remove,
-            )
             role_list = ", ".join(r.mention for r in roles_to_remove)
-            msg       = await interaction.followup.send(
-                content=(
-                    f"### {DENIED_EMOJI_ID} Warning,\n"
-                    f"This will remove all **{len(roles_to_remove)}** staff role(s) from {target_member.mention} and **cannot be undone** via `/leave remove`.\n\n"
-                    f"**Roles to remove:** {role_list}\n\n"
-                ),
-                view=cast("discord.ui.View", view),
+
+            warning_text = (
+                f"### {DENIED_EMOJI_ID} Warning,\n"
+                f"This will remove all **{len(roles_to_remove)}** staff role(s) from {target_member.mention} and **cannot be undone** via `/leave remove`.\n\n"
+                f"**Roles to remove:** {role_list}\n\n"
+            )
+
+            view = HardCleanConfirmView(
+                invocator_id=invocator.id,
+                target=target_member,
+                roles_to_remove=roles_to_remove,
+                warning_text=warning_text
+            )
+
+            msg = await interaction.followup.send(
+                view=view,
                 ephemeral=True,
             )
             view.message = msg
