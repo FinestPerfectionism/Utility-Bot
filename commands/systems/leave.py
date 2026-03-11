@@ -113,7 +113,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self.roles_to_remove = roles_to_remove
         self.message: discord.WebhookMessage | None = None
 
-        self._confirm_button: discord.ui.Button[HardCleanConfirmView] = discord.ui.Button(label="Accept", style=discord.ButtonStyle.danger)
+        self._confirm_button: discord.ui.Button[HardCleanConfirmView] = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.danger)
         self._confirm_button.callback = self._confirm_callback
 
         self._cancel_button: discord.ui.Button[HardCleanConfirmView] = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.primary)
@@ -307,8 +307,9 @@ class LeaveCommands(commands.Cog):
 
             warning_text = (
                 f"### {DENIED_EMOJI_ID} Warning,\n"
-                f"This will remove all **{len(roles_to_remove)}** staff role(s) from {target_member.mention} and **cannot be undone** via `/leave remove`.\n\n"
-                f"**Roles to remove:** {role_list}\n\n"
+                f"This will remove all {len(roles_to_remove)} staff role(s) from {target_member.mention} and **cannot be undone** via `/leave remove`.\n\n"
+                f"**Roles to remove:**\n {role_list}\n\n"
+                "This action is a **demotional action* and will require manual intervention to restore. Please confirm below."
             )
 
             view = HardCleanConfirmView(
