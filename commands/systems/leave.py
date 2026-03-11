@@ -115,14 +115,20 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self.roles_to_remove = roles_to_remove
         self.message: discord.WebhookMessage | None = None
 
-        self._confirm_button: discord.ui.Button[HardCleanConfirmView]          = discord.ui.Button(label="Accept", style=discord.ButtonStyle.danger)
+        self._confirm_button: discord.ui.Button[HardCleanConfirmView] = discord.ui.Button(label="Accept", style=discord.ButtonStyle.danger)
         self._confirm_button.callback = self._confirm_callback
-        self._cancel_button: discord.ui.Button[HardCleanConfirmView]           = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.primary)
-        self._cancel_button.callback  = self._cancel_callback
 
-        self._container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_colour=COLOR_RED)
-        self._container.add_item(self._confirm_button)
-        self._container.add_item(self._cancel_button)
+        self._cancel_button: discord.ui.Button[HardCleanConfirmView] = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.primary)
+        self._cancel_button.callback = self._cancel_callback
+
+        self._action_row: discord.ui.ActionRow[HardCleanConfirmView] = discord.ui.ActionRow()
+        self._action_row.add_item(self._confirm_button)
+        self._action_row.add_item(self._cancel_button)
+
+        self._container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
+        self._container.add_item(discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large))
+        self._container.add_item(self._action_row)
+
         self.add_item(self._container)
 
     def _disable_buttons(self) -> None:
@@ -150,7 +156,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
             await send_major_error(
                 interaction,
                 title="Error!",
-                texts="A Discord API error occurred. Please try again later.",
+                texts="A Discord API error occurred.",
                 subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
             )
             return
