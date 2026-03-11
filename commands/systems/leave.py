@@ -38,6 +38,7 @@ from constants import (
     JUNIOR_ADMINISTRATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
     SUPPORTING_DIRECTORS_ROLE_ID,
+    LEADING_DIRECTOR_ROLE_ID,
 )
 
 DATA_FILE = "leave_data.json"
@@ -59,8 +60,8 @@ ALL_STAFF_ROLE_IDS: list[int] = [
 
 class LeaveType(enum.Enum):
     none       = "none"
-    soft_clean = "soft-clean"
-    hard_clean = "hard-clean"
+    soft_clean = "Soft Clean"
+    hard_clean = "Hard Clean"
 
 
 def load_data() -> dict[str, Any]:
@@ -201,7 +202,6 @@ class LeaveCommands(commands.Cog):
         name="leave",
         description="Staff only —— Leave commands."
     )
-
     @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
     @help_description(
         desc        = (
@@ -228,14 +228,14 @@ class LeaveCommands(commands.Cog):
         },
     )
     @app_commands.describe(
-        type = "The type of leave to apply.",
-        target     = "The user to add personal leave to. Defaults to yourself."
+        type   = "The type of leave to apply.",
+        target = "The user to add personal leave to. Defaults to yourself."
     )
     async def leave_add(
         self,
         interaction: discord.Interaction,
-        type: LeaveType,
-        target: discord.Member | None = None,
+        type:        LeaveType,
+        target:      discord.Member | None = None,
     ) -> None:
         if not interaction.guild:
             await send_minor_error(
@@ -261,7 +261,11 @@ class LeaveCommands(commands.Cog):
             if target_member.id == invocator.id:
                 await send_minor_error(interaction, "You cannot hard clean yourself.")
                 return
-            if is_director(target_member):
+
+            is_target_director = is_director(target_member)
+            has_leading_director = any(r.id == LEADING_DIRECTOR_ROLE_ID for r in invocator.roles)
+
+            if is_target_director and not has_leading_director:
                 await send_minor_error(interaction, "You cannot hard clean a Director.")
                 return
 
