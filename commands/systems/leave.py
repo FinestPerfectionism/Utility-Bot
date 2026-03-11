@@ -59,8 +59,8 @@ ALL_STAFF_ROLE_IDS: list[int] = [
 
 class LeaveType(enum.Enum):
     none       = "none"
-    soft_clean = "soft_clean"
-    hard_clean = "hard_clean"
+    soft_clean = "soft-clean"
+    hard_clean = "hard-clean"
 
 
 def load_data() -> dict[str, Any]:
@@ -123,10 +123,10 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self._action_row.add_item(self._confirm_button)
         self._action_row.add_item(self._cancel_button)
 
-        text: discord.ui.TextDisplay[HardCleanConfirmView] = discord.ui.TextDisplay(content=warning_text)
+        self._text_display: discord.ui.TextDisplay[HardCleanConfirmView] = discord.ui.TextDisplay(content=warning_text)
 
         container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
-        container.add_item(text)
+        container.add_item(self._text_display)
         container.add_item(discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large))
         container.add_item(self._action_row)
 
@@ -163,10 +163,8 @@ class HardCleanConfirmView(discord.ui.LayoutView):
             return
 
         self._disable_buttons()
-        await interaction.response.edit_message(
-            content=f"{self.target.mention} has been hard cleaned —— {len(self.roles_to_remove)} staff role(s) removed.",
-            view=self
-        )
+        self._text_display.content = f"{self.target.mention} has been hard cleaned —— {len(self.roles_to_remove)} staff role(s) removed."
+        await interaction.response.edit_message(view=self)
 
     async def _cancel_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
@@ -176,16 +174,15 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self._disable_buttons()
         self.stop()
 
-        await interaction.response.edit_message(
-            content="Hard clean cancelled —— no changes were made.",
-            view=self
-        )
+        self._text_display.content = "Hard clean cancelled —— no changes were made."
+        await interaction.response.edit_message(view=self)
 
     async def on_timeout(self) -> None:
         self._disable_buttons()
         if self.message:
             with contextlib.suppress(discord.HTTPException):
-                await self.message.edit(content="Hard clean timed out —— no changes were made.", view=self)
+                self._text_display.content = "Hard clean timed out —— no changes were made."
+                await self.message.edit(view=self)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Leave Commands
@@ -218,7 +215,7 @@ class LeaveCommands(commands.Cog):
         run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         has_inverse = "/leave remove",
         arguments   = {
-            "leave_type": ArgumentInfo(
+            "type": ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 required    = True,
                 description = "The type of leave to apply."
@@ -231,13 +228,13 @@ class LeaveCommands(commands.Cog):
         },
     )
     @app_commands.describe(
-        leave_type = "The type of leave to apply.",
+        type = "The type of leave to apply.",
         target     = "The user to add personal leave to. Defaults to yourself."
     )
     async def leave_add(
         self,
         interaction: discord.Interaction,
-        leave_type: LeaveType,
+        type: LeaveType,
         target: discord.Member | None = None,
     ) -> None:
         if not interaction.guild:
@@ -260,7 +257,7 @@ class LeaveCommands(commands.Cog):
             await send_minor_error(interaction, "Bots cannot go on personal leave.")
             return
 
-        if leave_type == LeaveType.hard_clean:
+        if type == LeaveType.hard_clean:
             if target_member.id == invocator.id:
                 await send_minor_error(interaction, "You cannot hard clean yourself.")
                 return
@@ -277,7 +274,7 @@ class LeaveCommands(commands.Cog):
             )
             return
 
-        if leave_type != LeaveType.hard_clean and not is_staff(target_member):
+        if type != LeaveType.hard_clean and not is_staff(target_member):
             await send_minor_error(interaction, "Target must exist within the Goobers Staff Team.")
             return
 
@@ -290,18 +287,18 @@ class LeaveCommands(commands.Cog):
             )
             return
 
-        if leave_type != LeaveType.hard_clean and str(target_member.id) in self.data:
+        if type != LeaveType.hard_clean and str(target_member.id) in self.data:
             await send_minor_error(interaction, "User is already on personal leave.")
             return
 
         roles_to_remove: list[discord.Role] = []
-        if leave_type in (LeaveType.soft_clean, LeaveType.hard_clean):
+        if type in (LeaveType.soft_clean, LeaveType.hard_clean):
             roles_to_remove = [
                 r for r in target_member.roles
                 if r.id in ALL_STAFF_ROLE_IDS
             ]
 
-        if leave_type == LeaveType.hard_clean:
+        if type == LeaveType.hard_clean:
             if not roles_to_remove:
                 await send_minor_error(interaction, "Target has no staff roles to remove.")
                 return
@@ -372,7 +369,7 @@ class LeaveCommands(commands.Cog):
 
             self.data[str(target_member.id)] = {
                 "original_nick": original_full_nick,
-                "leave_type":    leave_type.value,
+                "type":          type.value,
                 "removed_roles": [r.id for r in roles_to_remove],
             }
             save_data(self.data)
@@ -539,7 +536,7 @@ class LeaveCommands(commands.Cog):
             return
 
         roles_to_restore: list[discord.Role] = []
-        if leave_type_str == LeaveType.soft_clean.value:
+        if leave_type_str in (LeaveType.soft_clean.value, "soft_clean"):
             for role_id in stored_role_ids:
                 restored_role = interaction.guild.get_role(role_id)
                 if restored_role is not None:
