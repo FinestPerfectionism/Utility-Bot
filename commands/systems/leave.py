@@ -60,8 +60,8 @@ ALL_STAFF_ROLE_IDS: list[int] = [
 
 class LeaveType(enum.Enum):
     none       = "none"
-    soft_clean = "Soft Clean"
-    hard_clean = "Hard Clean"
+    soft_clean = "soft_clean"
+    hard_clean = "hard_clean"
 
 
 def load_data() -> dict[str, Any]:
@@ -195,7 +195,7 @@ class LeaveCommands(commands.Cog):
         self.data = load_data()
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /leave Command
+    # /leave add Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     leave_group = app_commands.Group(
@@ -231,12 +231,21 @@ class LeaveCommands(commands.Cog):
         type   = "The type of leave to apply.",
         target = "The user to add personal leave to. Defaults to yourself."
     )
+    @app_commands.choices(
+        type=[
+            app_commands.Choice(name="None",       value="none"),
+            app_commands.Choice(name="Soft Clean", value="soft_clean"),
+            app_commands.Choice(name="Hard Clean", value="hard_clean"),
+        ]
+    )
     async def leave_add(
         self,
         interaction: discord.Interaction,
-        type:        LeaveType,
+        type:        app_commands.Choice[str],
         target:      discord.Member | None = None,
     ) -> None:
+        leave_type = LeaveType(type.value)
+
         if not interaction.guild:
             await send_minor_error(
                 interaction,
@@ -257,7 +266,7 @@ class LeaveCommands(commands.Cog):
             await send_minor_error(interaction, "Bots cannot go on personal leave.")
             return
 
-        if type == LeaveType.hard_clean:
+        if leave_type == LeaveType.hard_clean:
             if target_member.id == invocator.id:
                 await send_minor_error(interaction, "You cannot hard clean yourself.")
                 return
@@ -278,7 +287,7 @@ class LeaveCommands(commands.Cog):
             )
             return
 
-        if type != LeaveType.hard_clean and not is_staff(target_member):
+        if leave_type != LeaveType.hard_clean and not is_staff(target_member):
             await send_minor_error(interaction, "Target must exist within the Goobers Staff Team.")
             return
 
@@ -291,18 +300,18 @@ class LeaveCommands(commands.Cog):
             )
             return
 
-        if type != LeaveType.hard_clean and str(target_member.id) in self.data:
+        if leave_type != LeaveType.hard_clean and str(target_member.id) in self.data:
             await send_minor_error(interaction, "User is already on personal leave.")
             return
 
         roles_to_remove: list[discord.Role] = []
-        if type in (LeaveType.soft_clean, LeaveType.hard_clean):
+        if leave_type in (LeaveType.soft_clean, LeaveType.hard_clean):
             roles_to_remove = [
                 r for r in target_member.roles
                 if r.id in ALL_STAFF_ROLE_IDS
             ]
 
-        if type == LeaveType.hard_clean:
+        if leave_type == LeaveType.hard_clean:
             if not roles_to_remove:
                 await send_minor_error(interaction, "Target has no staff roles to remove.")
                 return
@@ -313,7 +322,7 @@ class LeaveCommands(commands.Cog):
                 f"### {DENIED_EMOJI_ID} Warning,\n"
                 f"This will remove all {len(roles_to_remove)} staff role(s) from {target_member.mention} and **cannot be undone** via `/leave remove`.\n\n"
                 f"**Roles to remove:**\n {role_list}\n\n"
-                "This action is a **demotional action* and will require manual intervention to restore. Please confirm below."
+                "This action is a **demotional action** and will require manual intervention to restore. Please confirm below."
             )
 
             view = HardCleanConfirmView(
@@ -374,7 +383,7 @@ class LeaveCommands(commands.Cog):
 
             self.data[str(target_member.id)] = {
                 "original_nick": original_full_nick,
-                "type":          type.value,
+                "type":          leave_type.value,
                 "removed_roles": [r.id for r in roles_to_remove],
             }
             save_data(self.data)
@@ -446,6 +455,10 @@ class LeaveCommands(commands.Cog):
                 subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}> if this persists."
             )
             return
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /leave remove Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
