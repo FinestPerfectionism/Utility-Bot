@@ -63,23 +63,50 @@ class Ready(commands.Cog):
 
     async def console_worker(self) -> None:
         await self.bot.wait_until_ready()
-        channel = self.bot.get_channel(BOT_CONSOLE_CHANNEL_ID)
+        try:
+            channel = await self.bot.fetch_channel(BOT_CONSOLE_CHANNEL_ID)
+        except (discord.NotFound, discord.Forbidden, discord.HTTPException):
+            return
         if not isinstance(channel, discord.TextChannel):
             return
-        buffer: list[str] = []
+
         while True:
             msg: str = await self._console_queue.get()
-            buffer.append(msg)
+            buffer: list[str] = [msg]
+
+            deadline = asyncio.get_event_loop().time() + 1.5
+            while True:
+                remaining = deadline - asyncio.get_event_loop().time()
+                if remaining <= 0:
+                    break
+                try:
+                    extra: str = await asyncio.wait_for(
+                        self._console_queue.get(), timeout=remaining
+                    )
+                    buffer.append(extra)
+                except TimeoutError:
+                    break
+
             text = "\n".join(buffer)
-            if len(text) > 1800:
-                await channel.send(f"```{text}```")
-                buffer.clear()
-            else:
-                await asyncio.sleep(1)
-                if buffer:
-                    text = "\n".join(buffer)
-                    await channel.send(f"```{text}```")
-                    buffer.clear()
+            chunks: list[str] = []
+            while text:
+                if len(text) <= 1900:
+                    chunks.append(text)
+                    break
+                split_at = text.rfind("\n", 0, 1900)
+                if split_at == -1:
+                    split_at = 1900
+                chunks.append(text[:split_at])
+                text = text[split_at:].lstrip("\n")
+
+            for chunk in chunks:
+                if not chunk.strip():
+                    continue
+                try:
+                    await channel.send(f"```\n{chunk}\n```")
+                except discord.HTTPException as e:
+                    log.warning("Console channel send failed: %s", e)
+                await asyncio.sleep(1.0)
 
     async def resume_incomplete_applications(self) -> None:
         for user_id, data in ACTIVE_APPLICATIONS.items():
