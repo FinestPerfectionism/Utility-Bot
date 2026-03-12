@@ -10,7 +10,6 @@ from .remove import LeaveRemove
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(LeaveAdd(bot))
     await bot.add_cog(LeaveRemove(bot))
-    bot.tree.add_command(leave_group, guild=discord.Object(id=GUILD_ID))
 
 async def teardown(bot: commands.Bot) -> None:
-    bot.tree.remove_command(leave_group.name)
+    bot.tree.remove_command(leave_group.name, guild=discord.Object(id=GUILD_ID))
