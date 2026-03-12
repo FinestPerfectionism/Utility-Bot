@@ -17,6 +17,9 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
         except Exception as e:
             log.error("Failed to import package %s: %s", package_name, e)
             continue
+        if callable(getattr(package, "setup", None)) and package_name not in seen:
+            seen.add(package_name)
+            cogs.append(package_name)
         for module_info in pkgutil.walk_packages(
             package.__path__,
             prefix=f"{package.__name__}."
