@@ -196,7 +196,6 @@ class Leave(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
-    @app_commands.rename(leave_type="type")
     @app_commands.describe(
         leave_type = "The type of leave to apply.",
         target     = "The user to add personal leave to. Defaults to yourself.",
@@ -211,6 +210,7 @@ class Leave(commands.Cog):
             app_commands.Choice(name="Hard Clean", value="hard_clean"),
         ]
     )
+    @app_commands.rename(leave_type="type")
     async def leave_add(
         self,
         interaction: discord.Interaction,
