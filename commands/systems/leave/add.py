@@ -1,8 +1,5 @@
 import discord
-from discord.ext import (
-    commands,
-    tasks
-)
+from discord.ext import commands, tasks
 from discord import app_commands
 from typing import Any
 import contextlib
@@ -40,7 +37,6 @@ from core.permissions import (
 from constants import (
     BOT_OWNER_ID,
     DENIED_EMOJI_ID,
-    DIRECTORS_ROLE_ID,
     PERSONAL_LEAVE_ROLE_ID,
     LEADING_DIRECTOR_ROLE_ID,
 )
@@ -66,8 +62,8 @@ class LeaveAdd(commands.Cog):
         for user_id_str, raw in list(self.data.items()):
             entry = normalize_entry(raw)
 
-            begin_str: str | None   = entry.get("begin_date")
-            end_str:   str | None   = entry.get("end_date")
+            begin_str:   str | None   = entry.get("begin_date")
+            end_str:     str | None   = entry.get("end_date")
             timer_end: float | None = entry.get("timer_end")
 
             if begin_str:

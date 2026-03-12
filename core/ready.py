@@ -6,6 +6,8 @@ from typing import Any
 import asyncio
 import logging
 
+from bot import bot
+
 from events.systems.applications import DecisionView
 
 from core.state import (
@@ -19,7 +21,8 @@ from constants import (
     ACCEPTED_EMOJI_ID,
 
     APPLICATION_LOG_CHANNEL_ID,
-    BOT_CONSOLE_CHANNEL_ID
+    BOT_CONSOLE_CHANNEL_ID,
+    GUILD_ID
 )
 
 log = logging.getLogger("Utility Bot")
@@ -130,6 +133,10 @@ class Ready(commands.Cog):
         if self._ran:
             return
         self._ran = True
+
+        guild = discord.Object(id=GUILD_ID)
+        await bot.tree.sync(guild=guild)
+        
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(
             lambda loop, context: self.bot.dispatch("asyncio_error", context)
