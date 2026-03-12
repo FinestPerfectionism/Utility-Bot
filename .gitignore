@@ -5,8 +5,7 @@ venv/
 .env
 data/*
 storage/*
-verification_data.json
 !data/runtime/.gitkeep
 !storage/.gitkeep
 *.log
-restart_info.json
+*.json
