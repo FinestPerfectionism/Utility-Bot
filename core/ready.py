@@ -8,8 +8,6 @@ import logging
 
 from bot import bot
 
-from commands.systems.leave._base import leave_group
-
 from events.systems.applications import DecisionView
 
 from core.state import (
@@ -137,8 +135,6 @@ class Ready(commands.Cog):
         self._ran = True
 
         guild = discord.Object(id=GUILD_ID)
-        bot.tree.clear_commands(guild=guild)
-        bot.tree.add_command(leave_group, guild=guild)
         await bot.tree.sync(guild=guild)
         
         loop = asyncio.get_running_loop()
