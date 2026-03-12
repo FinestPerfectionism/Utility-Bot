@@ -101,7 +101,7 @@ class LeaveAdd(commands.Cog):
             save_data(self.data)
             return
 
-        leave_type          = LeaveType(entry.get("leave_type", LeaveType.none.value))
+        resolved_leave_type          = LeaveType(entry.get("resolved_leave_type", LeaveType.none.value))
         personal_leave_role = guild.get_role(PERSONAL_LEAVE_ROLE_ID)
         if personal_leave_role is None:
             return
@@ -113,7 +113,7 @@ class LeaveAdd(commands.Cog):
             return
 
         roles_to_remove: list[discord.Role] = []
-        if leave_type == LeaveType.soft_clean:
+        if resolved_leave_type == LeaveType.soft_clean:
             roles_to_remove = [r for r in member.roles if r.id in ALL_STAFF_ROLE_IDS]
 
         original_full_nick = member.nick or member.name
@@ -154,11 +154,11 @@ class LeaveAdd(commands.Cog):
             return
 
         stored_name:     str       = entry.get("original_nick", member.display_name)
-        leave_type_str:  str       = entry.get("leave_type", LeaveType.none.value)
+        resolved_leave_type_str:  str       = entry.get("resolved_leave_type", LeaveType.none.value)
         stored_role_ids: list[int] = entry.get("removed_roles", [])
 
         roles_to_restore: list[discord.Role] = []
-        if leave_type_str in (LeaveType.soft_clean.value, "soft_clean"):
+        if resolved_leave_type_str in (LeaveType.soft_clean.value, "soft_clean"):
             for role_id in stored_role_ids:
                 restored_role = guild.get_role(role_id)
                 if restored_role is not None:
@@ -180,15 +180,16 @@ class LeaveAdd(commands.Cog):
         save_data(self.data)
 
     @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
+    @app_commands.rename(resolved_leave_type="type")
     @app_commands.describe(
-        type       = "The type of leave to apply.",
+        resolved_leave_type = "The type of leave to apply.",
         target     = "The user to add personal leave to. Defaults to yourself.",
         begin_date = "Date to begin leave (YYYY-MM-DD). Incompatible with Hard Clean.",
         end_date   = "Date to end leave (YYYY-MM-DD). Incompatible with Hard Clean and timer.",
         timer      = "Duration until leave ends (e.g. 1w2d3h4m). Incompatible with Hard Clean and end_date.",
     )
     @app_commands.choices(
-        type=[
+        resolved_leave_type=[
             app_commands.Choice(name="None",       value="none"),
             app_commands.Choice(name="Soft Clean", value="soft_clean"),
             app_commands.Choice(name="Hard Clean", value="hard_clean"),
@@ -197,13 +198,13 @@ class LeaveAdd(commands.Cog):
     async def leave_add(
         self,
         interaction: discord.Interaction,
-        type:        app_commands.Choice[str],
+        leave_type:  app_commands.Choice[str],
         target:      discord.Member | None = None,
         begin_date:             str | None = None,
         end_date:               str | None = None,
         timer:                  str | None = None,
     ) -> None:
-        leave_type = LeaveType(type.value)
+        resolved_leave_type = LeaveType(leave_type.value)
 
         if not interaction.guild:
             await send_minor_error(
@@ -227,7 +228,7 @@ class LeaveAdd(commands.Cog):
 
         has_scheduling = begin_date is not None or end_date is not None or timer is not None
 
-        if leave_type == LeaveType.hard_clean and has_scheduling:
+        if resolved_leave_type == LeaveType.hard_clean and has_scheduling:
             await send_minor_error(
                 interaction,
                 "Scheduling arguments (`begin_date`, `end_date`, `timer`) are incompatible with Hard Clean.",
@@ -291,7 +292,7 @@ class LeaveAdd(commands.Cog):
                 )
                 return
 
-        if leave_type == LeaveType.hard_clean:
+        if resolved_leave_type == LeaveType.hard_clean:
             if target_member.id == invocator.id:
                 await send_minor_error(interaction, "You cannot hard clean yourself.")
                 return
@@ -312,7 +313,7 @@ class LeaveAdd(commands.Cog):
             )
             return
 
-        if leave_type != LeaveType.hard_clean and not is_staff(target_member):
+        if resolved_leave_type != LeaveType.hard_clean and not is_staff(target_member):
             await send_minor_error(interaction, "Target must exist within the Goobers Staff Team.")
             return
 
@@ -347,15 +348,15 @@ class LeaveAdd(commands.Cog):
                 if not view.confirmed:
                     return
 
-            elif leave_type != LeaveType.hard_clean:
+            elif resolved_leave_type != LeaveType.hard_clean:
                 await send_minor_error(interaction, "User is already on personal leave.")
                 return
 
         roles_to_remove: list[discord.Role] = []
-        if leave_type in (LeaveType.soft_clean, LeaveType.hard_clean):
+        if resolved_leave_type in (LeaveType.soft_clean, LeaveType.hard_clean):
             roles_to_remove = [r for r in target_member.roles if r.id in ALL_STAFF_ROLE_IDS]
 
-        if leave_type == LeaveType.hard_clean:
+        if resolved_leave_type == LeaveType.hard_clean:
             if not roles_to_remove:
                 await send_minor_error(interaction, "Target has no staff roles to remove.")
                 return
@@ -407,12 +408,12 @@ class LeaveAdd(commands.Cog):
 
             soft_role_ids = (
                 [r.id for r in target_member.roles if r.id in ALL_STAFF_ROLE_IDS]
-                if leave_type == LeaveType.soft_clean else []
+                if resolved_leave_type == LeaveType.soft_clean else []
             )
 
             self.data[str(target_member.id)] = {
                 "original_nick": original_full_nick,
-                "leave_type":    leave_type.value,
+                "resolved_leave_type":    resolved_leave_type.value,
                 "removed_roles": soft_role_ids,
                 "begin_date":    parsed_begin.strftime(DATE_FMT),
                 "end_date":      parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
@@ -494,7 +495,7 @@ class LeaveAdd(commands.Cog):
 
             self.data[str(target_member.id)] = {
                 "original_nick": original_full_nick,
-                "leave_type":    leave_type.value,
+                "resolved_leave_type":    resolved_leave_type.value,
                 "removed_roles": [r.id for r in roles_to_remove],
                 "begin_date":    None,
                 "end_date":      parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
