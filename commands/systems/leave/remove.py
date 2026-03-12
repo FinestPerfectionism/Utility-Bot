@@ -14,11 +14,6 @@ from ._base import (
     describe_automation,
     InterferenceConfirmView,
 )
-from core.help import (
-    RoleConfig,
-    help_description,
-    ArgumentInfo
-)
 from core.utils import (
     send_minor_error,
     send_major_error
@@ -26,9 +21,9 @@ from core.utils import (
 from core.permissions import is_staff
 from constants import (
     BOT_OWNER_ID,
+
     DENIED_EMOJI_ID,
-    DIRECTORS_ROLE_ID,
-    STAFF_ROLE_ID,
+
     PERSONAL_LEAVE_ROLE_ID,
 )
 
@@ -40,24 +35,6 @@ class LeaveRemove(commands.Cog):
 
     @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
-    @help_description(
-        desc        = (
-            f"The leave remove command removes the <@&{PERSONAL_LEAVE_ROLE_ID}> role from a staff member and restores their nickname. "
-            f"For **Soft Clean** leaves, their original staff roles are also restored. "
-            f"This command cannot undo a **Hard Clean**."
-        ),
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id=STAFF_ROLE_ID)],
-        has_inverse = "/leave add",
-        arguments   = {
-            "target": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = False,
-                description = "The user to remove leave from."
-            ),
-        },
-    )
     async def leave_remove(
         self,
         interaction: discord.Interaction,

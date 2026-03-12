@@ -29,11 +29,6 @@ from ._base import (
     HardCleanConfirmView,
     InterferenceConfirmView,
 )
-from core.help import (
-    RoleConfig,
-    help_description,
-    ArgumentInfo
-)
 from core.utils import (
     send_minor_error,
     send_major_error
@@ -189,48 +184,6 @@ class LeaveAdd(commands.Cog):
         save_data(self.data)
 
     @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
-    @help_description(
-        desc        = (
-            f"The leave add command supports three leave types.\n\n"
-            f"**None:** Adds the <@&{PERSONAL_LEAVE_ROLE_ID}> role and updates the nickname. No roles removed. Reversible with `/leave remove`.\n\n"
-            f"**Soft Clean:** Removes all staff roles, adds <@&{PERSONAL_LEAVE_ROLE_ID}>, and updates the nickname. Reversible with `/leave remove`.\n\n"
-            f"**Hard Clean:** Removes all staff roles only. No nickname change or leave role added. **Irreversible** via `/leave remove`. Cannot target self or Directors. Requires confirmation.\n\n"
-            f"**Scheduling:** Use `begin_date` (YYYY-MM-DD) to schedule leave to start on a future date. "
-            f"Use `end_date` (YYYY-MM-DD) or `timer` (e.g. `1w2d3h`) to schedule leave to end automatically. "
-            f"`timer` and `end_date` are mutually exclusive. Scheduling is incompatible with Hard Clean."
-        ),
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        has_inverse = "/leave remove",
-        arguments   = {
-            "type": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = True,
-                description = "The type of leave to apply."
-            ),
-            "target": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = False,
-                description = "The user to add personal leave to."
-            ),
-            "begin_date": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = False,
-                description = "Date to begin leave (YYYY-MM-DD). Incompatible with Hard Clean."
-            ),
-            "end_date": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = False,
-                description = "Date to end leave (YYYY-MM-DD). Incompatible with Hard Clean and timer."
-            ),
-            "timer": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = False,
-                description = "Duration until leave ends (e.g. 1w2d3h). Incompatible with Hard Clean and end_date."
-            ),
-        },
-    )
     @app_commands.describe(
         type       = "The type of leave to apply.",
         target     = "The user to add personal leave to. Defaults to yourself.",
