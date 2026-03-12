@@ -568,47 +568,6 @@ class BotOwnerCommands(
         else:
             await ctx.send(message)
 
-    @commands.command()
-    async def nuclear_sync(self, ctx: commands.Context[commands.Bot]) -> None:
-        if ctx.author.id != BOT_OWNER_ID:
-            await ctx.message.add_reaction(DENIED_EMOJI_ID)
-            return
-
-        await ctx.message.delete()
-            
-        from bot import bot
-        from commands.systems.leave._base import leave_group
-        
-        guild = ctx.guild
-        if guild is None:
-            return
-
-        bot.tree.clear_commands(guild=guild)
-        await bot.tree.sync(guild=guild)
-        await asyncio.sleep(2)
-        bot.tree.add_command(leave_group, guild=guild)
-        await bot.tree.sync(guild=guild)
-        await ctx.send("Done.")
-
-    @commands.command()
-    async def resync(self, ctx: commands.Context[commands.Bot]) -> None:
-        if ctx.author.id != BOT_OWNER_ID:
-            await ctx.message.add_reaction(DENIED_EMOJI_ID)
-            return
-
-        await ctx.message.delete()
-
-        from bot import bot
-        from commands.systems.leave._base import leave_group
-        
-        guild = ctx.guild
-        if guild is None:
-            return
-
-        bot.tree.add_command(leave_group, guild=guild)
-        await bot.tree.sync(guild=guild)
-        await ctx.send("Done.")
-
 async def setup(bot: commands.Bot) -> None:
     cog = BotOwnerCommands(bot)
     await bot.add_cog(cog)

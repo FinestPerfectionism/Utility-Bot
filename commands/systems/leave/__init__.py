@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
+
 from constants import GUILD_ID
+
 from ._base import leave_group
 from .leave import Leave
 
