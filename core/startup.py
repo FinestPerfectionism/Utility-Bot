@@ -3,7 +3,17 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
+from typing import (
+    TYPE_CHECKING,
+    Any
+)
+if TYPE_CHECKING:
+    from collections.abc import (
+        Callable, Coroutine
+    )
+import json
 import logging
+from pathlib import Path
 from typing import cast
 import asyncio
 import time
@@ -96,6 +106,48 @@ from constants import (
 
 log = logging.getLogger("Utility Bot")
 
+LAYOUT_CONFIG_PATH = Path("data/layout_config.json")
+
+DEFAULT_LAYOUT_CONFIG: dict[str, bool] = {
+    "tickets": True,
+    "applications": True,
+    "leave": True,
+    "verification": True,
+    "rules": True,
+    "staff_proposals": True,
+    "partnership_requirements": True,
+    "partnerships": True,
+    "hierarchy": True,
+    "moderation_guidelines": True,
+    "administrator_guidelines": True,
+    "staff_guidelines": True,
+    "directorate_guidelines": True,
+}
+
+
+def load_layout_config() -> dict[str, bool]:
+    if not LAYOUT_CONFIG_PATH.exists():
+        log.warning("layout_config.json not found, writing defaults and enabling all layouts")
+        with LAYOUT_CONFIG_PATH.open("w") as f:
+            json.dump(DEFAULT_LAYOUT_CONFIG, f, indent=4)
+        return DEFAULT_LAYOUT_CONFIG.copy()
+
+    try:
+        with LAYOUT_CONFIG_PATH.open("r") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        log.exception("Failed to read layout_config.json, enabling all layouts: %s", e)
+        return DEFAULT_LAYOUT_CONFIG.copy()
+
+    config = DEFAULT_LAYOUT_CONFIG.copy()
+    for key in config:
+        if key in data and isinstance(data[key], bool):
+            config[key] = data[key]
+        else:
+            log.warning("layout_config.json missing or invalid key '%s', defaulting to True", key)
+
+    return config
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Startup Management
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -120,6 +172,8 @@ class Startup(commands.Cog):
         await self.restore_or_send_layouts()
 
     async def restore_or_send_layouts(self) -> None:
+        config = load_layout_config()
+
         view_mapping: dict[str, tuple[int, type[discord.ui.View]]] = {
             "tickets": (TICKET_CHANNEL_ID, cast("type[discord.ui.View]", TicketComponents)),
             "applications": (APPLICATION_CHANNEL_ID, cast("type[discord.ui.View]", ApplicationComponents)),
@@ -127,6 +181,10 @@ class Startup(commands.Cog):
         }
 
         for key, (channel_id, view_cls) in view_mapping.items():
+            if not config.get(key, True):
+                log.info("Layout '%s' is disabled in layout_config.json, skipping", key)
+                continue
+
             channel = self.bot.get_channel(channel_id)
             if not isinstance(channel, discord.TextChannel):
                 continue
@@ -146,45 +204,27 @@ class Startup(commands.Cog):
             self.bot.add_view(view_cls(), message_id=msg.id)
             save_layout_message_ids(self.layout_message_ids)
 
-        verification_channel = self.bot.get_channel(VERIFICATION_CHANNEL_ID)
-        if isinstance(verification_channel, discord.TextChannel):
-            await self._handle_verification_layout(verification_channel)
+        layout_handlers: list[tuple[str, int, Callable[[discord.TextChannel], Coroutine[Any, Any, None]]]] = [
+            ("verification", VERIFICATION_CHANNEL_ID, self._handle_verification_layout),
+            ("rules", RULES_CHANNEL_ID, self._handle_rules_layout),
+            ("staff_proposals", STAFF_PROPOSALS_INFO_CHANNEL_ID, self._handle_staff_proposals_layout),
+            ("partnership_requirements", PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, self._handle_partnership_requirements_layout),
+            ("partnerships", PARTNERSHIPS_CHANNEL_ID, self._handle_partnership_layout),
+            ("hierarchy", HIERARCHY_CHANNEL_ID, self._handle_hierarchy_layout),
+            ("moderation_guidelines", MODERATORS_GUIDELINES_CHANNEL_ID, self._handle_moderation_guidelines_layout),
+            ("administrator_guidelines", ADMINISTRATORS_GUIDELINES_CHANNEL_ID, self._handle_administrator_guidelines_layout),
+            ("staff_guidelines", STAFF_GUIDELINES_CHANNEL_ID, self._handle_staff_guidelines_layout),
+            ("directorate_guidelines", DIRECTORATE_GUIDELINES_CHANNEL_ID, self._handle_directorate_guidelines_layout),
+        ]
 
-        rules_channel = self.bot.get_channel(RULES_CHANNEL_ID)
-        if isinstance(rules_channel, discord.TextChannel):
-            await self._handle_rules_layout(rules_channel)
+        for key, channel_id, handler in layout_handlers:
+            if not config.get(key, True):
+                log.info("Layout '%s' is disabled in layout_config.json, skipping", key)
+                continue
 
-        staff_proposals_channel = self.bot.get_channel(STAFF_PROPOSALS_INFO_CHANNEL_ID)
-        if isinstance(staff_proposals_channel, discord.TextChannel):
-            await self._handle_staff_proposals_layout(staff_proposals_channel)
-
-        partnership_requirements_channel = self.bot.get_channel(PARTNERSHIP_REQUIREMENTS_CHANNEL_ID)
-        if isinstance(partnership_requirements_channel, discord.TextChannel):
-            await self._handle_partnership_requirements_layout(partnership_requirements_channel)
-
-        partnership_channel = self.bot.get_channel(PARTNERSHIPS_CHANNEL_ID)
-        if isinstance(partnership_channel, discord.TextChannel):
-            await self._handle_partnership_layout(partnership_channel)
-
-        hierarchy_channel = self.bot.get_channel(HIERARCHY_CHANNEL_ID)
-        if isinstance(hierarchy_channel, discord.TextChannel):
-            await self._handle_hierarchy_layout(hierarchy_channel)
-
-        moderation_guidelines_channel = self.bot.get_channel(MODERATORS_GUIDELINES_CHANNEL_ID)
-        if isinstance(moderation_guidelines_channel, discord.TextChannel):
-            await self._handle_moderation_guidelines_layout(moderation_guidelines_channel)
-
-        administrator_guidelines_channel = self.bot.get_channel(ADMINISTRATORS_GUIDELINES_CHANNEL_ID)
-        if isinstance(administrator_guidelines_channel, discord.TextChannel):
-            await self._handle_administrator_guidelines_layout(administrator_guidelines_channel)
-
-        staff_guidelines_channel = self.bot.get_channel(STAFF_GUIDELINES_CHANNEL_ID)
-        if isinstance(staff_guidelines_channel, discord.TextChannel):
-            await self._handle_staff_guidelines_layout(staff_guidelines_channel)
-
-        directorate_guidelines_channel = self.bot.get_channel(DIRECTORATE_GUIDELINES_CHANNEL_ID)
-        if isinstance(directorate_guidelines_channel, discord.TextChannel):
-            await self._handle_directorate_guidelines_layout(directorate_guidelines_channel)
+            channel = self.bot.get_channel(channel_id)
+            if isinstance(channel, discord.TextChannel):
+                await handler(channel)
 
     async def _handle_verification_layout(self, channel: discord.TextChannel) -> None:
         verification_cog = cast(

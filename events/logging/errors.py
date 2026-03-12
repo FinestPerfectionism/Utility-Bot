@@ -16,7 +16,7 @@ from core.permissions import (
     PermissionDenied,
     WrongGuild
 )
-from core.utils import send_major_error, send_minor_error
+from core.utils import send_minor_error
 
 from constants import (
     BOT_LOG_CHANNEL_ID,
@@ -242,17 +242,6 @@ class ErrorLogger(commands.Cog):
                 await interaction.response.send_message(
                     view=PermissionError(),
                     ephemeral=True,
-                )
-            return
-
-        if isinstance(error, app_commands.CommandSignatureMismatch):
-            from bot import bot
-            await bot.tree.sync(guild=interaction.guild)
-            if not interaction.response.is_done():
-                await send_major_error(
-                    interaction,
-                    "Commands were out of sync and have been resynced. Please try again soon.",
-                    subtitle=f"Invalid tree. Contact <@{BOT_OWNER_ID}>"
                 )
             return
 

@@ -17,7 +17,6 @@ from ._base import (
     LeaveType,
     ALL_STAFF_ROLE_IDS,
     DATE_FMT,
-    leave_group,
     load_data,
     save_data,
     extract_name,
@@ -45,23 +44,23 @@ from constants import (
     LEADING_DIRECTOR_ROLE_ID,
 )
 
-
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Leave Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class Leave(commands.Cog):
+class LeaveCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot  = bot
         self.data = load_data()
         self._automation_loop.start()
 
+    leave_group = app_commands.Group(
+        name="leave",
+        description="Staff only —— Leave commands."
+    )
+
     async def cog_unload(self) -> None:
         self._automation_loop.cancel()
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # Automation Loop
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @tasks.loop(minutes=1)
     async def _automation_loop(self) -> None:
@@ -191,9 +190,9 @@ class Leave(commands.Cog):
         self.data.pop(user_id_str, None)
         save_data(self.data)
 
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /leave add Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
     @app_commands.describe(
@@ -214,13 +213,13 @@ class Leave(commands.Cog):
     async def leave_add(
         self,
         interaction: discord.Interaction,
-        leave_type:  app_commands.Choice[str],
+        leave_type:  str,
         target:      discord.Member | None = None,
         begin_date:             str | None = None,
         end_date:               str | None = None,
         timer:                  str | None = None,
     ) -> None:
-        resolved_type = LeaveType(leave_type.value)
+        resolved_type = LeaveType(leave_type)
 
         if not interaction.guild:
             await send_minor_error(
@@ -599,9 +598,9 @@ class Leave(commands.Cog):
                 subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}> if this persists."
             )
 
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /leave remove Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
@@ -791,3 +790,7 @@ class Leave(commands.Cog):
                     f"{target_member.mention} has been removed from personal leave.",
                     ephemeral=True
                 )
+
+
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(LeaveCommands(bot))

@@ -1,5 +1,4 @@
 import discord
-from discord import app_commands
 
 import json
 import os
@@ -52,11 +51,6 @@ ALL_STAFF_ROLE_IDS: list[int] = [
     DIRECTORS_ROLE_ID,
     SUPPORTING_DIRECTORS_ROLE_ID,
 ]
-
-leave_group = app_commands.Group(
-    name="leave",
-    description="Staff only —— Leave commands."
-)
 
 _TIMER_RE = re.compile(r"^(?:(\d+)w)?(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?$", re.IGNORECASE)
 DATE_FMT = "%Y-%m-%d"
