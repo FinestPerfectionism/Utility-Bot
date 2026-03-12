@@ -43,6 +43,7 @@ from constants import (
     DENIED_EMOJI_ID,
     PERSONAL_LEAVE_ROLE_ID,
     LEADING_DIRECTOR_ROLE_ID,
+    GUILD_ID
 )
 
 
@@ -74,8 +75,8 @@ class Leave(commands.Cog):
         for user_id_str, raw in list(self.data.items()):
             entry = normalize_entry(raw)
 
-            begin_str:  str | None  = entry.get("begin_date")
-            end_str:    str | None  = entry.get("end_date")
+            begin_str:   str | None = entry.get("begin_date")
+            end_str:     str | None = entry.get("end_date")
             timer_end: float | None = entry.get("timer_end")
 
             if begin_str:
@@ -791,3 +792,7 @@ class Leave(commands.Cog):
                     f"{target_member.mention} has been removed from personal leave.",
                     ephemeral=True
                 )
+
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(Leave(bot))
+    bot.tree.add_command(leave_group, guild=discord.Object(id=GUILD_ID))
