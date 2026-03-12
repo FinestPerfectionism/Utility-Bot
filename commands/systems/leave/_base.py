@@ -5,10 +5,13 @@ import os
 import contextlib
 import enum
 import re
-from typing import Any
+from typing import (
+    Any,
+    cast
+)
 from datetime import (
     datetime,
-    UTC, 
+    UTC,
     date as date_type
 )
 
@@ -36,6 +39,10 @@ from constants import (
     SUPPORTING_DIRECTORS_ROLE_ID,
 )
 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Leave Base
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
 DATA_FILE = "leave_data.json"
 
 ALL_STAFF_ROLE_IDS: list[int] = [
@@ -53,14 +60,12 @@ ALL_STAFF_ROLE_IDS: list[int] = [
 ]
 
 _TIMER_RE = re.compile(r"^(?:(\d+)w)?(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?$", re.IGNORECASE)
-DATE_FMT = "%Y-%m-%d"
-
+DATE_FMT  = "%Y-%m-%d"
 
 class LeaveType(enum.Enum):
     none       = "none"
     soft_clean = "soft_clean"
     hard_clean = "hard_clean"
-
 
 def load_data() -> dict[str, Any]:
     if not os.path.exists(DATA_FILE):
@@ -68,17 +73,14 @@ def load_data() -> dict[str, Any]:
     with open(DATA_FILE) as f:
         return json.load(f)
 
-
 def save_data(data: dict[str, Any]) -> None:
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
-
-
+        
 def extract_name(nickname: str) -> str:
-    if nickname and "|" in nickname:
+    if "|" in nickname:
         return nickname.split("|")[-1].strip()
     return nickname
-
 
 def can_manage_leave(invocator: discord.Member, target: discord.Member) -> bool:
     if not is_staff(invocator):
@@ -86,7 +88,6 @@ def can_manage_leave(invocator: discord.Member, target: discord.Member) -> bool:
     if target.id != invocator.id:
         return is_director(invocator)
     return True
-
 
 def normalize_entry(raw: str | dict[str, Any]) -> dict[str, Any]:
     if isinstance(raw, str):
@@ -97,13 +98,17 @@ def normalize_entry(raw: str | dict[str, Any]) -> dict[str, Any]:
             "begin_date":    None,
             "end_date":      None,
             "timer_end":     None,
+            "timer_seconds": None,
         }
     entry = dict(raw)
-    entry.setdefault("begin_date", None)
-    entry.setdefault("end_date",   None)
-    entry.setdefault("timer_end",  None)
+    entry.setdefault("original_nick", None)
+    entry.setdefault("leave_type",    LeaveType.none.value)
+    entry.setdefault("removed_roles", [])
+    entry.setdefault("begin_date",    None)
+    entry.setdefault("end_date",      None)
+    entry.setdefault("timer_end",     None)
+    entry.setdefault("timer_seconds", None)
     return entry
-
 
 def parse_timer(value: str) -> int | None:
     m = _TIMER_RE.match(value.strip())
@@ -113,16 +118,13 @@ def parse_timer(value: str) -> int | None:
     total = minutes * 60 + hours * 3600 + days * 86400 + weeks * 604800
     return total if total > 0 else None
 
-
 def parse_date(value: str) -> date_type | None:
     with contextlib.suppress(ValueError):
         return datetime.strptime(value.strip(), DATE_FMT).date()
     return None
 
-
 def entry_has_automation(entry: dict[str, Any]) -> bool:
     return bool(entry.get("begin_date") or entry.get("end_date") or entry.get("timer_end"))
-
 
 def describe_automation(entry: dict[str, Any]) -> str:
     parts: list[str] = []
@@ -131,12 +133,11 @@ def describe_automation(entry: dict[str, Any]) -> str:
     if entry.get("end_date"):
         parts.append(f"scheduled to **end** on `{entry['end_date']}`")
     if entry.get("timer_end"):
-        ts    = entry["timer_end"]
+        ts    = cast("float", entry["timer_end"])
         dt    = datetime.fromtimestamp(ts, tz=UTC)
         stamp = discord.utils.format_dt(dt, style="f")
         parts.append(f"on a **timer** expiring {stamp}")
     return ", ".join(parts) if parts else "unknown automation"
-
 
 class HardCleanConfirmView(discord.ui.LayoutView):
     def __init__(
@@ -222,7 +223,6 @@ class HardCleanConfirmView(discord.ui.LayoutView):
             with contextlib.suppress(discord.HTTPException):
                 self._text_display.content = "Hard clean timed out —— no changes were made."
                 await self.message.edit(view=self)
-
 
 class InterferenceConfirmView(discord.ui.LayoutView):
     def __init__(

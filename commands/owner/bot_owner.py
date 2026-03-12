@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -504,6 +505,7 @@ class BotOwnerCommands(
     async def _eval(self, ctx: commands.Context[commands.Bot], *, body: str) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
+            return
 
         env = {
             'bot': self.bot,

@@ -10,6 +10,7 @@ from typing import Any
 from datetime import (
     datetime,
     UTC,
+    timedelta,
     date as date_type,
 )
 
@@ -101,13 +102,14 @@ class LeaveCommands(commands.Cog):
         await self.bot.wait_until_ready()
 
     async def _automation_apply_leave(self, user_id_str: str, entry: dict[str, Any]) -> None:
-        guild = discord.utils.get(self.bot.guilds)
+        guild = next(iter(self.bot.guilds), None)
         if guild is None:
             return
 
         member = guild.get_member(int(user_id_str))
         if member is None:
             entry["begin_date"]    = None
+            entry["timer_seconds"] = None
             self.data[user_id_str] = entry
             save_data(self.data)
             return
@@ -119,6 +121,7 @@ class LeaveCommands(commands.Cog):
 
         if personal_leave_role in member.roles:
             entry["begin_date"]    = None
+            entry["timer_seconds"] = None
             self.data[user_id_str] = entry
             save_data(self.data)
             return
@@ -133,24 +136,35 @@ class LeaveCommands(commands.Cog):
 
         if len(new_nick) > 32:
             entry["begin_date"]    = None
+            entry["timer_seconds"] = None
             self.data[user_id_str] = entry
             save_data(self.data)
             return
 
-        with contextlib.suppress(discord.HTTPException):
+        stored_timer_secs: int | None = entry.get("timer_seconds")
+        new_timer_end: float | None   = (
+            datetime.now(tz=UTC).timestamp() + stored_timer_secs
+            if stored_timer_secs is not None else None
+        )
+
+        try:
             if roles_to_remove:
                 await member.remove_roles(*roles_to_remove, reason="Scheduled leave automation")
             await member.add_roles(personal_leave_role, reason="Scheduled leave automation")
             await member.edit(nick=new_nick)
+        except discord.HTTPException:
+            return
 
         entry["begin_date"]    = None
+        entry["timer_seconds"] = None
+        entry["timer_end"]     = new_timer_end
         entry["original_nick"] = original_full_nick
         entry["removed_roles"] = [r.id for r in roles_to_remove]
         self.data[user_id_str] = entry
         save_data(self.data)
 
     async def _automation_remove_leave(self, user_id_str: str, entry: dict[str, Any]) -> None:
-        guild = discord.utils.get(self.bot.guilds)
+        guild = next(iter(self.bot.guilds), None)
         if guild is None:
             return
 
@@ -164,7 +178,7 @@ class LeaveCommands(commands.Cog):
         if personal_leave_role is None:
             return
 
-        stored_name:     str       = entry.get("original_nick", member.display_name)
+        stored_name:     str       = entry.get("original_nick") or member.display_name
         leave_type_str:  str       = entry.get("leave_type", LeaveType.none.value)
         stored_role_ids: list[int] = entry.get("removed_roles", [])
 
@@ -175,7 +189,7 @@ class LeaveCommands(commands.Cog):
                 if restored_role is not None:
                     roles_to_restore.append(restored_role)
 
-        with contextlib.suppress(discord.HTTPException):
+        try:
             if personal_leave_role in member.roles:
                 await member.remove_roles(personal_leave_role, reason="Scheduled leave automation")
 
@@ -186,6 +200,8 @@ class LeaveCommands(commands.Cog):
 
             if roles_to_restore:
                 await member.add_roles(*roles_to_restore, reason="Scheduled leave automation")
+        except discord.HTTPException:
+            return
 
         self.data.pop(user_id_str, None)
         save_data(self.data)
@@ -348,7 +364,7 @@ class LeaveCommands(commands.Cog):
             if entry_has_automation(existing_entry):
                 automation_desc = describe_automation(existing_entry)
                 warning_text = (
-                    f"### {DENIED_EMOJI_ID} Automation Conflict,\n"
+                    f"### {DENIED_EMOJI_ID} Warning,\n"
                     f"{target_member.mention} currently has an active automation entry ({automation_desc}).\n\n"
                     "Running `/leave add` now will override and clear that automation. Proceed?"
                 )
@@ -378,9 +394,9 @@ class LeaveCommands(commands.Cog):
                 f"### {DENIED_EMOJI_ID} Warning,\n"
                 f"This will remove all {len(roles_to_remove)} staff role(s) from {target_member.mention} and **cannot be undone** via `/leave remove`.\n\n"
                 f"**Roles to remove:**\n {role_list}\n\n"
-                "This action is a **demotional action** and will require manual intervention to restore. Please confirm below."
+                "This action is a **demotional action** and will require manual intervention to restore. Proceed?"
             )
-            view         = HardCleanConfirmView(
+            view = HardCleanConfirmView(
                 invocator_id    = invocator.id,
                 target          = target_member,
                 roles_to_remove = roles_to_remove,
@@ -390,34 +406,29 @@ class LeaveCommands(commands.Cog):
             view.message = msg
             return
 
+        personal_leave_role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
+        if personal_leave_role is None:
+            await send_major_error(
+                interaction,
+                title="Error!",
+                texts="I could not fetch the Personal Leave role.",
+                subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            )
+            return
+
+        original_full_nick = target_member.nick or target_member.name
+        actual_name        = extract_name(original_full_nick)
+        new_nick           = f"P. Leave | {actual_name}"
+
+        if len(new_nick) > 32:
+            await send_minor_error(
+                interaction,
+                "The resulting nickname exceeds Discord's 32 character limit.",
+                subtitle="Invalid operation."
+            )
+            return
+
         if parsed_begin is not None:
-            personal_leave_role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
-            if personal_leave_role is None:
-                await send_major_error(
-                    interaction,
-                    title="Error!",
-                    texts="I could not fetch the Personal Leave role.",
-                    subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
-                )
-                return
-
-            original_full_nick = target_member.nick or target_member.name
-            actual_name        = extract_name(original_full_nick)
-            new_nick           = f"P. Leave | {actual_name}"
-
-            if len(new_nick) > 32:
-                await send_minor_error(
-                    interaction,
-                    "The resulting nickname exceeds Discord's 32 character limit.",
-                    subtitle="Invalid operation."
-                )
-                return
-
-            timer_end_ts: float | None = None
-            if timer_seconds is not None:
-                now_ts       = datetime.now(tz=UTC).timestamp()
-                timer_end_ts = now_ts + timer_seconds
-
             soft_role_ids = (
                 [r.id for r in target_member.roles if r.id in ALL_STAFF_ROLE_IDS]
                 if resolved_type == LeaveType.soft_clean else []
@@ -429,7 +440,8 @@ class LeaveCommands(commands.Cog):
                 "removed_roles": soft_role_ids,
                 "begin_date":    parsed_begin.strftime(DATE_FMT),
                 "end_date":      parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
-                "timer_end":     timer_end_ts,
+                "timer_end":     None,
+                "timer_seconds": timer_seconds,
             }
             save_data(self.data)
 
@@ -445,12 +457,12 @@ class LeaveCommands(commands.Cog):
                     style="D"
                 )
                 end_note = f" and scheduled to end on {end_stamp}"
-            elif timer_seconds is not None and timer_end_ts is not None:
-                end_stamp = discord.utils.format_dt(
-                    datetime.fromtimestamp(timer_end_ts, tz=UTC),
-                    style="f"
+            elif timer_seconds is not None:
+                approx_end_dt = (
+                    datetime(parsed_begin.year, parsed_begin.month, parsed_begin.day, tzinfo=UTC)
+                    + timedelta(seconds=timer_seconds)
                 )
-                end_note = f" with a timer ending at {end_stamp}"
+                end_note = f" with a timer ending approximately {discord.utils.format_dt(approx_end_dt, style='f')}"
 
             who = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
             await interaction.followup.send(
@@ -459,33 +471,11 @@ class LeaveCommands(commands.Cog):
             )
             return
 
-        personal_leave_role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
-        if personal_leave_role is None:
-            await send_major_error(
-                interaction,
-                title="Error!",
-                texts="I could not fetch the Personal Leave role.",
-                subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
-            )
-            return
-
         if personal_leave_role in target_member.roles:
             await send_minor_error(interaction, "User already has the Personal Leave role.")
             return
 
-        original_full_nick = target_member.nick or target_member.name
-        actual_name        = extract_name(original_full_nick)
-        new_nick           = f"P. Leave | {actual_name}"
-
-        if len(new_nick) > 32:
-            await send_minor_error(
-                interaction,
-                "The resulting nickname exceeds Discord's 32 character limit.",
-                subtitle="Invalid operation."
-            )
-            return
-
-        timer_end_ts = None
+        timer_end_ts: float | None = None
         if timer_seconds is not None:
             now_ts       = datetime.now(tz=UTC).timestamp()
             timer_end_ts = now_ts + timer_seconds
@@ -512,6 +502,7 @@ class LeaveCommands(commands.Cog):
                 "begin_date":    None,
                 "end_date":      parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
                 "timer_end":     timer_end_ts,
+                "timer_seconds": None,
             }
             save_data(self.data)
 
@@ -662,10 +653,50 @@ class LeaveCommands(commands.Cog):
 
         entry = normalize_entry(raw_entry)
 
+        personal_leave_role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
+        if personal_leave_role is None:
+            await send_major_error(
+                interaction,
+                title="Error!",
+                texts="I could not fetch the Personal Leave role.",
+                subtitle=f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            )
+            return
+
+        is_scheduled = entry.get("begin_date") is not None
+        is_active    = personal_leave_role in target_member.roles
+
+        if is_scheduled and not is_active:
+            automation_desc = describe_automation(entry)
+            warning_text = (
+                f"### {DENIED_EMOJI_ID} Scheduled Leave,\n"
+                f"{target_member.mention} has a pending scheduled leave entry ({automation_desc}).\n\n"
+                "Confirming will cancel this scheduled leave before it applies."
+            )
+            view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
+            msg          = await interaction.followup.send(view=view, ephemeral=True)
+            view.message = msg
+            await view.wait()
+
+            if not view.confirmed:
+                return
+
+            self.data.pop(str(target_member.id), None)
+            save_data(self.data)
+            who = "Your" if target_member.id == interaction.user.id else f"{target_member.mention}'s"
+            await interaction.followup.send(f"{who} scheduled leave has been cancelled.", ephemeral=True)
+            return
+
+        if not is_active:
+            self.data.pop(str(target_member.id), None)
+            save_data(self.data)
+            await send_minor_error(interaction, "User does not have the Personal Leave role.")
+            return
+
         if entry_has_automation(entry):
             automation_desc = describe_automation(entry)
             warning_text = (
-                f"### {DENIED_EMOJI_ID} Automation Conflict,\n"
+                f"### {DENIED_EMOJI_ID} Warning,\n"
                 f"{target_member.mention} currently has an active automation entry ({automation_desc}).\n\n"
                 "Running `/leave remove` now will override and clear that automation. Proceed?"
             )
@@ -677,25 +708,9 @@ class LeaveCommands(commands.Cog):
             if not view.confirmed:
                 return
 
-        stored_name:     str       = entry["original_nick"]
+        stored_name:     str       = entry.get("original_nick") or target_member.display_name
         leave_type_str:  str       = entry.get("leave_type", LeaveType.none.value)
         stored_role_ids: list[int] = entry.get("removed_roles", [])
-
-        personal_leave_role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
-        if personal_leave_role is None:
-            await send_major_error(
-                interaction,
-                title="Error!",
-                texts="I could not fetch the Personal Leave role.",
-                subtitle=f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
-            )
-            return
-
-        if personal_leave_role not in target_member.roles:
-            self.data.pop(str(target_member.id), None)
-            save_data(self.data)
-            await send_minor_error(interaction, "User does not have the Personal Leave role.")
-            return
 
         roles_to_restore: list[discord.Role] = []
         if leave_type_str in (LeaveType.soft_clean.value, "soft_clean"):
@@ -790,7 +805,6 @@ class LeaveCommands(commands.Cog):
                     f"{target_member.mention} has been removed from personal leave.",
                     ephemeral=True
                 )
-
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(LeaveCommands(bot))
