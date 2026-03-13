@@ -107,7 +107,7 @@ class BotOwnerCommands(
             )
             return
 
-        core.state.OWNER_PRIVILEGE_ENABLED = boolean
+        setattr(core.state, "OWNER_PRIVILEGE_ENABLED", boolean)
 
         await interaction.response.send_message(
             f"Bot owner privilege set to: `{boolean}`",
@@ -569,6 +569,68 @@ class BotOwnerCommands(
             await original_message.reply(message)
         else:
             await ctx.send(message)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /pull-reload Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(
+        name="pull-reload",
+        description="Pull from main, then reload all cogs."
+    )
+    async def pull_reload(self, interaction: discord.Interaction) -> None:
+        if interaction.user.id != BOT_OWNER_ID:
+            await interaction.response.send_message(
+                view=PermissionError(),
+                ephemeral=True
+            )
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        proc = await asyncio.create_subprocess_exec(
+            "git", "pull", "origin", "main",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+
+        pull_output = (stdout.decode().strip() or stderr.decode().strip())
+
+        if proc.returncode != 0:
+            await send_major_error(
+                interaction,
+               f"Pull failed. All cogs failed to reload.\n"
+                "```py\n"
+               f"{pull_output[:1800]}\n"
+                "```",
+                subtitle="Invalid operation."
+            )
+            log.error("git pull failed (exit %s):\n%s", proc.returncode, pull_output)
+            return
+
+        failed: list[tuple[str, Exception]] = []
+        for c in self.COGS:
+            try:
+                await self.bot.reload_extension(c)
+                log.info("Reloaded cog %s", c)
+            except Exception as e:
+                failed.append((c, e))
+                log.error("Failed to reload cog %s: %s", c, e)
+
+        if failed:
+            msg = "\n".join(f"{c}: {e}" for c, e in failed)
+            await send_minor_error(
+                interaction,
+                "Pull succeeded. Some cogs failed to reload.\n"
+               f"{msg}",
+                subtitle="Invalid operation."
+            )
+        else:
+            await interaction.followup.send(
+                f"Pulled and reloaded all cogs successfully.\n```\n{pull_output[:1800]}\n```",
+                ephemeral=True,
+            )
 
 async def setup(bot: commands.Bot) -> None:
     cog = BotOwnerCommands(bot)

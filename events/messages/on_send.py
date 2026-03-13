@@ -25,7 +25,7 @@ from constants import (
     STAFF_PROPOSALS_CHANNEL_ID,
 
     DIRECTORS_ROLE_ID,
-    STAFF_COMMITTEE_ROLE_ID
+    STAFF_COMMITTEE_ROLE_ID, HOLY_FATHER_ID
 )
 
 MAX_STRIKES = 5
@@ -114,16 +114,17 @@ class MessageSendHandler(commands.Cog):
                 )
             return
 
-        if (
-            "clanker"
-            in (message.content or "").lower()
-        ):
+        if "clanker" in (message.content or "").lower() and message.author.id != HOLY_FATHER_ID:
             grimace_emojis = ['<:grimace2:1469070596632608779>', '<:grimace3:1469070653624684820>']
             await message.reply(
                 "stfu you meatbag 🥀 omfg icl ts pmo gng smh frfr <:exhausted:1467990265452167362>"
             )
             await message.add_reaction(
                 secrets.choice(grimace_emojis)
+            )
+        else:
+            await message.reply(
+                "<:cry2:1450439399564115995> But daddy..."
             )
 
         if message.guild is None:

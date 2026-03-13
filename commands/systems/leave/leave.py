@@ -45,6 +45,15 @@ from constants import (
     LEADING_DIRECTOR_ROLE_ID,
 )
 
+def _build_leave_nick(name: str) -> str | None:
+    long_nick = f"P. Leave | {name}"
+    if len(long_nick) <= 32:
+        return long_nick
+    short_nick = f"PL | {name}"
+    if len(short_nick) <= 32:
+        return short_nick
+    return None
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Leave Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -132,9 +141,9 @@ class LeaveCommands(commands.Cog):
 
         original_full_nick = member.nick or member.name
         actual_name        = extract_name(original_full_nick)
-        new_nick           = f"P. Leave | {actual_name}"
+        new_nick           = _build_leave_nick(actual_name)
 
-        if len(new_nick) > 32:
+        if new_nick is None:
             entry["begin_date"]    = None
             entry["timer_seconds"] = None
             self.data[user_id_str] = entry
@@ -142,15 +151,15 @@ class LeaveCommands(commands.Cog):
             return
 
         stored_timer_secs: int | None = entry.get("timer_seconds")
-        new_timer_end: float | None   = (
+        new_timer_end:   float | None   = (
             datetime.now(tz=UTC).timestamp() + stored_timer_secs
             if stored_timer_secs is not None else None
         )
 
         try:
             if roles_to_remove:
-                await member.remove_roles(*roles_to_remove, reason="Scheduled leave automation")
-            await member.add_roles(personal_leave_role, reason="Scheduled leave automation")
+                await member.remove_roles(*roles_to_remove, reason="UB Leave: Scheduled leave automation")
+            await member.add_roles(personal_leave_role, reason="UB Leave: Scheduled leave automation")
             await member.edit(nick=new_nick)
         except discord.HTTPException:
             return
@@ -191,15 +200,18 @@ class LeaveCommands(commands.Cog):
 
         try:
             if personal_leave_role in member.roles:
-                await member.remove_roles(personal_leave_role, reason="Scheduled leave automation")
+                await member.remove_roles(personal_leave_role, reason="UB Leave: Scheduled leave automation")
 
-            current_nick  = member.nick or member.name
-            expected_nick = f"P. Leave | {extract_name(stored_name)}"
-            if current_nick == expected_nick:
+            current_nick   = member.nick or member.name
+            base_name      = extract_name(stored_name)
+            expected_long  = f"P. Leave | {base_name}"
+            expected_short = f"PL | {base_name}"
+            
+            if current_nick in (expected_long, expected_short):
                 await member.edit(nick=stored_name)
 
             if roles_to_restore:
-                await member.add_roles(*roles_to_restore, reason="Scheduled leave automation")
+                await member.add_roles(*roles_to_restore, reason="UB Leave: Scheduled leave automation")
         except discord.HTTPException:
             return
 
@@ -418,12 +430,12 @@ class LeaveCommands(commands.Cog):
 
         original_full_nick = target_member.nick or target_member.name
         actual_name        = extract_name(original_full_nick)
-        new_nick           = f"P. Leave | {actual_name}"
+        new_nick           = _build_leave_nick(actual_name)
 
-        if len(new_nick) > 32:
+        if new_nick is None:
             await send_minor_error(
                 interaction,
-                "The resulting nickname exceeds Discord's 32 character limit.",
+                "The resulting nickname, as well as `PL | nickname`, exceed Discord's 32 character limit.",
                 subtitle="Invalid operation."
             )
             return
@@ -584,9 +596,8 @@ class LeaveCommands(commands.Cog):
 
             await send_major_error(
                 interaction,
-                title="Error!",
-                texts="A Discord API error occurred. Please try again later.",
-                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}> if this persists."
+                "A Discord API error occurred. Please try again later.",
+                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -725,10 +736,12 @@ class LeaveCommands(commands.Cog):
         try:
             await target_member.remove_roles(personal_leave_role)
 
-            current_nick  = target_member.nick or target_member.name
-            expected_nick = f"P. Leave | {extract_name(stored_name)}"
+            current_nick   = target_member.nick or target_member.name
+            base_name      = extract_name(stored_name)
+            expected_long  = f"P. Leave | {base_name}"
+            expected_short = f"PL | {base_name}"
 
-            if current_nick == expected_nick:
+            if current_nick in (expected_long, expected_short):
                 try:
                     await target_member.edit(nick=stored_name)
                 except discord.Forbidden:

@@ -4,7 +4,7 @@ from typing import Any
 from collections import defaultdict
 from datetime import datetime
 
-OWNER_PRIVILEGE_ENABLED = True
+OWNER_PRIVILEGE_ENABLED: bool = True
 
 AUTOMOD_DELETIONS: set[int] = set()
 
