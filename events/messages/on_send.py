@@ -122,9 +122,9 @@ class MessageSendHandler(commands.Cog):
             await message.add_reaction(
                 secrets.choice(grimace_emojis)
             )
-        else:
+        if "clanker" in (message.content or "").lower() and message.author.id == HOLY_FATHER_ID:
             await message.reply(
-                "<:cry2:1450439399564115995> But daddy..."
+                "<:cry2:1482032228614668390> But daddy..."
             )
 
         if message.guild is None:

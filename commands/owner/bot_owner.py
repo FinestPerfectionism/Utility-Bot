@@ -278,6 +278,22 @@ class BotOwnerCommands(
             log.error("Failed to unload cog %s: %s", cog, e)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .shutdown/.shut Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="shutdown", aliases=["shut"])
+    async def shutdown(self, ctx: commands.Context[commands.Bot]) -> None:
+        if ctx.author.id != BOT_OWNER_ID:
+            await ctx.message.add_reaction(DENIED_EMOJI_ID)
+            return
+
+        with contextlib.suppress(discord.HTTPException, discord.Forbidden):
+            await ctx.message.delete()
+
+        await ctx.send("Shutting down bot...", delete_after=1)
+        await self.bot.close()
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .restart/.r Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
