@@ -375,6 +375,7 @@ class TicketControlPanel(discord.ui.LayoutView):
 
         if not _is_staff(interaction.user):
             await interaction.response.send_message(
+               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**"
                 "Only moderators can claim tickets.",
                 ephemeral=True,
             )
@@ -385,6 +386,7 @@ class TicketControlPanel(discord.ui.LayoutView):
 
         if existing_claimer_id == interaction.user.id:
             await interaction.response.send_message(
+               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**"
                 "You have already claimed this ticket.",
                 ephemeral=True,
             )

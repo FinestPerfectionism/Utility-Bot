@@ -4,7 +4,10 @@ from discord import (
     TextChannel,
     ForumChannel
 )
-from discord.abc import GuildChannel, Messageable
+from discord.abc import (
+    GuildChannel,
+    Messageable
+)
 
 from asyncio import Queue
 import re
@@ -121,14 +124,20 @@ def parse_duration(input_str: str) -> timedelta | None:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MinorError(discord.ui.LayoutView):
-    def __init__(self, texts: list[str], subtitle: str = "Invalid argument.", title: str = "Error!") -> None:
+    def __init__(
+        self,
+        texts:    list[str],
+        subtitle: str = "Invalid argument.",
+        title:    str = "Error!"
+    ) -> None:
         super().__init__()
 
-        container = discord.ui.Container(accent_color=COLOR_YELLOW) # type: ignore
+        container = discord.ui.Container(accent_color=COLOR_YELLOW)
 
         container.add_item(
             discord.ui.TextDisplay(
-                content=f"### {CONTESTED_EMOJI_ID} {title}\n-# {subtitle}"
+                content=f"### {CONTESTED_EMOJI_ID} {title}\n"
+                        f"-# {subtitle}"
             )
         )
 
@@ -142,23 +151,24 @@ class MinorError(discord.ui.LayoutView):
                 )
             container.add_item(discord.ui.TextDisplay(content=text))
 
-        self.add_item(container) # type: ignore
+        self.add_item(container)
 
 
 class MajorError(discord.ui.LayoutView):
     def __init__(
         self,
-        texts: list[str],
+        texts:    list[str],
         subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-        title: str = "Error!"
+        title:    str =  "Error!"
     ) -> None:
         super().__init__()
 
-        container = discord.ui.Container(accent_color=COLOR_RED) # type: ignore
+        container = discord.ui.Container(accent_color=COLOR_RED)
 
         container.add_item(
             discord.ui.TextDisplay(
-                content=f"### {DENIED_EMOJI_ID} {title}\n-# {subtitle}"
+                content=f"### {DENIED_EMOJI_ID} {title}\n"
+                        f"-# {subtitle}"
             )
         )
 
@@ -172,14 +182,14 @@ class MajorError(discord.ui.LayoutView):
                 )
             container.add_item(discord.ui.TextDisplay(content=text))
 
-        self.add_item(container) # type: ignore
+        self.add_item(container)
 
 
 async def send_minor_error(
     interaction: discord.Interaction,
-    texts: list[str] | str,
-    subtitle: str = "Invalid argument.",
-    title: str = "Error!"
+    texts:       list[str] | str,
+    subtitle:    str = "Invalid argument.",
+    title:       str = "Error!"
 ) -> None:
     if isinstance(texts, str):
         texts = [texts]
@@ -201,9 +211,9 @@ async def send_minor_error(
 
 async def send_major_error(
     interaction: discord.Interaction,
-    texts: list[str] | str,
-    subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-    title: str = "Error!"
+    texts:       list[str] | str,
+    subtitle:    str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
+    title:       str = "Error!"
 ) -> None:
     if isinstance(texts, str):
         texts = [texts]
