@@ -13,6 +13,24 @@ from constants import (
 # Leave System
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+class LeaveFormatView(discord.ui.LayoutView):
+    container = discord.ui.Container( # type: ignore
+        discord.ui.TextDisplay( # type: ignore
+            content=(
+                "# Leave Request Format\n\n"
+                "```\n"
+                "Beginning Date: MM/DD/YYYY\n"
+                "Ending Date:    MM/DD/YYYY\n"
+                "Timer:          1w2d3h4m"
+                "Reason:         Reason (optional)\n"
+                "Type:           Standard / Clean\n"
+                "```\n"
+                "Copy and paste this into your leave thread after opening a request."
+            )
+        ),
+        accent_color=COLOR_GREEN,
+    )
+
 class LeaveComponents(discord.ui.LayoutView):
     def __init__(self) -> None:
         super().__init__(timeout=None)
@@ -60,24 +78,6 @@ class LeaveComponents(discord.ui.LayoutView):
         ),
         accent_color=COLOR_GREEN,
     )
-
-    class LeaveFormatView(discord.ui.LayoutView):
-        container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay( # type: ignore
-                content=(
-                    "# Leave Request Format\n\n"
-                    "```\n"
-                    "Beginning Date: MM/DD/YYYY\n"
-                    "Ending Date:    MM/DD/YYYY\n"
-                    "Timer:          1w2d3h4m"
-                    "Reason:         Reason (optional)\n"
-                    "Type:           Standard / Clean\n"
-                    "```\n"
-                    "Copy and paste this into your leave thread after opening a request."
-                )
-            ),
-            accent_color=COLOR_GREEN,
-        )
 
     async def format_leave(self, interaction: discord.Interaction) -> None:
         if interaction.response.is_done():
