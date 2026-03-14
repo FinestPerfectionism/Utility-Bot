@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 from commands.moderation.cases import (
     CaseType,
-CasesManager
+    CasesManager
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

@@ -1,8 +1,7 @@
 { pkgs }: {
-    deps = [
-      pkgs.tree
-      pkgs.pyright
-      pkgs.python312
-    ];
-  }
-  
+	deps = [
+		pkgs.tree
+		pkgs.nodePackages.pyright
+		pkgs.python312
+	];
+}

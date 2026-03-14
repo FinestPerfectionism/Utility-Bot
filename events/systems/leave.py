@@ -25,7 +25,7 @@ class LeaveFormatView(discord.ui.LayoutView):
                 "Reason:         Reason (optional)\n"
                 "Type:           Standard / Clean\n"
                 "```\n"
-                "Copy and paste this into your leave thread after opening a request."
+                "Leave requests created not following the format above will not be considered."
             )
         ),
         accent_color=COLOR_GREEN,
@@ -48,8 +48,9 @@ class LeaveComponents(discord.ui.LayoutView):
                 "When you plan to be unavailable for a period of time, you must notify directors using this channel. This system exists solely to track staff availability and ensure operational coverage. Taking leave is expected and acceptable, provided it is communicated properly.\n\n"
                 "When submitting a leave request, include the following information:\n\n"
                 "- **Beginning Date:** The exact date your leave will begin.\n"
-                "   - **Note:** If you do not know when you will return, do __not__ provide an ending date.\n"
+                "   - **Note:** If you will be going on leave effective immediately, do __not__ provide a beginning date.\n"
                 "- **Ending Date:** The exact date your leave will end.\n"
+                "   - **Note:** If you do not know when you will return, do __not__ provide an ending date.\n"
                 "- **Timer:** A timer for your leave (incompatible with ending date).\n"
                 "- **Reason:** A reason for your leave (optional).\n\n"
                 "## Types of Leave\n\n"
@@ -148,7 +149,7 @@ class LeaveComponents(discord.ui.LayoutView):
             await thread.send(director_role.mention)
 
         await interaction.response.send_message(
-            f"{ACCEPTED_EMOJI_ID} **Successfully created leave request!**\n"
+            f"{ACCEPTED_EMOJI_ID} **Successfully opened leave request.**\n"
             f"Thread: {thread.mention}",
             ephemeral=True,
         )

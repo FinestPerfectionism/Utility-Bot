@@ -34,16 +34,13 @@ from constants import (
 RESOLUTION_TASKS: dict[int, asyncio.Task[None]] = {}
 _bot_ref: commands.Bot | None = None
 
-
 def set_bot(bot: commands.Bot) -> None:
     global _bot_ref
     _bot_ref = bot
 
-
 def _is_staff(member: discord.Member) -> bool:
     role_ids = {r.id for r in member.roles}
     return MODERATORS_ROLE_ID in role_ids or DIRECTORS_ROLE_ID in role_ids
-
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Resolution Check System
@@ -59,11 +56,11 @@ def stop_resolution(thread_id: int) -> None:
 
 
 async def _run_resolution_checks(
-    thread_id: int,
-    user_id: int,
-    bot: commands.Bot,
+    thread_id:        int,
+    user_id:          int,
+    bot:              commands.Bot,
     interval_minutes: int = 15,
-    delay: float | None = None,
+    delay:            float | None = None,
 ) -> None:
     await asyncio.sleep(delay if delay is not None else interval_minutes * 60.0)
 
@@ -100,11 +97,11 @@ async def _run_resolution_checks(
 
 
 def start_resolution_task(
-    thread_id: int,
-    user_id: int,
-    bot: commands.Bot,
+    thread_id:        int,
+    user_id:          int,
+    bot:              commands.Bot,
     interval_minutes: int = 15,
-    delay: float | None = None,
+    delay:            float | None = None,
 ) -> None:
     task = asyncio.create_task(
         _run_resolution_checks(
@@ -146,6 +143,7 @@ class ResolutionView(discord.ui.View):
 
         if interaction.user.id != opener_id and not _is_staff(interaction.user):
             await interaction.response.send_message(
+               f"{CONTESTED_EMOJI_ID} **Failed to respond to resolution check!**"
                 "Only the ticket opener can respond to this.",
                 ephemeral=True,
             )
@@ -154,6 +152,7 @@ class ResolutionView(discord.ui.View):
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
         await interaction.response.send_message(
+           f"{ACCEPTED_EMOJI_ID} **Understood.**"
             "Glad your issue was resolved! This ticket will now be archived."
         )
         await channel.edit(locked=True, archived=True)
@@ -175,12 +174,14 @@ class ResolutionView(discord.ui.View):
 
         if interaction.user.id != opener_id:
             await interaction.response.send_message(
+               f"{CONTESTED_EMOJI_ID} **Failed to respond to resolution check!**"
                 "Only the ticket opener can respond to this.",
                 ephemeral=True,
             )
             return
 
         await interaction.response.send_message(
+           f"{ACCEPTED_EMOJI_ID} **Understood.**"
             "Understood! We'll check back in with you later.",
             ephemeral=True,
         )
@@ -395,6 +396,7 @@ class TicketControlPanel(discord.ui.LayoutView):
         TICKET_CLAIMS[channel.id] = interaction.user.id
         save_ticket_state()
         await interaction.response.send_message(
+            f"{ACCEPTED_EMOJI_ID} **Successfully claimed ticket.**"
             f"Ticket claimed by {interaction.user.mention}."
         )
 
