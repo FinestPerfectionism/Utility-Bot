@@ -76,11 +76,11 @@ class TimeoutFlags(commands.FlagConverter, prefix="/", delimiter=" "):
 
 class PurgeFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     u: discord.Member | None = commands.flag(name="u", aliases=["user"], default=None)
-    r: str = commands.flag(name="r", aliases=["reason"])
-    s: bool = commands.flag(
-        name="s",
-        aliases=["silent", "supress", "shush"],
-        default=False,
+    r: str                   = commands.flag(name="r", aliases=["reason"])
+    s: bool                  = commands.flag(
+        name    = "s",
+        aliases = ["silent", "supress", "shush"],
+        default = False,
         max_args=0
     )
 

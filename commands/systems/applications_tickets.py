@@ -192,7 +192,7 @@ class ApplicationsTicketsCommands(
         await channel.edit(locked=True, archived=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .claim/.c Command
+    # .claim Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="claim")

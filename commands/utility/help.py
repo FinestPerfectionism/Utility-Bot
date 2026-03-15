@@ -114,7 +114,7 @@ class HelpCommands(commands.Cog):
                      "-# Genuinely wondering how one makes it this far without realizing something as simple as this. 🥀",
             "super_secret_command": "There is no super secret command in ba sing se.",
             "help": "Help²",
-            "me": "No. <:laugh5:1474263882746040361>"
+            "me": "No. <:laugh5:1481288430150484111>"
         }
 
         if query in snarky_responses:

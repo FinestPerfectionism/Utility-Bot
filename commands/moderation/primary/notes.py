@@ -16,6 +16,13 @@ from commands.moderation.cases import (
 CasesManager
 )
 
+from core.permissions import (
+    is_administrator,
+    is_director,
+    is_moderator,
+    is_senior_moderator,
+)
+
 from constants import (
     COLOR_GREEN,
     COLOR_ORANGE,
@@ -29,13 +36,6 @@ from constants import (
 
 if TYPE_CHECKING:
     from bot import UtilityBot
-    
-from core.permissions import (
-    is_administrator,
-    is_director,
-    is_moderator,
-    is_senior_moderator,
-)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Flag Converters

@@ -23,6 +23,7 @@ from core.permissions import (
     is_director,
     is_staff
 )
+
 from constants import (
     BOT_OWNER_ID,
     COLOR_RED,
@@ -76,7 +77,7 @@ def load_data() -> dict[str, Any]:
 def save_data(data: dict[str, Any]) -> None:
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
-        
+
 def extract_name(nickname: str) -> str:
     if "|" in nickname:
         return nickname.split("|")[-1].strip()
@@ -138,6 +139,15 @@ def describe_automation(entry: dict[str, Any]) -> str:
         stamp = discord.utils.format_dt(dt, style="f")
         parts.append(f"on a **timer** expiring {stamp}")
     return ", ".join(parts) if parts else "unknown automation"
+
+def build_leave_nick(name: str) -> str | None:
+    long_nick = f"P. Leave | {name}"
+    if len(long_nick) <= 32:
+        return long_nick
+    short_nick = f"PL | {name}"
+    if len(short_nick) <= 32:
+        return short_nick
+    return None
 
 class HardCleanConfirmView(discord.ui.LayoutView):
     def __init__(

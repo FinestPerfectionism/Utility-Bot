@@ -97,6 +97,12 @@ class MiscCommands(commands.Cog):
             )
             return
 
+        if interaction.user.id == 1167207694424350740:
+            await interaction.response.send_message(
+                "My developer is so fucking tired of unbanning you and adding your roles back that he has decided that you can never touch ths command again. Dumbass. <:laugh5:1481288430150484111>"
+            )
+            return
+
         await interaction.response.defer(ephemeral=False)
 
         import secrets

@@ -25,7 +25,7 @@ class LeaveFormatView(discord.ui.LayoutView):
                 "Reason:         Reason (optional)\n"
                 "Type:           Standard / Clean\n"
                 "```\n"
-                "Leave requests created not following the format above will not be considered."
+                "Leave requests created not following the format above will be ignored."
             )
         ),
         accent_color=COLOR_GREEN,

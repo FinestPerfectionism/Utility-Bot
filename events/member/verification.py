@@ -624,7 +624,7 @@ class VerificationHandler(commands.Cog):
                         "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                     )
                     warned = True
-                    where = "DM"
+                    where  = "DM"
                 except (discord.Forbidden, discord.HTTPException):
                     try:
                         warn_channel: discord.abc.GuildChannel | discord.Thread | None = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
@@ -636,8 +636,8 @@ class VerificationHandler(commands.Cog):
                                 "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
                             )
                             warning_message_id = warn_msg.id
-                            warned = True
-                            where = "verification channel"
+                            warned             = True
+                            where              = "verification channel"
                     except (discord.Forbidden, discord.HTTPException):
                         pass
 
@@ -645,7 +645,9 @@ class VerificationHandler(commands.Cog):
                     self.data["unverified"][user_id]["warned"] = True
                     self.data["unverified"][user_id]["warning_message_id"] = warning_message_id
                     self.save_data()
-                    warned_log.append(f"{CONTESTED_EMOJI_ID} **{discord.utils.escape_markdown(str(member))}** (`{member.id}`) was warned via {where}.")
+                    warned_log.append(
+                        f"{CONTESTED_EMOJI_ID} **Member Warned**\n"
+                        f"{member.mention} was warned via {where}.")
 
         for user_id_to_del in to_remove:
             if user_id_to_del in self.data["unverified"]:

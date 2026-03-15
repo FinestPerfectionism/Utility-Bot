@@ -14,45 +14,70 @@ pythonVersion = "3.11"
 include = ["."]
 typeCheckingMode = "strict"
 
-reportMissingParameterType = "warning"
-reportMissingReturnType = "warning"
-reportUnnecessaryCast = "warning"
-reportUnnecessaryTypeIgnoreComment = "warning"
-reportUnknownMemberType = "warning"
-reportUnknownVariableType = "warning"
-reportUnknownArgumentType = "warning"
-reportGeneralTypeIssues = "error"
-reportOptionalMemberAccess = "error"
-reportOptionalSubscript = "error"
-reportPrivateUsage = "warning"
+reportMissingParameterType = "error"
+reportMissingReturnType = "error"
+reportUnknownMemberType = "error"
+reportUnknownVariableType = "error"
+reportUnknownArgumentType = "error"
+reportPrivateUsage = "error"
+reportUnnecessaryCast = "error"
+reportUnknownParameterType = "error"
+reportUnnecessaryIsInstance = "error"
+reportUnusedImport = "error"
+reportUnusedClass = "error"
+reportUnusedFunction = "error"
+reportUnusedVariable = "error"
+reportUntypedFunctionDecorator = "error"
+reportUntypedClassDecorator = "error"
+reportUntypedBaseClass = "error"
+reportAny = "error" 
+reportPropertyTypeMismatch = "error"
+reportIncompatibleMethodOverride = "error"
+reportIncompatibleVariableOverride = "error"
+reportOverlappingOverload = "error"
+reportUnnecessaryComparison = "error"
+reportAssertAlwaysTrue = "error"
+reportInvalidStringEscapeSequence = "error"
+reportShadowedVariable = "error"
+reportUninitializedInstanceVariable = "error"
+reportCallInDefaultInitializer = "error"
+reportUnnecessaryContains = "error"
+reportUnusedExpression = "error"
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+analyzeUnannotatedFunctions = true
+strictParameterNoneValue = true
+
+enableTypeIgnoreComments = true 
+reportUnnecessaryTypeIgnoreComment = "error"
 
 [tool.ruff]
 target-version = "py311"
 line-length = 100
 
 [tool.ruff.lint]
-select = [
-    "ANN",
-    "B",
-    "C4",
-    "E",
-    "F",
-    "ISC",
-    "PIE",
-    "PT",
-    "RET",
-    "RUF",
-    "S",
-    "SIM",
-    "TCH",
-    "UP"
-]
+select = ["ALL"]
 ignore = [
-    "E501"
+    "E501", 
+    "D",    
+    "ANN101",
+    "ANN102",
 ]
 
+[tool.ruff.lint.pygrep-hooks]
+pgi-001 = true
+
+[tool.ruff.lint.mccabe]
+max-complexity = 5
+
+[tool.ruff.lint.pylint]
+max-args = 5
+max-branches = 6
+max-returns = 3
+
 [tool.ruff.lint.flake8-annotations]
-allow-star-arg-any = true
+allow-star-arg-any = false
 suppress-none-returning = false
 
 [tool.ruff.lint.pyupgrade]
