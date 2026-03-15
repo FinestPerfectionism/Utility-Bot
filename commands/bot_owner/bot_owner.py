@@ -573,18 +573,21 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="say")
-    async def say(self, ctx: commands.Context[commands.Bot], *, message: str) -> None:
+    async def say(self, ctx: commands.Context[commands.Bot], target_channel: discord.TextChannel | None = None, *, message: str) -> None:
         if ctx.author.id != BOT_OWNER_ID:
             await ctx.message.add_reaction(DENIED_EMOJI_ID)
             return
 
         await ctx.message.delete()
 
+        channel = target_channel or ctx.channel
+        formatted_message = message.replace("\\n", "\n")
+
         if ctx.message.reference and ctx.message.reference.message_id is not None:
             original_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-            await original_message.reply(message)
+            await original_message.reply(formatted_message)
         else:
-            await ctx.send(message)
+            await channel.send(formatted_message)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /pull-reload Command
