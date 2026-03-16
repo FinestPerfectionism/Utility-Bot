@@ -1,0 +1,53 @@
+import discord
+from discord.ext import commands
+
+import logging
+
+from events.logging.errors import PermissionError
+from core.utils import (
+    send_minor_error,
+    send_major_error,
+)
+from constants import BOT_OWNER_ID
+
+log = logging.getLogger("Utility Bot")
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# /load Logic
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+async def run_load(
+    bot:         commands.Bot,
+    interaction: discord.Interaction,
+    cog:         str,
+    cogs:        list[str],
+) -> None:
+    if interaction.user.id != BOT_OWNER_ID:
+        await interaction.response.send_message(
+            view=PermissionError(),
+            ephemeral=True
+        )
+        return
+
+    if cog not in cogs:
+        await send_minor_error(interaction, f"Cog `{cog}` not found.")
+        return
+
+    if cog in bot.extensions:
+        await send_minor_error(interaction, f"Cog `{cog}` is already loaded.")
+        return
+
+    try:
+        await bot.load_extension(cog)
+        await interaction.response.send_message(
+            f"Loaded cog `{cog}`.",
+            ephemeral=True
+        )
+        log.info("Loaded cog %s", cog)
+    except Exception as e:
+        await send_major_error(
+            interaction,
+            f"Failed to load `{cog}`: {e}",
+            subtitle="Invalid operation."
+        )
+        log.error("Failed to load cog %s: %s", cog, e)

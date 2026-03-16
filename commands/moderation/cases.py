@@ -2,27 +2,14 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from typing import (
-    Any
-)
 import contextlib
-import json
-import os
 from datetime import datetime
 from typing import Literal
-from enum import Enum
 
-from constants import(
+from constants import (
     COLOR_GREEN,
-    COLOR_YELLOW,
-    COLOR_ORANGE,
-    COLOR_RED,
     COLOR_BLURPLE,
-    COLOR_GREY,
-    COLOR_BLACK,
-
     ACCEPTED_EMOJI_ID,
-
     DIRECTORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
@@ -30,7 +17,7 @@ from constants import(
 )
 from core.utils import (
     send_minor_error,
-    send_major_error
+    send_major_error,
 )
 from core.permissions import (
     is_administrator,
@@ -38,210 +25,11 @@ from core.permissions import (
     is_moderator,
     is_senior_moderator,
 )
+from core.cases import CaseType, CasesManager
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Cases Management
+# Cases Cog
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-class CaseType(str, Enum):
-    BAN = "ban"
-    UNBAN = "unban"
-    KICK = "kick"
-    TIMEOUT = "timeout"
-    UNTIMEOUT = "untimeout"
-    QUARANTINE_ADD = "quarantine_add"
-    QUARANTINE_REMOVE = "quarantine_remove"
-    LOCKDOWN_ADD = "lockdown_add"
-    LOCKDOWN_REMOVE = "lockdown_remove"
-    PURGE = "purge"
-    NOTE = "note"
-
-class CasesManager:
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
-        self.data_file = "cases_data.json"
-        self.config_file = "cases_config.json"
-        self.data = self.load_data()
-        self.config = self.load_config()
-
-    def load_data(self) -> dict[str, Any]:
-        if os.path.exists(self.data_file):
-            with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
-                return json.load(f)
-        return {"cases": [], "next_case_id": 1}
-
-    def load_config(self) -> dict[str, Any]:
-        if os.path.exists(self.config_file):
-            with contextlib.suppress(json.JSONDecodeError), open(self.config_file) as f:
-                return json.load(f)
-        return {"log_channel_id": None}
-
-    def save_data(self) -> None:
-        with open(self.data_file, 'w') as f:
-            json.dump(self.data, f, indent=4)
-
-    def save_config(self) -> None:
-        with open(self.config_file, 'w') as f:
-            json.dump(self.config, f, indent=4)
-
-    def get_next_case_id(self) -> int:
-        case_id = self.data["next_case_id"]
-        self.data["next_case_id"] += 1
-        self.save_data()
-        return case_id
-
-    async def log_case(
-        self,
-        guild: discord.Guild,
-        case_type: CaseType,
-        moderator: discord.Member,
-        reason: str,
-        target_user: discord.User | discord.Member | None = None,
-        duration: str | None = None,
-        metadata: dict[str, Any] | None = None
-    ) -> int:
-
-        case_id = self.get_next_case_id()
-
-        case_data = {
-            "case_id": case_id,
-            "type": case_type.value,
-            "guild_id": guild.id,
-            "moderator_id": moderator.id,
-            "moderator_name": str(moderator),
-            "target_user_id": target_user.id if target_user else None,
-            "target_user_name": str(target_user) if target_user else None,
-            "reason": reason,
-            "duration": duration,
-            "timestamp": datetime.now().isoformat(),
-            "metadata": metadata or {}
-        }
-
-        self.data["cases"].append(case_data)
-        self.save_data()
-
-        if self.config.get("log_channel_id"):
-            await self._send_to_log_channel(guild, case_data)
-
-        return case_id
-
-    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict[str, Any]) -> None:
-        channel_id = self.config.get("log_channel_id")
-        if not channel_id:
-            return
-
-        log_channel = guild.get_channel(channel_id)
-        if not isinstance(log_channel, (discord.TextChannel, discord.Thread)):
-            return
-
-        case_type = case_data["type"]
-
-        color_map = {
-            CaseType.BAN.value: COLOR_BLACK,
-            CaseType.UNBAN.value: COLOR_GREEN,
-            CaseType.KICK.value: COLOR_RED,
-            CaseType.TIMEOUT.value: COLOR_YELLOW,
-            CaseType.UNTIMEOUT.value: COLOR_GREEN,
-            CaseType.QUARANTINE_ADD.value: COLOR_ORANGE,
-            CaseType.QUARANTINE_REMOVE.value: COLOR_GREEN,
-            CaseType.LOCKDOWN_ADD.value: COLOR_GREY,
-            CaseType.LOCKDOWN_REMOVE.value: COLOR_GREEN,
-            CaseType.PURGE.value: COLOR_BLURPLE,
-            CaseType.NOTE.value: COLOR_BLURPLE
-        }
-
-        title_map = {
-            CaseType.BAN.value: "Member Banned",
-            CaseType.UNBAN.value: "User Un-banned",
-            CaseType.KICK.value: "Member Kicked",
-            CaseType.TIMEOUT.value: "Member Muted",
-            CaseType.UNTIMEOUT.value: "Memebr Un-muted",
-            CaseType.QUARANTINE_ADD.value: "Member Quarantined",
-            CaseType.QUARANTINE_REMOVE.value: "Member Un-quarantined",
-            CaseType.LOCKDOWN_ADD.value: "Lockdown Engaged",
-            CaseType.LOCKDOWN_REMOVE.value: "Lockdown Lifted",
-            CaseType.PURGE.value: "Messages Purged",
-            CaseType.NOTE.value: "Note Added",
-        }
-
-        embed = discord.Embed(
-            title=f"Case #{case_data['case_id']} — {title_map.get(case_type, 'Moderation Action')}",
-            color=color_map.get(case_type, COLOR_BLURPLE),
-            timestamp=datetime.fromisoformat(case_data["timestamp"])
-        )
-
-        moderator = guild.get_member(case_data["moderator_id"])
-        if moderator:
-            embed.add_field(name="Moderator", value=moderator.mention, inline=True)
-        else:
-            embed.add_field(name="Moderator", value=case_data["moderator_name"], inline=True)
-
-        if case_data["target_user_id"]:
-            try:
-                user = await self.bot.fetch_user(case_data["target_user_id"])
-                embed.add_field(name="User", value=f"{user.mention} ({user.id})", inline=True)
-            except Exception:
-                embed.add_field(name="User", value=f"{case_data['target_user_name']} ({case_data['target_user_id']})", inline=True)
-
-        if case_data.get("duration"):
-            embed.add_field(name="Duration", value=case_data["duration"], inline=True)
-
-        embed.add_field(name="Reason", value=case_data["reason"], inline=False)
-
-        if case_data.get("metadata"):
-            metadata = case_data["metadata"]
-
-            if "deleted_messages" in metadata:
-                embed.add_field(name="Messages Deleted", value=str(metadata["deleted_messages"]), inline=True)
-
-            if "channel_id" in metadata:
-                action_channel = guild.get_channel(metadata["channel_id"])
-                if action_channel:
-                    embed.add_field(name="Channel", value=action_channel.mention, inline=True)
-
-            if "roles_saved" in metadata:
-                embed.add_field(name="Roles Saved", value=str(metadata["roles_saved"]), inline=True)
-
-            if "roles_restored" in metadata:
-                embed.add_field(name="Roles Restored", value=str(metadata["roles_restored"]), inline=True)
-
-            if "channels_locked" in metadata:
-                embed.add_field(name="Channels Locked", value=str(metadata["channels_locked"]), inline=True)
-
-            if "channels_restored" in metadata:
-                embed.add_field(name="Channels Restored", value=str(metadata["channels_restored"]), inline=True)
-
-            if "proof_url" in metadata:
-                embed.add_field(name="Proof", value=metadata["proof_url"], inline=False)
-                embed.set_image(url=metadata["proof_url"])
-
-        with contextlib.suppress(discord.Forbidden):
-            await log_channel.send(embed=embed)
-
-    def get_cases(
-        self,
-        guild_id: int,
-        user_id: int | None = None,
-        moderator_id: int | None = None,
-        case_type: str | None = None
-    ) -> list[dict[str, Any]]:
-
-        self.data = self.load_data()
-
-        cases = [c for c in self.data["cases"] if c["guild_id"] == guild_id]
-
-        if user_id is not None:
-            cases = [c for c in cases if c.get("target_user_id") == user_id]
-
-        if moderator_id is not None:
-            cases = [c for c in cases if c["moderator_id"] == moderator_id]
-
-        if case_type is not None:
-            cases = [c for c in cases if c["type"] == case_type]
-
-        cases.sort(key=lambda x: x["case_id"], reverse=True)
-
-        return cases
 
 class CasesCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -254,10 +42,12 @@ class CasesCommands(commands.Cog):
         self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
 
     def can_view(self, member: discord.Member) -> bool:
-        return (is_director(member) or 
-                is_senior_moderator(member) or 
-                is_administrator(member) or 
-                is_moderator(member))
+        return (
+            is_director(member)
+            or is_senior_moderator(member)
+            or is_administrator(member)
+            or is_moderator(member)
+        )
 
     def can_configure(self, member: discord.Member) -> bool:
         return is_director(member)
@@ -266,6 +56,10 @@ class CasesCommands(commands.Cog):
         name="cases",
         description="Moderators only —— Cases management."
     )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases view
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @cases_group.command(name="view", description="View moderation cases with filters.")
     @app_commands.describe(
@@ -278,7 +72,10 @@ class CasesCommands(commands.Cog):
         interaction: discord.Interaction,
         user: discord.User | None = None,
         moderator: discord.User | None = None,
-        case_type: Literal["ban", "unban", "kick", "timeout", "untimeout", "quarantine", "unquarantine", "lockdown", "unlockdown", "purge"] | None = None
+        case_type: Literal[
+            "ban", "unban", "kick", "timeout", "untimeout",
+            "quarantine", "unquarantine", "lockdown", "unlockdown", "purge"
+        ] | None = None
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -340,10 +137,7 @@ class CasesCommands(commands.Cog):
             filter_text = " and ".join(filters) if filters else ""
             description = f"No cases found{' for ' + filter_text if filter_text else ''}."
 
-            embed = discord.Embed(
-                description=description,
-                color=COLOR_GREEN
-            )
+            embed = discord.Embed(description=description, color=COLOR_GREEN)
             await interaction.followup.send(embed=embed, ephemeral=True)
             return
 
@@ -371,39 +165,43 @@ class CasesCommands(commands.Cog):
             value_parts.append(f"**Type:** {case_type_display}")
 
             if case.get("target_user_id"):
-                try:
+                with contextlib.suppress(discord.NotFound, discord.HTTPException):
                     target = await self.bot.fetch_user(case["target_user_id"])
                     value_parts.append(f"**User:** {target.mention}")
-                except Exception:
+
+                if not any(p.startswith("**User:**") for p in value_parts):
                     value_parts.append(f"**User:** {case['target_user_name']} ({case['target_user_id']})")
 
-            try:
+            with contextlib.suppress(discord.NotFound, discord.HTTPException):
                 mod = await self.bot.fetch_user(case["moderator_id"])
                 value_parts.append(f"**Moderator:** {mod.mention}")
-            except Exception:
+
+            if not any(p.startswith("**Moderator:**") for p in value_parts):
                 value_parts.append(f"**Moderator:** {case['moderator_name']}")
 
             if case.get("duration"):
                 value_parts.append(f"**Duration:** {case['duration']}")
 
             value_parts.append(f"**Reason:** {case['reason']}")
-
             value_parts.append(f"**When:** {discord.utils.format_dt(timestamp, 'R')}")
 
-            field_name = f"Case #{case['case_id']}"
-            field_value = "\n".join(value_parts)
-
-            embed.add_field(name=field_name, value=field_value, inline=False)
+            embed.add_field(
+                name=f"Case #{case['case_id']}",
+                value="\n".join(value_parts),
+                inline=False
+            )
 
         if len(cases) > 25:
             embed.set_footer(text=f"Showing 25 of {len(cases)} cases")
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases config
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
     @cases_group.command(name="config", description="Configure the cases log channel.")
-    @app_commands.describe(
-        channel="The channel where case logs will be sent."
-    )
+    @app_commands.describe(channel="The channel where case logs will be sent.")
     async def cases_config(
         self,
         interaction: discord.Interaction,

@@ -27,10 +27,6 @@ from constants import (
 
 log = logging.getLogger("Utility Bot")
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Console Mirror
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
 class DiscordLogHandler(logging.Handler):
     def __init__(self, queue: asyncio.Queue[Any]) -> None:
         super().__init__()
@@ -46,9 +42,10 @@ class DiscordLogHandler(logging.Handler):
 
 class Ready(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
-        self._ran = False
-        self._console_queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=500)
+        self.bot                                 = bot
+        self._ran                                = False
+        self._console_queue : asyncio.Queue[Any] = asyncio.Queue(maxsize=500)
+        self._console_task  : asyncio.Task[Any] | None = None
 
     async def console_worker(self) -> None:
         await self.bot.wait_until_ready()

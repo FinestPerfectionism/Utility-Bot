@@ -47,13 +47,13 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_leave_add(
-    data:        dict[str, Any],
-    interaction: discord.Interaction,
-    leave_type:  str,
-    target:      discord.Member | None,
-    begin_date:  str | None,
-    end_date:    str | None,
-    timer:       str | None,
+    data        : dict[str, Any],
+    interaction : discord.Interaction,
+    leave_type  : str,
+    target      : discord.Member | None,
+    begin_date  : str | None,
+    end_date    : str | None,
+    timer       : str | None,
 ) -> None:
     resolved_type = LeaveType(leave_type)
 
@@ -360,16 +360,14 @@ async def run_leave_add(
         if not role_added and not roles_removed:
             await send_major_error(
                 interaction,
-                title="Error!",
-                texts="I lack the necessary permissions to modify this user's roles.",
-                subtitle="Invalid configuration. Contact the owner."
+                texts    = "I lack the necessary permissions to modify this user's roles.",
+                subtitle = "Invalid configuration. Contact the owner."
             )
         elif not role_added:
             await send_major_error(
                 interaction,
-                title="Error!",
-                texts="I lack the necessary permissions to assign the Personal Leave role.",
-                subtitle="Invalid configuration. Contact the owner."
+                texts    = "I lack the necessary permissions to assign the Personal Leave role.",
+                subtitle = "Invalid configuration. Contact the owner."
             )
         elif not nick_changed:
             if target_member.id == interaction.guild.owner_id:
@@ -386,9 +384,8 @@ async def run_leave_add(
             else:
                 await send_major_error(
                     interaction,
-                    title="Error!",
-                    texts="I lack the necessary permissions to change this user's nickname.",
-                    subtitle="Invalid configuration. Contact the owner."
+                    texts    = "I lack the necessary permissions to change this user's nickname.",
+                    subtitle = "Invalid configuration. Contact the owner."
                 )
 
     except discord.HTTPException:
@@ -404,6 +401,6 @@ async def run_leave_add(
 
         await send_major_error(
             interaction,
-            "A Discord API error occurred. Please try again later.",
-            subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            texts    =  "A Discord API error occurred. Please try again later.",
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
         )

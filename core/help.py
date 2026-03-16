@@ -69,7 +69,7 @@ class CommandHelpData:
     aliases:     list[str]               = field(default_factory=list)
 
 class HelpedCallable:
-    __help_data__: CommandHelpData
+    __help_data__: CommandHelpData = field(init=False)
 
 def help_description(
     desc:                                  str,

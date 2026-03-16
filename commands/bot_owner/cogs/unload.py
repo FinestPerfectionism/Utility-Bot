@@ -1,0 +1,53 @@
+import discord
+from discord.ext import commands
+
+import logging
+
+from events.logging.errors import PermissionError
+from core.utils import (
+    send_minor_error,
+    send_major_error,
+)
+from constants import BOT_OWNER_ID
+
+log = logging.getLogger("Utility Bot")
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# /unload Logic
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+async def run_unload(
+    bot:         commands.Bot,
+    interaction: discord.Interaction,
+    cog:         str,
+    cogs:        list[str],
+) -> None:
+    if interaction.user.id != BOT_OWNER_ID:
+        await interaction.response.send_message(
+            view=PermissionError(),
+            ephemeral=True
+        )
+        return
+
+    if cog not in cogs:
+        await send_minor_error(interaction, f"Cog `{cog}` not found.")
+        return
+
+    if cog not in bot.extensions:
+        await send_minor_error(interaction, f"Cog `{cog}` is already not loaded.")
+        return
+
+    try:
+        await bot.unload_extension(cog)
+        await interaction.response.send_message(
+            f"Unloaded cog `{cog}`.",
+            ephemeral=True
+        )
+        log.info("Unloaded cog %s", cog)
+    except Exception as e:
+        await send_major_error(
+            interaction,
+            f"Failed to unload `{cog}`: {e}",
+            subtitle="Invalid operation."
+        )
+        log.error("Failed to unload cog %s: %s", cog, e)
