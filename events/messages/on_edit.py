@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+import re
+
 from core.utils import (
     channel_display,
     format_attachments,
@@ -13,7 +15,21 @@ from constants import (
     MESSAGE_EDIT_LOG_CHANNEL_ID,
 
     COLOR_GREY,
+
+    WAPPLE_CHAIN_CHANNEL_ID
 )
+
+WAPPLE_EMOJIS = [
+    "<:Wapple:1474915842071335098>",
+    "<:WappleYellow:1474916545158189108>",
+    "<:WappleGreen:1474916731532087569>",
+    "<:WappleBlue:1474916471984623842>",
+    "<:WappleHartwellWhite:1474916613232001117>",
+    "<:applebruh:1478244953892192357>",
+    "<:ex:1476672300467093626>"
+]
+
+WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Message Editing
@@ -41,6 +57,16 @@ class MessageEditHandler(commands.Cog):
         
         if before.author.bot or before.guild is None:
             return
+
+        if before.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
+            content = (after.content or "").strip()
+
+            if not WAPPLE_PATTERN.fullmatch(content):
+                try:
+                    await after.delete()
+                except discord.HTTPException:
+                    pass
+                return
 
         if self.is_directorship_channel(before.channel):
             return

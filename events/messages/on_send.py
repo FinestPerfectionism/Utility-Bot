@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+import re
 import secrets
 from datetime import timedelta
 import logging
@@ -25,12 +26,28 @@ from constants import (
     STAFF_PROPOSALS_CHANNEL_ID,
 
     DIRECTORS_ROLE_ID,
-    STAFF_COMMITTEE_ROLE_ID, HOLY_FATHER_ID
+    STAFF_COMMITTEE_ROLE_ID,
+
+    HOLY_FATHER_ID,
+
+    WAPPLE_CHAIN_CHANNEL_ID
 )
 
 MAX_STRIKES = 5
 TIMEOUT_DURATION = timedelta(days=3)
 WINDOW = timedelta(days=7)
+
+WAPPLE_EMOJIS = [
+    "<:Wapple:1474915842071335098>",
+    "<:WappleYellow:1474916545158189108>",
+    "<:WappleGreen:1474916731532087569>",
+    "<:WappleBlue:1474916471984623842>",
+    "<:WappleHartwellWhite:1474916613232001117>",
+    "<:applebruh:1478244953892192357>",
+    "<:ex:1476672300467093626>"
+]
+
+WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Message Sending
@@ -43,6 +60,16 @@ class MessageSendHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
+            return
+            
+        if message.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
+            content = message.content.strip()
+
+            if not WAPPLE_PATTERN.fullmatch(content):
+                try:
+                    await message.delete()
+                except discord.HTTPException:
+                    pass
             return
 
         if isinstance(message.channel, discord.Thread):
