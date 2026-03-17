@@ -10,8 +10,6 @@ from core.cog_loader import discover_cogs
 def get_cogs():
     return discover_cogs("commands", "events", "core")
 
-COGS = get_cogs()
-
 async def cog_autocomplete(
     interaction: discord.Interaction,
     current: str,

@@ -5,7 +5,7 @@ from discord import app_commands
 import logging
 
 from ._base import (
-    COGS as _COGS,
+    get_cogs,
     cog_autocomplete,
 )
 from .cogs.reload import run_reload
@@ -35,7 +35,9 @@ class BotOwnerCommands(
         self.restarting_ref = [False]
         super().__init__()
 
-    COGS = _COGS
+    @property
+    def COGS(self):
+        return get_cogs()
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /reload Command
@@ -50,7 +52,7 @@ class BotOwnerCommands(
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
     async def reload(self, interaction: discord.Interaction, cog: str | None = None) -> None:
-        await run_reload(self.bot, interaction, cog, self.COGS)
+        await run_reload(self.bot, interaction, cog, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /load Command
@@ -65,7 +67,7 @@ class BotOwnerCommands(
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
     async def load(self, interaction: discord.Interaction, cog: str) -> None:
-        await run_load(self.bot, interaction, cog, self.COGS)
+        await run_load(self.bot, interaction, cog, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /unload Command
@@ -80,7 +82,7 @@ class BotOwnerCommands(
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
     async def unload(self, interaction: discord.Interaction, cog: str) -> None:
-        await run_unload(self.bot, interaction, cog, self.COGS)
+        await run_unload(self.bot, interaction, cog, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .shutdown/.shut Command
@@ -169,7 +171,7 @@ class BotOwnerCommands(
         description="Pull from main, then reload all cogs."
     )
     async def pull_reload(self, interaction: discord.Interaction) -> None:
-        await run_pull_reload(self.bot, interaction, self.COGS)
+        await run_pull_reload(self.bot, interaction, get_cogs())
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(BotOwnerCommands(bot))
