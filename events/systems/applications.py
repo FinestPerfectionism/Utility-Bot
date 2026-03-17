@@ -776,7 +776,8 @@ class EditQuestionSelectView(ui.View):
             discord.SelectOption(
                 label=f"Question {i + 1}",
                 description=(q[:97] + "...") if len(q) > 100 else q,
-                value=str(i)) for i, q in enumerate(data["questions"])
+                value=str(i)) for i, q in enumerate(data["questions"]
+           )
         ]
 
         self.add_item(EditQuestionSelect(options, user_id))
@@ -787,8 +788,10 @@ class EditQuestionSelectView(ui.View):
 
 class EditQuestionSelect(discord.ui.Select[discord.ui.View]):
     def __init__(self, options: list[discord.SelectOption], user_id: int) -> None:
-        super().__init__(placeholder="Select a question to edit.",
-                         options=options)
+        super().__init__(
+            placeholder="Select a question to edit.",
+            options=options
+        )
         self.user_id = user_id
 
     async def callback(self, interaction: discord.Interaction) -> None:

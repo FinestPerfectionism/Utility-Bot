@@ -31,7 +31,10 @@ from constants import(
     STAFF_ROLE_ID,
 )
 
-from commands.moderation.cases import CaseType, CasesManager
+from commands.moderation.cases import (
+    CaseType,
+    CasesManager
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Lockdown Commands
@@ -157,7 +160,7 @@ class LockdownCommands(commands.Cog):
         )
         embed.add_field(
             name="Reason",
-            value=self.data["reason"] or f"No reason specified by {interaction.user}",
+            value=self.data["reason"],
             inline=False
         )
 
@@ -171,9 +174,9 @@ class LockdownCommands(commands.Cog):
     async def lockdown_activate(
         self,
         interaction: discord.Interaction,
-        reason: str | None = None
+        reason: str
     ) -> None:
-        reason = reason or f"No reason specified by {interaction.user}"
+        reason = reason
 
         actor = interaction.user
         if not isinstance(actor, discord.Member):

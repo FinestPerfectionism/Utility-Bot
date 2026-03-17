@@ -13,34 +13,54 @@ if TYPE_CHECKING:
 from ._base import (
     ModerationBase,
     BanFlags,
+    UnbanFlags,
+    QuarantineFlags,
+    UnquarantineFlags,
     KickFlags,
     TimeoutFlags,
+    UntimeoutFlags,
     PurgeFlags,
 )
 
-from .bans import (
+from .ban import (
     run_ban,
     run_ban_prefix,
+)
+from .bans import(
     run_bans,
     run_bans_prefix,
 )
-from .unbans import (
+from .unban import (
     run_unban,
     run_unban_prefix,
 )
-from .kicks import (
+from .kick import (
     run_kick,
     run_kick_prefix,
 )
-from .timeouts import (
+from .timeout import (
     run_timeout,
     run_timeout_prefix,
+)
+from .timeouts import (
     run_timeouts,
     run_timeouts_prefix,
 )
-from .untimeouts import (
+from .untimeout import (
     run_untimeout,
     run_untimeout_prefix,
+)
+from .quarantine import(
+    run_quarantine,
+    run_quarantine_prefix,
+)
+from .quarantines import (
+    run_quarantines,
+    run_quarantines_prefix,
+)
+from .unquarantine import(
+    run_unquarantine,
+    run_unquarantine_prefix,
 )
 from .purges import (
     run_purge,
@@ -147,7 +167,7 @@ class ModerationCommands(
         ctx:   commands.Context[commands.Bot],
         user:  str,
         *,
-        flags: KickFlags
+        flags: UnbanFlags
     ) -> None:
         await run_unban_prefix(self, ctx, user, flags)
 
@@ -306,7 +326,7 @@ class ModerationCommands(
         ctx:    commands.Context[commands.Bot],
         member: discord.Member,
         *,
-        flags:  KickFlags
+        flags:  UntimeoutFlags
     ) -> None:
         await run_untimeout_prefix(self, ctx, member, flags)
 
@@ -341,10 +361,10 @@ class ModerationCommands(
         await run_timeouts(self, interaction)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .mute-list Command
+    # .timeouts Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="mute-list", aliases=["mutelist", "mutes", "mls", "time-outs", "timeouts", "tls"])
+    @commands.command(name="timeouts", aliases=["mute-list", "mutelist", "mutes", "mls", "time-outs", "tls"])
     async def timeouts_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         await run_timeouts_prefix(self, ctx)
 
@@ -364,7 +384,7 @@ class ModerationCommands(
         interaction: discord.Interaction,
         amount:      int,
         reason:      str,
-        member:      discord.Member | None = None,
+        member:      discord.Member     | None = None,
         proof:       discord.Attachment | None = None
     ) -> None:
         await run_purge(self, interaction, amount, reason, member, proof)
@@ -410,6 +430,88 @@ class ModerationCommands(
                 f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation quarantines Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="quarantines", description="View all quarantined members.")
+    async def quarantines(self, interaction: discord.Interaction) -> None:
+        await run_quarantines(self, interaction)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .quarantines Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="quarantines", aliases=["quarantine-list", "quarantinelist", "qv"])
+    async def quarantines_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
+        await run_quarantines_prefix(self, ctx)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation quarantine Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="quarantine", description="Quarantine a member.")
+    @app_commands.describe(
+        member="The member to quarantine.",
+        reason="Reason for quarantine.",
+        proof="Optional proof attachment."
+    )
+    async def quarantine(
+        self,
+        interaction: discord.Interaction,
+        member:      discord.Member,
+        reason:      str,
+        proof:       discord.Attachment | None = None
+    ) -> None:
+        await run_quarantine(self, interaction, member, reason, proof)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .quarantine Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="quarantine", aliases=["qadd", "qa"])
+    async def quarantine_prefix(
+        self,
+        ctx:    commands.Context[commands.Bot],
+        member: discord.Member,
+        *,
+        flags:  QuarantineFlags
+    ) -> None:
+        await run_quarantine_prefix(self, ctx, member, flags)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation un-quarantine Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(name="un-quarantine", description="Unquarantine a member.")
+    @app_commands.describe(
+        member="The member to remove from quarantine.",
+        reason="Reason for removal.",
+        proof="Optional proof attachment."
+    )
+    async def unquarantine(
+        self,
+        interaction: discord.Interaction,
+        member:      discord.Member,
+        reason:      str,
+        proof:       discord.Attachment | None = None
+    ) -> None:
+        await run_unquarantine(self, interaction, member, reason, proof)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # .un-quarantine Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @commands.command(name="un-quarantine", aliases=["qremove", "qr"])
+    async def unquarantine_prefix(
+        self,
+        ctx:    commands.Context[commands.Bot],
+        member: discord.Member,
+        *,
+        flags:  UnquarantineFlags
+    ) -> None:
+        await run_unquarantine_prefix(self, ctx, member, flags)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ModerationCommands(cast("UtilityBot", bot)))

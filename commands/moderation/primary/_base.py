@@ -46,44 +46,38 @@ from constants import (
 # Flag Converters
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class BanFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    r: str = commands.flag(name="r", aliases=["reason"], default=None)
+class BaseModFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    r: str = commands.flag(name="r", aliases=["reason"])
+    s: bool = commands.flag(
+        name="s",
+        aliases=["silent", "suppress", "shush"],
+        default=False,
+        max_args=0
+    )
+
+class BanFlags(BaseModFlags):
     d: int = commands.flag(name="d", aliases=["delete", "days"], default=7)
-    s: bool = commands.flag(
-        name="s",
-        aliases=["silent", "supress", "shush"],
-        default=False,
-        max_args=0
-    )
 
-class KickFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    r: str = commands.flag(name="r", aliases=["reason"], default=None)
-    s: bool = commands.flag(
-        name="s",
-        aliases=["silent", "supress", "shush"],
-        default=False,
-        max_args=0
-    )
+class UnbanFlags(BaseModFlags):
+    pass
 
-class TimeoutFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    r: str = commands.flag(name="r", aliases=["reason"], default=None)
-    d: str = commands.flag(name="d", aliases=["duration"], default=None)
-    s: bool = commands.flag(
-        name="s",
-        aliases=["silent", "supress", "shush"],
-        default=False,
-        max_args=0
-    )
+class QuarantineFlags(BaseModFlags):
+    pass
 
-class PurgeFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+class UnquarantineFlags(BaseModFlags):
+    pass
+
+class KickFlags(BaseModFlags):
+    pass
+
+class TimeoutFlags(BaseModFlags):
+    d: str | None = commands.flag(name="d", aliases=["duration"], default=None)
+
+class UntimeoutFlags(BaseModFlags): 
+    pass
+
+class PurgeFlags(BaseModFlags):
     u: discord.Member | None = commands.flag(name="u", aliases=["user"], default=None)
-    r: str                   = commands.flag(name="r", aliases=["reason"])
-    s: bool                  = commands.flag(
-        name    = "s",
-        aliases = ["silent", "supress", "shush"],
-        default = False,
-        max_args=0
-    )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Base
@@ -114,12 +108,14 @@ class ModerationBase(commands.Cog):
             DIRECTORS_ROLE_ID,
         ]
 
-        self.BAN_HOURLY_LIMIT    = 2
-        self.BAN_DAILY_LIMIT     = 4
-        self.KICK_HOURLY_LIMIT   = 3
-        self.KICK_DAILY_LIMIT    = 6
-        self.SEVERE_HOURLY_LIMIT = 4
-        self.SEVERE_DAILY_LIMIT  = 8
+        self.BAN_HOURLY_LIMIT        = 2
+        self.BAN_DAILY_LIMIT         = 4
+        self.KICK_HOURLY_LIMIT       = 3
+        self.KICK_DAILY_LIMIT        = 6
+        self.QUARANTINE_HOURLY_LIMIT = 5
+        self.QUARANTINE_DAILY_LIMIT  = 20
+        self.SEVERE_HOURLY_LIMIT     = 4
+        self.SEVERE_DAILY_LIMIT      = 8
 
     @property
     def data(self) -> dict[str, Any]:
@@ -169,7 +165,12 @@ class ModerationBase(commands.Cog):
         if user_id not in self.data["rate_limits"]:
             self.data["rate_limits"][user_id] = {}
         rl = self.data["rate_limits"][user_id]
-        for key in ("ban_hourly", "ban_daily", "kick_hourly", "kick_daily", "severe_hourly", "severe_daily"):
+        for key in (
+            "ban_hourly", "ban_daily",
+            "kick_hourly", "kick_daily",
+            "quarantine_hourly", "quarantine_daily",
+            "severe_hourly", "severe_daily",
+        ):
             if key not in rl:
                 rl[key] = []
 
@@ -177,9 +178,9 @@ class ModerationBase(commands.Cog):
         now = datetime.now()
         self._ensure_rate_limit_entry(user_id)
         rl = self.data["rate_limits"][user_id]
-        for key in ("ban_hourly", "kick_hourly", "severe_hourly"):
+        for key in ("ban_hourly", "kick_hourly", "quarantine_hourly", "severe_hourly"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
-        for key in ("ban_daily", "kick_daily", "severe_daily"):
+        for key in ("ban_daily", "kick_daily", "quarantine_daily", "severe_daily"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(days=1)]
 
     def check_rate_limit(self, user_id: str, action: str) -> tuple[bool, str]:
@@ -201,6 +202,11 @@ class ModerationBase(commands.Cog):
                 return False, f"Kick hourly limit exceeded ({self.KICK_HOURLY_LIMIT} kicks per hour)"
             if len(rl["kick_daily"]) >= self.KICK_DAILY_LIMIT:
                 return False, f"Kick daily limit exceeded ({self.KICK_DAILY_LIMIT} kicks per day)"
+        elif action == "quarantine":
+            if len(rl["quarantine_hourly"]) >= self.QUARANTINE_HOURLY_LIMIT:
+                return False, f"Quarantine hourly limit exceeded ({self.QUARANTINE_HOURLY_LIMIT} quarantines per hour)"
+            if len(rl["quarantine_daily"]) >= self.QUARANTINE_DAILY_LIMIT:
+                return False, f"Quarantine daily limit exceeded ({self.QUARANTINE_DAILY_LIMIT} quarantines per day)"
 
         return True, ""
 
@@ -209,7 +215,7 @@ class ModerationBase(commands.Cog):
         self._ensure_rate_limit_entry(user_id)
         rl = self.data["rate_limits"][user_id]
 
-        if action in ("ban", "kick"):
+        if action in ("ban", "kick", "quarantine"):
             rl["severe_hourly"].append(now)
             rl["severe_daily"].append(now)
 
@@ -219,6 +225,9 @@ class ModerationBase(commands.Cog):
         elif action == "kick":
             rl["kick_hourly"].append(now)
             rl["kick_daily"].append(now)
+        elif action == "quarantine":
+            rl["quarantine_hourly"].append(now)
+            rl["quarantine_daily"].append(now)
 
         self.save_data()
 

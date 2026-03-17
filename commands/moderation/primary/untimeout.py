@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ._base import (
         ModerationBase,
-        KickFlags
+    
+        UntimeoutFlags
     )
 
 from commands.moderation.cases import CaseType
@@ -66,11 +67,11 @@ async def run_untimeout(
             base.save_data()
 
         await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.UNTIMEOUT,
-            moderator=actor,
-            reason=reason,
-            target_user=member
+            guild       = guild,
+            case_type   = CaseType.UNTIMEOUT,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member
         )
 
         embed = discord.Embed(
@@ -99,7 +100,7 @@ async def run_untimeout_prefix(
     base:   "ModerationBase",
     ctx:    commands.Context[commands.Bot],
     member: discord.Member,
-    flags:  "KickFlags",
+    flags:  UntimeoutFlags,
 ) -> None:
     actor = ctx.author
     if not isinstance(actor, discord.Member):
@@ -136,11 +137,11 @@ async def run_untimeout_prefix(
             base.save_data()
 
         await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.UNTIMEOUT,
-            moderator=actor,
-            reason=reason,
-            target_user=member
+            guild       = guild,
+            case_type   = CaseType.UNTIMEOUT,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member
         )
 
         if flags.s:

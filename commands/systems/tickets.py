@@ -2,18 +2,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-import contextlib
-
 from core.permissions import (
     directors_only,
     main_guild_only
 )
 from core.state import BLACKLIST
-from core.state import (
-    APPLICATIONS_OPEN,
-    save_application_state,
-    save_blacklist
-)
+from core.state import save_blacklist
 from core.ticket_state import (
     THREAD_OPENERS,
     TICKET_CLAIMS,
@@ -23,43 +17,39 @@ from core.ticket_state import (
 )
 from core.utils import send_minor_error
 
-from events.systems.applications import (
-    delete_application_messages,
-    ACTIVE_APPLICATIONS
-)
 from events.systems.tickets import stop_resolution
 
 from constants import (
     DIRECTORS_ROLE_ID,
     MODERATORS_ROLE_ID,
+    STAFF_ROLE_ID,
 
     TICKET_CHANNEL_ID
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Applications & Tickets Commands
+# Tickets Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class ApplicationsTicketsCommands(
+class TicketsCommands(
     commands.GroupCog,
-    name="app-tickets",
-    description="Moderators only —— Applications and tickets commands."
+    name="tickets",
+    description="Moderators only —— Tickets commands."
 ):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         super().__init__()
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /blacklist Command
+    # /tickets blacklist Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
         name="blacklist",
-        description="Blacklist or un-blacklist a user from applications or tickets."
+        description="Blacklist or un-blacklist a user from tickets."
     )
     @app_commands.describe(
         action="Add or remove a blacklist.",
-        scope="What the blacklist applies to.",
         user="User to modify."
     )
     @app_commands.choices(
@@ -72,16 +62,6 @@ class ApplicationsTicketsCommands(
                 name="Remove",
                 value="remove"
             )
-        ],
-        scope=[
-            app_commands.Choice(
-                name="Applications",
-                value="applications"
-            ),
-            app_commands.Choice(
-                name="Tickets",
-                value="tickets"
-            )
         ]
     )
     @main_guild_only()
@@ -90,11 +70,10 @@ class ApplicationsTicketsCommands(
         self,
         interaction: discord.Interaction,
         action: app_commands.Choice[str],
-        scope: app_commands.Choice[str],
         user: discord.User
     ) -> None:
-        user_id = user.id
-        target_list = BLACKLIST[scope.value]
+        user_id     = user.id
+        target_list = BLACKLIST["tickets"]
 
         if interaction.user.id == user.id:
             await send_minor_error(
@@ -105,7 +84,7 @@ class ApplicationsTicketsCommands(
 
         guild = interaction.guild
         if guild and isinstance(user, discord.Member):
-            staff_role = guild.get_role(DIRECTORS_ROLE_ID)
+            staff_role = guild.get_role(STAFF_ROLE_ID)
             if staff_role and staff_role in user.roles:
                 await send_minor_error(
                     interaction,
@@ -117,7 +96,7 @@ class ApplicationsTicketsCommands(
             if user_id in target_list:
                 await send_minor_error(
                     interaction,
-                    f"This user is already blacklisted in {scope.name}.",
+                    "This user is already blacklisted from Tickets.",
                 )
                 return
 
@@ -125,7 +104,7 @@ class ApplicationsTicketsCommands(
             save_blacklist()
 
             await interaction.response.send_message(
-                f"{user.mention} has been blacklisted from {scope.name}.",
+                f"{user.mention} has been blacklisted from Tickets.",
                 ephemeral=True
             )
 
@@ -133,7 +112,7 @@ class ApplicationsTicketsCommands(
             if user_id not in target_list:
                 await send_minor_error(
                     interaction,
-                    f"This user is not blacklisted in {scope.name}.",
+                    "This user is not blacklisted from Tickets.",
                 )
                 return
 
@@ -141,7 +120,7 @@ class ApplicationsTicketsCommands(
             save_blacklist()
 
             await interaction.response.send_message(
-                f"{user.mention} has been removed from the {scope.name} blacklist.",
+                f"{user.mention} has been removed from the Tickets blacklist.",
                 ephemeral=True
             )
 
@@ -176,7 +155,7 @@ class ApplicationsTicketsCommands(
             return
 
         mod_role = guild.get_role(MODERATORS_ROLE_ID)
-        is_mod = mod_role is not None and mod_role in ctx.author.roles
+        is_mod   = mod_role is not None and mod_role in ctx.author.roles
 
         opener_id = THREAD_OPENERS.get(channel.id)
 
@@ -218,9 +197,9 @@ class ApplicationsTicketsCommands(
         if guild is None:
             return
 
-        mod_role = guild.get_role(MODERATORS_ROLE_ID)
+        mod_role      = guild.get_role(MODERATORS_ROLE_ID)
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
-        is_staff = (
+        is_staff      = (
             (mod_role is not None and mod_role in ctx.author.roles)
             or (director_role is not None and director_role in ctx.author.roles)
         )
@@ -243,95 +222,6 @@ class ApplicationsTicketsCommands(
         await ctx.send(
             f"Ticket claimed by {ctx.author.mention}."
         )
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /state-modify Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-    @app_commands.command(
-        name="state-modify",
-        description="Open or close staff applications."
-    )
-    @app_commands.describe(
-        application="Which application to modify.",
-        state="Application state."
-    )
-    @app_commands.choices(
-        application=[
-            app_commands.Choice(
-                name="Moderators",
-                value="mod"
-            ),
-            app_commands.Choice(
-                name="Administrators",
-                value="admin"
-            ),
-        ],
-        state=[
-            app_commands.Choice(
-                name="Open",
-                value="open"
-            ),
-            app_commands.Choice(
-                name="Closed",
-                value="closed"
-            ),
-        ],
-    )
-    @directors_only()
-    async def appmodify(
-        self,
-        interaction: discord.Interaction,
-        application: app_commands.Choice[str],
-        state: app_commands.Choice[str],
-    ) -> None:
-        new_state = state.value == "open"
-        current_state = APPLICATIONS_OPEN.get(application.value, False)
-
-        if current_state == new_state:
-            await send_minor_error(
-                interaction,
-                f"{application.name} applications are already {state.value}.",
-            )
-            return
-
-        APPLICATIONS_OPEN[application.value] = new_state
-        save_application_state()
-
-        await interaction.response.send_message(
-            f"{application.name} applications have been {state.value}.",
-            ephemeral=True,
-        )
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .cancel Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-    @commands.command(
-        name="cancel"
-    )
-    async def cancel(self, ctx: commands.Context[commands.Bot]) -> None:
-        if ctx.guild is not None:
-            await ctx.send(
-                "This command can only be used in DMs."
-            )
-            return
-
-        if ctx.author.id not in ACTIVE_APPLICATIONS:
-            await ctx.send(
-                "This command can only be used with an active application to cancel."
-            )
-            return
-
-        with contextlib.suppress(discord.Forbidden, discord.NotFound):
-            await ctx.message.delete(delay=300)
-
-        await delete_application_messages(client=self.bot, user_id=ctx.author.id)
-
-        confirm = await ctx.send(
-            "Your application has been cancelled and deleted."
-        )
-        await confirm.delete(delay=300)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .escalate/.esc/.e Command
@@ -384,7 +274,7 @@ class ApplicationsTicketsCommands(
             return
 
         try:
-            opener = guild.get_member(opener_id) or await guild.fetch_member(opener_id)
+            opener  = guild.get_member(opener_id) or await guild.fetch_member(opener_id)
             new_name = f"dir-ticket · {opener.display_name}"[:100]
         except (discord.NotFound, discord.HTTPException):
             new_name = f"dir-ticket · {channel.name.removeprefix('ticket · ')}"[:100]
@@ -403,5 +293,5 @@ class ApplicationsTicketsCommands(
         )
 
 async def setup(bot: commands.Bot) -> None:
-    cog = ApplicationsTicketsCommands(bot)
+    cog = TicketsCommands(bot)
     await bot.add_cog(cog)

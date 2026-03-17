@@ -7,7 +7,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ._base import ModerationBase, KickFlags
+    from ._base import (
+        ModerationBase,
+    
+        UnbanFlags
+    )
 
 from commands.moderation.cases import CaseType
 
@@ -123,7 +127,7 @@ async def run_unban_prefix(
     base:  "ModerationBase",
     ctx:   commands.Context[commands.Bot],
     user:  str,
-    flags: "KickFlags",
+    flags: UnbanFlags,
 ) -> None:
     actor = ctx.author
     if not isinstance(actor, discord.Member):
