@@ -2,6 +2,7 @@ import importlib
 import importlib.util
 import pkgutil
 import logging
+import re
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cog Management
@@ -34,7 +35,8 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
             if spec and spec.origin and spec.origin.endswith('.py'):
                 try:
                     with open(spec.origin, 'r', encoding='utf-8') as f:
-                        if "def setup" in f.read():
+                        content = f.read()
+                        if re.search(r"^(async\s+)?def\s+setup\b", content, re.MULTILINE):
                             seen.add(module_info.name)
                             cogs.append(module_info.name)
                 except Exception:
