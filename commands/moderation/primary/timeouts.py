@@ -13,7 +13,10 @@ if TYPE_CHECKING:
 
 from core.utils import send_major_error
 
-from constants import COLOR_ORANGE
+from constants import (
+    COLOR_GREEN,
+    COLOR_YELLOW
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation timeouts Logic
@@ -46,16 +49,16 @@ async def run_timeouts(
 
     if not timed_out_members:
         embed = discord.Embed(
-            description="No members are currently timed out.",
-            color=COLOR_ORANGE
+            description = "No members are currently timed out.",
+            color       = COLOR_GREEN
         )
         await interaction.followup.send(embed=embed, ephemeral=True)
         return
 
     embed = discord.Embed(
-        title="Timed Out Members",
-        color=COLOR_ORANGE,
-        timestamp=datetime.now()
+        title     = "Timed Out Members",
+        color     = COLOR_YELLOW,
+        timestamp = datetime.now()
     )
 
     for member in timed_out_members[:25]:
@@ -108,16 +111,16 @@ async def run_timeouts_prefix(
 
     if not timed_out_members:
         embed = discord.Embed(
-            description="No members are currently timed out.",
-            color=COLOR_ORANGE
+            description = "No members are currently timed out.",
+            color       = COLOR_GREEN
         )
         await ctx.send(embed=embed)
         return
 
     embed = discord.Embed(
-        title="Timed Out Members",
-        color=COLOR_ORANGE,
-        timestamp=datetime.now()
+        title     = "Timed Out Members",
+        color     = COLOR_YELLOW,
+        timestamp = datetime.now()
     )
 
     for member in timed_out_members[:25]:

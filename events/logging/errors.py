@@ -32,6 +32,8 @@ from constants import (
     DENIED_EMOJI_ID,
 )
 
+MAX_429S = 5
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # User Input Errors
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -68,8 +70,9 @@ USER_INPUT_ERRORS = (
 
 class ErrorLogger(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+        self.bot            = bot
         self._tasks: set[asyncio.Task[Any]] = set()
+        self._rate_limit_hits               = 0
         bot.tree.error(self.app_command_error_handler)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -152,6 +155,31 @@ class ErrorLogger(commands.Cog):
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # 429 / Rate Limit Guard
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    async def handle_rate_limit(self, source: str) -> None:
+        self._rate_limit_hits += 1
+
+        await self.send_error(
+            title="Rate Limited (429)",
+            error_text=(
+                f"Source: {source}\n"
+                f"Hit {self._rate_limit_hits}/{MAX_429S} this session."
+            ),
+        )
+
+        if self._rate_limit_hits >= MAX_429S:
+            await self.send_error(
+                title="Auto-Shutdown: Too Many 429s",
+                error_text=(
+                    f"Received {MAX_429S} rate limit responses this session. "
+                    "Shutting down to prevent an IP ban."
+                ),
+            )
+            await self.bot.close()
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Discord Event Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -170,6 +198,10 @@ class ErrorLogger(commands.Cog):
                 title="Bot Event Error",
                 error_text=f"{event}: Unknown exception",
             )
+            return
+
+        if isinstance(exc, discord.HTTPException) and exc.status == 429:
+            await self.handle_rate_limit(f"event: {event}")
             return
 
         tb_text = "".join(traceback.format_exception(exc_type, exc, tb))
@@ -194,6 +226,7 @@ class ErrorLogger(commands.Cog):
             actual_error = error.original
 
         if isinstance(actual_error, discord.HTTPException) and actual_error.status == 429:
+            await self.handle_rate_limit(ctx.message.content or "prefix command")
             return
 
         if isinstance(actual_error, (commands.CheckFailure, commands.CommandNotFound)):
@@ -248,11 +281,19 @@ class ErrorLogger(commands.Cog):
                 )
             return
 
+        actual_error = error.original if isinstance(error, app_commands.CommandInvokeError) else error
+
+        if isinstance(actual_error, discord.HTTPException) and actual_error.status == 429:
+            cmd      = interaction.command
+            cmd_name = f"/{cmd.qualified_name}" if cmd else "Unknown"
+            await self.handle_rate_limit(cmd_name)
+            return
+
         tb_text = "".join(
             traceback.format_exception(type(error), error, error.__traceback__)
         )
 
-        cmd = interaction.command
+        cmd      = interaction.command
         cmd_name = f"/{cmd.qualified_name}" if cmd else "Unknown"
 
         await self.send_error(
@@ -298,6 +339,10 @@ class ErrorLogger(commands.Cog):
             discord.HTTPException,
             aiohttp.ClientError,
         ) as exc:
+            if isinstance(exc, discord.HTTPException) and exc.status == 429:
+                await self.handle_rate_limit("guard_http")
+                raise
+
             tb_text = "".join(
                 traceback.format_exception(type(exc), exc, exc.__traceback__)
             )
@@ -330,6 +375,13 @@ class ErrorLogger(commands.Cog):
             return
 
         if exc is None:
+            return
+
+        if isinstance(exc, discord.HTTPException) and exc.status == 429:
+            self.create_task(
+                self.handle_rate_limit(f"task: {task.get_name()}"),
+                name="task_ratelimit_reporter"
+            )
             return
 
         tb_text = "".join(

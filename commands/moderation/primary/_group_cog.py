@@ -62,7 +62,7 @@ from .unquarantine import(
     run_unquarantine,
     run_unquarantine_prefix,
 )
-from .purges import (
+from .purge import (
     run_purge,
     run_purge_prefix,
 )
@@ -76,8 +76,8 @@ from constants import CONTESTED_EMOJI_ID
 class ModerationCommands(
     commands.GroupCog,
     ModerationBase,
-    name="moderation",
-    description="Moderators only —— Moderation commands."
+    name        = "moderation",
+    description = "Moderators only —— Moderation commands."
 ):
     def __init__(self, bot: "UtilityBot") -> None:
         ModerationBase.__init__(self, bot)
@@ -89,17 +89,17 @@ class ModerationCommands(
 
     @app_commands.command(name="ban", description="Ban a member from the server.")
     @app_commands.describe(
-        member="The member to ban.",
-        reason="Reason for the ban.",
-        delete_messages="Delete messages from the last 1-7 days.",
-        proof="Optional proof attachment."
+        member          = "The member to ban.",
+        reason          = "Reason for the ban.",
+        delete_messages = "Delete messages from the last 1-7 days.",
+        proof           = "Optional proof attachment."
     )
     async def ban(
         self,
         interaction:     discord.Interaction,
         member:          discord.Member,
         reason:          str,
-        delete_messages: int | None = 0,
+        delete_messages: int                | None = 0,
         proof:           discord.Attachment | None = None
     ) -> None:
         await run_ban(self, interaction, member, reason, delete_messages, proof)
@@ -146,8 +146,8 @@ class ModerationCommands(
 
     @app_commands.command(name="un-ban", description="Unban a user from the server.")
     @app_commands.describe(
-        user="The user ID, username, or tag to unban.",
-        reason="Reason for the ban removal."
+        user   = "The user ID, username, or tag to unban.",
+        reason = "Reason for the ban removal."
     )
     async def unban(
         self,
@@ -161,7 +161,14 @@ class ModerationCommands(
     # .un-ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="un-ban", aliases=["unban", "ub"])
+    @commands.command(
+        name    = "un-ban",
+        aliases = [
+                      "u-b",
+            "un_ban", "u_b",
+            "unban" , "ub"
+        ]
+    )
     async def unban_prefix(
         self,
         ctx:   commands.Context[commands.Bot],
@@ -183,7 +190,14 @@ class ModerationCommands(
     # .bans Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="bans", aliases=["banlist", "bls"])
+    @commands.command(
+        name    = "bans",
+        aliases = [
+            "ban-list", "b-l-s", "b-s",
+            "ban_list", "b_l_s", "b_s",
+            "banlist" , "bls"  , "bs" 
+        ]
+    )
     async def bans_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         await run_bans_prefix(self, ctx)
 
@@ -193,9 +207,9 @@ class ModerationCommands(
 
     @app_commands.command(name="kick", description="Kick a member from the server.")
     @app_commands.describe(
-        member="The member to kick.",
-        reason="Reason for the kick.",
-        proof="Optional proof attachment."
+        member = "The member to kick.",
+        reason = "Reason for the kick.",
+        proof  = "Optional proof attachment."
     )
     async def kick(
         self,
@@ -248,10 +262,10 @@ class ModerationCommands(
 
     @app_commands.command(name="timeout", description="Timeout a member.")
     @app_commands.describe(
-        member="The member to timeout.",
-        duration="Duration (e.g. 30s, 5m, 1h, 2d, 1w).",
-        reason="Reason for the timeout.",
-        proof="Optional proof attachment."
+        member   = "The member to timeout.",
+        duration = "Duration (e.g. 30s, 5m, 1h, 2d, 1w).",
+        reason   = "Reason for the timeout.",
+        proof    = "Optional proof attachment."
     )
     async def timeout(
         self,
@@ -267,7 +281,14 @@ class ModerationCommands(
     # .timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="timeout", aliases=["tt", "mute", "m"])
+    @commands.command(
+        name    = "timeout",
+        aliases = [
+            "time-out", "t-t", "t-o", "m",
+            "time_out", "t_t", "t_o", "m",
+            "timeout" , "tt" , "to" , "m" 
+        ]
+    )
     async def timeout_prefix(
         self,
         ctx:    commands.Context[commands.Bot],
@@ -305,8 +326,8 @@ class ModerationCommands(
 
     @app_commands.command(name="un-timeout", description="Remove timeout from a member.")
     @app_commands.describe(
-        member="The member to remove timeout from.",
-        reason="Reason for the timeout removal."
+        member = "The member to remove timeout from.",
+        reason = "Reason for the timeout removal."
     )
     async def untimeout(
         self,
@@ -320,7 +341,14 @@ class ModerationCommands(
     # .un-timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="un-timeout", aliases=["untimeout", "utt", "unmute", "um"])
+    @commands.command(
+        name    = "un-timeout",
+        aliases = [
+                          "un-time-out", "un-mute", "un-t-o", "un-t-t", "u-t-t", "u-t-o", "u-m", "u-t", "un-to", "un-m",
+            "un_timeout", "un_time_out", "un_mute", "un_t_o", "un_t_t", "u_t_t", "u_t_o", "u_m", "u_t", "un_to", "un_m",
+            "untimeout" , "untimeout"  , "unmute" , "unt_o" , "untt"  , "utt"  , "uto"  , "um" , "ut" , "unto" , "unm"
+        ]
+    )
     async def untimeout_prefix(
         self,
         ctx:    commands.Context[commands.Bot],
@@ -364,7 +392,14 @@ class ModerationCommands(
     # .timeouts Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="timeouts", aliases=["mute-list", "mutelist", "mutes", "mls", "time-outs", "tls"])
+    @commands.command(
+        name    = "timeouts",
+        aliases = [
+            "mute-list", "time-outs", "m-l-s", "t-l-s", "mutes-l", "t-o-s",
+            "mute_list", "time_outs", "m_l_s", "t_l_s", "mutes_l", "t_o_s",
+            "mutelist" , "timeouts" , "mls"  , "tls"  , "mutesl" , "tos"
+        ]
+    )
     async def timeouts_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         await run_timeouts_prefix(self, ctx)
 
@@ -374,10 +409,10 @@ class ModerationCommands(
 
     @app_commands.command(name="purge", description="Delete a specified number of messages.")
     @app_commands.describe(
-        amount="Number of messages to delete.",
-        reason="Reason for the message purge.",
-        member="Only delete messages from this member.",
-        proof="Optional proof attachment."
+        amount = "Number of messages to delete.",
+        reason = "Reason for the message purge.",
+        member = "Only delete messages from this member.",
+        proof  = "Optional proof attachment."
     )
     async def purge(
         self,
@@ -443,7 +478,14 @@ class ModerationCommands(
     # .quarantines Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="quarantines", aliases=["quarantine-list", "quarantinelist", "qv"])
+    @commands.command(
+        name    = "quarantines",
+        aliases = [
+            "quarantine-list", "quarantine-v", "q-l-s", "q-v",
+            "quarantine_list", "quarantine_v", "q_l_s", "q_v",
+            "quarantinelist" , "quarantinev" , "qls"  , "qv" 
+        ]
+    )
     async def quarantines_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         await run_quarantines_prefix(self, ctx)
 
@@ -453,9 +495,9 @@ class ModerationCommands(
 
     @app_commands.command(name="quarantine", description="Quarantine a member.")
     @app_commands.describe(
-        member="The member to quarantine.",
-        reason="Reason for the quarantine.",
-        proof="Optional proof attachment."
+        member = "The member to quarantine.",
+        reason = "Reason for the quarantine.",
+        proof  = "Optional proof attachment."
     )
     async def quarantine(
         self,
@@ -470,7 +512,14 @@ class ModerationCommands(
     # .quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="quarantine", aliases=["qadd", "qa"])
+    @commands.command(
+        name    = "quarantine",
+        aliases = [
+            "quarantine-add", "q-add", "q-a",
+            "quarantine_add", "q_add", "q_a",
+            "quarantineadd" , "qadd" , "qa" 
+        ]
+    )
     async def quarantine_prefix(
         self,
         ctx:    commands.Context[commands.Bot],
@@ -486,9 +535,9 @@ class ModerationCommands(
 
     @app_commands.command(name="un-quarantine", description="Unquarantine a member.")
     @app_commands.describe(
-        member="The member to remove from quarantine.",
-        reason="Reason for the quarantine removal.",
-        proof="Optional proof attachment."
+        member = "The member to remove from quarantine.",
+        reason = "Reason for the quarantine removal.",
+        proof  = "Optional proof attachment."
     )
     async def unquarantine(
         self,
@@ -503,7 +552,14 @@ class ModerationCommands(
     # .un-quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="un-quarantine", aliases=["qremove", "qr"])
+    @commands.command(
+        name    = "un-quarantine",
+        aliases = [
+            "un-quarantine", "quarantine-remove", "q-remove", "q-r",
+            "un_quarantine", "quarantine_remove", "q_remove", "q_r",
+            "unquarantine" , "quarantineremove" , "qremove"  , "qr" 
+        ]
+    )
     async def unquarantine_prefix(
         self,
         ctx:    commands.Context[commands.Bot],

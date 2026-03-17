@@ -15,7 +15,7 @@ from core.utils import send_major_error
 
 from constants import (
     COLOR_GREEN,
-    COLOR_RED,
+    COLOR_BLACK,
     DENIED_EMOJI_ID,
 )
 
@@ -34,9 +34,9 @@ async def run_bans(
     if not base.can_view(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
-            texts="You lack the necessary permissions to view bans.",
-            subtitle="Invalid permissions."
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to view bans.",
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -51,16 +51,16 @@ async def run_bans(
 
         if not bans:
             embed = discord.Embed(
-                description="No members are currently banned.",
-                color=COLOR_GREEN
+                description = "No members are currently banned.",
+                color       = COLOR_GREEN
             )
             await interaction.followup.send(embed=embed, ephemeral=True)
             return
 
         embed = discord.Embed(
-            title="Banned Members",
-            color=COLOR_RED,
-            timestamp=datetime.now()
+            title     = "Banned Members",
+            color     = COLOR_BLACK,
+            timestamp = datetime.now()
         )
 
         for ban_entry in bans[:25]:
@@ -123,9 +123,9 @@ async def run_bans_prefix(
             return
 
         embed = discord.Embed(
-            title="Banned Members",
-            color=COLOR_RED,
-            timestamp=datetime.now()
+            title     = "Banned Members",
+            color     = COLOR_BLACK,
+            timestamp = datetime.now()
         )
 
         for ban_entry in bans[:25]:

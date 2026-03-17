@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 from core.utils import send_major_error
 
-from constants import COLOR_ORANGE
+from constants import (
+    COLOR_GREEN,
+    COLOR_ORANGE
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation quarantines Logic
@@ -35,9 +38,13 @@ async def run_quarantines(
         return
 
     if not base.data.get("quarantined"):
+        embed = discord.Embed(
+            description = "No members are currently quarantined.",
+            color       = COLOR_GREEN
+        )
         await interaction.response.send_message(
-            "No members are currently quarantined.",
-            ephemeral=True
+            embed     = embed,
+            ephemeral = True
         )
         return
 
@@ -46,9 +53,9 @@ async def run_quarantines(
         return
 
     embed = discord.Embed(
-        title="Quarantined Members",
-        color=COLOR_ORANGE,
-        timestamp=datetime.now()
+        title     = "Quarantined Members",
+        color     = COLOR_ORANGE,
+        timestamp = datetime.now()
     )
 
     for user_id, entry in base.data["quarantined"].items():
@@ -83,7 +90,11 @@ async def run_quarantines_prefix(
         return
 
     if not base.data.get("quarantined"):
-        await ctx.send("No members are currently quarantined.")
+        embed = discord.Embed(
+            description = "No members are currently quarantined.",
+            color       = COLOR_GREEN
+        )
+        await ctx.send(embed=embed)
         return
 
     guild = ctx.guild
@@ -91,9 +102,9 @@ async def run_quarantines_prefix(
         return
 
     embed = discord.Embed(
-        title="Quarantined Members",
-        color=COLOR_ORANGE,
-        timestamp=datetime.now()
+        title     = "Quarantined Members",
+        color     = COLOR_ORANGE,
+        timestamp = datetime.now()
     )
 
     for user_id, entry in base.data["quarantined"].items():
