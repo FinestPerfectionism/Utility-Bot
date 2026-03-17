@@ -2,7 +2,6 @@ import importlib
 import importlib.util
 import pkgutil
 import logging
-import re
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cog Management
@@ -13,6 +12,7 @@ log = logging.getLogger("Utility Bot")
 def discover_cogs(*package_names: str, priority: list[str] | None = None) -> list[str]:
     seen: set[str] = set()
     cogs: list[str] = []
+
     for package_name in package_names:
         try:
             package = importlib.import_module(package_name)
@@ -20,7 +20,7 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
             log.error("Failed to import package %s: %s", package_name, e)
             continue
 
-        if callable(getattr(package, "setup", None)) and package_name not in seen:
+        if callable(getattr(package, "setup", None)):
             seen.add(package_name)
             cogs.append(package_name)
 
@@ -28,19 +28,24 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
             package.__path__,
             prefix=f"{package.__name__}."
         ):
-            if module_info.name in seen or module_info.name.split('.')[-1].startswith('_'):
+            name = module_info.name
+            short_name = name.split('.')[-1]
+
+            if name in seen:
                 continue
 
-            spec = importlib.util.find_spec(module_info.name)
-            if spec and spec.origin and spec.origin.endswith('.py'):
-                try:
-                    with open(spec.origin, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        if re.search(r"^(async\s+)?def\s+setup\b", content, re.MULTILINE):
-                            seen.add(module_info.name)
-                            cogs.append(module_info.name)
-                except Exception:
-                    continue
+            if short_name == "_base":
+                continue
+
+            try:
+                module = importlib.import_module(name)
+            except Exception as e:
+                log.error("Failed to import module %s: %s", name, e)
+                continue
+
+            if callable(getattr(module, "setup", None)):
+                seen.add(name)
+                cogs.append(name)
 
     if priority:
         priority_set = set(priority)
@@ -49,4 +54,5 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
         cogs = ordered_cogs + sorted(remaining_cogs)
     else:
         cogs = sorted(cogs)
+
     return cogs
