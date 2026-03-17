@@ -26,7 +26,8 @@ WAPPLE_EMOJIS = [
     "<:WappleBlue:1474916471984623842>",
     "<:WappleHartwellWhite:1474916613232001117>",
     "<:applebruh:1478244953892192357>",
-    "<:ex:1476672300467093626>"
+    "<:ex:1476672300467093626>",
+    "<:susapple:1483533565005402144>"
 ]
 
 WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
