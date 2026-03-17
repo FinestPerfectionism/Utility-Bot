@@ -397,7 +397,7 @@ class ModerationCommands(
         aliases = [
             "mute-list", "time-outs", "m-l-s", "t-l-s", "mutes-l", "t-o-s",
             "mute_list", "time_outs", "m_l_s", "t_l_s", "mutes_l", "t_o_s",
-            "mutelist" , "timeouts" , "mls"  , "tls"  , "mutesl" , "tos"
+            "mutelist" ,              "mls"  , "tls"  , "mutesl" , "tos"
         ]
     )
     async def timeouts_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
