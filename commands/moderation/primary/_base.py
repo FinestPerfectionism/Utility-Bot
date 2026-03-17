@@ -96,11 +96,11 @@ class ModerationBase(commands.Cog):
         if not hasattr(bot, "mod_data"):
             bot.mod_data = self._load_data()
 
-        self.QUARANTINE_ROLE_ID = QUARANTINE_ROLE_ID
-        self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
+        self.QUARANTINE_ROLE_ID        = QUARANTINE_ROLE_ID
+        self.DIRECTORS_ROLE_ID         = DIRECTORS_ROLE_ID
         self.SENIOR_MODERATORS_ROLE_ID = SENIOR_MODERATORS_ROLE_ID
-        self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
-        self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
+        self.MODERATORS_ROLE_ID        = MODERATORS_ROLE_ID
+        self.ADMINISTRATORS_ROLE_ID    = ADMINISTRATORS_ROLE_ID
 
         self.PROTECTED_ROLE_IDS = [
             STAFF_ROLE_ID,
@@ -114,12 +114,12 @@ class ModerationBase(commands.Cog):
             DIRECTORS_ROLE_ID,
         ]
 
-        self.BAN_HOURLY_LIMIT = 2
-        self.BAN_DAILY_LIMIT = 4
-        self.KICK_HOURLY_LIMIT = 3
-        self.KICK_DAILY_LIMIT = 6
+        self.BAN_HOURLY_LIMIT    = 2
+        self.BAN_DAILY_LIMIT     = 4
+        self.KICK_HOURLY_LIMIT   = 3
+        self.KICK_DAILY_LIMIT    = 6
         self.SEVERE_HOURLY_LIMIT = 4
-        self.SEVERE_DAILY_LIMIT = 8
+        self.SEVERE_DAILY_LIMIT  = 8
 
     @property
     def data(self) -> dict[str, Any]:
@@ -137,9 +137,9 @@ class ModerationBase(commands.Cog):
 
     def _get_default_data(self) -> dict[str, Any]:
         return {
-            "bans": {},
-            "timeouts": {},
-            "kicks": {},
+            "bans":        {},
+            "timeouts":    {},
+            "kicks":       {},
             "rate_limits": {},
             "quarantined": {}
         }
@@ -281,10 +281,10 @@ class ModerationBase(commands.Cog):
         saved_roles = [role.id for role in moderator.roles if role.id != guild.id]
 
         self.data["quarantined"][str(moderator.id)] = {
-            "roles": saved_roles,
+            "roles":          saved_roles,
             "quarantined_at": datetime.now().isoformat(),
             "quarantined_by": self.bot.user.id,
-            "reason": "UB Anti-Nuke: exceeded moderation rate limits"
+            "reason":         "UB Anti-Nuke: exceeded moderation rate limits"
         }
         self.save_data()
 

@@ -114,7 +114,7 @@ class LeaveComponents(discord.ui.LayoutView):
             if DIRECTORS_ROLE_ID in role_ids:
                 await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
-                    "Please do not open a leave request as a Director. Instead, contact other Directors in the proper union.",
+                    "Please do not open a leave request as a Director. Instead, contact other Directors in the proper union and use `/leave add` with the proper arguments.",
                     ephemeral=True,
                 )
                 return

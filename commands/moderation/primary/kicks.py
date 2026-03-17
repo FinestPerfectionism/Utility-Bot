@@ -1,17 +1,18 @@
 import discord
 from discord.ext import commands
-from discord import app_commands
 
+import asyncio
+import contextlib
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
-    cast
+    Any
 )
 
-from commands.moderation.cases import CaseType
-
 if TYPE_CHECKING:
-    from bot import UtilityBot
+    from ._base import ModerationBase, KickFlags
+
+from commands.moderation.cases import CaseType
 
 from core.utils import (
     send_major_error,
@@ -25,245 +26,199 @@ from constants import (
     DENIED_EMOJI_ID,
 )
 
-from ._base import (
-    ModerationBase,
-    KickFlags,
-)
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# /moderation kick Logic
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Kick Commands
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+async def run_kick(
+    base:        "ModerationBase",
+    interaction: discord.Interaction,
+    member:      discord.Member,
+    reason:      str,
+    proof:       discord.Attachment | None = None,
+) -> None:
+    actor = interaction.user
+    if not isinstance(actor, discord.Member):
+        return
 
-class KickCommands(ModerationBase):
-    def __init__(self, bot: "UtilityBot") -> None:
-        super().__init__(bot)
+    if not base.can_moderate(actor):
+        await send_major_error(
+            interaction,
+            title="Unauthorized!",
+            texts="You lack the necessary permissions to kick members.",
+            subtitle="Invalid permissions."
+        )
+        return
 
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /kick Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    if member.id == actor.id:
+        await send_minor_error(interaction, "You cannot kick yourself.")
+        return
 
-    @app_commands.command(name="kick", description="Kick a member from the server.")
-    @app_commands.describe(
-        member="The member to kick.",
-        reason="Reason for the kick.",
-        proof="Optional proof attachment."
-    )
-    async def kick_slash(
-        self,
-        interaction: discord.Interaction,
-        member: discord.Member,
-        reason: str,
-        proof: discord.Attachment | None = None
-    ) -> None:
-        actor = interaction.user
-        if not isinstance(actor, discord.Member):
-            return
+    can_moderate, error_msg = base.check_can_moderate_target(actor, member)
+    if not can_moderate:
+        await send_minor_error(interaction, error_msg)
+        return
 
-        if not self.can_moderate(actor):
+    guild = interaction.guild
+    if not guild:
+        return
+
+    if not is_director(actor):
+        can_proceed, error_msg = base.check_rate_limit(str(actor.id), "kick")
+        if not can_proceed:
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to kick members.",
-                subtitle="Invalid permissions."
+                f"Rate limit exceeded. {error_msg}.\n"
+                f"Continuing to exceed rate limits will result in your own quarantine.",
+                subtitle="Rate limit exceeded."
             )
+            await base.auto_quarantine_moderator(actor, guild)
             return
 
-        if member.id == actor.id:
-            await send_minor_error(interaction, "You cannot kick yourself.")
-            return
+        base.add_rate_limit_entry(str(actor.id), "kick")
 
-        can_moderate, error_msg = self.check_can_moderate_target(actor, member)
-        if not can_moderate:
-            await send_minor_error(interaction, error_msg)
-            return
+    await interaction.response.defer(ephemeral=True)
 
-        guild = interaction.guild
-        if not guild:
-            return
+    try:
+        await member.kick(reason=f"Kicked by {actor}: {reason}")
 
-        if not is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id), "kick")
-            if not can_proceed:
-                await send_major_error(
-                    interaction,
-                    f"Rate limit exceeded. {error_msg}.\n"
-                    f"Continuing to exceed rate limits will result in your own quarantine.",
-                    subtitle="Rate limit exceeded."
-                )
-                await self.auto_quarantine_moderator(actor, guild)
-                return
+        base.data["kicks"][str(member.id)] = {
+            "kicked_at": datetime.now().isoformat(),
+            "kicked_by": actor.id,
+            "reason":    reason
+        }
+        base.save_data()
 
-            self.add_rate_limit_entry(str(actor.id), "kick")
+        metadata: dict[str, Any] = {}
 
-        await interaction.response.defer(ephemeral=True)
+        if proof:
+            metadata["proof_url"] = proof.url
 
-        try:
-            await member.kick(reason=f"Kicked by {actor}: {reason}")
+        await base.cases_manager.log_case(
+            guild=guild,
+            case_type=CaseType.KICK,
+            moderator=actor,
+            reason=reason,
+            target_user=member,
+            metadata=metadata if metadata else None
+        )
 
-            self.data["kicks"][str(member.id)] = {
-                "kicked_at": datetime.now().isoformat(),
-                "kicked_by": actor.id,
-                "reason": reason
-            }
-            self.save_data()
+        embed = discord.Embed(
+            title="Member Kicked",
+            color=COLOR_ORANGE,
+            timestamp=datetime.now()
+        )
+        embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
+        embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
+        embed.add_field(name="Reason",    value=reason,                            inline=False)
+        if proof:
+            embed.set_image(url=proof.url)
 
-            from typing import Any
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
-            metadata: dict[str, Any] = {}
+    except discord.Forbidden:
+        await send_major_error(
+            interaction,
+            "I lack the necessary permissions to kick this member.",
+            subtitle="Invalid configuration. Contact the owner."
+        )
 
-            if proof:
-                metadata["proof_url"] = proof.url
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# .kick Logic
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-            await self.cases_manager.log_case(
-                guild=guild,
-                case_type=CaseType.KICK,
-                moderator=actor,
-                reason=reason,
-                target_user=member,
-                metadata=metadata if metadata else None
-            )
+async def run_kick_prefix(
+    base:   "ModerationBase",
+    ctx:    commands.Context[commands.Bot],
+    member: discord.Member,
+    flags:  "KickFlags",
+) -> None:
+    actor = ctx.author
+    if not isinstance(actor, discord.Member):
+        return
 
-            embed = discord.Embed(
-                title="Member Kicked",
-                color=COLOR_ORANGE,
-                timestamp=datetime.now()
-            )
-            embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
-            embed.add_field(name="Moderator", value=actor.mention, inline=True)
-            embed.add_field(name="Reason", value=reason, inline=False)
-            if proof:
-                embed.set_image(url=proof.url)
+    if not base.can_moderate(actor):
+        return
 
-            await interaction.followup.send(embed=embed, ephemeral=True)
+    if not flags.r:
+        await ctx.send(
+            f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
+            f"Please provide a reason for the kick."
+        )
+        return
 
-        except discord.Forbidden:
-            await send_major_error(
-                interaction,
-                "I lack the necessary permissions to kick this member.",
-                subtitle="Invalid configuration. Contact the owner."
-            )
+    reason = flags.r
 
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .kick Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    if member.id == actor.id:
+        await ctx.send(
+            f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
+            f"You cannot kick yourself."
+        )
+        return
 
-    @commands.command(name="kick", aliases=["k"])
-    async def kick_prefix(
-        self,
-        ctx: commands.Context[commands.Bot],
-        member: discord.Member,
-        *,
-        flags: KickFlags
-    ) -> None:
-        actor = ctx.author
-        if not isinstance(actor, discord.Member):
-            return
+    can_moderate, error_msg = base.check_can_moderate_target(actor, member)
+    if not can_moderate:
+        await ctx.send(
+            f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
+            f"{error_msg}"
+        )
+        return
 
-        if not self.can_moderate(actor):
-            return
+    guild = ctx.guild
+    if not guild:
+        return
 
-        if not flags.r:
+    if not is_director(actor):
+        can_proceed, error_msg = base.check_rate_limit(str(actor.id), "kick")
+        if not can_proceed:
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"Please provide a reason for the kick."
+                f"Rate limit exceeded. {error_msg}."
             )
+            await base.auto_quarantine_moderator(actor, guild)
             return
 
-        reason = flags.r
+        base.add_rate_limit_entry(str(actor.id), "kick")
 
-        if member.id == actor.id:
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"You cannot kick yourself."
-            )
+    try:
+        await member.kick(reason=f"Kicked by {actor}: {reason}")
+
+        base.data["kicks"][str(member.id)] = {
+            "kicked_at": datetime.now().isoformat(),
+            "kicked_by": actor.id,
+            "reason":    reason
+        }
+        base.save_data()
+
+        await base.cases_manager.log_case(
+            guild=guild,
+            case_type=CaseType.KICK,
+            moderator=actor,
+            reason=reason,
+            target_user=member
+        )
+
+        if flags.s:
+            await ctx.message.delete()
             return
 
-        can_moderate, error_msg = self.check_can_moderate_target(actor, member)
-        if not can_moderate:
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"{error_msg}"
-            )
-            return
+        embed = discord.Embed(
+            title="Member Kicked",
+            color=COLOR_ORANGE,
+            timestamp=datetime.now()
+        )
+        embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
+        embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
+        embed.add_field(name="Reason",    value=reason,                            inline=False)
 
-        guild = ctx.guild
-        if not guild:
-            return
+        msg = await ctx.send(embed=embed)
+        await asyncio.sleep(10)
+        with contextlib.suppress(discord.NotFound):
+            await msg.delete()
 
-        if not is_director(actor):
-            can_proceed, error_msg = self.check_rate_limit(str(actor.id), "kick")
-            if not can_proceed:
-                await ctx.send(
-                    f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                    f"Rate limit exceeded. {error_msg}."
-                )
-                await self.auto_quarantine_moderator(actor, guild)
-                return
-
-            self.add_rate_limit_entry(str(actor.id), "kick")
-
-        try:
-            await member.kick(reason=f"Kicked by {actor}: {reason}")
-
-            self.data["kicks"][str(member.id)] = {
-                "kicked_at": datetime.now().isoformat(),
-                "kicked_by": actor.id,
-                "reason": reason
-            }
-            self.save_data()
-
-            await self.cases_manager.log_case(
-                guild=guild,
-                case_type=CaseType.KICK,
-                moderator=actor,
-                reason=reason,
-                target_user=member
-            )
-
-            if flags.s:
-                await ctx.message.delete()
-                return
-
-            embed = discord.Embed(
-                title="Member Kicked",
-                color=COLOR_ORANGE,
-                timestamp=datetime.now()
-            )
-            embed.add_field(name="Member", value=f"{member.mention} ({member.id})", inline=True)
-            embed.add_field(name="Moderator", value=actor.mention, inline=True)
-            embed.add_field(name="Reason", value=reason, inline=False)
-
-            await ctx.send(embed=embed)
-
-        except discord.Forbidden:
-            await ctx.send(
-                f"{DENIED_EMOJI_ID} **Failed to kick member!**\n"
-                f"I lack the necessary permissions to kick members.\n"
-                f"-# Contact the owner."
-            )
-
-    @kick_prefix.error
-    async def kick_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
-        actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
-            return
-
-        if isinstance(error, commands.MemberNotFound):
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"Please provide a valid user to kick."
-            )
-        elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"Please provide a member to kick."
-            )
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"Please provide a valid user to kick."
-            )
-
-
-async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(KickCommands(cast("UtilityBot", bot)))
+    except discord.Forbidden:
+        await ctx.send(
+            f"{DENIED_EMOJI_ID} **Failed to kick member!**\n"
+            f"I lack the necessary permissions to kick members.\n"
+            f"-# Contact the owner."
+        )

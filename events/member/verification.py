@@ -608,7 +608,10 @@ class VerificationHandler(commands.Cog):
                 try:
                     await member.kick(reason="UB Verification: failure to verify within 72 hours")
                     to_remove.append(user_id)
-                    kicked_log.append(f"{DENIED_EMOJI_ID} **{discord.utils.escape_markdown(str(member))}** (`{member.id}`) was kicked for failing to verify within 72 hours.")
+                    kicked_log.append(
+                        f"{DENIED_EMOJI_ID} **Member Kicked**\n"
+                        f"{member.mention} was kicked for failing to verify within 72 hours."
+                    )
                 except discord.Forbidden:
                     pass
 
@@ -647,7 +650,8 @@ class VerificationHandler(commands.Cog):
                     self.save_data()
                     warned_log.append(
                         f"{CONTESTED_EMOJI_ID} **Member Warned**\n"
-                        f"{member.mention} was warned via {where}.")
+                        f"{member.mention} was warned via {where}."
+                    )
 
         for user_id_to_del in to_remove:
             if user_id_to_del in self.data["unverified"]:
