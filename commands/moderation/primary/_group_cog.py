@@ -284,9 +284,9 @@ class ModerationCommands(
     @commands.command(
         name    = "timeout",
         aliases = [
-            "time-out", "t-t", "t-o", "m",
-            "time_out", "t_t", "t_o", "m",
-            "timeout" , "tt" , "to" , "m" 
+            "time-out", "t-t", "t-o",
+            "time_out", "t_t", "t_o",
+            "timeout" , "tt" , "to" , "m"
         ]
     )
     async def timeout_prefix(
