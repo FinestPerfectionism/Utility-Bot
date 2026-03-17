@@ -185,6 +185,9 @@ async def run_kick_prefix(
     try:
         await member.kick(reason=f"Kicked by {actor}: {reason}")
 
+        if "kicks" not in base.data:
+            base.data["kicks"] = {}
+
         base.data["kicks"][str(member.id)] = {
             "kicked_at": datetime.now().isoformat(),
             "kicked_by": actor.id,

@@ -147,7 +147,7 @@ class ModerationCommands(
     @app_commands.command(name="un-ban", description="Unban a user from the server.")
     @app_commands.describe(
         user="The user ID, username, or tag to unban.",
-        reason="Reason for the unban."
+        reason="Reason for the ban removal."
     )
     async def unban(
         self,
@@ -306,7 +306,7 @@ class ModerationCommands(
     @app_commands.command(name="un-timeout", description="Remove timeout from a member.")
     @app_commands.describe(
         member="The member to remove timeout from.",
-        reason="Reason for removing timeout."
+        reason="Reason for the timeout removal."
     )
     async def untimeout(
         self,
@@ -375,7 +375,7 @@ class ModerationCommands(
     @app_commands.command(name="purge", description="Delete a specified number of messages.")
     @app_commands.describe(
         amount="Number of messages to delete.",
-        reason="Reason for purging messages.",
+        reason="Reason for the message purge.",
         member="Only delete messages from this member.",
         proof="Optional proof attachment."
     )
@@ -454,7 +454,7 @@ class ModerationCommands(
     @app_commands.command(name="quarantine", description="Quarantine a member.")
     @app_commands.describe(
         member="The member to quarantine.",
-        reason="Reason for quarantine.",
+        reason="Reason for the quarantine.",
         proof="Optional proof attachment."
     )
     async def quarantine(
@@ -487,7 +487,7 @@ class ModerationCommands(
     @app_commands.command(name="un-quarantine", description="Unquarantine a member.")
     @app_commands.describe(
         member="The member to remove from quarantine.",
-        reason="Reason for removal.",
+        reason="Reason for the quarantine removal.",
         proof="Optional proof attachment."
     )
     async def unquarantine(

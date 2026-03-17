@@ -191,6 +191,14 @@ async def run_purge_prefix(
         return
 
     member = flags.u
+    if not flags.r:
+        await ctx.send(
+            f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
+            f"Please provide a reason for the purge."
+        )
+        return
+
+    member = flags.u
     reason = flags.r
 
     try:
@@ -207,16 +215,18 @@ async def run_purge_prefix(
         with contextlib.suppress(discord.NotFound):
             await ctx.message.delete()
 
+        metadata: dict[str, Any] = {
+            "deleted_messages": len(deleted),
+            "channel_id":       channel.id
+        }
+
         await base.cases_manager.log_case(
             guild       = guild,
             case_type   = CaseType.PURGE,
             moderator   = actor,
             reason      = reason,
             target_user = member if member else None,
-            metadata    = {
-                "deleted_messages": len(deleted),
-                "channel_id":       channel.id
-            }
+            metadata    = metadata
         )
 
         if flags.s:

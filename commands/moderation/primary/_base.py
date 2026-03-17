@@ -162,9 +162,15 @@ class ModerationBase(commands.Cog):
             return None
 
     def _ensure_rate_limit_entry(self, user_id: str) -> None:
-        if user_id not in self.data["rate_limits"]:
-            self.data["rate_limits"][user_id] = {}
-        rl = self.data["rate_limits"][user_id]
+        if "rate_limits" not in self.data:
+            self.data["rate_limits"] = {}
+
+        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+
+        if user_id not in rate_limits:
+            rate_limits[user_id] = {}
+
+        rl: dict[str, list[str]] = rate_limits[user_id]
         for key in (
             "ban_hourly", "ban_daily",
             "kick_hourly", "kick_daily",
@@ -177,7 +183,10 @@ class ModerationBase(commands.Cog):
     def clean_old_rate_limits(self, user_id: str) -> None:
         now = datetime.now()
         self._ensure_rate_limit_entry(user_id)
-        rl = self.data["rate_limits"][user_id]
+
+        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        rl: dict[str, list[str]] = rate_limits[user_id]
+
         for key in ("ban_hourly", "kick_hourly", "quarantine_hourly", "severe_hourly"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
         for key in ("ban_daily", "kick_daily", "quarantine_daily", "severe_daily"):
@@ -185,7 +194,9 @@ class ModerationBase(commands.Cog):
 
     def check_rate_limit(self, user_id: str, action: str) -> tuple[bool, str]:
         self.clean_old_rate_limits(user_id)
-        rl = self.data["rate_limits"][user_id]
+
+        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        rl: dict[str, list[str]] = rate_limits[user_id]
 
         if len(rl["severe_hourly"]) >= self.SEVERE_HOURLY_LIMIT:
             return False, f"Severe action hourly limit exceeded ({self.SEVERE_HOURLY_LIMIT} bans/kicks/quarantines per hour)"
@@ -213,7 +224,9 @@ class ModerationBase(commands.Cog):
     def add_rate_limit_entry(self, user_id: str, action: str) -> None:
         now = datetime.now().isoformat()
         self._ensure_rate_limit_entry(user_id)
-        rl = self.data["rate_limits"][user_id]
+
+        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        rl: dict[str, list[str]] = rate_limits[user_id]
 
         if action in ("ban", "kick", "quarantine"):
             rl["severe_hourly"].append(now)
@@ -288,6 +301,9 @@ class ModerationBase(commands.Cog):
             return
 
         saved_roles = [role.id for role in moderator.roles if role.id != guild.id]
+
+        if "quarantined" not in self.data:
+            self.data["quarantined"] = {}
 
         self.data["quarantined"][str(moderator.id)] = {
             "roles":          saved_roles,

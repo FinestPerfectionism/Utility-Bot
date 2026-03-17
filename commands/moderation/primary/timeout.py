@@ -99,6 +99,9 @@ async def run_timeout(
         until = discord.utils.utcnow() + timedelta(seconds=duration_seconds)
         await member.timeout(until, reason=f"Timed out by {actor}: {reason}")
 
+        if "timeouts" not in base.data:
+            base.data["timeouts"] = {}
+
         base.data["timeouts"][str(member.id)] = {
             "timed_out_at": datetime.now().isoformat(),
             "timed_out_by": actor.id,
@@ -229,6 +232,9 @@ async def run_timeout_prefix(
     try:
         until = discord.utils.utcnow() + timedelta(seconds=duration_seconds)
         await member.timeout(until, reason=f"Timed out by {actor}: {reason}")
+
+        if "timeouts" not in base.data:
+            base.data["timeouts"] = {}
 
         base.data["timeouts"][str(member.id)] = {
             "timed_out_at": datetime.now().isoformat(),

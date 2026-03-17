@@ -59,7 +59,7 @@ async def run_timeouts(
     )
 
     for member in timed_out_members[:25]:
-        timeout_data = base.data["timeouts"].get(str(member.id))
+        timeout_data = base.data.get("timeouts", {}).get(str(member.id))
 
         if timeout_data and member.timed_out_until:
             timed_out_at = datetime.fromisoformat(timeout_data["timed_out_at"])
@@ -121,7 +121,7 @@ async def run_timeouts_prefix(
     )
 
     for member in timed_out_members[:25]:
-        timeout_data = base.data["timeouts"].get(str(member.id))
+        timeout_data = base.data.get("timeouts", {}).get(str(member.id))
 
         if timeout_data and member.timed_out_until:
             timed_out_at = datetime.fromisoformat(timeout_data["timed_out_at"])

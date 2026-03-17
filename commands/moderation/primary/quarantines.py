@@ -34,7 +34,7 @@ async def run_quarantines(
         )
         return
 
-    if not base.data["quarantined"]:
+    if not base.data.get("quarantined"):
         await interaction.response.send_message(
             "No members are currently quarantined.",
             ephemeral=True
@@ -82,7 +82,7 @@ async def run_quarantines_prefix(
     if not base.can_view(actor):
         return
 
-    if not base.data["quarantined"]:
+    if not base.data.get("quarantined"):
         await ctx.send("No members are currently quarantined.")
         return
 

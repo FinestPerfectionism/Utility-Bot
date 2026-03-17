@@ -64,6 +64,9 @@ async def run_quarantine(
         await send_minor_error(interaction, "You cannot quarantine members with a role ≥ to yours.")
         return
 
+    if "quarantined" not in base.data:
+        base.data["quarantined"] = {}
+
     if str(member.id) in base.data["quarantined"]:
         await send_minor_error(interaction, f"{member.mention} is already quarantined.")
         return
@@ -191,6 +194,9 @@ async def run_quarantine_prefix(
             f"You cannot quarantine members with a role ≥ to yours."
         )
         return
+
+    if "quarantined" not in base.data:
+        base.data["quarantined"] = {}
 
     if str(member.id) in base.data["quarantined"]:
         await ctx.send(

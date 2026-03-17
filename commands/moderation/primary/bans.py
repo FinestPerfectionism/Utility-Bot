@@ -65,7 +65,7 @@ async def run_bans(
 
         for ban_entry in bans[:25]:
             user     = ban_entry.user
-            ban_data = base.data["bans"].get(str(user.id))
+            ban_data = base.data.get("bans", {}).get(str(user.id))
 
             if ban_data:
                 banned_at = datetime.fromisoformat(ban_data["banned_at"])
@@ -130,7 +130,7 @@ async def run_bans_prefix(
 
         for ban_entry in bans[:25]:
             user     = ban_entry.user
-            ban_data = base.data["bans"].get(str(user.id))
+            ban_data = base.data.get("bans", {}).get(str(user.id))
 
             if ban_data:
                 banned_at = datetime.fromisoformat(ban_data["banned_at"])

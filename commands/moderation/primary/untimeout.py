@@ -64,7 +64,7 @@ async def run_untimeout(
     try:
         await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
 
-        if str(member.id) in base.data["timeouts"]:
+        if "timeouts" in base.data and str(member.id) in base.data["timeouts"]:
             del base.data["timeouts"][str(member.id)]
             base.save_data()
 
@@ -134,7 +134,7 @@ async def run_untimeout_prefix(
     try:
         await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
 
-        if str(member.id) in base.data["timeouts"]:
+        if "timeouts" in base.data and str(member.id) in base.data["timeouts"]:
             del base.data["timeouts"][str(member.id)]
             base.save_data()
 

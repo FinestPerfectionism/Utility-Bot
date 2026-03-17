@@ -91,6 +91,9 @@ async def run_ban(
             delete_message_seconds=delete_messages * 86400
         )
 
+        if "bans" not in base.data:
+            base.data["bans"] = {}
+
         base.data["bans"][str(member.id)] = {
             "banned_at": datetime.now().isoformat(),
             "banned_by": actor.id,

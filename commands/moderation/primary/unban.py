@@ -89,7 +89,7 @@ async def run_unban(
     try:
         await guild.unban(user_to_unban, reason=f"Unbanned by {actor}: {reason}")
 
-        if str(user_to_unban.id) in base.data["bans"]:
+        if "bans" in base.data and str(user_to_unban.id) in base.data["bans"]:
             del base.data["bans"][str(user_to_unban.id)]
             base.save_data()
 
@@ -186,7 +186,7 @@ async def run_unban_prefix(
     try:
         await guild.unban(user_to_unban, reason=f"Unbanned by {actor}: {reason}")
 
-        if str(user_to_unban.id) in base.data["bans"]:
+        if "bans" in base.data and str(user_to_unban.id) in base.data["bans"]:
             del base.data["bans"][str(user_to_unban.id)]
             base.save_data()
 

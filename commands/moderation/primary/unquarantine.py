@@ -64,7 +64,7 @@ async def run_unquarantine(
         return
 
     quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
-    in_json         = str(member.id) in base.data["quarantined"]
+    in_json         = str(member.id) in base.data.get("quarantined", {})
     has_quarantine  = quarantine_role in member.roles if quarantine_role else False
 
     if not in_json and not has_quarantine:
@@ -73,7 +73,7 @@ async def run_unquarantine(
 
     await interaction.response.defer(ephemeral=True)
 
-    quarantine_data           = base.data["quarantined"].get(str(member.id))
+    quarantine_data           = base.data.get("quarantined", {}).get(str(member.id))
     saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
 
     try:
@@ -172,7 +172,7 @@ async def run_unquarantine_prefix(
         return
 
     quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
-    in_json         = str(member.id) in base.data["quarantined"]
+    in_json         = str(member.id) in base.data.get("quarantined", {})
     has_quarantine  = quarantine_role in member.roles if quarantine_role else False
 
     if not in_json and not has_quarantine:
@@ -182,7 +182,7 @@ async def run_unquarantine_prefix(
         )
         return
 
-    quarantine_data         = base.data["quarantined"].get(str(member.id))
+    quarantine_data         = base.data.get("quarantined", {}).get(str(member.id))
     saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
 
     try:
