@@ -7,11 +7,8 @@ from core.cog_loader import discover_cogs
 # Owner Base
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-COGS = discover_cogs(
-    "commands",
-    "events",
-    "core",
-)
+def get_cogs():
+    return discover_cogs("commands", "events", "core")
 
 async def cog_autocomplete(
     interaction: discord.Interaction,
@@ -22,6 +19,6 @@ async def cog_autocomplete(
             name=cog,
             value=cog
         )
-        for cog in COGS
+        for cog in get_cogs()
         if current.lower() in cog.lower()
     ][:25]
