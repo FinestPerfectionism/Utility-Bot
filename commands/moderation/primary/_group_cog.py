@@ -286,7 +286,7 @@ class ModerationCommands(
         aliases = [
             "time-out", "t-t", "t-o",
             "time_out", "t_t", "t_o",
-            "timeout" , "tt" , "to" , "m"
+                        "tt" , "to" , "m"
         ]
     )
     async def timeout_prefix(
@@ -346,7 +346,7 @@ class ModerationCommands(
         aliases = [
                           "un-time-out", "un-mute", "un-t-o", "un-t-t", "u-t-t", "u-t-o", "u-m", "u-t", "un-to", "un-m",
             "un_timeout", "un_time_out", "un_mute", "un_t_o", "un_t_t", "u_t_t", "u_t_o", "u_m", "u_t", "un_to", "un_m",
-            "untimeout" , "untimeout"  , "unmute" , "unt_o" , "untt"  , "utt"  , "uto"  , "um" , "ut" , "unto" , "unm"
+            "untimeout" ,                "unmute" , "unt_o" , "untt"  , "utt"  , "uto"  , "um" , "ut" , "unto" , "unm"
         ]
     )
     async def untimeout_prefix(
@@ -517,7 +517,7 @@ class ModerationCommands(
         aliases = [
             "quarantine-add", "q-add", "q-a",
             "quarantine_add", "q_add", "q_a",
-            "quarantineadd" , "qadd" , "qa" 
+            "quarantineadd" , "add"  , "qa" , "q"
         ]
     )
     async def quarantine_prefix(
@@ -555,9 +555,9 @@ class ModerationCommands(
     @commands.command(
         name    = "un-quarantine",
         aliases = [
-            "un-quarantine", "quarantine-remove", "q-remove", "q-r",
+                             "quarantine-remove", "q-remove", "q-r",
             "un_quarantine", "quarantine_remove", "q_remove", "q_r",
-            "unquarantine" , "quarantineremove" , "qremove"  , "qr" 
+            "unquarantine" , "quarantineremove" , "qremove" , "qr" 
         ]
     )
     async def unquarantine_prefix(
