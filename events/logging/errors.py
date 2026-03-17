@@ -193,6 +193,9 @@ class ErrorLogger(commands.Cog):
         if isinstance(error, commands.CommandInvokeError):
             actual_error = error.original
 
+        if isinstance(actual_error, discord.HTTPException) and actual_error.status == 429:
+            return
+
         if isinstance(actual_error, (commands.CheckFailure, commands.CommandNotFound)):
             return
 
