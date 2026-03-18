@@ -92,8 +92,10 @@ class ModerationBase(commands.Cog):
         if not hasattr(bot, "mod_data"):
             bot.mod_data = self._load_data()
 
-        if not hasattr(bot, "notes_manager"):
+        if not hasattr(bot, "notes_manager") or bot.notes_manager is None:
             bot.notes_manager = NotesManager(bot)
+
+        self.notes_manager: NotesManager = bot.notes_manager
 
         self.QUARANTINE_ROLE_ID        = QUARANTINE_ROLE_ID
         self.DIRECTORS_ROLE_ID         = DIRECTORS_ROLE_ID
@@ -129,10 +131,6 @@ class ModerationBase(commands.Cog):
     @property
     def cases_manager(self) -> CasesManager:
         return self.bot.cases_manager
-
-    @property
-    def notes_manager(self) -> NotesManager:
-        return self.bot.notes_manager
 
     def _load_data(self) -> dict[str, Any]:
         if os.path.exists("moderation_data.json"):
