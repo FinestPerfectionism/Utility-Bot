@@ -13,9 +13,9 @@ from typing import (
     Any
 )
 
-from commands.moderation.cases import (
+from core.cases import (
     CaseType,
-    CasesManager
+    CasesManager,
 )
 
 if TYPE_CHECKING:
@@ -41,8 +41,6 @@ from constants import (
     JUNIOR_MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 )
-
-from .note import NotesManager
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Flag Converters
@@ -91,11 +89,6 @@ class ModerationBase(commands.Cog):
 
         if not hasattr(bot, "mod_data"):
             bot.mod_data = self._load_data()
-
-        if not hasattr(bot, "notes_manager") or bot.notes_manager is None:
-            bot.notes_manager = NotesManager(bot)
-
-        self.notes_manager: NotesManager = bot.notes_manager
 
         self.QUARANTINE_ROLE_ID        = QUARANTINE_ROLE_ID
         self.DIRECTORS_ROLE_ID         = DIRECTORS_ROLE_ID
@@ -271,92 +264,6 @@ class ModerationBase(commands.Cog):
     def can_quarantine(self, member: discord.Member) -> bool:
         return is_senior_moderator(member)
 
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # Note Permission Helpers
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-    def _is_junior_moderator(self, member: discord.Member) -> bool:
-        return has_role(member, JUNIOR_MODERATORS_ROLE_ID)
-
-    def _is_junior_administrator(self, member: discord.Member) -> bool:
-        return has_role(member, JUNIOR_ADMINISTRATORS_ROLE_ID)
-
-    def _is_senior_administrator(self, member: discord.Member) -> bool:
-        return has_role(member, SENIOR_ADMINISTRATORS_ROLE_ID)
-
-    def can_create_user_note(self, member: discord.Member) -> bool:
-        return (
-            self._is_junior_moderator(member)
-            or is_senior_moderator(member)
-            or self._is_senior_administrator(member)
-            or is_director(member)
-        )
-
-    def can_view_user_notes(self, member: discord.Member) -> bool:
-        return self.can_create_user_note(member)
-
-    def can_edit_user_note(self, member: discord.Member) -> bool:
-        return self.can_create_user_note(member)
-
-    def can_create_case_note(self, member: discord.Member) -> bool:
-        return (
-            is_senior_moderator(member)
-            or self._is_senior_administrator(member)
-            or is_director(member)
-        )
-
-    def can_view_case_notes(self, member: discord.Member) -> bool:
-        return (
-            self._is_junior_moderator(member)
-            or is_senior_moderator(member)
-            or self._is_junior_administrator(member)
-            or self._is_senior_administrator(member)
-            or is_director(member)
-        )
-
-    def can_edit_case_note(self, member: discord.Member) -> bool:
-        return self.can_create_case_note(member)
-
-    def can_delete_note(self, member: discord.Member) -> bool:
-        return is_director(member)
-
-    def can_classify_note(self, member: discord.Member) -> bool:
-        return is_senior_moderator(member) or is_director(member)
-
-    def can_approve_classification(self, member: discord.Member) -> bool:
-        return is_director(member)
-
-    def _note_classification_level(self, member: discord.Member) -> int:
-        if is_director(member):
-            return 3
-        if is_senior_moderator(member):
-            return 2
-        if is_moderator(member) or self._is_junior_moderator(member):
-            return 1
-        return 0
-
-    def can_see_full_note(self, member: discord.Member, note: dict[str, Any]) -> bool:
-        classification = note.get("classification")
-        if not classification:
-            return True
-        level = self._note_classification_level(member)
-        if classification == "moderators":
-            return level >= 1
-        if classification == "senior_moderators":
-            return level >= 2
-        if classification == "directors":
-            return level >= 3
-        return True
-
-    def note_visibility_for(self, member: discord.Member, note: dict[str, Any]) -> str:
-        if not note.get("classification"):
-            return "full"
-        if self.can_see_full_note(member, note):
-            return "full"
-        if self._is_senior_administrator(member):
-            return "group_only"
-        return "exists_only"
-
     def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
         if target.id == moderator.guild.owner_id:
             return False
@@ -414,12 +321,12 @@ class ModerationBase(commands.Cog):
             bot_member = guild.get_member(self.bot.user.id)
             if bot_member:
                 await self.cases_manager.log_case(
-                    guild=guild,
-                    case_type=CaseType.QUARANTINE_ADD,
-                    moderator=bot_member,
-                    reason="Exceeded moderation rate limits (auto-quarantine)",
-                    target_user=moderator,
-                    metadata={"roles_saved": len(saved_roles), "auto_quarantine": True}
+                    guild       = guild,
+                    case_type   = CaseType.QUARANTINE_ADD,
+                    moderator   = bot_member,
+                    reason      = "Exceeded moderation rate limits (auto-quarantine)",
+                    target_user = moderator,
+                    metadata    = {"roles_saved": len(saved_roles), "auto_quarantine": True}
                 )
         except discord.Forbidden:
             pass

@@ -4,43 +4,61 @@ from discord import app_commands
 
 import contextlib
 from datetime import datetime
-from typing import Literal
-
-from constants import (
-    COLOR_GREEN,
-    COLOR_BLURPLE,
-    DIRECTORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
-    MODERATORS_ROLE_ID,
-    ADMINISTRATORS_ROLE_ID,
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    cast,
 )
-from core.utils import (
-    send_minor_error,
-    send_major_error,
+
+if TYPE_CHECKING:
+    from bot import UtilityBot
+
+from core.cases import (
+    CaseType,
+    CasesManager,
 )
 from core.permissions import (
     is_administrator,
     is_director,
     is_moderator,
+    is_senior_moderator,
 )
-from core.cases import (
-    CaseType,
-    CasesManager
+from core.utils import (
+    send_major_error,
+    send_minor_error,
+)
+from constants import (
+    COLOR_GREEN,
+    COLOR_YELLOW,
+    COLOR_ORANGE,
+    COLOR_RED,
+    COLOR_BLURPLE,
+    COLOR_GREY,
+    COLOR_BLACK,
+    DIRECTORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+    ADMINISTRATORS_ROLE_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Cases Cog
+# Cases Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CasesCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
-        self.cases_manager = CasesManager(bot)
 
-        self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
+        if not hasattr(bot, "cases_manager"):
+            bot.cases_manager = CasesManager(bot)
+
+        self.cases_manager: CasesManager = bot.cases_manager
+
+        self.DIRECTORS_ROLE_ID         = DIRECTORS_ROLE_ID
         self.SENIOR_MODERATORS_ROLE_ID = SENIOR_MODERATORS_ROLE_ID
-        self.MODERATORS_ROLE_ID = MODERATORS_ROLE_ID
-        self.ADMINISTRATORS_ROLE_ID = ADMINISTRATORS_ROLE_ID
+        self.MODERATORS_ROLE_ID        = MODERATORS_ROLE_ID
+        self.ADMINISTRATORS_ROLE_ID    = ADMINISTRATORS_ROLE_ID
 
     def can_view(self, member: discord.Member) -> bool:
         return (
@@ -52,31 +70,213 @@ class CasesCommands(commands.Cog):
     def can_configure(self, member: discord.Member) -> bool:
         return is_director(member)
 
-    cases_group = app_commands.Group(
-        name="cases",
-        description="Moderators only —— Cases management."
-    )
+    def _visibility_level(self, member: discord.Member) -> int:
+        if is_director(member):
+            return 3
+        if is_senior_moderator(member):
+            return 2
+        if is_moderator(member):
+            return 1
+        return 0
 
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /cases view
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    def _can_see_case(self, member: discord.Member, case: dict[str, Any]) -> bool:
+        vis   = case.get("visibility_level", "moderators")
+        level = self._visibility_level(member)
+        if vis == "directors":
+            return level >= 3
+        if vis == "senior_moderators":
+            return level >= 2
+        return level >= 1
 
-    @cases_group.command(name="view", description="View moderation cases with filters.")
-    @app_commands.describe(
-        user      = "Filter by user.",
-        moderator = "Filter by moderator.",
-        case_type = "Filter by case type."
-    )
-    @app_commands.rename(case_type="case-type")
-    async def cases_view(
+    def _can_edit_entry(self, member: discord.Member, case: dict[str, Any]) -> bool:
+        return (
+            member.id == case["moderator_id"]
+            or is_senior_moderator(member)
+            or is_director(member)
+        )
+
+    def _parse_dt(self, value: str) -> datetime | None:
+        with contextlib.suppress(ValueError):
+            return datetime.fromisoformat(value)
+        return None
+
+    COLOR_MAP: dict[str, discord.Color] = {
+        CaseType.BAN.value               : COLOR_BLACK,
+        CaseType.UNBAN.value             : COLOR_GREEN,
+        CaseType.KICK.value              : COLOR_RED,
+        CaseType.TIMEOUT.value           : COLOR_YELLOW,
+        CaseType.UNTIMEOUT.value         : COLOR_GREEN,
+        CaseType.QUARANTINE_ADD.value    : COLOR_ORANGE,
+        CaseType.QUARANTINE_REMOVE.value : COLOR_GREEN,
+        CaseType.LOCKDOWN_ADD.value      : COLOR_GREY,
+        CaseType.LOCKDOWN_REMOVE.value   : COLOR_GREEN,
+        CaseType.PURGE.value             : COLOR_BLURPLE,
+        CaseType.NOTE.value              : COLOR_BLURPLE,
+    }
+
+    TITLE_MAP: dict[str, str] = {
+        CaseType.BAN.value               : "Member Banned",
+        CaseType.UNBAN.value             : "User Un-banned",
+        CaseType.KICK.value              : "Member Kicked",
+        CaseType.TIMEOUT.value           : "Member Muted",
+        CaseType.UNTIMEOUT.value         : "Member Un-muted",
+        CaseType.QUARANTINE_ADD.value    : "Member Quarantined",
+        CaseType.QUARANTINE_REMOVE.value : "Member Un-quarantined",
+        CaseType.LOCKDOWN_ADD.value      : "Lockdown Engaged",
+        CaseType.LOCKDOWN_REMOVE.value   : "Lockdown Lifted",
+        CaseType.PURGE.value             : "Messages Purged",
+        CaseType.NOTE.value              : "Note Added",
+    }
+
+    def _format_case_field(self, case: dict[str, Any]) -> tuple[str, str]:
+        case_type  = case["type"]
+        type_label = case_type.replace("_", " ").title()
+        created    = datetime.fromisoformat(case["created_at"])
+
+        parts: list[str] = [f"**Type:** {type_label}"]
+
+        if case.get("target_user_name"):
+            parts.append(f"**User:** {case['target_user_name']} ({case['target_user_id']})")
+
+        parts.append(f"**Moderator:** {case['moderator_name']}")
+
+        if case.get("duration"):
+            parts.append(f"**Duration:** {case['duration']}")
+
+        if case.get("reason"):
+            reason = str(case["reason"])
+            if len(reason) > 200:
+                reason = reason[:197] + "..."
+            parts.append(f"**Reason:** {reason}")
+
+        if case.get("content"):
+            content = str(case["content"])
+            if len(content) > 200:
+                content = content[:197] + "..."
+            parts.append(f"**Content:** {content}")
+
+        vis = case.get("visibility_level", "moderators")
+        if vis != "moderators":
+            parts.append(f"**Visibility:** {str(vis).replace('_', ' ').title()}")
+
+        parts.append(f"**Created:** {discord.utils.format_dt(created, 'R')}")
+
+        return f"Case #{case['case_id']}", "\n".join(parts)
+
+    async def _build_case_embed(
         self,
-        interaction: discord.Interaction,
-        user:        discord.User | None = None,
-        moderator:   discord.User | None = None,
-        case_type:   Literal[
-            "ban", "unban", "kick", "timeout", "untimeout",
-            "quarantine", "unquarantine", "lockdown", "unlockdown", "purge"
-        ]                         | None = None
+        guild : discord.Guild,
+        case  : dict[str, Any],
+    ) -> discord.Embed:
+        case_type  = case["type"]
+        type_label = case_type.replace("_", " ").title()
+        created    = datetime.fromisoformat(case["created_at"])
+
+        embed = discord.Embed(
+            title     = f"Case #{case['case_id']} — {type_label}",
+            color     = self.COLOR_MAP.get(case_type, COLOR_BLURPLE),
+            timestamp = created,
+        )
+
+        mod_added = False
+        with contextlib.suppress(discord.NotFound, discord.HTTPException):
+            mod = await self.bot.fetch_user(case["moderator_id"])
+            embed.add_field(name="Moderator", value=mod.mention, inline=True)
+            mod_added = True
+        if not mod_added:
+            embed.add_field(name="Moderator", value=case["moderator_name"], inline=True)
+
+        if case.get("target_user_id"):
+            user_added = False
+            with contextlib.suppress(discord.NotFound, discord.HTTPException):
+                user = await self.bot.fetch_user(case["target_user_id"])
+                embed.add_field(name="User", value=f"{user.mention} ({user.id})", inline=True)
+                user_added = True
+            if not user_added:
+                embed.add_field(
+                    name   = "User",
+                    value  = f"{case['target_user_name']} ({case['target_user_id']})",
+                    inline = True,
+                )
+
+        if case.get("duration"):
+            embed.add_field(name="Duration", value=case["duration"], inline=True)
+
+        if case.get("reason"):
+            embed.add_field(name="Reason", value=case["reason"], inline=False)
+
+        if case.get("content"):
+            embed.add_field(name="Content", value=case["content"], inline=False)
+
+        if case.get("related_case_id"):
+            embed.add_field(name="Related Case", value=f"#{case['related_case_id']}", inline=True)
+
+        vis = case.get("visibility_level", "moderators")
+        embed.add_field(
+            name   = "Visibility",
+            value  = str(vis).replace("_", " ").title(),
+            inline = True,
+        )
+
+        embed.add_field(
+            name   = "Created",
+            value  = discord.utils.format_dt(created, "R"),
+            inline = True,
+        )
+
+        if case.get("edited_at"):
+            edited = datetime.fromisoformat(case["edited_at"])
+            embed.add_field(
+                name   = "Edited",
+                value  = discord.utils.format_dt(edited, "R"),
+                inline = True,
+            )
+
+        if case.get("pending_visibility"):
+            pending = str(case["pending_visibility"]).replace("_", " ").title()
+            embed.add_field(name="Pending Visibility", value=pending, inline=True)
+
+        return embed
+
+    cases_group = app_commands.Group(
+        name        = "cases",
+        description = "Moderators only —— Cases management."
+    )
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases query Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="query", description="Query the moderation case history.")
+    @app_commands.describe(
+        user          = "Filter by user.",
+        moderator     = "Filter by moderator.",
+        case_type     = "Filter by case type.",
+        contains      = "Search reason or content.",
+        after         = "Only cases after this date (ISO format: YYYY-MM-DD).",
+        before        = "Only cases before this date (ISO format: YYYY-MM-DD).",
+        include_notes = "Include note entries. Default: true.",
+    )
+    @app_commands.rename(
+        case_type     = "type",
+        include_notes = "include-notes",
+    )
+    async def cases_query(
+        self,
+        interaction:   discord.Interaction,
+        user:          discord.User | None = None,
+        moderator:     discord.User | None = None,
+        case_type:     Literal[
+            "ban", "unban", "kick",
+            "timeout", "untimeout",
+            "quarantine_add", "quarantine_remove",
+            "lockdown_add", "lockdown_remove",
+            "purge", "note",
+        ] | None = None,
+        contains:      str | None = None,
+        after:         str | None = None,
+        before:        str | None = None,
+        include_notes: bool       = True,
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -86,8 +286,8 @@ class CasesCommands(commands.Cog):
             await send_major_error(
                 interaction,
                 title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to view cases.",
-                subtitle = "Invalid permissions."
+                texts    = "You lack the necessary permissions to query cases.",
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -95,36 +295,41 @@ class CasesCommands(commands.Cog):
         if not guild:
             return
 
-        if case_type == "purge" and user is not None:
-            await send_minor_error(
-                interaction,
-                texts = "You cannot filter purge cases by user. Purge actions affect channels, not individual users."
-            )
-            return
+        after_dt:  datetime | None = None
+        before_dt: datetime | None = None
+
+        if after:
+            after_dt = self._parse_dt(after)
+            if after_dt is None:
+                await send_minor_error(
+                    interaction,
+                    texts = "Invalid `after` date. Use ISO format: `YYYY-MM-DD`.",
+                )
+                return
+
+        if before:
+            before_dt = self._parse_dt(before)
+            if before_dt is None:
+                await send_minor_error(
+                    interaction,
+                    texts = "Invalid `before` date. Use ISO format: `YYYY-MM-DD`.",
+                )
+                return
 
         await interaction.response.defer(ephemeral=True)
 
-        type_mapping = {
-            "ban"          : CaseType.BAN.value,
-            "unban"        : CaseType.UNBAN.value,
-            "kick"         : CaseType.KICK.value,
-            "timeout"      : CaseType.TIMEOUT.value,
-            "untimeout"    : CaseType.UNTIMEOUT.value,
-            "quarantine"   : CaseType.QUARANTINE_ADD.value,
-            "unquarantine" : CaseType.QUARANTINE_REMOVE.value,
-            "lockdown"     : CaseType.LOCKDOWN_ADD.value,
-            "unlockdown"   : CaseType.LOCKDOWN_REMOVE.value,
-            "purge"        : CaseType.PURGE.value,
-        }
-
-        internal_case_type = type_mapping.get(case_type) if case_type else None
-
         cases = self.cases_manager.get_cases(
-            guild_id     = guild.id,
-            user_id      = user.id if user else None,
-            moderator_id = moderator.id if moderator else None,
-            case_type    = internal_case_type
+            guild_id      = guild.id,
+            user_id       = user.id if user else None,
+            moderator_id  = moderator.id if moderator else None,
+            case_type     = case_type,
+            contains      = contains,
+            after         = after_dt,
+            before        = before_dt,
+            include_notes = include_notes,
         )
+
+        cases = [c for c in cases if self._can_see_case(actor, c)]
 
         if not cases:
             filters: list[str] = []
@@ -133,9 +338,11 @@ class CasesCommands(commands.Cog):
             if moderator:
                 filters.append(f"moderator {moderator.mention}")
             if case_type:
-                filters.append(f"type **{case_type}**")
+                filters.append(f"type **{case_type.replace('_', ' ')}**")
+            if contains:
+                filters.append(f"containing **{contains}**")
 
-            filter_text = " and ".join(filters) if filters else ""
+            filter_text = " and ".join(filters)
             description = f"No cases found{' for ' + filter_text if filter_text else ''}."
 
             embed = discord.Embed(description=description, color=COLOR_GREEN)
@@ -148,49 +355,19 @@ class CasesCommands(commands.Cog):
         if moderator:
             title_parts.append(f"by {moderator.name}")
         if case_type:
-            title_parts.append(f"({case_type})")
+            title_parts.append(f"({case_type.replace('_', ' ').title()})")
 
         title = "Cases " + " ".join(title_parts) if title_parts else "All Cases"
 
         embed = discord.Embed(
             title     = title,
             color     = COLOR_BLURPLE,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
 
         for case in cases[:25]:
-            case_type_display = case["type"].replace("_", " ").title()
-            timestamp = datetime.fromisoformat(case["timestamp"])
-
-            value_parts: list[str] = []
-            value_parts.append(f"**Type:** {case_type_display}")
-
-            if case.get("target_user_id"):
-                with contextlib.suppress(discord.NotFound, discord.HTTPException):
-                    target = await self.bot.fetch_user(case["target_user_id"])
-                    value_parts.append(f"**User:** {target.mention}")
-
-                if not any(p.startswith("**User:**") for p in value_parts):
-                    value_parts.append(f"**User:** {case['target_user_name']} ({case['target_user_id']})")
-
-            with contextlib.suppress(discord.NotFound, discord.HTTPException):
-                mod = await self.bot.fetch_user(case["moderator_id"])
-                value_parts.append(f"**Moderator:** {mod.mention}")
-
-            if not any(p.startswith("**Moderator:**") for p in value_parts):
-                value_parts.append(f"**Moderator:** {case['moderator_name']}")
-
-            if case.get("duration"):
-                value_parts.append(f"**Duration:** {case['duration']}")
-
-            value_parts.append(f"**Reason:** {case['reason']}")
-            value_parts.append(f"**When:** {discord.utils.format_dt(timestamp, 'R')}")
-
-            embed.add_field(
-                name=f"Case #{case['case_id']}",
-                value="\n".join(value_parts),
-                inline=False
-            )
+            name, value = self._format_case_field(case)
+            embed.add_field(name=name, value=value, inline=False)
 
         if len(cases) > 25:
             embed.set_footer(text=f"Showing 25 of {len(cases)} cases")
@@ -198,7 +375,423 @@ class CasesCommands(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /cases config
+    # /cases view Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="view", description="View a single case with its related notes.")
+    @app_commands.describe(case_id="The case ID to view.")
+    @app_commands.rename(case_id="case-id")
+    async def cases_view(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_view(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to view cases.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        case = self.cases_manager.get_case_by_id(case_id)
+
+        if not case or case["guild_id"] != guild.id:
+            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            return
+
+        if not self._can_see_case(actor, case):
+            await send_minor_error(
+                interaction,
+                texts = f"You do not have permission to view Case **#{case_id}**.",
+            )
+            return
+
+        embed = await self._build_case_embed(guild, case)
+
+        notes         = self.cases_manager.get_related_notes(case_id, guild.id)
+        visible_notes = [n for n in notes if self._can_see_case(actor, n)]
+
+        if visible_notes:
+            embed.add_field(name="— Notes —", value="\u200b", inline=False)
+            for note in visible_notes[:10]:
+                note_created = datetime.fromisoformat(note["created_at"])
+                note_parts   = [
+                    f"**Moderator:** {note['moderator_name']}",
+                    f"**Created:** {discord.utils.format_dt(note_created, 'R')}",
+                ]
+                if note.get("content"):
+                    note_parts.append(f"\n{note['content']}")
+                embed.add_field(
+                    name   = f"Note #{note['case_id']}",
+                    value  = "\n".join(note_parts),
+                    inline = False,
+                )
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases add-note Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="add-note", description="Add a note to a user or case.")
+    @app_commands.describe(
+        content    = "The note content.",
+        user       = "The user to attach the note to.",
+        case_id    = "The case ID to attach the note to.",
+        visibility = "Visibility restriction level.",
+    )
+    @app_commands.rename(case_id="case-id")
+    async def cases_add_note(
+        self,
+        interaction: discord.Interaction,
+        content:     str,
+        user:        discord.User | None = None,
+        case_id:     int | None          = None,
+        visibility:  Literal[
+            "moderators", "senior_moderators", "directors"
+        ] = "moderators",
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_view(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to add notes.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        if user is None and case_id is None:
+            await send_minor_error(
+                interaction,
+                texts = "You must provide either a user or a case ID.",
+            )
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        if visibility == "directors" and not is_director(actor):
+            await send_minor_error(
+                interaction,
+                texts = "Only Directors can create director-level notes.",
+            )
+            return
+
+        new_case_id = await self.cases_manager.add_note(
+            guild            = guild,
+            moderator        = actor,
+            content          = content,
+            target_user      = user,
+            related_case_id  = case_id,
+            visibility_level = visibility,
+        )
+
+        description = (
+            f"Note **#{new_case_id}** added for {user.mention}."
+            if user else
+            f"Note **#{new_case_id}** added to Case **#{case_id}**."
+        )
+
+        embed = discord.Embed(
+            description = description,
+            color       = COLOR_GREEN,
+            timestamp   = datetime.now(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases edit-entry Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="edit-entry", description="Edit a note entry.")
+    @app_commands.describe(
+        case_id = "The case ID of the note to edit.",
+        content = "The updated note content.",
+    )
+    @app_commands.rename(case_id="case-id")
+    async def cases_edit_entry(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+        content:     str,
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        case = self.cases_manager.get_case_by_id(case_id)
+
+        if not case or case["guild_id"] != guild.id:
+            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            return
+
+        if case["type"] != CaseType.NOTE.value:
+            await send_minor_error(
+                interaction,
+                texts = f"Case **#{case_id}** is not a note entry and cannot be edited here.",
+            )
+            return
+
+        if not self._can_edit_entry(actor, case):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to edit this note.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        self.cases_manager.edit_case(case_id, content)
+
+        embed = discord.Embed(
+            description = f"Note **#{case_id}** has been updated.",
+            color       = COLOR_GREEN,
+            timestamp   = datetime.now(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases delete-entry Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="delete-entry", description="Delete a case entry. Directors only.")
+    @app_commands.describe(case_id="The case ID to delete.")
+    @app_commands.rename(case_id="case-id")
+    async def cases_delete_entry(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not is_director(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "Only Directors can delete case entries.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        case = self.cases_manager.get_case_by_id(case_id)
+
+        if not case or case["guild_id"] != guild.id:
+            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            return
+
+        self.cases_manager.delete_case(case_id)
+
+        embed = discord.Embed(
+            description = f"Case **#{case_id}** has been deleted.",
+            color       = COLOR_GREEN,
+            timestamp   = datetime.now(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases classify Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="classify", description="Classify a case entry's visibility.")
+    @app_commands.describe(
+        case_id    = "The case ID to classify.",
+        visibility = "The visibility restriction to apply or request.",
+    )
+    @app_commands.rename(
+        case_id    = "case-id",
+        visibility = "level",
+    )
+    async def cases_classify(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+        visibility:  Literal["moderators", "senior_moderators", "directors"],
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not self.can_view(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to classify cases.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        if visibility == "directors" and not is_director(actor):
+            await send_minor_error(
+                interaction,
+                texts = "Only Directors can apply or request director-level classification.",
+            )
+            return
+
+        case = self.cases_manager.get_case_by_id(case_id)
+
+        if not case or case["guild_id"] != guild.id:
+            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            return
+
+        label = visibility.replace("_", " ").title()
+
+        if is_director(actor):
+            self.cases_manager.set_visibility(case_id, visibility)
+            embed = discord.Embed(
+                description = f"Case **#{case_id}** visibility set to **{label}**.",
+                color       = COLOR_GREEN,
+                timestamp   = datetime.now(),
+            )
+        else:
+            self.cases_manager.request_visibility(case_id, visibility)
+            embed = discord.Embed(
+                description = (
+                    f"Visibility request submitted for Case **#{case_id}**.\n"
+                    f"A Director must approve the **{label}** restriction."
+                ),
+                color     = COLOR_YELLOW,
+                timestamp = datetime.now(),
+            )
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases approve Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="approve", description="Approve a pending visibility request.")
+    @app_commands.describe(case_id="The case ID to approve.")
+    @app_commands.rename(case_id="case-id")
+    async def cases_approve(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not is_director(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "Only Directors can approve visibility requests.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        case = self.cases_manager.get_case_by_id(case_id)
+
+        if not case or case["guild_id"] != guild.id:
+            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            return
+
+        pending = case.get("pending_visibility")
+        if not pending:
+            await send_minor_error(
+                interaction,
+                texts = f"Case **#{case_id}** has no pending visibility request.",
+            )
+            return
+
+        self.cases_manager.approve_visibility(case_id)
+
+        label = str(pending).replace("_", " ").title()
+        embed = discord.Embed(
+            description = f"Case **#{case_id}** visibility approved as **{label}**.",
+            color       = COLOR_GREEN,
+            timestamp   = datetime.now(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases deny Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @cases_group.command(name="deny", description="Deny a pending visibility request.")
+    @app_commands.describe(case_id="The case ID to deny.")
+    @app_commands.rename(case_id="case-id")
+    async def cases_deny(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not is_director(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "Only Directors can deny visibility requests.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        guild = interaction.guild
+        if not guild:
+            return
+
+        case = self.cases_manager.get_case_by_id(case_id)
+
+        if not case or case["guild_id"] != guild.id:
+            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            return
+
+        if not case.get("pending_visibility"):
+            await send_minor_error(
+                interaction,
+                texts = f"Case **#{case_id}** has no pending visibility request.",
+            )
+            return
+
+        self.cases_manager.deny_visibility(case_id)
+
+        embed = discord.Embed(
+            description = f"Visibility request for Case **#{case_id}** has been denied.",
+            color       = COLOR_GREEN,
+            timestamp   = datetime.now(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /cases config Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @cases_group.command(name="config", description="Configure the cases log channel.")
@@ -206,7 +799,7 @@ class CasesCommands(commands.Cog):
     async def cases_config(
         self,
         interaction: discord.Interaction,
-        channel: discord.TextChannel
+        channel:     discord.TextChannel,
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -217,7 +810,7 @@ class CasesCommands(commands.Cog):
                 interaction,
                 title    = "Unauthorized!",
                 texts    = "You lack the necessary permissions to configure cases.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -226,8 +819,8 @@ class CasesCommands(commands.Cog):
 
         await interaction.response.send_message(
             f"Case logs will now be sent to {channel.mention}.",
-            ephemeral = True
+            ephemeral = True,
         )
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(CasesCommands(bot))
+    await bot.add_cog(CasesCommands(cast("UtilityBot", bot)))
