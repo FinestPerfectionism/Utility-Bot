@@ -12,8 +12,9 @@ import logging
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class UtilityBot(commands.Bot):
-    cases_manager : CasesManager
-    mod_data      : dict[str, Any]
+    cases_manager: CasesManager
+    mod_data: dict[str, Any]
+    notes_manager: Any
 
     def __init__(self) -> None:
         intents: discord.Intents = discord.Intents.default()
@@ -28,6 +29,7 @@ class UtilityBot(commands.Bot):
         )
         self.cases_manager: CasesManager = CasesManager(self)
         self.mod_data: dict[str, Any] = {}
+        self.notes_manager: Any = None
 
     async def setup_hook(self) -> None:
         from constants import GUILD_ID

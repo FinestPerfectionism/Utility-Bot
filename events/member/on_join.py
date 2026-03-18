@@ -10,7 +10,7 @@ from typing import (
 
 if TYPE_CHECKING:
     from events.member.verification import VerificationHandler
-    from commands.moderation.secondary.quarantine import QuarantineCommands
+    from commands.moderation.primary._group_cog import ModerationCommands
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
@@ -38,7 +38,7 @@ class MemberJoinHandler(commands.Cog):
         verification_cog.save_data()
 
         quarantine_cog = cast(
-            "QuarantineCommands",
+            "ModerationCommands",
             self.bot.get_cog("QuarantineCommands")
         )
 

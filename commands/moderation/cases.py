@@ -9,7 +9,6 @@ from typing import Literal
 from constants import (
     COLOR_GREEN,
     COLOR_BLURPLE,
-    ACCEPTED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
@@ -23,9 +22,11 @@ from core.permissions import (
     is_administrator,
     is_director,
     is_moderator,
-    is_senior_moderator,
 )
-from core.cases import CaseType, CasesManager
+from core.cases import (
+    CaseType,
+    CasesManager
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Cog
@@ -44,7 +45,6 @@ class CasesCommands(commands.Cog):
     def can_view(self, member: discord.Member) -> bool:
         return (
             is_director(member)
-            or is_senior_moderator(member)
             or is_administrator(member)
             or is_moderator(member)
         )
@@ -63,19 +63,20 @@ class CasesCommands(commands.Cog):
 
     @cases_group.command(name="view", description="View moderation cases with filters.")
     @app_commands.describe(
-        user="Filter by user.",
-        moderator="Filter by moderator.",
-        case_type="Filter by case type."
+        user      = "Filter by user.",
+        moderator = "Filter by moderator.",
+        case_type = "Filter by case type."
     )
+    @app_commands.rename(case_type="case-type")
     async def cases_view(
         self,
         interaction: discord.Interaction,
-        user: discord.User | None = None,
-        moderator: discord.User | None = None,
-        case_type: Literal[
+        user:        discord.User | None = None,
+        moderator:   discord.User | None = None,
+        case_type:   Literal[
             "ban", "unban", "kick", "timeout", "untimeout",
             "quarantine", "unquarantine", "lockdown", "unlockdown", "purge"
-        ] | None = None
+        ]                         | None = None
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -84,9 +85,9 @@ class CasesCommands(commands.Cog):
         if not self.can_view(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to view cases.",
-                subtitle="Invalid permissions."
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to view cases.",
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -97,32 +98,32 @@ class CasesCommands(commands.Cog):
         if case_type == "purge" and user is not None:
             await send_minor_error(
                 interaction,
-                "You cannot filter purge cases by user. Purge actions affect channels, not individual users."
+                texts = "You cannot filter purge cases by user. Purge actions affect channels, not individual users."
             )
             return
 
         await interaction.response.defer(ephemeral=True)
 
         type_mapping = {
-            "ban": CaseType.BAN.value,
-            "unban": CaseType.UNBAN.value,
-            "kick": CaseType.KICK.value,
-            "timeout": CaseType.TIMEOUT.value,
-            "untimeout": CaseType.UNTIMEOUT.value,
-            "quarantine": CaseType.QUARANTINE_ADD.value,
-            "unquarantine": CaseType.QUARANTINE_REMOVE.value,
-            "lockdown": CaseType.LOCKDOWN_ADD.value,
-            "unlockdown": CaseType.LOCKDOWN_REMOVE.value,
-            "purge": CaseType.PURGE.value,
+            "ban"          : CaseType.BAN.value,
+            "unban"        : CaseType.UNBAN.value,
+            "kick"         : CaseType.KICK.value,
+            "timeout"      : CaseType.TIMEOUT.value,
+            "untimeout"    : CaseType.UNTIMEOUT.value,
+            "quarantine"   : CaseType.QUARANTINE_ADD.value,
+            "unquarantine" : CaseType.QUARANTINE_REMOVE.value,
+            "lockdown"     : CaseType.LOCKDOWN_ADD.value,
+            "unlockdown"   : CaseType.LOCKDOWN_REMOVE.value,
+            "purge"        : CaseType.PURGE.value,
         }
 
         internal_case_type = type_mapping.get(case_type) if case_type else None
 
         cases = self.cases_manager.get_cases(
-            guild_id=guild.id,
-            user_id=user.id if user else None,
-            moderator_id=moderator.id if moderator else None,
-            case_type=internal_case_type
+            guild_id     = guild.id,
+            user_id      = user.id if user else None,
+            moderator_id = moderator.id if moderator else None,
+            case_type    = internal_case_type
         )
 
         if not cases:
@@ -152,9 +153,9 @@ class CasesCommands(commands.Cog):
         title = "Cases " + " ".join(title_parts) if title_parts else "All Cases"
 
         embed = discord.Embed(
-            title=title,
-            color=COLOR_BLURPLE,
-            timestamp=datetime.now()
+            title     = title,
+            color     = COLOR_BLURPLE,
+            timestamp = datetime.now()
         )
 
         for case in cases[:25]:
@@ -214,23 +215,19 @@ class CasesCommands(commands.Cog):
         if not self.can_configure(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to configure cases.",
-                subtitle="Invalid permissions."
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to configure cases.",
+                subtitle = "Invalid permissions."
             )
             return
 
         self.cases_manager.config["log_channel_id"] = channel.id
         self.cases_manager.save_config()
 
-        embed = discord.Embed(
-            title=f"{ACCEPTED_EMOJI_ID} Cases Log Channel Configured",
-            description=f"Case logs will now be sent to {channel.mention}.",
-            color=COLOR_GREEN,
-            timestamp=datetime.now()
+        await interaction.response.send_message(
+            f"Case logs will now be sent to {channel.mention}.",
+            ephemeral = True
         )
-
-        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(CasesCommands(bot))

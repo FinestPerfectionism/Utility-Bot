@@ -4,6 +4,7 @@ from discord import app_commands
 
 from typing import (
     TYPE_CHECKING,
+    Literal,
     cast
 )
 
@@ -66,6 +67,17 @@ from .purge import (
     run_purge,
     run_purge_prefix,
 )
+from .note import (
+    run_note_add_user,
+    run_note_add_case,
+    run_note_view_user,
+    run_note_view_case,
+    run_note_edit,
+    run_note_delete,
+    run_note_classify,
+    run_note_approve,
+    run_note_deny,
+)
 
 from constants import CONTESTED_EMOJI_ID
 
@@ -82,6 +94,11 @@ class ModerationCommands(
     def __init__(self, bot: "UtilityBot") -> None:
         ModerationBase.__init__(self, bot)
         commands.GroupCog.__init__(self)
+
+    note_group = app_commands.Group(
+        name        = "note",
+        description = "Moderators only —— Note management."
+    )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation ban Command
@@ -195,7 +212,7 @@ class ModerationCommands(
         aliases = [
             "ban-list", "b-l-s", "b-s",
             "ban_list", "b_l_s", "b_s",
-            "banlist" , "bls"  , "bs" 
+            "banlist" , "bls"  , "bs"
         ]
     )
     async def bans_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
@@ -483,7 +500,7 @@ class ModerationCommands(
         aliases = [
             "quarantine-list", "quarantine-v", "q-l-s", "q-v",
             "quarantine_list", "quarantine_v", "q_l_s", "q_v",
-            "quarantinelist" , "quarantinev" , "qls"  , "qv" 
+            "quarantinelist" , "quarantinev" , "qls"  , "qv"
         ]
     )
     async def quarantines_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
@@ -557,7 +574,7 @@ class ModerationCommands(
         aliases = [
                              "quarantine-remove", "q-remove", "q-r",
             "un_quarantine", "quarantine_remove", "q_remove", "q_r",
-            "unquarantine" , "quarantineremove" , "qremove" , "qr" 
+            "unquarantine" , "quarantineremove" , "qremove" , "qr"
         ]
     )
     async def unquarantine_prefix(
@@ -568,6 +585,153 @@ class ModerationCommands(
         flags:  UnquarantineFlags
     ) -> None:
         await run_unquarantine_prefix(self, ctx, member, flags)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note add-user Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="add-user", description="Add a note to a user.")
+    @app_commands.describe(
+        user    = "The user to attach the note to.",
+        content = "The note content."
+    )
+    async def note_add_user(
+        self,
+        interaction: discord.Interaction,
+        user:        discord.User,
+        content:     str,
+    ) -> None:
+        await run_note_add_user(self, interaction, user, content)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note add-case Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="add-case", description="Add a note to a case.")
+    @app_commands.describe(
+        case_id = "The case ID to attach the note to.",
+        content = "The note content."
+    )
+    @app_commands.rename(case_id="case-id")
+    async def note_add_case(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+        content:     str,
+    ) -> None:
+        await run_note_add_case(self, interaction, case_id, content)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note view-user Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="view-user", description="View notes on a user.")
+    @app_commands.describe(user="The user whose notes to view.")
+    async def note_view_user(
+        self,
+        interaction: discord.Interaction,
+        user:        discord.User,
+    ) -> None:
+        await run_note_view_user(self, interaction, user)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note view-case Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="view-case", description="View notes on a case.")
+    @app_commands.describe(case_id="The case ID whose notes to view.")
+    @app_commands.rename(case_id="case-id")
+    async def note_view_case(
+        self,
+        interaction: discord.Interaction,
+        case_id:     int,
+    ) -> None:
+        await run_note_view_case(self, interaction, case_id)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note edit Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="edit", description="Edit one of your notes.")
+    @app_commands.describe(
+        note_id = "The ID of the note to edit.",
+        content = "The updated content."
+    )
+    @app_commands.rename(note_id="note-id")
+    async def note_edit(
+        self,
+        interaction: discord.Interaction,
+        note_id:     int,
+        content:     str,
+    ) -> None:
+        await run_note_edit(self, interaction, note_id, content)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note delete Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="delete", description="Delete a note.")
+    @app_commands.describe(note_id="The ID of the note to delete.")
+    @app_commands.rename(note_id="note-id")
+    async def note_delete(
+        self,
+        interaction: discord.Interaction,
+        note_id:     int,
+    ) -> None:
+        await run_note_delete(self, interaction, note_id)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note classify Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(
+        name        = "classify",
+        description = "Classify a note."
+    )
+    @app_commands.describe(
+        note_id        = "The ID of the note to classify.",
+        classification = "The restriction level to apply or request."
+    )
+    @app_commands.rename(
+        note_id        = "note-id",
+        classification = "level"
+    )
+    async def note_classify(
+        self,
+        interaction:    discord.Interaction,
+        note_id:        int,
+        classification: Literal["moderators", "senior_moderators", "directors"],
+    ) -> None:
+        await run_note_classify(self, interaction, note_id, classification)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note approve Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="approve", description="Approve a pending classification request.")
+    @app_commands.describe(note_id="The ID of the note to approve.")
+    @app_commands.rename(note_id="note-id")
+    async def note_approve(
+        self,
+        interaction: discord.Interaction,
+        note_id:     int,
+    ) -> None:
+        await run_note_approve(self, interaction, note_id)
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /moderation note deny Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @note_group.command(name="deny", description="Deny a pending classification request.")
+    @app_commands.describe(note_id="The ID of the note to deny.")
+    @app_commands.rename(note_id="note-id")
+    async def note_deny(
+        self,
+        interaction: discord.Interaction,
+        note_id:     int,
+    ) -> None:
+        await run_note_deny(self, interaction, note_id)
+
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ModerationCommands(cast("UtilityBot", bot)))

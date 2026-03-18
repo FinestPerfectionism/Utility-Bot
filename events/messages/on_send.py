@@ -48,6 +48,21 @@ WAPPLE_EMOJIS = [
     "<:susapple:1483533565005402144>"
 ]
 
+FACTOIDS = {
+    "bump"   : (
+        "# Please bump __both__ bots.\n"
+        "We really appreciate everyone bumping! If you are going to bump, please bump **both** <@735147814878969968> and <@1159147139960676422>.\n"
+        "### Why?\n"
+        "The bots have a cooldown of one bump per 2 hours. We try to sync the timer on each. Bumping both at once ensures that this happens."
+    ),
+    "oleave" : (
+        "..."
+    ),
+    "pleave" : (
+        "..."
+    ),
+}
+
 WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -62,6 +77,15 @@ class MessageSendHandler(commands.Cog):
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
             return
+
+        content = message.content
+
+        if content.startswith("?") and " " not in content[1:]:
+            key = content[1:].lower()
+
+            if key in FACTOIDS:
+                await message.channel.send(FACTOIDS[key])
+                return
             
         if message.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
             content = message.content.strip()
