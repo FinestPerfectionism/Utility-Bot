@@ -37,10 +37,12 @@ class NotesManager:
         self.data      = self.load_data()
 
     def load_data(self) -> dict[str, Any]:
+        defaults = self._default_data()
         if os.path.exists(self.data_file):
             with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
-                return json.load(f)
-        return self._default_data()
+                loaded: dict[str, Any] = json.load(f)
+                return {**defaults, **loaded}
+        return defaults
 
     def _default_data(self) -> dict[str, Any]:
         return {
