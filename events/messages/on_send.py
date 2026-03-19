@@ -84,8 +84,9 @@ class MessageSendHandler(commands.Cog):
             key = content[1:].lower()
 
             if key in FACTOIDS:
-                await message.channel.send(FACTOIDS[key])
-                return
+                async with message.channel.typing():
+                    await message.channel.send(FACTOIDS[key])
+                    return
             
         if message.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
             content = message.content.strip()
@@ -104,19 +105,19 @@ class MessageSendHandler(commands.Cog):
                     committee_forum = self.bot.get_channel(STAFF_PROPOSALS_REVIEW_CHANNEL_ID)
                     if isinstance(committee_forum, discord.ForumChannel):
                         await committee_forum.create_thread(
-                            name=f"SCR: {thread.name}",
-                            content=(
+                            name             = f"SCR: {thread.name}",
+                            content          = (
                                 f"{ACCEPTED_EMOJI_ID} **A new proposal has been posted: {thread.mention}**\n"
                                 f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
                             ),
-                            allowed_mentions=discord.AllowedMentions(roles=True),
+                            allowed_mentions = discord.AllowedMentions(roles=True),
                         )
 
                 if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID:
                     try:
                         await thread.send(
-                            content=f"<@&{DIRECTORS_ROLE_ID}>",
-                            allowed_mentions=discord.AllowedMentions(roles=True),
+                            content          = f"<@&{DIRECTORS_ROLE_ID}>",
+                            allowed_mentions = discord.AllowedMentions(roles=True),
                         )
                     except Exception as e:
                        logging.error(f"Failed to send director role mention: {e}")
@@ -129,7 +130,7 @@ class MessageSendHandler(commands.Cog):
                 AUTOMOD_DELETIONS.add(message.id)
                 await message.delete()
 
-                now = discord.utils.utcnow()
+                now     = discord.utils.utcnow()
                 strikes = AUTOMOD_STRIKES[message.author.id]
                 strikes.append(now)
                 strikes[:] = [t for t in strikes if now - t <= WINDOW]
@@ -148,7 +149,7 @@ class MessageSendHandler(commands.Cog):
                     if isinstance(member, discord.Member):
                         await member.timeout(
                             TIMEOUT_DURATION,
-                            reason="UB Auto-Moderation: night night",
+                            reason = "UB Auto-Moderation: night night",
                         )
                         await message.channel.send(
                             f"{message.author.mention} Alright bro, I've given you *five fucking warnings* and you still haven't learned. Is a dog pissing on the floor that funny to you? Regardless, sleep tight bitch."
@@ -196,22 +197,22 @@ class MessageSendHandler(commands.Cog):
                     save_active_applications()
 
                     embed = discord.Embed(
-                        title="Review Your Application",
-                        color=COLOR_BLURPLE,
+                        title = "Review Your Application",
+                        color = COLOR_BLURPLE,
                     )
 
                     for i, (q, a) in enumerate(
                         zip(app["questions"], app["answers"], strict=True), start=1
                     ):
                         embed.add_field(
-                            name=f"{i}. {q}",
-                            value=a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
-                            inline=False,
+                            name   = f"{i}. {q}",
+                            value  = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
+                            inline = False,
                         )
 
                     msg = await message.channel.send(
-                        embed=embed,
-                        view=ApplicationSubmitView(message.author.id),
+                        embed = embed,
+                        view  = ApplicationSubmitView(message.author.id),
                     )
 
                     app["review_message_id"] = msg.id
@@ -228,22 +229,22 @@ class MessageSendHandler(commands.Cog):
                     save_active_applications()
 
                     embed = discord.Embed(
-                        title="Review Your Application",
-                        color=COLOR_BLURPLE,
+                        title = "Review Your Application",
+                        color = COLOR_BLURPLE,
                     )
 
                     for i, (q, a) in enumerate(
                         zip(app["questions"], app["answers"], strict=True), start=1
                     ):
                         embed.add_field(
-                            name=f"{i}. {q}",
-                            value=a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
-                            inline=False,
+                            name   = f"{i}. {q}",
+                            value  = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
+                            inline = False,
                         )
 
                     msg = await message.channel.send(
-                        embed=embed,
-                        view=ApplicationSubmitView(message.author.id),
+                        embed = embed,
+                        view  = ApplicationSubmitView(message.author.id),
                     )
 
                     app["review_message_id"] = msg.id

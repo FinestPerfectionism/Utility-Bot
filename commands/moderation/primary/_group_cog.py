@@ -124,20 +124,20 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
 
-        if isinstance(error, commands.MemberNotFound):
+        if isinstance(error, commands.MissingRequiredFlag):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-                f"Please provide a valid user to ban."
+                f"Please provide a reason using `/r <reason>`."
             )
-        elif isinstance(error, commands.MissingRequiredArgument):
+        elif isinstance(error, commands.BadFlagArgument):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-                f"Please provide a member to ban."
+                f"Please provide a valid number of days to purge using `/d <1-7>`."
             )
-        elif isinstance(error, commands.BadArgument):
+        elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-                f"Please provide a valid user to ban."
+                f"Please provide a valid member to ban."
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -177,6 +177,23 @@ class ModerationCommands(
         flags: UnbanFlags
     ) -> None:
         await run_unban_prefix(self, ctx, user, flags)
+
+    @unban_prefix.error
+    async def unban_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
+        actor = ctx.author
+        if not isinstance(actor, discord.Member) or not self.can_unban_untimeout(actor):
+            return
+
+        if isinstance(error, commands.MissingRequiredFlag):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
+                f"Please provide a reason using `/r <reason>`."
+            )
+        elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
+                f"Please provide a valid user to unban."
+            )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation bans Command
@@ -240,20 +257,15 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
 
-        if isinstance(error, commands.MemberNotFound):
+        if isinstance(error, commands.MissingRequiredFlag):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"Please provide a valid user to kick."
+                f"Please provide a reason using `/r <reason>`."
             )
-        elif isinstance(error, commands.MissingRequiredArgument):
+        elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"Please provide a member to kick."
-            )
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
-                f"Please provide a valid user to kick."
+                f"Please provide a valid member to kick."
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -304,20 +316,15 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
 
-        if isinstance(error, commands.MemberNotFound):
+        if isinstance(error, commands.MissingRequiredFlag):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
-                f"Please provide a valid user to timeout."
+                f"Please provide a reason using `/r <reason>`."
             )
-        elif isinstance(error, commands.MissingRequiredArgument):
+        elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
-                f"Please provide a member to timeout."
-            )
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
-                f"Please provide a valid user to timeout."
+                f"Please provide a valid member to timeout."
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -364,20 +371,15 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member) or not self.can_unban_untimeout(actor):
             return
 
-        if isinstance(error, commands.MemberNotFound):
+        if isinstance(error, commands.MissingRequiredFlag):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
-                f"Please provide a valid user."
+                f"Please provide a reason using `/r <reason>`."
             )
-        elif isinstance(error, commands.MissingRequiredArgument):
+        elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
-                f"Please provide a member."
-            )
-        elif isinstance(error, commands.BadArgument):
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
-                f"Please provide a valid user."
+                f"Please provide a valid member."
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -444,26 +446,25 @@ class ModerationCommands(
         if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
             return
 
-        if isinstance(error, commands.MissingRequiredArgument):
-            if error.param.name == "amount":
-                await ctx.send(
-                    f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
-                    f"Please provide the number of messages to delete."
-                )
-            else:
-                await ctx.send(
-                    f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
-                    f"Please provide all required arguments."
-                )
+        if isinstance(error, commands.MissingRequiredFlag):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
+                f"Please provide a reason using `/r <reason>`."
+            )
+        elif isinstance(error, commands.BadFlagArgument):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
+                f"Please provide a valid member using `/u <user>`."
+            )
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
+                f"Please provide the number of messages to delete."
+            )
         elif isinstance(error, commands.BadArgument):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
                 f"Please provide a valid number of messages to delete."
-            )
-        elif isinstance(error, commands.MissingFlagArgument):
-            await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
-                f"Please provide a reason using `/r <reason>`."
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -529,6 +530,23 @@ class ModerationCommands(
     ) -> None:
         await run_quarantine_prefix(self, ctx, member, flags)
 
+    @quarantine_prefix.error
+    async def quarantine_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
+        actor = ctx.author
+        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+            return
+
+        if isinstance(error, commands.MissingRequiredFlag):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
+                f"Please provide a reason using `/r <reason>`."
+            )
+        elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
+                f"Please provide a valid member to quarantine."
+            )
+
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation un-quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -569,6 +587,22 @@ class ModerationCommands(
     ) -> None:
         await run_unquarantine_prefix(self, ctx, member, flags)
 
+    @unquarantine_prefix.error
+    async def unquarantine_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
+        actor = ctx.author
+        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+            return
+
+        if isinstance(error, commands.MissingRequiredFlag):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to unquarantine member!**\n"
+                f"Please provide a reason using `/r <reason>`."
+            )
+        elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
+            await ctx.send(
+                f"{CONTESTED_EMOJI_ID} **Failed to unquarantine member!**\n"
+                f"Please provide a valid member to unquarantine."
+            )
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ModerationCommands(cast("UtilityBot", bot)))

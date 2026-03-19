@@ -330,6 +330,13 @@ class CasesManager:
                 return case
         return None
 
+    def get_all_pending_classifications(self) -> list[dict[str, Any]]:
+        self.data = self.load_data()
+        return [
+            c for c in self.data["cases"]
+            if c.get("pending_visibility") is not None
+        ]
+
     def edit_case(self, case_id: int, content: str) -> bool:
         case = self.get_case_by_id(case_id)
         if not case:

@@ -40,7 +40,129 @@ from constants import (
     SENIOR_MODERATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
+    DIRECTOR_TASKS_CHANNEL_ID,
+    ACCEPTED_EMOJI_ID,
+    DENIED_EMOJI_ID,
 )
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Classification Request View
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class ClassificationView(discord.ui.View):
+    def __init__(self, case_id: int, cases_manager: "CasesManager") -> None:
+        super().__init__(timeout=None)
+        self.case_id       = case_id
+        self.cases_manager = cases_manager
+
+        self.accept_button.custom_id = f"classify:accept:{case_id}"
+        self.deny_button.custom_id   = f"classify:deny:{case_id}"
+
+    @discord.ui.button(
+        label    = "Accept",
+        style    = discord.ButtonStyle.success,
+        emoji    = "✅",
+        custom_id = "classify:accept:0",
+    )
+    async def accept_button(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["ClassificationView"],
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not is_director(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "Only Directors can accept classification requests.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        case = self.cases_manager.get_case_by_id(self.case_id)
+        if not case or not case.get("pending_visibility"):
+            await send_minor_error(
+                interaction,
+                texts = f"Case **#{self.case_id}** has no pending visibility request.",
+            )
+            return
+
+        self.cases_manager.approve_visibility(self.case_id)
+
+        thread = interaction.channel
+        if isinstance(thread, discord.Thread):
+            await interaction.response.send_message(
+                f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**"
+            )
+            with contextlib.suppress(discord.HTTPException):
+                await thread.edit(locked=True, archived=True)
+        else:
+            await interaction.response.send_message(
+                f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**",
+                ephemeral=True,
+            )
+
+        for child in self.children:
+            if isinstance(child, discord.ui.Button):
+                child.disabled = True
+        with contextlib.suppress(discord.HTTPException):
+            await interaction.message.edit(view=self) if interaction.message else None
+
+    @discord.ui.button(
+        label     = "Deny",
+        style     = discord.ButtonStyle.danger,
+        emoji     = "❌",
+        custom_id = "classify:deny:0",
+    )
+    async def deny_button(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["ClassificationView"],
+    ) -> None:
+        actor = interaction.user
+        if not isinstance(actor, discord.Member):
+            return
+
+        if not is_director(actor):
+            await send_major_error(
+                interaction,
+                title    = "Unauthorized!",
+                texts    = "Only Directors can deny classification requests.",
+                subtitle = "Invalid permissions.",
+            )
+            return
+
+        case = self.cases_manager.get_case_by_id(self.case_id)
+        if not case or not case.get("pending_visibility"):
+            await send_minor_error(
+                interaction,
+                texts = f"Case **#{self.case_id}** has no pending visibility request.",
+            )
+            return
+
+        self.cases_manager.deny_visibility(self.case_id)
+
+        thread = interaction.channel
+        if isinstance(thread, discord.Thread):
+            await interaction.response.send_message(
+                f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**"
+            )
+            with contextlib.suppress(discord.HTTPException):
+                await thread.edit(locked=True, archived=True)
+        else:
+            await interaction.response.send_message(
+                f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**",
+                ephemeral=True,
+            )
+
+        for child in self.children:
+            if isinstance(child, discord.ui.Button):
+                child.disabled = True
+        with contextlib.suppress(discord.HTTPException):
+            await interaction.message.edit(view=self) if interaction.message else None
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Commands
@@ -59,6 +181,15 @@ class CasesCommands(commands.Cog):
         self.SENIOR_MODERATORS_ROLE_ID = SENIOR_MODERATORS_ROLE_ID
         self.MODERATORS_ROLE_ID        = MODERATORS_ROLE_ID
         self.ADMINISTRATORS_ROLE_ID    = ADMINISTRATORS_ROLE_ID
+
+        self._register_classification_views()
+
+    def _register_classification_views(self) -> None:
+        pending: list[dict[str, Any]] = self.cases_manager.get_all_pending_classifications()
+        for case in pending:
+            case_id = cast("int", case["case_id"])
+            view    = ClassificationView(case_id, self.cases_manager)
+            self.bot.add_view(view)
 
     def can_view(self, member: discord.Member) -> bool:
         return (
@@ -408,13 +539,18 @@ class CasesCommands(commands.Cog):
         case = self.cases_manager.get_case_by_id(case_id)
 
         if not case or case["guild_id"] != guild.id:
-            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            await send_minor_error(
+                interaction,
+                texts = f"Case **#{case_id}** was not found."
+            )
             return
 
         if not self._can_see_case(actor, case):
-            await send_minor_error(
+            await send_major_error(
                 interaction,
-                texts = f"You do not have permission to view Case **#{case_id}**.",
+                title    =  "Unauthorized!",
+                texts    = f"You lack the necessary permissions to view Case **#{case_id}**.",
+                subtitle =  "Invalid permissions."
             )
             return
 
@@ -424,7 +560,7 @@ class CasesCommands(commands.Cog):
         visible_notes = [n for n in notes if self._can_see_case(actor, n)]
 
         if visible_notes:
-            embed.add_field(name="— Notes —", value="\u200b", inline=False)
+            embed.add_field(name="—— Notes ——", value="\u200b", inline=False)
             for note in visible_notes[:10]:
                 note_created = datetime.fromisoformat(note["created_at"])
                 note_parts   = [
@@ -458,7 +594,7 @@ class CasesCommands(commands.Cog):
         interaction: discord.Interaction,
         content:     str,
         user:        discord.User | None = None,
-        case_id:     int | None          = None,
+        case_id:     int          | None = None,
         visibility:  Literal[
             "moderators", "senior_moderators", "directors"
         ] = "moderators",
@@ -575,7 +711,7 @@ class CasesCommands(commands.Cog):
     # /cases delete-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="delete-entry", description="Delete a case entry. Directors only.")
+    @cases_group.command(name="delete-entry", description="Delete a case entry.")
     @app_commands.describe(case_id="The case ID to delete.")
     @app_commands.rename(case_id="case-id")
     async def cases_delete_entry(
@@ -651,6 +787,23 @@ class CasesCommands(commands.Cog):
         if not guild:
             return
 
+        case = self.cases_manager.get_case_by_id(case_id)
+
+        if not case or case["guild_id"] != guild.id:
+            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            return
+
+        if is_director(actor):
+            label = visibility.replace("_", " ").title()
+            self.cases_manager.set_visibility(case_id, visibility)
+            embed = discord.Embed(
+                description = f"Case **#{case_id}** visibility set to **{label}**.",
+                color       = COLOR_GREEN,
+                timestamp   = datetime.now(),
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
         if visibility == "directors" and not is_director(actor):
             await send_minor_error(
                 interaction,
@@ -658,135 +811,51 @@ class CasesCommands(commands.Cog):
             )
             return
 
-        case = self.cases_manager.get_case_by_id(case_id)
+        if case.get("pending_visibility"):
+            await send_minor_error(
+                interaction,
+                texts = (
+                    f"Case **#{case_id}** already has a pending classification request. "
+                    f"It must be resolved before a new one can be submitted."
+                ),
+            )
+            return
 
-        if not case or case["guild_id"] != guild.id:
-            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+        forum_channel = self.bot.get_channel(DIRECTOR_TASKS_CHANNEL_ID)
+        if not isinstance(forum_channel, discord.ForumChannel):
+            await send_minor_error(
+                interaction,
+                texts = "The Director tasks channel could not be found or is not a forum.",
+            )
             return
 
         label = visibility.replace("_", " ").title()
 
-        if is_director(actor):
-            self.cases_manager.set_visibility(case_id, visibility)
-            embed = discord.Embed(
-                description = f"Case **#{case_id}** visibility set to **{label}**.",
-                color       = COLOR_GREEN,
-                timestamp   = datetime.now(),
-            )
-        else:
-            self.cases_manager.request_visibility(case_id, visibility)
-            embed = discord.Embed(
-                description = (
-                    f"Visibility request submitted for Case **#{case_id}**.\n"
-                    f"A Director must approve the **{label}** restriction."
-                ),
-                color     = COLOR_YELLOW,
-                timestamp = datetime.now(),
-            )
+        self.cases_manager.request_visibility(case_id, visibility)
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /cases approve Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-    @cases_group.command(name="approve", description="Approve a pending visibility request.")
-    @app_commands.describe(case_id="The case ID to approve.")
-    @app_commands.rename(case_id="case-id")
-    async def cases_approve(
-        self,
-        interaction: discord.Interaction,
-        case_id:     int,
-    ) -> None:
-        actor = interaction.user
-        if not isinstance(actor, discord.Member):
-            return
-
-        if not is_director(actor):
-            await send_major_error(
-                interaction,
-                title    = "Unauthorized!",
-                texts    = "Only Directors can approve visibility requests.",
-                subtitle = "Invalid permissions.",
-            )
-            return
-
-        guild = interaction.guild
-        if not guild:
-            return
-
-        case = self.cases_manager.get_case_by_id(case_id)
-
-        if not case or case["guild_id"] != guild.id:
-            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
-            return
-
-        pending = case.get("pending_visibility")
-        if not pending:
-            await send_minor_error(
-                interaction,
-                texts = f"Case **#{case_id}** has no pending visibility request.",
-            )
-            return
-
-        self.cases_manager.approve_visibility(case_id)
-
-        label = str(pending).replace("_", " ").title()
-        embed = discord.Embed(
-            description = f"Case **#{case_id}** visibility approved as **{label}**.",
-            color       = COLOR_GREEN,
-            timestamp   = datetime.now(),
+        view   = ClassificationView(case_id, self.cases_manager)
+        thread_name    = f"DR: Classification Request by {actor.display_name}"
+        thread_content = (
+            f"{ACCEPTED_EMOJI_ID} **A new classification to {label} request has been made "
+            f"affecting case #{case_id}.**\n"
+            f"<@&{DIRECTORS_ROLE_ID}>"
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /cases deny Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+        thread_with_message = await forum_channel.create_thread(
+            name    = thread_name,
+            content = thread_content,
+            view    = view,
+        )
 
-    @cases_group.command(name="deny", description="Deny a pending visibility request.")
-    @app_commands.describe(case_id="The case ID to deny.")
-    @app_commands.rename(case_id="case-id")
-    async def cases_deny(
-        self,
-        interaction: discord.Interaction,
-        case_id:     int,
-    ) -> None:
-        actor = interaction.user
-        if not isinstance(actor, discord.Member):
-            return
-
-        if not is_director(actor):
-            await send_major_error(
-                interaction,
-                title    = "Unauthorized!",
-                texts    = "Only Directors can deny visibility requests.",
-                subtitle = "Invalid permissions.",
-            )
-            return
-
-        guild = interaction.guild
-        if not guild:
-            return
-
-        case = self.cases_manager.get_case_by_id(case_id)
-
-        if not case or case["guild_id"] != guild.id:
-            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
-            return
-
-        if not case.get("pending_visibility"):
-            await send_minor_error(
-                interaction,
-                texts = f"Case **#{case_id}** has no pending visibility request.",
-            )
-            return
-
-        self.cases_manager.deny_visibility(case_id)
+        self.bot.add_view(view, message_id=thread_with_message.message.id)
 
         embed = discord.Embed(
-            description = f"Visibility request for Case **#{case_id}** has been denied.",
-            color       = COLOR_GREEN,
-            timestamp   = datetime.now(),
+            description = (
+                f"Visibility request submitted for Case **#{case_id}**.\n"
+                f"A Director must approve the **{label}** restriction."
+            ),
+            color     = COLOR_YELLOW,
+            timestamp = datetime.now(),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 

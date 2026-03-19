@@ -40,7 +40,7 @@ class ModerationComponents2(discord.ui.LayoutView):
                     "### §1.1 Role Scope\n"
                     "- **Junior Moderators** can create and view moderation notes, and mute members.\n"
                     "- **Senior Moderators and Directors** can execute primary enforcement: timeout, kick, ban, purge, and quarantine add. Senior Moderators and Directors can also use `/health`.\n"
-                    "- **Directors only** can remove a timeout, unban, remove quarantine, configure case logs, and manage lockdown.\n\n"
+                    "- **Directors only** can remove a ban, remove quarantine, configure case logs, and manage lockdown.\n\n"
                     "### §1.2 Documentation Requirement\n"
                     "All formal enforcement actions must be documented through bot commands so they are written to cases. If a command supports proof attachments, include proof when available.\n\n"
                     "### §1.3 Protected Targets\n"

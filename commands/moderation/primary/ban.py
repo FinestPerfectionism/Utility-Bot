@@ -12,7 +12,10 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from ._base import ModerationBase, BanFlags
+    from ._base import (
+        ModerationBase,
+        BanFlags
+    )
 
 from commands.moderation.cases import CaseType
 
@@ -37,7 +40,7 @@ async def run_ban(
     interaction:     discord.Interaction,
     member:          discord.Member,
     reason:          str,
-    delete_messages: int | None = 0,
+    delete_messages: int                | None = 0,
     proof:           discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
@@ -47,14 +50,17 @@ async def run_ban(
     if not base.can_moderate(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
-            texts="You lack the necessary permissions to ban members.",
-            subtitle="Invalid permissions."
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to ban members.",
+            subtitle = "Invalid permissions."
         )
         return
 
     if member.id == actor.id:
-        await send_minor_error(interaction, "You cannot ban yourself.")
+        await send_minor_error(
+            interaction,
+            texts = "You cannot ban yourself."
+        )
         return
 
     can_moderate, error_msg = base.check_can_moderate_target(actor, member)
@@ -71,9 +77,9 @@ async def run_ban(
         if not can_proceed:
             await send_major_error(
                 interaction,
-                f"Rate limit exceeded. {error_msg}.\n"
-                f"Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle="Rate limit exceeded."
+                texts    = f"Rate limit exceeded. {error_msg}.\n"
+                           f"Continuing to exceed rate limits will result in your own quarantine.",
+                subtitle =  "Rate limit exceeded."
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -87,17 +93,17 @@ async def run_ban(
 
     try:
         await member.ban(
-            reason=f"Banned by {actor}: {reason}",
-            delete_message_seconds=delete_messages * 86400
+            reason                 = f"Banned by {actor}: {reason}",
+            delete_message_seconds = delete_messages * 86400
         )
 
         if "bans" not in base.data:
             base.data["bans"] = {}
 
         base.data["bans"][str(member.id)] = {
-            "banned_at": datetime.now().isoformat(),
-            "banned_by": actor.id,
-            "reason":    reason
+            "banned_at" : datetime.now().isoformat(),
+            "banned_by" : actor.id,
+            "reason"    : reason
         }
         base.save_data()
 
@@ -107,18 +113,18 @@ async def run_ban(
             metadata["proof_url"] = proof.url
 
         await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.BAN,
-            moderator=actor,
-            reason=reason,
-            target_user=member,
-            metadata=metadata
+            guild       = guild,
+            case_type   = CaseType.BAN,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member,
+            metadata    = metadata
         )
 
         embed = discord.Embed(
-            title="Member Banned",
-            color=COLOR_RED,
-            timestamp=datetime.now()
+            title     = "Member Banned",
+            color     = COLOR_RED,
+            timestamp = datetime.now()
         )
         embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
         embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
@@ -131,8 +137,8 @@ async def run_ban(
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            "I lack the necessary permissions to ban this member.",
-            subtitle="Invalid configuration. Contact the owner."
+            texts    = "I lack the necessary permissions to ban this member.",
+            subtitle = "Invalid configuration. Contact the owner."
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -140,10 +146,10 @@ async def run_ban(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_ban_prefix(
-    base:   "ModerationBase",
-    ctx:    commands.Context[commands.Bot],
-    member: discord.Member,
-    flags:  "BanFlags",
+    base    : ModerationBase,
+    ctx     : commands.Context[commands.Bot],
+    member  : discord.Member,
+    flags   : BanFlags,
 ) -> None:
     actor = ctx.author
     if not isinstance(actor, discord.Member):
@@ -195,24 +201,24 @@ async def run_ban_prefix(
 
     try:
         await member.ban(
-            reason=f"Banned by {actor}: {reason}",
-            delete_message_seconds=delete_messages * 86400
+            reason                 = f"Banned by {actor}: {reason}",
+            delete_message_seconds = delete_messages * 86400
         )
 
         base.data["bans"][str(member.id)] = {
-            "banned_at": datetime.now().isoformat(),
-            "banned_by": actor.id,
-            "reason":    reason
+            "banned_at" : datetime.now().isoformat(),
+            "banned_by" : actor.id,
+            "reason"    : reason
         }
         base.save_data()
 
         await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.BAN,
-            moderator=actor,
-            reason=reason,
-            target_user=member,
-            metadata={"delete_message_days": delete_messages}
+            guild       = guild,
+            case_type   = CaseType.BAN,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member,
+            metadata    = {"delete_message_days": delete_messages}
         )
 
         if flags.s:
@@ -220,9 +226,9 @@ async def run_ban_prefix(
             return
 
         embed = discord.Embed(
-            title="Member Banned",
-            color=COLOR_RED,
-            timestamp=datetime.now()
+            title     = "Member Banned",
+            color     = COLOR_RED,
+            timestamp = datetime.now()
         )
         embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
         embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
@@ -236,6 +242,6 @@ async def run_ban_prefix(
     except discord.Forbidden:
         await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to ban member!**\n"
-            f"I lack the necessary permissions to ban members.\n"
-            f"-# Contact the owner."
+             "I lack the necessary permissions to ban members.\n"
+             "-# Contact the owner."
         )

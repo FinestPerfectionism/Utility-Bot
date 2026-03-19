@@ -47,12 +47,15 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class BaseModFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    r: str = commands.flag(name="r", aliases=["reason"])
+    r: str = commands.flag(
+        name    = "r",
+        aliases = ["reason"]
+    )
     s: bool = commands.flag(
-        name="s",
-        aliases=["silent", "suppress", "shush"],
-        default=False,
-        max_args=0
+        name     = "s",
+        aliases  = ["silent", "suppress", "shush"],
+        default  = False,
+        max_args = 0
     )
 
 class BanFlags(BaseModFlags):
