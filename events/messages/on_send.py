@@ -184,7 +184,8 @@ class MessageSendHandler(commands.Cog):
                     await message.add_reaction(secrets.choice(grimace_emojis))
 
         if "67" in (message.content or "").lower():
-            await message.add_reaction("<:67:1484198860263002133>")
+            if message.guild and message.guild.id != 846677253290983444:
+                await message.add_reaction("<:67:1484198860263002133>")
 
         if message.guild is None:
             app = ACTIVE_APPLICATIONS.get(message.author.id)
