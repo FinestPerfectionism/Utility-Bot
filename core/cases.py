@@ -426,12 +426,13 @@ class CasesManager:
             cases = [c for c in cases if c["type"] == case_type]
 
         if contains is not None:
-            query = contains.lower()
-            cases = [
+            query: str = contains.lower()
+            filtered_cases: list[dict[str, Any]] = [
                 c for c in cases
-                if query in (c.get("reason")  or "").lower()
-                or query in (c.get("content") or "").lower()
+                if query in str(c.get("reason") or "").lower()
+                or query in str(c.get("content") or "").lower()
             ]
+            cases = filtered_cases
 
         if after is not None:
             cases = [c for c in cases if datetime.fromisoformat(c["created_at"]) > after]

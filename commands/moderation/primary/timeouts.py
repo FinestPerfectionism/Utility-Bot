@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
+from ._base import ModerationListPaginator
 from core.utils import send_major_error
 
 from constants import (
@@ -33,9 +34,9 @@ async def run_timeouts(
     if not base.can_view(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
-            texts="You lack the necessary permissions to view timeouts.",
-            subtitle="Invalid permissions."
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to view timeouts.",
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -55,13 +56,8 @@ async def run_timeouts(
         await interaction.followup.send(embed=embed, ephemeral=True)
         return
 
-    embed = discord.Embed(
-        title     = "Timed Out Members",
-        color     = COLOR_YELLOW,
-        timestamp = datetime.now()
-    )
-
-    for member in timed_out_members[:25]:
+    fields: list[tuple[str, str]] = []
+    for member in timed_out_members:
         timeout_data = base.data.get("timeouts", {}).get(str(member.id))
 
         if timeout_data and member.timed_out_until:
@@ -77,16 +73,10 @@ async def run_timeouts(
         else:
             value = "No data available"
 
-        embed.add_field(
-            name=f"{member} ({member.id})",
-            value=value,
-            inline=False
-        )
+        fields.append((f"{member} ({member.id})", value))
 
-    if len(timed_out_members) > 25:
-        embed.set_footer(text=f"Showing 25 of {len(timed_out_members)} timeouts")
-
-    await interaction.followup.send(embed=embed, ephemeral=True)
+    view = ModerationListPaginator(interaction, "Timed Out Members", COLOR_YELLOW, fields)
+    await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # .mute-list Logic
@@ -117,13 +107,8 @@ async def run_timeouts_prefix(
         await ctx.send(embed=embed)
         return
 
-    embed = discord.Embed(
-        title     = "Timed Out Members",
-        color     = COLOR_YELLOW,
-        timestamp = datetime.now()
-    )
-
-    for member in timed_out_members[:25]:
+    fields: list[tuple[str, str]] = []
+    for member in timed_out_members:
         timeout_data = base.data.get("timeouts", {}).get(str(member.id))
 
         if timeout_data and member.timed_out_until:
@@ -139,16 +124,10 @@ async def run_timeouts_prefix(
         else:
             value = "No data available"
 
-        embed.add_field(
-            name=f"{member} ({member.id})",
-            value=value,
-            inline=False
-        )
+        fields.append((f"{member} ({member.id})", value))
 
-    if len(timed_out_members) > 25:
-        embed.set_footer(text=f"Showing 25 of {len(timed_out_members)} timeouts")
-
-    msg = await ctx.send(embed=embed)
+    view = ModerationListPaginator(ctx, "Timed Out Members", COLOR_YELLOW, fields)
+    msg  = await ctx.send(embed=view.get_embed(), view=view)
     await asyncio.sleep(10)
     with contextlib.suppress(discord.NotFound):
         await msg.delete()

@@ -183,7 +183,7 @@ class MessageSendHandler(commands.Cog):
                     await message.reply(secrets.choice(statements))
                     await message.add_reaction(secrets.choice(grimace_emojis))
 
-        if "67" in (message.content or "").lower():
+        if re.search(r'\b67\b', message.content):
             if message.guild and message.guild.id != 846677253290983444:
                 await message.add_reaction("<:67:1484198860263002133>")
 

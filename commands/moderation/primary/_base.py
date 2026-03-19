@@ -83,6 +83,106 @@ class PurgeFlags(BaseModFlags):
     u: discord.Member | None = commands.flag(name="u", aliases=["user"], default=None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Moderation List Paginator
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+_Context = discord.Interaction | commands.Context[commands.Bot]
+
+class ModerationListPaginator(discord.ui.View):
+    def __init__(
+        self,
+        context: _Context,
+        title:   str,
+        color:   discord.Color,
+        fields:  list[tuple[str, str]],
+    ) -> None:
+        super().__init__(timeout=120)
+        self.context  = context
+        self.title    = title
+        self.color    = color
+        self.fields   = fields
+        self.per_page = 5
+        self.page     = 0
+        self.max_page = (len(fields) - 1) // self.per_page
+
+        self.update_buttons()
+
+    def update_buttons(self) -> None:
+        no_pagination_needed = len(self.fields) <= self.per_page
+
+        self.first_page.disabled    = no_pagination_needed or self.page == 0
+        self.previous_page.disabled = no_pagination_needed or self.page == 0
+        self.next_page.disabled     = no_pagination_needed or self.page >= self.max_page
+        self.last_page.disabled     = no_pagination_needed or self.page >= self.max_page
+
+    def get_embed(self) -> discord.Embed:
+        start       = self.page * self.per_page
+        end         = start + self.per_page
+        page_fields = self.fields[start:end]
+
+        embed = discord.Embed(
+            title     = self.title,
+            color     = self.color,
+            timestamp = datetime.now(),
+        )
+
+        for name, value in page_fields:
+            embed.add_field(name=name, value=value, inline=False)
+
+        embed.set_footer(
+            text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.fields)} total"
+        )
+
+        return embed
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if isinstance(self.context, discord.Interaction):
+            return interaction.user == self.context.user
+        return interaction.user == self.context.author
+
+    @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+    async def first_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["ModerationListPaginator"],
+    ) -> None:
+        self.page = 0
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+    async def previous_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["ModerationListPaginator"],
+    ) -> None:
+        if self.page > 0:
+            self.page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+    async def next_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["ModerationListPaginator"],
+    ) -> None:
+        if self.page < self.max_page:
+            self.page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+    async def last_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["ModerationListPaginator"],
+    ) -> None:
+        self.page = self.max_page
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Base
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 

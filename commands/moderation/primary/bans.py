@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
+from ._base import ModerationListPaginator
 from core.utils import send_major_error
 
 from constants import (
@@ -57,13 +58,8 @@ async def run_bans(
             await interaction.followup.send(embed=embed, ephemeral=True)
             return
 
-        embed = discord.Embed(
-            title     = "Banned Members",
-            color     = COLOR_BLACK,
-            timestamp = datetime.now()
-        )
-
-        for ban_entry in bans[:25]:
+        fields: list[tuple[str, str]] = []
+        for ban_entry in bans:
             user     = ban_entry.user
             ban_data = base.data.get("bans", {}).get(str(user.id))
 
@@ -74,16 +70,10 @@ async def run_bans(
             else:
                 value = f"Reason: {ban_entry.reason}"
 
-            embed.add_field(
-                name=f"{user} ({user.id})",
-                value=value,
-                inline=False
-            )
+            fields.append((f"{user} ({user.id})", value))
 
-        if len(bans) > 25:
-            embed.set_footer(text=f"Showing 25 of {len(bans)} bans")
-
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        view = ModerationListPaginator(interaction, "Banned Members", COLOR_BLACK, fields)
+        await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
 
     except discord.Forbidden:
         await send_major_error(
@@ -116,19 +106,14 @@ async def run_bans_prefix(
 
         if not bans:
             embed = discord.Embed(
-                description="No members are currently banned.",
-                color=COLOR_GREEN
+                description = "No members are currently banned.",
+                color       = COLOR_GREEN
             )
             await ctx.send(embed=embed)
             return
 
-        embed = discord.Embed(
-            title     = "Banned Members",
-            color     = COLOR_BLACK,
-            timestamp = datetime.now()
-        )
-
-        for ban_entry in bans[:25]:
+        fields: list[tuple[str, str]] = []
+        for ban_entry in bans:
             user     = ban_entry.user
             ban_data = base.data.get("bans", {}).get(str(user.id))
 
@@ -139,16 +124,10 @@ async def run_bans_prefix(
             else:
                 value = f"Reason: {ban_entry.reason}"
 
-            embed.add_field(
-                name=f"{user} ({user.id})",
-                value=value,
-                inline=False
-            )
+            fields.append((f"{user} ({user.id})", value))
 
-        if len(bans) > 25:
-            embed.set_footer(text=f"Showing 25 of {len(bans)} bans")
-
-        msg = await ctx.send(embed=embed)
+        view = ModerationListPaginator(ctx, "Banned Members", COLOR_BLACK, fields)
+        msg  = await ctx.send(embed=view.get_embed(), view=view)
         await asyncio.sleep(10)
         with contextlib.suppress(discord.NotFound):
             await msg.delete()
