@@ -440,8 +440,8 @@ class UserCommands(commands.Cog):
             if isinstance(result, list):
                 view = self.TimezoneMatchPaginator(ctx, result)
                 await ctx.send(
-                    content=view.get_page_content(),
-                    view=view
+                    content = view.get_page_content(),
+                    view    = view
                 )
                 return
 

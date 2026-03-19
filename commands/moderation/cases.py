@@ -59,9 +59,9 @@ class ClassificationView(discord.ui.View):
         self.deny_button.custom_id   = f"classify:deny:{case_id}"
 
     @discord.ui.button(
-        label    = "Accept",
-        style    = discord.ButtonStyle.success,
-        emoji    = "✅",
+        label     = "Accept",
+        style     = discord.ButtonStyle.success,
+        emoji     = "✅",
         custom_id = "classify:accept:0",
     )
     async def accept_button(
@@ -165,6 +165,241 @@ class ClassificationView(discord.ui.View):
             await interaction.message.edit(view=self) if interaction.message else None
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Cases Paginators
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class CaseQueryPaginator(discord.ui.View):
+    def __init__(
+        self,
+        interaction: discord.Interaction,
+        cases:       list[dict[str, Any]],
+        title:       str,
+        color_map:   dict[str, discord.Color],
+    ) -> None:
+        super().__init__(timeout=120)
+        self.interaction = interaction
+        self.cases       = cases
+        self.title       = title
+        self.color_map   = color_map
+        self.per_page    = 5
+        self.page        = 0
+        self.max_page    = (len(cases) - 1) // self.per_page
+
+        self.update_buttons()
+
+    def update_buttons(self) -> None:
+        no_pagination_needed = len(self.cases) <= self.per_page
+
+        self.first_page.disabled    = no_pagination_needed or self.page == 0
+        self.previous_page.disabled = no_pagination_needed or self.page == 0
+        self.next_page.disabled     = no_pagination_needed or self.page >= self.max_page
+        self.last_page.disabled     = no_pagination_needed or self.page >= self.max_page
+
+    def _format_case_field(self, case: dict[str, Any]) -> tuple[str, str]:
+        case_type  = case["type"]
+        type_label = case_type.replace("_", " ").title()
+        created    = datetime.fromisoformat(case["created_at"])
+
+        parts: list[str] = [f"**Type:** {type_label}"]
+
+        if case.get("target_user_name"):
+            parts.append(f"**User:** {case['target_user_name']} ({case['target_user_id']})")
+
+        parts.append(f"**Moderator:** {case['moderator_name']}")
+
+        if case.get("duration"):
+            parts.append(f"**Duration:** {case['duration']}")
+
+        if case.get("reason"):
+            reason = str(case["reason"])
+            if len(reason) > 200:
+                reason = reason[:197] + "..."
+            parts.append(f"**Reason:** {reason}")
+
+        if case.get("content"):
+            content = str(case["content"])
+            if len(content) > 200:
+                content = content[:197] + "..."
+            parts.append(f"**Content:** {content}")
+
+        vis = case.get("visibility_level", "moderators")
+        if vis != "moderators":
+            parts.append(f"**Visibility:** {str(vis).replace('_', ' ').title()}")
+
+        parts.append(f"**Created:** {discord.utils.format_dt(created, 'R')}")
+
+        return f"Case #{case['case_id']}", "\n".join(parts)
+
+    def get_embed(self) -> discord.Embed:
+        start = self.page * self.per_page
+        end   = start + self.per_page
+        page_cases = self.cases[start:end]
+
+        embed = discord.Embed(
+            title     = self.title,
+            color     = COLOR_BLURPLE,
+            timestamp = datetime.now(),
+        )
+
+        for case in page_cases:
+            name, value = self._format_case_field(case)
+            embed.add_field(name=name, value=value, inline=False)
+
+        embed.set_footer(
+            text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.cases)} cases total"
+        )
+
+        return embed
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user == self.interaction.user
+
+    @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+    async def first_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseQueryPaginator"],
+    ) -> None:
+        self.page = 0
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+    async def previous_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseQueryPaginator"],
+    ) -> None:
+        if self.page > 0:
+            self.page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+    async def next_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseQueryPaginator"],
+    ) -> None:
+        if self.page < self.max_page:
+            self.page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+    async def last_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseQueryPaginator"],
+    ) -> None:
+        self.page = self.max_page
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+
+class CaseViewPaginator(discord.ui.View):
+    def __init__(
+        self,
+        interaction: discord.Interaction,
+        case_embed:  discord.Embed,
+        notes:       list[dict[str, Any]],
+    ) -> None:
+        super().__init__(timeout=120)
+        self.interaction = interaction
+        self.case_embed  = case_embed
+        self.notes       = notes
+        self.per_page    = 5
+        self.page        = 0
+        self.max_page    = max(0, (len(notes) - 1) // self.per_page) if notes else 0
+
+        self.update_buttons()
+
+    def update_buttons(self) -> None:
+        no_pagination_needed = len(self.notes) <= self.per_page
+
+        self.first_page.disabled    = no_pagination_needed or self.page == 0
+        self.previous_page.disabled = no_pagination_needed or self.page == 0
+        self.next_page.disabled     = no_pagination_needed or self.page >= self.max_page
+        self.last_page.disabled     = no_pagination_needed or self.page >= self.max_page
+
+    def get_embed(self) -> discord.Embed:
+        embed = self.case_embed.copy()
+
+        if not self.notes:
+            return embed
+
+        start      = self.page * self.per_page
+        end        = start + self.per_page
+        page_notes = self.notes[start:end]
+
+        embed.add_field(name="—— Notes ——", value="\u200b", inline=False)
+
+        for note in page_notes:
+            note_created = datetime.fromisoformat(note["created_at"])
+            note_parts   = [
+                f"**Moderator:** {note['moderator_name']}",
+                f"**Created:** {discord.utils.format_dt(note_created, 'R')}",
+            ]
+            if note.get("content"):
+                note_parts.append(f"\n{note['content']}")
+            embed.add_field(
+                name   = f"Note #{note['case_id']}",
+                value  = "\n".join(note_parts),
+                inline = False,
+            )
+
+        embed.set_footer(
+            text=f"Notes page {self.page + 1}/{self.max_page + 1} · {len(self.notes)} notes total"
+        )
+
+        return embed
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user == self.interaction.user
+
+    @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+    async def first_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseViewPaginator"],
+    ) -> None:
+        self.page = 0
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+    async def previous_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseViewPaginator"],
+    ) -> None:
+        if self.page > 0:
+            self.page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+    async def next_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseViewPaginator"],
+    ) -> None:
+        if self.page < self.max_page:
+            self.page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+    async def last_page(
+        self,
+        interaction: discord.Interaction,
+        button:      discord.ui.Button["CaseViewPaginator"],
+    ) -> None:
+        self.page = self.max_page
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -258,41 +493,6 @@ class CasesCommands(commands.Cog):
         CaseType.PURGE.value             : "Messages Purged",
         CaseType.NOTE.value              : "Note Added",
     }
-
-    def _format_case_field(self, case: dict[str, Any]) -> tuple[str, str]:
-        case_type  = case["type"]
-        type_label = case_type.replace("_", " ").title()
-        created    = datetime.fromisoformat(case["created_at"])
-
-        parts: list[str] = [f"**Type:** {type_label}"]
-
-        if case.get("target_user_name"):
-            parts.append(f"**User:** {case['target_user_name']} ({case['target_user_id']})")
-
-        parts.append(f"**Moderator:** {case['moderator_name']}")
-
-        if case.get("duration"):
-            parts.append(f"**Duration:** {case['duration']}")
-
-        if case.get("reason"):
-            reason = str(case["reason"])
-            if len(reason) > 200:
-                reason = reason[:197] + "..."
-            parts.append(f"**Reason:** {reason}")
-
-        if case.get("content"):
-            content = str(case["content"])
-            if len(content) > 200:
-                content = content[:197] + "..."
-            parts.append(f"**Content:** {content}")
-
-        vis = case.get("visibility_level", "moderators")
-        if vis != "moderators":
-            parts.append(f"**Visibility:** {str(vis).replace('_', ' ').title()}")
-
-        parts.append(f"**Created:** {discord.utils.format_dt(created, 'R')}")
-
-        return f"Case #{case['case_id']}", "\n".join(parts)
 
     async def _build_case_embed(
         self,
@@ -490,20 +690,8 @@ class CasesCommands(commands.Cog):
 
         title = "Cases " + " ".join(title_parts) if title_parts else "All Cases"
 
-        embed = discord.Embed(
-            title     = title,
-            color     = COLOR_BLURPLE,
-            timestamp = datetime.now(),
-        )
-
-        for case in cases[:25]:
-            name, value = self._format_case_field(case)
-            embed.add_field(name=name, value=value, inline=False)
-
-        if len(cases) > 25:
-            embed.set_footer(text=f"Showing 25 of {len(cases)} cases")
-
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        view = CaseQueryPaginator(interaction, cases, title, self.COLOR_MAP)
+        await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases view Command
@@ -559,23 +747,12 @@ class CasesCommands(commands.Cog):
         notes         = self.cases_manager.get_related_notes(case_id, guild.id)
         visible_notes = [n for n in notes if self._can_see_case(actor, n)]
 
-        if visible_notes:
-            embed.add_field(name="—— Notes ——", value="\u200b", inline=False)
-            for note in visible_notes[:10]:
-                note_created = datetime.fromisoformat(note["created_at"])
-                note_parts   = [
-                    f"**Moderator:** {note['moderator_name']}",
-                    f"**Created:** {discord.utils.format_dt(note_created, 'R')}",
-                ]
-                if note.get("content"):
-                    note_parts.append(f"\n{note['content']}")
-                embed.add_field(
-                    name   = f"Note #{note['case_id']}",
-                    value  = "\n".join(note_parts),
-                    inline = False,
-                )
+        if not visible_notes:
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            return
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        view = CaseViewPaginator(interaction, embed, visible_notes)
+        await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases add-note Command
@@ -833,11 +1010,10 @@ class CasesCommands(commands.Cog):
 
         self.cases_manager.request_visibility(case_id, visibility)
 
-        view   = ClassificationView(case_id, self.cases_manager)
+        view           = ClassificationView(case_id, self.cases_manager)
         thread_name    = f"DR: Classification Request by {actor.display_name}"
         thread_content = (
-            f"{ACCEPTED_EMOJI_ID} **A new classification to {label} request has been made "
-            f"affecting case #{case_id}.**\n"
+            f"{ACCEPTED_EMOJI_ID} **A new classification to {label} request has been made affecting case #{case_id}.**\n"
             f"<@&{DIRECTORS_ROLE_ID}>"
         )
 
