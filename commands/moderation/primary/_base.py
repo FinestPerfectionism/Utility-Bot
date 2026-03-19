@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+import asyncio
 import contextlib
 import json
 import os
@@ -91,21 +92,42 @@ _Context = discord.Interaction | commands.Context[commands.Bot]
 class ModerationListPaginator(discord.ui.View):
     def __init__(
         self,
-        context: _Context,
-        title:   str,
-        color:   discord.Color,
-        fields:  list[tuple[str, str]],
+        context:         _Context,
+        title:           str,
+        color:           discord.Color,
+        fields:          list[tuple[str, str]],
+        delete_delay:    float | None = None,
+        delete_callback: Any          = None,
     ) -> None:
         super().__init__(timeout=120)
-        self.context  = context
-        self.title    = title
-        self.color    = color
-        self.fields   = fields
-        self.per_page = 5
-        self.page     = 0
-        self.max_page = (len(fields) - 1) // self.per_page
+        self.context         = context
+        self.title           = title
+        self.color           = color
+        self.fields          = fields
+        self.per_page        = 5
+        self.page            = 0
+        self.max_page        = (len(fields) - 1) // self.per_page
+        self.delete_delay    = delete_delay
+        self.delete_callback = delete_callback
+        self._delete_task: asyncio.Task[None] | None = None
 
         self.update_buttons()
+
+        if delete_delay is not None:
+            self._schedule_delete()
+
+    def _schedule_delete(self) -> None:
+        if self._delete_task is not None:
+            self._delete_task.cancel()
+        loop = asyncio.get_event_loop()
+        self._delete_task = loop.create_task(self._delete_after())
+
+    async def _delete_after(self) -> None:
+        await asyncio.sleep(self.delete_delay or 0)
+        if self.delete_callback:
+            with contextlib.suppress(discord.NotFound, discord.HTTPException):
+                await self.delete_callback()
+        self.stop()
 
     def update_buttons(self) -> None:
         no_pagination_needed = len(self.fields) <= self.per_page
@@ -148,6 +170,8 @@ class ModerationListPaginator(discord.ui.View):
     ) -> None:
         self.page = 0
         self.update_buttons()
+        if self.delete_delay is not None:
+            self._schedule_delete()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
     @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
@@ -159,6 +183,8 @@ class ModerationListPaginator(discord.ui.View):
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
+        if self.delete_delay is not None:
+            self._schedule_delete()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
     @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
@@ -170,6 +196,8 @@ class ModerationListPaginator(discord.ui.View):
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
+        if self.delete_delay is not None:
+            self._schedule_delete()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
     @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
@@ -180,6 +208,8 @@ class ModerationListPaginator(discord.ui.View):
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
+        if self.delete_delay is not None:
+            self._schedule_delete()
         await interaction.response.edit_message(embed=self.get_embed(), view=self)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

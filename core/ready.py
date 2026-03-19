@@ -22,7 +22,6 @@ from constants import (
 
     APPLICATION_LOG_CHANNEL_ID,
     BOT_CONSOLE_CHANNEL_ID,
-    GUILD_ID
 )
 
 log = logging.getLogger("Utility Bot")
@@ -130,9 +129,7 @@ class Ready(commands.Cog):
         if self._ran:
             return
         self._ran = True
-
-        guild = discord.Object(id=GUILD_ID)
-        await bot.tree.sync(guild=guild)
+        await bot.tree.sync()
         
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(

@@ -3,8 +3,6 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-import asyncio
-import contextlib
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -106,8 +104,13 @@ async def run_quarantines_prefix(
             f"Saved roles: {len(entry['roles'])}"
         ))
 
-    view = ModerationListPaginator(ctx, "Quarantined Members", COLOR_ORANGE, fields)
-    msg  = await ctx.send(embed=view.get_embed(), view=view)
-    await asyncio.sleep(10)
-    with contextlib.suppress(discord.NotFound):
-        await msg.delete()
+    msg = await ctx.send(embed=discord.Embed(description="Loading...", color=COLOR_ORANGE))
+    view = ModerationListPaginator(
+        ctx,
+        "Quarantined Members",
+        COLOR_ORANGE,
+        fields,
+        delete_delay    = 10,
+        delete_callback = msg.delete,
+    )
+    await msg.edit(embed=view.get_embed(), view=view)
