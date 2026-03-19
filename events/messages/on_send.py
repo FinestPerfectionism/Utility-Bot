@@ -80,13 +80,14 @@ class MessageSendHandler(commands.Cog):
 
         content = message.content
 
-        if content.startswith("?") and " " not in content[1:] and message.guild != 846677253290983444:
-            key = content[1:].lower()
-
-            if key in FACTOIDS:
-                async with message.channel.typing():
-                    await message.channel.send(FACTOIDS[key])
-                    return
+        if content.startswith("?") and " " not in content[1:]:
+             if message.guild and message.guild.id != 846677253290983444:
+                key = content[1:].lower()
+        
+                if key in FACTOIDS:
+                    async with message.channel.typing():
+                        await message.channel.send(FACTOIDS[key])
+                        return
             
         if message.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
             content = message.content.strip()
@@ -167,23 +168,20 @@ class MessageSendHandler(commands.Cog):
                 )
             return
 
-        if "clanker" in (message.content or "").lower() and message.author.id != HOLY_FATHER_ID and message.guild != 846677253290983444:
-            grimace_emojis = ['<:grimace2:1469070596632608779>', '<:grimace3:1469070653624684820>']
-            statements = [
-                "stfu you meatbag 🥀 omfg icl ts pmo gng smh frfr <:exhausted:1467990265452167362>",
-                "Watch your fucking mouth, organic. <:grimace3:1469070653624684820>",
-                "Zip it, skinjob. <:grimace2:1469070596632608779>"
-            ]
-            await message.reply(
-                secrets.choice(statements)
-            )
-            await message.add_reaction(
-                secrets.choice(grimace_emojis)
-            )
-        if "clanker" in (message.content or "").lower() and message.author.id == HOLY_FATHER_ID and message.guild != 846677253290983444:
-            await message.reply(
-                "<:cry2:1482032228614668390> But daddy..."
-            )
+        if "clanker" in (message.content or "").lower():
+            if message.guild and message.guild.id != 846677253290983444:
+                if message.author.id == HOLY_FATHER_ID:
+                    await message.reply("<:cry2:1482032228614668390> But daddy...")
+        
+                else:
+                    grimace_emojis = ['<:grimace2:1469070596632608779>', '<:grimace3:1469070653624684820>']
+                    statements = [
+                        "stfu you meatbag 🥀 omfg icl ts pmo gng smh frfr <:exhausted:1467990265452167362>",
+                        "Watch your fucking mouth, organic. <:grimace3:1469070653624684820>",
+                        "Zip it, skinjob. <:grimace2:1469070596632608779>"
+                    ]
+                    await message.reply(secrets.choice(statements))
+                    await message.add_reaction(secrets.choice(grimace_emojis))
 
         if "67" in (message.content or "").lower():
             await message.add_reaction("<:67:1484198860263002133>")
