@@ -9,6 +9,12 @@ from typing import (
 import json
 import os
 
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig,
+)
+
 from constants import (
     SUPPORTING_DIRECTORS_ROLE_ID,
     DIRECTORS_ROLE_ID,
@@ -79,6 +85,18 @@ class NominationCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="nomination", aliases=["nom"])
+    @help_description(
+        desc="Director-only workflow for triggering, accepting, or denying supporting-director nominations.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["nom"],
+        arguments={
+            "action": ArgumentInfo(description="Use `/action trigger`, `/action accept`, or `/action deny`.", is_flag=True),
+            "user": ArgumentInfo(required=False, description="Target member for the nomination trigger.", is_flag=True),
+            "id": ArgumentInfo(required=False, description="Nomination case ID used by trigger, accept, and deny.", is_flag=True),
+        },
+    )
     async def nomination(
         self,
         ctx:   commands.Context[commands.Bot],

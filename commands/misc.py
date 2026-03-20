@@ -3,7 +3,10 @@ from discord.ext import commands
 from discord import app_commands
 
 from core.utils import send_minor_error
-from core.help import help_description
+from core.help import (
+    help_description,
+    RoleConfig,
+)
 
 from constants import (
     BOT_OWNER_ID,
@@ -45,6 +48,11 @@ class MiscCommands(commands.Cog):
         name="femboy",
         description="Such a good little utility kitten."
     )
+    @help_description(
+        desc="Sends the bot's playful self-introduction.",
+        prefix=False,
+        slash=True,
+    )
     async def femboy(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
         await interaction.followup.send(
@@ -57,6 +65,12 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         name="super_secret_command"
+    )
+    @help_description(
+        desc="Bot-owner-only easter egg command.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=BOT_OWNER_ID)],
     )
     async def super_secret_command(self, ctx: commands.Context[commands.Bot]) -> None:
         author_id = ctx.author.id
@@ -84,6 +98,11 @@ class MiscCommands(commands.Cog):
     @app_commands.command(
         name="roulette",
         description="Have fun..."
+    )
+    @help_description(
+        desc="Plays a roulette gag that may try to kick you if the chamber is loaded.",
+        prefix=False,
+        slash=True,
     )
     async def roulette(self, interaction: discord.Interaction) -> None:
         guild = interaction.guild

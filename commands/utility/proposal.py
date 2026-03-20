@@ -8,6 +8,12 @@ from typing import ClassVar
 import re
 import time
 
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig,
+)
+
 from core.permissions import (
     has_director_role,
     main_guild_only,
@@ -28,6 +34,7 @@ from constants import (
     EMOJI_STATUS,
     STAFF_PROPOSALS_CHANNEL_ID,
     STAFF_COMMITTEE_ROLE_ID,
+    DIRECTORS_ROLE_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -251,6 +258,17 @@ class ProposalCommands(
             app_commands.Choice(name="Veto.",                      value="Veto."),
         ]
     )
+    @help_description(
+        desc="Staff-committee command to set the official proposal decision for the current proposal thread in the main guild.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        arguments={
+            "status": ArgumentInfo(description="Decision to apply.", choices=["accepted", "contested", "denied", "standstill"]),
+            "reason": ArgumentInfo(description="Approved reason for that decision."),
+            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+        },
+    )
     @main_guild_only()
     async def status(
         self,
@@ -362,6 +380,17 @@ class ProposalCommands(
             app_commands.Choice(name="Owner Action",         value="owner_action"),
             app_commands.Choice(name="S. Director Action",   value="sdirector_action"),
         ]
+    )
+    @help_description(
+        desc="Staff-committee command to apply or remove a process tag on the current proposal thread in the main guild.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        arguments={
+            "tag": ArgumentInfo(description="Process tag to modify.", choices=["needs_revision", "needs_implementation", "owner_action", "sdirector_action"]),
+            "enabled": ArgumentInfo(description="Whether the tag should be present after running the command."),
+            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+        },
     )
     @main_guild_only()
     async def tag(
@@ -477,6 +506,16 @@ class ProposalCommands(
             app_commands.Choice(name="Issue resolved.",        value="Issue resolved."),
         ]
     )
+    @help_description(
+        desc="Staff-committee command to finalize and lock the current proposal thread after final resolution.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        arguments={
+            "reason": ArgumentInfo(description="Reason for finalization."),
+            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+        },
+    )
     @main_guild_only()
     async def finalize(
         self,
@@ -575,6 +614,16 @@ class ProposalCommands(
             app_commands.Choice(name="Further discussion needed.", value="Further discussion needed."),
         ]
     )
+    @help_description(
+        desc="Staff-committee command to unlock a finalized proposal thread in the main guild.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        arguments={
+            "reason": ArgumentInfo(description="Reason for unlocking."),
+            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+        },
+    )
     @main_guild_only()
     async def unlock_thread(
         self,
@@ -639,6 +688,16 @@ class ProposalCommands(
             app_commands.Choice(name="Committee direction established.", value="Committee direction established."),
         ]
     )
+    @help_description(
+        desc="Staff-committee command to remove the standstill status from the current proposal thread in the main guild.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        arguments={
+            "reason": ArgumentInfo(description="Reason for removing standstill."),
+            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+        },
+    )
     @main_guild_only()
     async def unstandstill(
         self,
@@ -698,6 +757,13 @@ class ProposalCommands(
     @commands.command(
         name    = "delete",
         aliases = ["d", "del"]
+    )
+    @help_description(
+        desc="Director-only prefix command that deletes the current staff proposal thread.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["d", "del"],
     )
     @has_director_role()
     async def delete_thread(self, ctx: commands.Context[commands.Bot]) -> None:

@@ -32,6 +32,10 @@ from constants import (
 if TYPE_CHECKING:
     from bot import UtilityBot
 
+from core.help import (
+    help_description,
+    RoleConfig,
+)
 from core.utils import send_major_error
 from core.permissions import is_director, is_senior_moderator
 
@@ -534,6 +538,12 @@ class HealthCommands(commands.Cog):
     @app_commands.command(
         name="health",
         description="View server health and run automated fixes."
+    )
+    @help_description(
+        desc="Views a server health report and offers automated fixes for supported issues. Restricted to Directors and Senior Moderators.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
     )
     async def health(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
