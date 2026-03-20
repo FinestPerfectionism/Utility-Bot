@@ -29,7 +29,7 @@ async def run_timeouts(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_view(actor):
+    if not base.can_view_moderation(actor):
         await send_major_error(
             interaction,
             title    = "Unauthorized!",
@@ -77,7 +77,7 @@ async def run_timeouts(
     await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .mute-list Logic
+# .timeouts Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_timeouts_prefix(
@@ -88,7 +88,12 @@ async def run_timeouts_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_view(actor):
+    if not base.can_view_moderation(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to retrieve timeout list",
+            "You lack the necessary permissions to view timeouts."
+        )
         return
 
     guild = ctx.guild

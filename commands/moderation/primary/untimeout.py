@@ -3,8 +3,6 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-import asyncio
-import contextlib
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -42,7 +40,7 @@ async def run_untimeout(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_unban_untimeout(actor):
+    if not base.can_reverse_actions(actor):
         await send_major_error(
             interaction,
             title="Unauthorized!",
@@ -108,7 +106,12 @@ async def run_untimeout_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_unban_untimeout(actor):
+    if not base.can_reverse_actions(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to remove timeout",
+            "You lack the necessary permissions to remove timeouts."
+        )
         return
 
     if not flags.r:
@@ -159,10 +162,7 @@ async def run_untimeout_prefix(
         embed.add_field(name="Director", value=actor.mention,  inline=True)
         embed.add_field(name="Reason",   value=reason,         inline=False)
 
-        msg = await ctx.send(embed=embed)
-        await asyncio.sleep(10)
-        with contextlib.suppress(discord.NotFound):
-            await msg.delete()
+        await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
         await ctx.send(

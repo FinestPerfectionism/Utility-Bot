@@ -3,8 +3,6 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-import asyncio
-import contextlib
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -47,7 +45,7 @@ async def run_ban(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_moderate(actor):
+    if not base.can_apply_standard_actions(actor):
         await send_major_error(
             interaction,
             title    = "Unauthorized!",
@@ -155,7 +153,12 @@ async def run_ban_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_moderate(actor):
+    if not base.can_apply_standard_actions(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to ban member",
+            "You lack the necessary permissions to ban members."
+        )
         return
 
     if not flags.r:
@@ -192,7 +195,8 @@ async def run_ban_prefix(
         if not can_proceed:
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-                f"Rate limit exceeded. {error_msg}."
+                f"Rate limit exceeded. {error_msg}.\n"
+                f"-# Continuing to exceed rate limits will result in your own quarantine."
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -205,7 +209,8 @@ async def run_ban_prefix(
             delete_message_seconds = delete_messages * 86400
         )
 
-        base.data["bans"][str(member.id)] = {
+        bans = base.ensure_data_section("bans")
+        bans[str(member.id)] = {
             "banned_at" : datetime.now().isoformat(),
             "banned_by" : actor.id,
             "reason"    : reason
@@ -234,10 +239,7 @@ async def run_ban_prefix(
         embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
         embed.add_field(name="Reason",    value=reason,                            inline=False)
 
-        msg = await ctx.send(embed=embed)
-        await asyncio.sleep(10)
-        with contextlib.suppress(discord.NotFound):
-            await msg.delete()
+        await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
         await ctx.send(

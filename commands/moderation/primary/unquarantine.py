@@ -3,8 +3,6 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-import asyncio
-import contextlib
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -45,7 +43,7 @@ async def run_unquarantine(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_unban_untimeout(actor):
+    if not base.can_reverse_actions(actor):
         await send_major_error(
             interaction,
             title    = "Unauthorized!",
@@ -95,8 +93,9 @@ async def run_unquarantine(
         if roles_to_add:
             await member.add_roles(*roles_to_add, reason=f"Unquarantined by {actor}: {reason}")
 
-        if str(member.id) in base.data["quarantined"]:
-            del base.data["quarantined"][str(member.id)]
+        quarantined = base.ensure_data_section("quarantined")
+        if str(member.id) in quarantined:
+            del quarantined[str(member.id)]
             base.save_data()
 
         metadata: dict[str, Any] = {"roles_restored": len(roles_to_add)}
@@ -155,7 +154,13 @@ async def run_unquarantine_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_unban_untimeout(actor):
+    if not base.can_reverse_actions(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to unquarantine member",
+            "You lack the necessary permissions to remove members from quarantine.",
+            "No permissions."
+        )
         return
 
     if not flags.r:
@@ -204,8 +209,9 @@ async def run_unquarantine_prefix(
         if roles_to_add:
             await member.add_roles(*roles_to_add, reason=f"Unquarantined by {actor}: {reason}")
 
-        if str(member.id) in base.data["quarantined"]:
-            del base.data["quarantined"][str(member.id)]
+        quarantined = base.ensure_data_section("quarantined")
+        if str(member.id) in quarantined:
+            del quarantined[str(member.id)]
             base.save_data()
 
         await base.cases_manager.log_case(
@@ -240,10 +246,7 @@ async def run_unquarantine_prefix(
                 inline=False
             )
 
-        msg = await ctx.send(embed=embed)
-        await asyncio.sleep(10)
-        with contextlib.suppress(discord.NotFound):
-            await msg.delete()
+        await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
         await ctx.send(
