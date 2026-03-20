@@ -4,6 +4,11 @@ from discord import app_commands
 
 import contextlib
 
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig,
+)
 from core.permissions import (
     directors_only,
     main_guild_only
@@ -21,7 +26,10 @@ from events.systems.applications import (
     ACTIVE_APPLICATIONS
 )
 
-from constants import STAFF_ROLE_ID
+from constants import (
+    STAFF_ROLE_ID,
+    DIRECTORS_ROLE_ID,
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Applications Commands
@@ -59,6 +67,16 @@ class ApplicationsCommands(
                 value="remove"
             )
         ]
+    )
+    @help_description(
+        desc="Director-only command to add or remove a user from the applications blacklist in the main guild.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments={
+            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["add", "remove"]),
+            "user": ArgumentInfo(description="User to blacklist or unblacklist from applications."),
+        },
     )
     @main_guild_only()
     @directors_only()
@@ -154,6 +172,16 @@ class ApplicationsCommands(
             ),
         ],
     )
+    @help_description(
+        desc="Director-only command to open or close moderator or administrator applications.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments={
+            "application": ArgumentInfo(description="Application type to modify.", choices=["mod", "admin"]),
+            "state": ArgumentInfo(description="Whether that application should be open or closed.", choices=["open", "closed"]),
+        },
+    )
     @directors_only()
     async def appmodify(
         self,
@@ -185,6 +213,11 @@ class ApplicationsCommands(
 
     @commands.command(
         name="cancel"
+    )
+    @help_description(
+        desc="Cancels your active application. This command only works in DMs while you have an active application.",
+        prefix=True,
+        slash=False,
     )
     async def cancel(self, ctx: commands.Context[commands.Bot]) -> None:
         if ctx.guild is not None:

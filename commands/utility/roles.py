@@ -189,6 +189,17 @@ class RoleCommands(
             ),
         ],
     )
+    @help_description(
+        desc="Lists members by whether they have a role and whether they are humans, bots, or both.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments={
+            "role": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Role to inspect."),
+            "role_filter": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Whether to list members who have or do not have the role.", choices=["whohas", "whodoesnthave"]),
+            "person_filter": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Whether to list humans, bots, or both.", choices=["humans", "bots", "both"]),
+        },
+    )
     @directors_only()
     async def members(
         self,

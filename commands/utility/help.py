@@ -5,6 +5,8 @@ from core.help import (
     HelpedCallable,
     find_nested_command,
     build_help_view,
+    help_description,
+    ArgumentInfo,
 )
 from constants import (
     COLOR_BLURPLE,
@@ -98,6 +100,17 @@ class HelpCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="help")
+    @help_description(
+        desc="Shows general bot information or detailed help for a documented command.",
+        prefix=True,
+        slash=False,
+        arguments={
+            "command_name": ArgumentInfo(
+                required=False,
+                description="Optional command name to inspect, such as `moderation ban` or `timezone`.",
+            ),
+        },
+    )
     async def help(
         self,
         ctx: commands.Context[commands.Bot],
