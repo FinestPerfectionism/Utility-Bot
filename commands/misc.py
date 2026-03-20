@@ -5,7 +5,6 @@ from discord import app_commands
 from core.utils import send_minor_error
 from core.help import (
     help_description,
-    RoleConfig,
 )
 
 from constants import (
@@ -49,7 +48,7 @@ class MiscCommands(commands.Cog):
         description="Such a good little utility kitten."
     )
     @help_description(
-        desc="Sends the bot's playful self-introduction.",
+        desc="Sends the bot's intentionally unserious self-introduction message. This is a flavor command with no arguments or permissions beyond being able to invoke the slash command.",
         prefix=False,
         slash=True,
     )
@@ -67,10 +66,9 @@ class MiscCommands(commands.Cog):
         name="super_secret_command"
     )
     @help_description(
-        desc="Bot-owner-only easter egg command.",
+        desc="Runs a private easter-egg response path intended for the configured bot owner and a small hard-coded exception. Access is controlled by user ID checks inside the command, not by Discord roles.",
         prefix=True,
         slash=False,
-        run_roles=[RoleConfig(role_id=BOT_OWNER_ID)],
     )
     async def super_secret_command(self, ctx: commands.Context[commands.Bot]) -> None:
         author_id = ctx.author.id
@@ -100,7 +98,7 @@ class MiscCommands(commands.Cog):
         description="Have fun..."
     )
     @help_description(
-        desc="Plays a roulette gag that may try to kick you if the chamber is loaded.",
+        desc="Plays a deliberately risky roulette gag. Depending on the random chamber result and the bot's permissions, the command may attempt to ban the invoking user or simply report that the shot misfired.",
         prefix=False,
         slash=True,
     )
