@@ -41,6 +41,7 @@ from constants import (
     MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
     JUNIOR_MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
+    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -245,6 +246,8 @@ class ModerationBase(commands.Cog):
         self.BAN_DAILY_LIMIT         = 4
         self.KICK_HOURLY_LIMIT       = 3
         self.KICK_DAILY_LIMIT        = 6
+        self.TIMEOUT_HOURLY_LIMIT    = 5
+        self.TIMEOUT_DAILY_LIMIT     = 10
         self.QUARANTINE_HOURLY_LIMIT = 5
         self.QUARANTINE_DAILY_LIMIT  = 20
         self.SEVERE_HOURLY_LIMIT     = 4
@@ -277,6 +280,11 @@ class ModerationBase(commands.Cog):
         with open("moderation_data.json", "w") as f:
             json.dump(self.data, f, indent=4)
 
+    def ensure_data_section(self, section: str) -> dict[str, Any]:
+        if section not in self.data:
+            self.data[section] = {}
+        return self.data[section]
+
     def parse_duration(self, duration_str: str) -> int | None:
         duration_str = duration_str.lower().strip()
         try:
@@ -307,6 +315,7 @@ class ModerationBase(commands.Cog):
         for key in (
             "ban_hourly", "ban_daily",
             "kick_hourly", "kick_daily",
+            "timeout_hourly", "timeout_daily",
             "quarantine_hourly", "quarantine_daily",
             "severe_hourly", "severe_daily",
         ):
@@ -320,9 +329,9 @@ class ModerationBase(commands.Cog):
         rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
         rl: dict[str, list[str]] = rate_limits[user_id]
 
-        for key in ("ban_hourly", "kick_hourly", "quarantine_hourly", "severe_hourly"):
+        for key in ("ban_hourly", "kick_hourly", "timeout_hourly", "quarantine_hourly", "severe_hourly"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
-        for key in ("ban_daily", "kick_daily", "quarantine_daily", "severe_daily"):
+        for key in ("ban_daily", "kick_daily", "timeout_daily", "quarantine_daily", "severe_daily"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(days=1)]
 
     def check_rate_limit(self, user_id: str, action: str) -> tuple[bool, str]:
@@ -346,6 +355,11 @@ class ModerationBase(commands.Cog):
                 return False, f"Kick hourly limit exceeded ({self.KICK_HOURLY_LIMIT} kicks per hour)"
             if len(rl["kick_daily"]) >= self.KICK_DAILY_LIMIT:
                 return False, f"Kick daily limit exceeded ({self.KICK_DAILY_LIMIT} kicks per day)"
+        elif action == "timeout":
+            if len(rl["timeout_hourly"]) >= self.TIMEOUT_HOURLY_LIMIT:
+                return False, f"Timeout hourly limit exceeded ({self.TIMEOUT_HOURLY_LIMIT} timeouts per hour)"
+            if len(rl["timeout_daily"]) >= self.TIMEOUT_DAILY_LIMIT:
+                return False, f"Timeout daily limit exceeded ({self.TIMEOUT_DAILY_LIMIT} timeouts per day)"
         elif action == "quarantine":
             if len(rl["quarantine_hourly"]) >= self.QUARANTINE_HOURLY_LIMIT:
                 return False, f"Quarantine hourly limit exceeded ({self.QUARANTINE_HOURLY_LIMIT} quarantines per hour)"
@@ -371,6 +385,9 @@ class ModerationBase(commands.Cog):
         elif action == "kick":
             rl["kick_hourly"].append(now)
             rl["kick_daily"].append(now)
+        elif action == "timeout":
+            rl["timeout_hourly"].append(now)
+            rl["timeout_daily"].append(now)
         elif action == "quarantine":
             rl["quarantine_hourly"].append(now)
             rl["quarantine_daily"].append(now)
@@ -380,7 +397,7 @@ class ModerationBase(commands.Cog):
     def has_protected_role(self, member: discord.Member) -> bool:
         return any(has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
 
-    def can_view(self, member: discord.Member) -> bool:
+    def can_view_moderation(self, member: discord.Member) -> bool:
         return (
             is_director(member) or
             is_senior_moderator(member) or
@@ -388,14 +405,23 @@ class ModerationBase(commands.Cog):
             is_moderator(member)
         )
 
-    def can_moderate(self, member: discord.Member) -> bool:
+    def can_apply_standard_actions(self, member: discord.Member) -> bool:
         return is_senior_moderator(member)
 
-    def can_unban_untimeout(self, member: discord.Member) -> bool:
+    def can_reverse_actions(self, member: discord.Member) -> bool:
         return is_director(member)
 
     def can_quarantine(self, member: discord.Member) -> bool:
-        return is_senior_moderator(member)
+        return self.can_apply_standard_actions(member)
+
+    def can_view(self, member: discord.Member) -> bool:
+        return self.can_view_moderation(member)
+
+    def can_moderate(self, member: discord.Member) -> bool:
+        return self.can_apply_standard_actions(member)
+
+    def can_unban_untimeout(self, member: discord.Member) -> bool:
+        return self.can_reverse_actions(member)
 
     def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
         if target.id == moderator.guild.owner_id:
@@ -415,8 +441,8 @@ class ModerationBase(commands.Cog):
     def check_can_moderate_target(self, moderator: discord.Member, target: discord.Member) -> tuple[bool, str]:
         if self.has_protected_role(target):
             if self.can_quarantine(moderator):
-                return False, "You cannot ban/kick/mute staff members. Use `/quarantine add` instead."
-            return False, "You cannot ban/kick/mute staff members."
+                return False, "You cannot ban/kick/timeout staff members. Use `/moderation quarantine` instead."
+            return False, "You cannot ban/kick/timeout staff members."
 
         if not self.check_hierarchy(moderator, target):
             if self.can_quarantine(moderator):
@@ -424,6 +450,31 @@ class ModerationBase(commands.Cog):
             return False, "Target user is greater than or equal to your highest role."
 
         return True, ""
+
+    async def send_prefix_denied(
+        self,
+        ctx: commands.Context[commands.Bot],
+        failure_text: str,
+        detail_text: str,
+        subtitle: str = "Invalid permissions.",
+    ) -> None:
+        await ctx.send(
+            f"{DENIED_EMOJI_ID} **{failure_text}!**\n"
+            f"{detail_text}\n"
+            f"-# {subtitle}"
+        )
+
+    async def send_prefix_temp_embed(
+        self,
+        ctx: commands.Context[commands.Bot],
+        embed: discord.Embed,
+        *,
+        delete_after: float = 10,
+    ) -> None:
+        msg = await ctx.send(embed=embed)
+        await asyncio.sleep(delete_after)
+        with contextlib.suppress(discord.NotFound):
+            await msg.delete()
 
     async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild) -> None:
         if not guild or not self.bot.user:

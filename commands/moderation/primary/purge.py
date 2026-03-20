@@ -3,7 +3,6 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-import asyncio
 import contextlib
 from datetime import datetime, timezone
 from typing import (
@@ -82,7 +81,7 @@ async def run_purge(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_moderate(actor):
+    if not base.can_apply_standard_actions(actor):
         await send_major_error(
             interaction,
             title="Unauthorized!",
@@ -168,7 +167,12 @@ async def run_purge_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_moderate(actor):
+    if not base.can_apply_standard_actions(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to purge messages",
+            "You lack the necessary permissions to purge messages."
+        )
         return
 
     if amount < 1 or amount > 100:
@@ -204,13 +208,18 @@ async def run_purge_prefix(
     try:
         if member:
             target_id = member.id
+            cutoff    = datetime.now(tz=timezone.utc)
             deleted   = await channel.purge(
                 limit  = amount,
-                check  = lambda m: m.author.id == target_id,
-                before = ctx.message
+                check  = lambda m: (
+                    m.author.id == target_id
+                    and (cutoff - m.created_at).days < 14
+                ),
+                before = ctx.message,
+                bulk   = True
             )
         else:
-            deleted = await channel.purge(limit=amount, before=ctx.message)
+            deleted = await channel.purge(limit=amount, before=ctx.message, bulk=True)
 
         with contextlib.suppress(discord.NotFound):
             await ctx.message.delete()
@@ -233,10 +242,7 @@ async def run_purge_prefix(
             return
 
         embed = _build_purge_embed(len(deleted), actor, member)
-        msg   = await ctx.send(embed=embed)
-        await asyncio.sleep(10)
-        with contextlib.suppress(discord.NotFound):
-            await msg.delete()
+        await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
         await ctx.send(

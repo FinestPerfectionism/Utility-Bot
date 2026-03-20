@@ -121,7 +121,7 @@ class ModerationCommands(
     @ban_prefix.error
     async def ban_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+        if not isinstance(actor, discord.Member) or not self.can_apply_standard_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
@@ -181,7 +181,7 @@ class ModerationCommands(
     @unban_prefix.error
     async def unban_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_unban_untimeout(actor):
+        if not isinstance(actor, discord.Member) or not self.can_reverse_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
@@ -254,7 +254,7 @@ class ModerationCommands(
     @kick_prefix.error
     async def kick_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+        if not isinstance(actor, discord.Member) or not self.can_apply_standard_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
@@ -298,7 +298,7 @@ class ModerationCommands(
         aliases = [
             "time-out", "t-t", "t-o",
             "time_out", "t_t", "t_o",
-                        "tt" , "to" , "m"
+                        "tt" , "to"
         ]
     )
     async def timeout_prefix(
@@ -313,13 +313,13 @@ class ModerationCommands(
     @timeout_prefix.error
     async def timeout_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+        if not isinstance(actor, discord.Member) or not self.can_apply_standard_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
-                f"Please provide a reason using `/r <reason>`."
+                f"Please provide a duration using `/d <duration>` and a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
             await ctx.send(
@@ -351,9 +351,9 @@ class ModerationCommands(
     @commands.command(
         name    = "un-timeout",
         aliases = [
-                          "un-time-out", "un-mute", "un-t-o", "un-t-t", "u-t-t", "u-t-o", "u-m", "u-t", "un-to", "un-m",
-            "un_timeout", "un_time_out", "un_mute", "un_t_o", "un_t_t", "u_t_t", "u_t_o", "u_m", "u_t", "un_to", "un_m",
-            "untimeout" ,                "unmute" , "unt_o" , "untt"  , "utt"  , "uto"  , "um" , "ut" , "unto" , "unm"
+                          "un-time-out",            "un-t-o", "un-t-t", "u-t-t", "u-t-o",        "u-t", "un-to",
+            "un_timeout", "un_time_out",            "un_t_o", "un_t_t", "u_t_t", "u_t_o",        "u_t", "un_to",
+            "untimeout" ,                           "unt_o" , "untt"  , "utt"  , "uto"  ,        "ut" , "unto"
         ]
     )
     async def untimeout_prefix(
@@ -368,7 +368,7 @@ class ModerationCommands(
     @untimeout_prefix.error
     async def untimeout_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_unban_untimeout(actor):
+        if not isinstance(actor, discord.Member) or not self.can_reverse_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
@@ -397,9 +397,9 @@ class ModerationCommands(
     @commands.command(
         name    = "timeouts",
         aliases = [
-            "mute-list", "time-outs", "m-l-s", "t-l-s", "mutes-l", "t-o-s",
-            "mute_list", "time_outs", "m_l_s", "t_l_s", "mutes_l", "t_o_s",
-            "mutelist" ,              "mls"  , "tls"  , "mutesl" , "tos"
+                         "time-outs",          "t-l-s",            "t-o-s",
+                         "time_outs",          "t_l_s",            "t_o_s",
+                                              "tls"  ,            "tos"
         ]
     )
     async def timeouts_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
@@ -443,7 +443,7 @@ class ModerationCommands(
     @purge_prefix.error
     async def purge_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+        if not isinstance(actor, discord.Member) or not self.can_apply_standard_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
@@ -533,7 +533,7 @@ class ModerationCommands(
     @quarantine_prefix.error
     async def quarantine_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+        if not isinstance(actor, discord.Member) or not self.can_apply_standard_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
@@ -590,7 +590,7 @@ class ModerationCommands(
     @unquarantine_prefix.error
     async def unquarantine_prefix_error(self, ctx: commands.Context[commands.Bot], error: Exception) -> None:
         actor = ctx.author
-        if not isinstance(actor, discord.Member) or not self.can_moderate(actor):
+        if not isinstance(actor, discord.Member) or not self.can_reverse_actions(actor):
             return
 
         if isinstance(error, commands.MissingRequiredFlag):

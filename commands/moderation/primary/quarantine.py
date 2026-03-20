@@ -3,8 +3,6 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-import asyncio
-import contextlib
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -64,10 +62,9 @@ async def run_quarantine(
         await send_minor_error(interaction, "You cannot quarantine members with a role ≥ to yours.")
         return
 
-    if "quarantined" not in base.data:
-        base.data["quarantined"] = {}
+    quarantined = base.ensure_data_section("quarantined")
 
-    if str(member.id) in base.data["quarantined"]:
+    if str(member.id) in quarantined:
         await send_minor_error(interaction, f"{member.mention} is already quarantined.")
         return
 
@@ -105,7 +102,7 @@ async def run_quarantine(
         if role.id not in (guild.default_role.id, base.QUARANTINE_ROLE_ID)
     ]
 
-    base.data["quarantined"][str(member.id)] = {
+    quarantined[str(member.id)] = {
         "roles":          saved_roles,
         "quarantined_at": datetime.now().isoformat(),
         "quarantined_by": actor.id,
@@ -151,8 +148,8 @@ async def run_quarantine(
             texts    = "I lack the necessary permissions to run this command.",
             subtitle = "Invalid configuration. Contact the owner."
         )
-        if str(member.id) in base.data["quarantined"]:
-            del base.data["quarantined"][str(member.id)]
+        if str(member.id) in quarantined:
+            del quarantined[str(member.id)]
             base.save_data()
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -170,6 +167,12 @@ async def run_quarantine_prefix(
         return
 
     if not base.can_quarantine(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to quarantine member",
+            "You lack the necessary permissions to add members to quarantine.",
+            "No permissions."
+        )
         return
 
     if not flags.r:
@@ -195,10 +198,9 @@ async def run_quarantine_prefix(
         )
         return
 
-    if "quarantined" not in base.data:
-        base.data["quarantined"] = {}
+    quarantined = base.ensure_data_section("quarantined")
 
-    if str(member.id) in base.data["quarantined"]:
+    if str(member.id) in quarantined:
         await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
             f"{member.mention} is already quarantined."
@@ -214,7 +216,8 @@ async def run_quarantine_prefix(
         if not can_proceed:
             await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
-                f"Rate limit exceeded. {error_msg}."
+                f"Rate limit exceeded. {error_msg}.\n"
+                f"-# Continuing to exceed rate limits will result in your own quarantine."
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -230,7 +233,7 @@ async def run_quarantine_prefix(
         if role.id not in (guild.default_role.id, base.QUARANTINE_ROLE_ID)
     ]
 
-    base.data["quarantined"][str(member.id)] = {
+    quarantined[str(member.id)] = {
         "roles":          saved_roles,
         "quarantined_at": datetime.now().isoformat(),
         "quarantined_by": actor.id,
@@ -266,10 +269,7 @@ async def run_quarantine_prefix(
         embed.add_field(name="Roles Saved", value=str(len(saved_roles)), inline=True)
         embed.add_field(name="Reason",      value=reason,                inline=False)
 
-        msg = await ctx.send(embed=embed)
-        await asyncio.sleep(10)
-        with contextlib.suppress(discord.NotFound):
-            await msg.delete()
+        await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
         await ctx.send(
@@ -277,6 +277,6 @@ async def run_quarantine_prefix(
             f"I lack the necessary permissions to run this command.\n"
             f"-# Contact the owner."
         )
-        if str(member.id) in base.data["quarantined"]:
-            del base.data["quarantined"][str(member.id)]
+        if str(member.id) in quarantined:
+            del quarantined[str(member.id)]
             base.save_data()

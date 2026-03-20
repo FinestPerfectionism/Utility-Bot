@@ -29,7 +29,7 @@ async def run_quarantines(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_view(actor):
+    if not base.can_view_moderation(actor):
         await send_major_error(
             interaction,
             title    = "Unauthorized!",
@@ -78,7 +78,13 @@ async def run_quarantines_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_view(actor):
+    if not base.can_view_moderation(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to retrieve quarantine list",
+            "You lack the necessary permissions to view quarantined members.",
+            "No permissions."
+        )
         return
 
     if not base.data.get("quarantined"):

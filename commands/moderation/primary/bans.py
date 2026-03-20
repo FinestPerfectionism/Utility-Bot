@@ -30,7 +30,7 @@ async def run_bans(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_view(actor):
+    if not base.can_view_moderation(actor):
         await send_major_error(
             interaction,
             title    = "Unauthorized!",
@@ -92,7 +92,12 @@ async def run_bans_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_view(actor):
+    if not base.can_view_moderation(actor):
+        await base.send_prefix_denied(
+            ctx,
+            "Failed to retrieve ban list",
+            "You lack the necessary permissions to view bans."
+        )
         return
 
     guild = ctx.guild
