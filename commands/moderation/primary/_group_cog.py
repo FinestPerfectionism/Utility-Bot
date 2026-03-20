@@ -10,6 +10,11 @@ from typing import (
 if TYPE_CHECKING:
     from bot import UtilityBot
 
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig,
+)
 from ._base import (
     ModerationBase,
     BanFlags,
@@ -67,7 +72,13 @@ from .purge import (
     run_purge_prefix,
 )
 
-from constants import CONTESTED_EMOJI_ID
+from constants import (
+    CONTESTED_EMOJI_ID,
+    DIRECTORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
+    ADMINISTRATORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Commmands
@@ -94,6 +105,19 @@ class ModerationCommands(
         delete_messages = "Delete messages from the last 1-7 days.",
         proof           = "Optional proof attachment."
     )
+    @help_description(
+        desc="Bans a member from the server, optionally deleting up to seven days of recent messages and attaching proof. Only Senior Moderators can use the command, and the moderation system still enforces hierarchy checks, protected-role checks, rate limits, and any other runtime safety checks before the ban is applied.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        has_inverse="moderation un-ban",
+        arguments={
+            "member": ArgumentInfo(description="Member to ban."),
+            "reason": ArgumentInfo(required=False, description="Reason for the ban."),
+            "delete_messages": ArgumentInfo(required=False, description="Delete messages from the last 1-7 days."),
+            "proof": ArgumentInfo(required=False, description="Optional proof attachment."),
+        },
+    )
     async def ban(
         self,
         interaction:     discord.Interaction,
@@ -109,6 +133,15 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="ban", aliases=["b"])
+    @help_description(
+        desc="Bans a member from the prefix command flow using flag-based input for the reason, proof, and optional message deletion window. Only Senior Moderators can use it, and all of the same hierarchy, protected-role, and rate-limit checks still apply at runtime.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        aliases=["b"],
+        has_inverse="un-ban",
+        arguments={"member": ArgumentInfo(description="Member to ban.")},
+    )
     async def ban_prefix(
         self,
         ctx:    commands.Context[commands.Bot],
@@ -149,6 +182,17 @@ class ModerationCommands(
         user   = "The user ID, username, or tag to unban.",
         reason = "Reason for the ban removal."
     )
+    @help_description(
+        desc="Removes an existing ban from a user identified by ID, username, or tag. This reversal path is restricted to Directors, and the moderation system still applies its reverse-action checks before the unban is carried out.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        has_inverse="moderation ban",
+        arguments={
+            "user": ArgumentInfo(description="User ID, username, or tag to unban."),
+            "reason": ArgumentInfo(required=False, description="Reason for the unban."),
+        },
+    )
     async def unban(
         self,
         interaction: discord.Interaction,
@@ -168,6 +212,15 @@ class ModerationCommands(
             "un_ban", "u_b",
             "unban" , "ub"
         ]
+    )
+    @help_description(
+        desc="Removes an existing ban from the prefix command flow using the command's flag-based reason syntax. Only Directors can use this reversal command, and the normal reverse-action safeguards still apply at runtime.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["u-b", "un-b", "unban", "ub"],
+        has_inverse="ban",
+        arguments={"user": ArgumentInfo(description="User ID, username, or tag to unban.")},
     )
     async def unban_prefix(
         self,
@@ -200,6 +253,12 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="bans", description="View all banned members.")
+    @help_description(
+        desc="Displays the current list of banned users known to the guild. Anyone who is allowed to view moderation data—Moderators, Administrators, Senior Moderators, or Directors—can use this read-only command.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+    )
     async def bans(self, interaction: discord.Interaction) -> None:
         await run_bans(self, interaction)
 
@@ -215,6 +274,13 @@ class ModerationCommands(
             "banlist" , "bls"  , "bs"
         ]
     )
+    @help_description(
+        desc="Displays the current ban list from the prefix command flow. Anyone who can view moderation data—Moderators, Administrators, Senior Moderators, or Directors—can use it.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["ban-list", "b-l-s", "b-s", "banlist", "bls", "bs"],
+    )
     async def bans_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         await run_bans_prefix(self, ctx)
 
@@ -223,6 +289,17 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="kick", description="Kick a member from the server.")
+    @help_description(
+        desc="Kicks a member from the server and optionally records a reason or proof attachment. Only Senior Moderators can use the command, and the action still respects hierarchy checks, protected-role restrictions, and the moderation rate-limit safeguards enforced at runtime.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        arguments={
+            "member": ArgumentInfo(description="Member to kick."),
+            "reason": ArgumentInfo(required=False, description="Reason for the kick."),
+            "proof": ArgumentInfo(required=False, description="Optional proof attachment."),
+        },
+    )
     @app_commands.describe(
         member = "The member to kick.",
         reason = "Reason for the kick.",
@@ -242,6 +319,14 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="kick", aliases=["k"])
+    @help_description(
+        desc="Kicks a member through the prefix command flow using the command's flag-based reason and proof syntax. Only Senior Moderators can use it, and the same hierarchy, protected-role, and rate-limit checks still apply at runtime.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        aliases=["k"],
+        arguments={"member": ArgumentInfo(description="Member to kick.")},
+    )
     async def kick_prefix(
         self,
         ctx:    commands.Context[commands.Bot],
@@ -273,6 +358,19 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="timeout", description="Timeout a member.")
+    @help_description(
+        desc="Applies a timed timeout to a member for the supplied duration, with optional reason and proof metadata. Only Senior Moderators can use it, and the moderation system still enforces hierarchy checks, protected-role checks, duration parsing, and rate-limit safeguards before the timeout is applied.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        has_inverse="moderation un-timeout",
+        arguments={
+            "member": ArgumentInfo(description="Member to timeout."),
+            "duration": ArgumentInfo(description="Duration such as 30s, 5m, 1h, 2d, or 1w."),
+            "reason": ArgumentInfo(required=False, description="Reason for the timeout."),
+            "proof": ArgumentInfo(required=False, description="Optional proof attachment."),
+        },
+    )
     @app_commands.describe(
         member   = "The member to timeout.",
         duration = "Duration (e.g. 30s, 5m, 1h, 2d, 1w).",
@@ -300,6 +398,15 @@ class ModerationCommands(
             "time_out", "t_t", "t_o",
                         "tt" , "to"
         ]
+    )
+    @help_description(
+        desc="Applies a timed timeout from the prefix command flow using the command's flag-based duration, reason, and proof syntax. Only Senior Moderators can use it, and the same hierarchy and safety checks still apply at runtime.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        aliases=["time-out", "t-t", "t-o", "tt", "to"],
+        has_inverse="un-timeout",
+        arguments={"member": ArgumentInfo(description="Member to timeout.")},
     )
     async def timeout_prefix(
         self,
@@ -332,6 +439,17 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="un-timeout", description="Remove timeout from a member.")
+    @help_description(
+        desc="Removes an existing timeout from a member and records the reversal reason. Only Directors can use this reversal path, and the moderation system still enforces its reverse-action checks before the timeout is lifted.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        has_inverse="moderation timeout",
+        arguments={
+            "member": ArgumentInfo(description="Member to untimeout."),
+            "reason": ArgumentInfo(required=False, description="Reason for removing the timeout."),
+        },
+    )
     @app_commands.describe(
         member = "The member to remove timeout from.",
         reason = "Reason for the timeout removal."
@@ -355,6 +473,15 @@ class ModerationCommands(
             "un_timeout", "un_time_out",            "un_t_o", "un_t_t", "u_t_t", "u_t_o",        "u_t", "un_to",
             "untimeout" ,                           "unt_o" , "untt"  , "utt"  , "uto"  ,        "ut" , "unto"
         ]
+    )
+    @help_description(
+        desc="Removes an existing timeout from the prefix command flow using the command's flag-based reason syntax. Only Directors can use it, and the normal reverse-action safeguards still apply at runtime.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["un-time-out", "un-t-o", "un-t-t", "u-t-t", "u-t-o", "u-t", "un-to", "untimeout", "unt_o", "untt", "utt", "uto", "ut", "unto"],
+        has_inverse="timeout",
+        arguments={"member": ArgumentInfo(description="Member to untimeout.")},
     )
     async def untimeout_prefix(
         self,
@@ -387,6 +514,12 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="timeouts", description="View all timed out members.")
+    @help_description(
+        desc="Displays the current list of timed out members. Anyone who is allowed to view moderation data—Moderators, Administrators, Senior Moderators, or Directors—can use this read-only command.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+    )
     async def timeouts(self, interaction: discord.Interaction) -> None:
         await run_timeouts(self, interaction)
 
@@ -402,6 +535,13 @@ class ModerationCommands(
                                               "tls"  ,            "tos"
         ]
     )
+    @help_description(
+        desc="Displays the current list of timed out members from the prefix command flow. Anyone who can view moderation data—Moderators, Administrators, Senior Moderators, or Directors—can use it.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["time-outs", "t-l-s", "t-o-s", "tls", "tos"],
+    )
     async def timeouts_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         await run_timeouts_prefix(self, ctx)
 
@@ -410,6 +550,18 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="purge", description="Delete a specified number of messages.")
+    @help_description(
+        desc="Bulk deletes a requested number of recent messages, optionally narrowing the purge to a single member and attaching proof or a written reason. Only Senior Moderators can use it, and the command still relies on the runtime purge safeguards implemented in the moderation subsystem.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        arguments={
+            "amount": ArgumentInfo(description="Number of messages to delete."),
+            "reason": ArgumentInfo(required=False, description="Reason for the purge."),
+            "member": ArgumentInfo(required=False, description="Optional member filter."),
+            "proof": ArgumentInfo(required=False, description="Optional proof attachment."),
+        },
+    )
     @app_commands.describe(
         amount = "Number of messages to delete.",
         reason = "Reason for the message purge.",
@@ -431,6 +583,14 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="purge", aliases=["p"])
+    @help_description(
+        desc="Bulk deletes recent messages from the prefix command flow using the command's flag-based reason, proof, and member-filter syntax. Only Senior Moderators can use it, and all purge-specific runtime checks still apply.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        aliases=["p"],
+        arguments={"amount": ArgumentInfo(description="Number of messages to delete.")},
+    )
     async def purge_prefix(
         self,
         ctx:    commands.Context[commands.Bot],
@@ -472,6 +632,12 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="quarantines", description="View all quarantined members.")
+    @help_description(
+        desc="Displays the current list of quarantined members. Anyone who is allowed to view moderation data—Moderators, Administrators, Senior Moderators, or Directors—can use this read-only command.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+    )
     async def quarantines(self, interaction: discord.Interaction) -> None:
         await run_quarantines(self, interaction)
 
@@ -487,6 +653,13 @@ class ModerationCommands(
             "quarantinelist" , "quarantinev" , "qls"  , "qv"
         ]
     )
+    @help_description(
+        desc="Displays the current list of quarantined members from the prefix command flow. Anyone who can view moderation data—Moderators, Administrators, Senior Moderators, or Directors—can use it.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["quarantine-list", "quarantine-v", "q-l-s", "q-v", "quarantinelist", "quarantinev", "qls", "qv"],
+    )
     async def quarantines_prefix(self, ctx: commands.Context[commands.Bot]) -> None:
         await run_quarantines_prefix(self, ctx)
 
@@ -495,6 +668,18 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="quarantine", description="Quarantine a member.")
+    @help_description(
+        desc="Places a member into quarantine and records the reason and optional proof attachment. Only Senior Moderators can use the command, and the same hierarchy, protected-role, and moderation safety checks still apply before the quarantine is added.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        has_inverse="moderation un-quarantine",
+        arguments={
+            "member": ArgumentInfo(description="Member to quarantine."),
+            "reason": ArgumentInfo(required=False, description="Reason for the quarantine."),
+            "proof": ArgumentInfo(required=False, description="Optional proof attachment."),
+        },
+    )
     @app_commands.describe(
         member = "The member to quarantine.",
         reason = "Reason for the quarantine.",
@@ -520,6 +705,15 @@ class ModerationCommands(
             "quarantine_add", "q_add", "q_a",
             "quarantineadd" , "add"  , "qa" , "q"
         ]
+    )
+    @help_description(
+        desc="Places a member into quarantine from the prefix command flow using the command's flag-based reason and proof syntax. Only Senior Moderators can use it, and all of the same hierarchy and safety checks still apply at runtime.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        aliases=["quarantine-add", "q-add", "q-a", "quarantineadd", "add", "qa", "q"],
+        has_inverse="un-quarantine",
+        arguments={"member": ArgumentInfo(description="Member to quarantine.")},
     )
     async def quarantine_prefix(
         self,
@@ -552,6 +746,18 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name="un-quarantine", description="Unquarantine a member.")
+    @help_description(
+        desc="Removes quarantine from a member and records the reason and optional proof attachment for the reversal. Only Directors can use this reversal path, and the normal reverse-action safeguards still apply at runtime.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        has_inverse="moderation quarantine",
+        arguments={
+            "member": ArgumentInfo(description="Member to unquarantine."),
+            "reason": ArgumentInfo(required=False, description="Reason for removing quarantine."),
+            "proof": ArgumentInfo(required=False, description="Optional proof attachment."),
+        },
+    )
     @app_commands.describe(
         member = "The member to remove from quarantine.",
         reason = "Reason for the quarantine removal.",
@@ -577,6 +783,15 @@ class ModerationCommands(
             "un_quarantine", "quarantine_remove", "q_remove", "q_r",
             "unquarantine" , "quarantineremove" , "qremove" , "qr"
         ]
+    )
+    @help_description(
+        desc="Removes quarantine from a member through the prefix command flow using the command's flag-based reason and proof syntax. Only Directors can use it, and the usual reverse-action safeguards still apply at runtime.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases=["quarantine-remove", "q-remove", "q-r", "unquarantine", "quarantineremove", "qremove", "qr"],
+        has_inverse="quarantine",
+        arguments={"member": ArgumentInfo(description="Member to unquarantine.")},
     )
     async def unquarantine_prefix(
         self,

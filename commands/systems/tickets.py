@@ -2,6 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig,
+)
 from core.permissions import (
     directors_only,
     main_guild_only
@@ -63,6 +68,16 @@ class TicketsCommands(
                 value="remove"
             )
         ]
+    )
+    @help_description(
+        desc="Director-only command to add or remove a user from the ticket blacklist in the main guild.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments={
+            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["add", "remove"]),
+            "user": ArgumentInfo(description="User to blacklist or unblacklist from tickets."),
+        },
     )
     @main_guild_only()
     @directors_only()
@@ -132,6 +147,12 @@ class TicketsCommands(
         name="archive",
         aliases=["a"]
     )
+    @help_description(
+        desc="Archives the current ticket thread. Only the ticket opener or a moderator can use it inside a ticket thread.",
+        prefix=True,
+        slash=False,
+        aliases=["a"],
+    )
     async def archive(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
@@ -175,6 +196,11 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="claim")
+    @help_description(
+        desc="Claims the current ticket thread for a moderator or director.",
+        prefix=True,
+        slash=False,
+    )
     async def claim(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
@@ -230,6 +256,12 @@ class TicketsCommands(
     @commands.command(
         name="escalate",
         aliases=["e", "esc"]
+    )
+    @help_description(
+        desc="Escalates the current ticket thread to Directors. Must be used by a moderator in a ticket thread.",
+        prefix=True,
+        slash=False,
+        aliases=["e", "esc"],
     )
     async def escalate(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel

@@ -5,6 +5,11 @@ from typing import (
     TYPE_CHECKING,
     cast
 )
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig,
+)
 from constants import GOOBERS_ROLE_ID, STAFF_ROLE_ID
 
 if TYPE_CHECKING:
@@ -28,6 +33,14 @@ class VerificationCommands(commands.Cog):
 
     @commands.guild_only()
     @commands.command(name="verify", aliases=["v"])
+    @help_description(
+        desc="Staff-only command that manually verifies a member inside the server.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
+        aliases=["v"],
+        arguments={"member": ArgumentInfo(description="Member to verify.")},
+    )
     async def manual_verify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
             return
@@ -63,6 +76,14 @@ class VerificationCommands(commands.Cog):
     @commands.command(
         name="unverify",
         aliases=["un-verify", "uv", "deverify", "de-verify", "dv"]
+    )
+    @help_description(
+        desc="Staff-only command that removes verification from a member inside the server.",
+        prefix=True,
+        slash=False,
+        run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
+        aliases=["un-verify", "uv", "deverify", "de-verify", "dv"],
+        arguments={"member": ArgumentInfo(description="Member to unverify.")},
     )
     async def unverify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):

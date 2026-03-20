@@ -3,7 +3,9 @@ from discord.ext import commands
 from discord import app_commands
 
 from core.utils import send_minor_error
-from core.help import help_description
+from core.help import (
+    help_description,
+)
 
 from constants import (
     BOT_OWNER_ID,
@@ -45,6 +47,11 @@ class MiscCommands(commands.Cog):
         name="femboy",
         description="Such a good little utility kitten."
     )
+    @help_description(
+        desc="Sends the bot's intentionally unserious self-introduction message. This is a flavor command with no arguments or permissions beyond being able to invoke the slash command.",
+        prefix=False,
+        slash=True,
+    )
     async def femboy(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
         await interaction.followup.send(
@@ -57,6 +64,11 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         name="super_secret_command"
+    )
+    @help_description(
+        desc="Runs a private easter-egg response path intended for the configured bot owner and a small hard-coded exception. Access is controlled by user ID checks inside the command, not by Discord roles.",
+        prefix=True,
+        slash=False,
     )
     async def super_secret_command(self, ctx: commands.Context[commands.Bot]) -> None:
         author_id = ctx.author.id
@@ -84,6 +96,11 @@ class MiscCommands(commands.Cog):
     @app_commands.command(
         name="roulette",
         description="Have fun..."
+    )
+    @help_description(
+        desc="Plays a deliberately risky roulette gag. Depending on the random chamber result and the bot's permissions, the command may attempt to ban the invoking user or simply report that the shot misfired.",
+        prefix=False,
+        slash=True,
     )
     async def roulette(self, interaction: discord.Interaction) -> None:
         guild = interaction.guild

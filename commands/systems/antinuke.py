@@ -8,9 +8,15 @@ from typing import (
     cast
 )
 
+from core.help import (
+    help_description,
+    ArgumentInfo,
+    RoleConfig,
+)
 from core.utils import send_major_error, send_minor_error
 
 from constants import(
+    DIRECTORS_ROLE_ID,
     ACCEPTED_EMOJI_ID,
 
     COLOR_RED,
@@ -40,6 +46,12 @@ class AntiNukeCommands(commands.Cog):
     @antinuke_group.command(
         name="status",
         description="Status of the anti-nuke system."
+    )
+    @help_description(
+        desc="Director-only command to view the anti-nuke configuration and per-action limits.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
     )
     async def antinuke_status(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
@@ -96,6 +108,12 @@ class AntiNukeCommands(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @antinuke_group.command(name="toggle", description="Enable or disable anti-nuke protection.")
+    @help_description(
+        desc="Director-only command to toggle anti-nuke protection on or off.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+    )
     async def antinuke_toggle(self, interaction: discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -125,6 +143,17 @@ class AntiNukeCommands(commands.Cog):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @antinuke_group.command(name="set-limit", description="Configure limits for a specific action type.")
+    @help_description(
+        desc="Director-only command to set hourly and daily anti-nuke limits for a tracked action type.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments={
+            "action": ArgumentInfo(description="Tracked action key to configure."),
+            "hourly": ArgumentInfo(description="Maximum allowed executions per hour."),
+            "daily": ArgumentInfo(description="Maximum allowed executions per day, and it must be at least the hourly limit."),
+        },
+    )
     @app_commands.describe(
         action="The action type to configure.",
         hourly="Maximum number of actions allowed per hour.",
@@ -197,6 +226,13 @@ class AntiNukeCommands(commands.Cog):
         ][:25]
 
     @antinuke_group.command(name="config", description="Configure the anti-nuke log channel.")
+    @help_description(
+        desc="Director-only command to choose the channel that receives anti-nuke alerts.",
+        prefix=False,
+        slash=True,
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments={"channel": ArgumentInfo(description="Text channel that should receive anti-nuke alerts.")},
+    )
     @app_commands.describe(
         channel="The channel where anti-nuke alerts will be sent."
     )
