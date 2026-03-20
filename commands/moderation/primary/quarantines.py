@@ -22,8 +22,8 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_quarantines(
-    base:        "ModerationBase",
-    interaction: discord.Interaction,
+    base        : "ModerationBase",
+    interaction : discord.Interaction,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -71,8 +71,8 @@ async def run_quarantines(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_quarantines_prefix(
-    base: "ModerationBase",
-    ctx:  commands.Context[commands.Bot],
+    base : "ModerationBase",
+    ctx  : commands.Context[commands.Bot],
 ) -> None:
     actor = ctx.author
     if not isinstance(actor, discord.Member):

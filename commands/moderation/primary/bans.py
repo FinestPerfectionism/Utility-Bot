@@ -43,7 +43,7 @@ async def run_bans(
     if not guild:
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     try:
         bans = [entry async for entry in guild.bans(limit=None)]
@@ -112,7 +112,7 @@ async def run_bans_prefix(
                 description = "No members are currently banned.",
                 color       = COLOR_GREEN
             )
-            await ctx.send(embed=embed)
+            _ = await ctx.send(embed=embed)
             return
 
         fields: list[tuple[str, str]] = []
@@ -138,10 +138,10 @@ async def run_bans_prefix(
             delete_delay    = 10,
             delete_callback = msg.delete,
         )
-        await msg.edit(embed=view.get_embed(), view=view)
+        _ = await msg.edit(embed=view.get_embed(), view=view)
 
     except discord.Forbidden:
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to retrieve ban list!**\n"
             f"I lack the necessary permissions to view bans.\n"
             f"-# Contact the owner."

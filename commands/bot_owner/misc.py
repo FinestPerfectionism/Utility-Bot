@@ -38,7 +38,7 @@ async def run_status(
     url           :                      str | None,
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             view      = PermissionError(),
             ephemeral = True
         )
@@ -76,7 +76,7 @@ async def run_status(
 
         case "streaming":
             if not url:
-                await interaction.response.send_message(
+                _ = await interaction.response.send_message(
                     "Streaming status requires a Twitch URL.",
                     ephemeral = True,
                 )
@@ -97,7 +97,7 @@ async def run_status(
         status   = presence_status,
     )
 
-    await interaction.response.send_message(
+    _ = await interaction.response.send_message(
         f"Status updated: `{activity_type.name}`: `{text}`",
         ephemeral = True,
     )
@@ -112,7 +112,7 @@ async def run_eval(
     body : str,
 ) -> None:
     if ctx.author.id != BOT_OWNER_ID:
-        await ctx.message.add_reaction(DENIED_EMOJI_ID)
+        _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
         return
 
     env: dict[str, Any] = {
@@ -135,8 +135,8 @@ async def run_eval(
         import builtins
         builtins.exec(to_compile, env)
     except Exception as e:
-        await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
-        await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+        _ = await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
+        _ = await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
         return
 
     func = cast("Callable[[], Awaitable[Any]]", env["func"])
@@ -146,17 +146,17 @@ async def run_eval(
             ret = await func()
     except Exception:
         value = stdout.getvalue()
-        await ctx.message.add_reaction(f"{CONTESTED_EMOJI_ID}")
-        await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+        _ = await ctx.message.add_reaction(f"{CONTESTED_EMOJI_ID}")
+        _ = await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
     else:
         value = stdout.getvalue()
-        await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
+        _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
 
         if ret is None:
             if value:
-                await ctx.send(f'```py\n{value}\n```')
+                _ = await ctx.send(f'```py\n{value}\n```')
         else:
-            await ctx.send(f'```py\n{value}{ret}\n```')
+            _ = await ctx.send(f'```py\n{value}{ret}\n```')
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # .say Logic
@@ -168,10 +168,10 @@ async def run_say(
     message:        str,
 ) -> None:
     if ctx.author.id != BOT_OWNER_ID:
-        await ctx.message.add_reaction(DENIED_EMOJI_ID)
+        _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
         return
 
-    await ctx.message.delete()
+    _ = await ctx.message.delete()
 
     channel           = target_channel or ctx.channel
     formatted_message = message.replace("\\n", "\n")
@@ -181,6 +181,6 @@ async def run_say(
         ref_channel = ctx.bot.get_channel(ref_channel_id) or await ctx.bot.fetch_channel(ref_channel_id)
         if isinstance(ref_channel, discord.abc.Messageable):
             original_message = await ref_channel.fetch_message(ctx.message.reference.message_id)
-            await original_message.reply(formatted_message)
+            _ =await original_message.reply(formatted_message)
     else:
-        await channel.send(formatted_message)
+        _ =await channel.send(formatted_message)

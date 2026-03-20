@@ -32,7 +32,7 @@ async def run_restart(
         return
 
     if restarting_ref[0]:
-        await ctx.send("Restart already in progress.", delete_after=1)
+        _ = await ctx.send("Restart already in progress.", delete_after=1)
         return
 
     restarting_ref[0] = True
@@ -43,18 +43,18 @@ async def run_restart(
         await ctx.message.delete()
 
     loop = asyncio.get_running_loop()
-    loop.create_task(restart_bot(bot, logger, restarting_ref, confirm_msg))
+    _ = loop.create_task(restart_bot(bot, logger, restarting_ref, confirm_msg))
 
 async def restart_bot(
-    bot:            commands.Bot,
-    logger:         logging.Logger,
-    restarting_ref: list[bool],
-    confirm_msg:    discord.Message | None = None,
+    bot            : commands.Bot,
+    logger         : logging.Logger,
+    restarting_ref : list[bool],
+    confirm_msg    : discord.Message | None = None,
 ) -> None:
     try:
         await bot.change_presence(
-            status=discord.Status.idle,
-            activity=discord.CustomActivity(name="Restarting...")
+            status   = discord.Status.idle,
+            activity = discord.CustomActivity(name="Restarting...")
         )
 
         if confirm_msg:
@@ -78,11 +78,11 @@ async def restart_bot(
 
         if pending:
             for task in pending:
-                task.cancel()
+                _ = task.cancel()
             try:
-                await asyncio.wait_for(
+                _ = await asyncio.wait_for(
                     asyncio.gather(*pending, return_exceptions=True),
-                    timeout=5.0
+                    timeout = 5.0
                 )
             except TimeoutError:
                 logger.warning("Some tasks did not cancel in time")
@@ -99,7 +99,7 @@ async def restart_bot(
 
         if confirm_msg:
             with contextlib.suppress(Exception):
-                await confirm_msg.edit(content=f"Restart failed: {str(e)[:100]}")
+                _ = await confirm_msg.edit(content=f"Restart failed: {str(e)[:100]}")
 
         with contextlib.suppress(Exception):
             await bot.change_presence(status=discord.Status.online)

@@ -33,11 +33,11 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_unquarantine(
-    base:        "ModerationBase",
-    interaction: discord.Interaction,
-    member:      discord.Member,
-    reason:      str,
-    proof:       discord.Attachment | None = None,
+    base        : "ModerationBase",
+    interaction : discord.Interaction,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -69,7 +69,7 @@ async def run_unquarantine(
         await send_minor_error(interaction, f"{member.mention} is already not quarantined.")
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     quarantine_data           = base.data.get("quarantined", {}).get(str(member.id))
     saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
@@ -102,13 +102,13 @@ async def run_unquarantine(
         if proof:
             metadata["proof_url"] = proof.url
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.QUARANTINE_REMOVE,
-            moderator=actor,
-            reason=reason,
-            target_user=member,
-            metadata=metadata
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.QUARANTINE_REMOVE,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member,
+            metadata    = metadata
         )
 
         embed = discord.Embed(
@@ -116,20 +116,20 @@ async def run_unquarantine(
             color=COLOR_GREEN,
             timestamp=datetime.now()
         )
-        embed.add_field(name="Member",        value=member.mention,         inline=True)
-        embed.add_field(name="Director",      value=actor.mention,          inline=True)
-        embed.add_field(name="Roles Restored", value=str(len(roles_to_add)), inline=True)
-        embed.add_field(name="Reason",        value=reason,                 inline=False)
+        _ = embed.add_field(name="Member",        value=member.mention,         inline=True)
+        _ = embed.add_field(name="Director",      value=actor.mention,          inline=True)
+        _ = embed.add_field(name="Roles Restored", value=str(len(roles_to_add)), inline=True)
+        _ = embed.add_field(name="Reason",        value=reason,                 inline=False)
 
         if roles_not_found:
-            embed.add_field(
+            _ = embed.add_field(
                 name=f"{CONTESTED_EMOJI_ID} Roles Not Found",
                 value=f"{len(roles_not_found)} role(s) no longer exist and could not be restored.",
                 inline=False
             )
 
         if proof:
-            embed.set_image(url=proof.url)
+            _ = embed.set_image(url=proof.url)
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -164,7 +164,7 @@ async def run_unquarantine_prefix(
         return
 
     if not flags.r:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to unquarantine member!**\n"
             f"Please provide a reason for the unquarantine."
         )
@@ -181,7 +181,7 @@ async def run_unquarantine_prefix(
     has_quarantine  = quarantine_role in member.roles if quarantine_role else False
 
     if not in_json and not has_quarantine:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to unquarantine member!**\n"
             f"{member.mention} is already not quarantined."
         )
@@ -214,17 +214,17 @@ async def run_unquarantine_prefix(
             del quarantined[str(member.id)]
             base.save_data()
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.QUARANTINE_REMOVE,
-            moderator=actor,
-            reason=reason,
-            target_user=member,
-            metadata={"roles_restored": len(roles_to_add)}
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.QUARANTINE_REMOVE,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member,
+            metadata    = {"roles_restored": len(roles_to_add)}
         )
 
         if flags.s:
-            await ctx.message.delete()
+            _ = await ctx.message.delete()
             return
 
         embed = discord.Embed(
@@ -232,15 +232,15 @@ async def run_unquarantine_prefix(
             color     = COLOR_GREEN,
             timestamp = datetime.now()
         )
-        embed.add_field(name="Member",         value=member.mention,         inline=True)
-        embed.add_field(name="Director",       value=actor.mention,          inline=True)
-        embed.add_field(name="Roles Restored", value=str(len(roles_to_add)), inline=True)
-        embed.add_field(name="Reason",         value=reason,                 inline=False)
+        _ = embed.add_field(name="Member",         value=member.mention,         inline=True)
+        _ = embed.add_field(name="Director",       value=actor.mention,          inline=True)
+        _ = embed.add_field(name="Roles Restored", value=str(len(roles_to_add)), inline=True)
+        _ = embed.add_field(name="Reason",         value=reason,                 inline=False)
 
         if roles_not_found:
             count = "role" if len(roles_not_found) == 1 else "roles"
             exist = "exists" if len(roles_not_found) == 1 else "exist"
-            embed.add_field(
+            _ = embed.add_field(
                 name=f"{CONTESTED_EMOJI_ID} Roles Not Found",
                 value=f"{len(roles_not_found)} {count} no longer {exist} and could not be restored.",
                 inline=False
@@ -249,7 +249,7 @@ async def run_unquarantine_prefix(
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to unquarantine member!**\n"
             f"I lack the necessary permissions to run this command.\n"
             f"-# Contact the owner."

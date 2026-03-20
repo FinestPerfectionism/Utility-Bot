@@ -32,10 +32,10 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_unban(
-    base:        "ModerationBase",
-    interaction: discord.Interaction,
-    user:        str,
-    reason:      str,
+    base        : "ModerationBase",
+    interaction : discord.Interaction,
+    user        : str,
+    reason      : str,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -44,9 +44,9 @@ async def run_unban(
     if not base.can_reverse_actions(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
-            texts="You lack the necessary permissions to unban members.",
-            subtitle="Invalid permissions."
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to unban members.",
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -54,7 +54,7 @@ async def run_unban(
     if not guild:
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     user_to_unban: discord.User | None = None
 
@@ -76,8 +76,8 @@ async def run_unban(
         except discord.Forbidden:
             await send_major_error(
                 interaction,
-                "I lack the necessary permissions to view bans.",
-                subtitle="Invalid configuration. Contact the owner."
+                texts    = "I lack the necessary permissions to view bans.",
+                subtitle = "Invalid configuration. Contact the owner."
             )
             return
 
@@ -92,12 +92,12 @@ async def run_unban(
             del base.data["bans"][str(user_to_unban.id)]
             base.save_data()
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.UNBAN,
-            moderator=actor,
-            reason=reason,
-            target_user=user_to_unban
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.UNBAN,
+            moderator   = actor,
+            reason      = reason,
+            target_user = user_to_unban
         )
 
         embed = discord.Embed(
@@ -105,9 +105,9 @@ async def run_unban(
             color=COLOR_GREEN,
             timestamp=datetime.now()
         )
-        embed.add_field(name="User",     value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
-        embed.add_field(name="Director", value=actor.mention,                                   inline=True)
-        embed.add_field(name="Reason",   value=reason,                                          inline=False)
+        _ = embed.add_field(name="User",     value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
+        _ = embed.add_field(name="Director", value=actor.mention,                                   inline=True)
+        _ = embed.add_field(name="Reason",   value=reason,                                          inline=False)
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -143,7 +143,7 @@ async def run_unban_prefix(
         return
 
     if not flags.r:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
             f"Please provide a reason for the unban."
         )
@@ -173,7 +173,7 @@ async def run_unban_prefix(
                     user_to_unban = ban_entry.user
                     break
         except discord.Forbidden:
-            await ctx.send(
+            _ = await ctx.send(
                 f"{DENIED_EMOJI_ID} **Failed to unban user!**\n"
                 f"I lack the necessary permissions to view bans.\n"
                 f"-# Contact the owner."
@@ -181,7 +181,7 @@ async def run_unban_prefix(
             return
 
     if not user_to_unban:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
             f"Could not find a banned user matching `{user}`."
         )
@@ -194,12 +194,12 @@ async def run_unban_prefix(
             del base.data["bans"][str(user_to_unban.id)]
             base.save_data()
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.UNBAN,
-            moderator=actor,
-            reason=reason,
-            target_user=user_to_unban
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.UNBAN,
+            moderator   = actor,
+            reason      = reason,
+            target_user = user_to_unban
         )
 
         if flags.s:
@@ -211,19 +211,19 @@ async def run_unban_prefix(
             color=COLOR_GREEN,
             timestamp=datetime.now()
         )
-        embed.add_field(name="User",     value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
-        embed.add_field(name="Director", value=actor.mention,                                   inline=True)
-        embed.add_field(name="Reason",   value=reason,                                          inline=False)
+        _ = embed.add_field(name="User",     value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
+        _ = embed.add_field(name="Director", value=actor.mention,                                   inline=True)
+        _ = embed.add_field(name="Reason",   value=reason,                                          inline=False)
 
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.NotFound:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
             f"{user_to_unban.mention} is not currently banned."
         )
     except discord.Forbidden:
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to unban user!**\n"
             f"I lack the necessary permissions to unban members.\n"
             f"-# Contact the owner."

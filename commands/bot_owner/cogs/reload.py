@@ -23,9 +23,9 @@ async def run_reload(
     cogs:        list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        await interaction.response.send_message(
-            view=PermissionError(),
-            ephemeral=True
+        _ = await interaction.response.send_message(
+            view      = PermissionError(),
+            ephemeral = True
         )
         return
 
@@ -35,16 +35,16 @@ async def run_reload(
             return
         try:
             await bot.reload_extension(cog)
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"Reloaded cog `{cog}` successfully.",
-                ephemeral=True
+                ephemeral = True
             )
             log.info("Reloaded cog %s", cog)
         except Exception as e:
             await send_major_error(
                 interaction,
-                f"Failed to reload cog `{cog}`: {e}",
-                subtitle="Invalid operation."
+                texts    = f"Failed to reload cog `{cog}`: {e}",
+                subtitle = "Invalid operation."
             )
             log.error("Failed to reload cog %s: %s", cog, e)
     else:
@@ -61,11 +61,11 @@ async def run_reload(
             msg = "\n".join(f"{c}: {e}" for c, e in failed)
             await send_minor_error(
                 interaction,
-                f"Reload completed, but some cogs failed:\n{msg}",
-                subtitle="Invalid operation."
+                texts    = f"Reload completed, but some cogs failed:\n{msg}",
+                subtitle = "Invalid operation."
             )
         else:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 "All cogs reloaded successfully.",
-                ephemeral=True
+                ephemeral = True
             )

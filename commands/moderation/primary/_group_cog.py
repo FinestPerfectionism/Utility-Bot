@@ -125,17 +125,17 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.BadFlagArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
                 f"Please provide a valid number of days to purge using `/d <1-7>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
                 f"Please provide a valid member to ban."
             )
@@ -185,12 +185,12 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
                 f"Please provide a valid user to unban."
             )
@@ -258,12 +258,12 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
                 f"Please provide a valid member to kick."
             )
@@ -317,12 +317,12 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
                 f"Please provide a duration using `/d <duration>` and a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
                 f"Please provide a valid member to timeout."
             )
@@ -372,12 +372,12 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
                 f"Please provide a valid member."
             )
@@ -447,22 +447,22 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.BadFlagArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
                 f"Please provide a valid member using `/u <user>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
                 f"Please provide the number of messages to delete."
             )
         elif isinstance(error, commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
                 f"Please provide a valid number of messages to delete."
             )
@@ -537,12 +537,12 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
                 f"Please provide a valid member to quarantine."
             )
@@ -594,12 +594,12 @@ class ModerationCommands(
             return
 
         if isinstance(error, commands.MissingRequiredFlag):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to unquarantine member!**\n"
                 f"Please provide a reason using `/r <reason>`."
             )
         elif isinstance(error, commands.MissingRequiredArgument | commands.BadArgument):
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to unquarantine member!**\n"
                 f"Please provide a valid member to unquarantine."
             )

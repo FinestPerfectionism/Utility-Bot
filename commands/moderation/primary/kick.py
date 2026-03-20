@@ -10,7 +10,10 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from ._base import ModerationBase, KickFlags
+    from ._base import (
+        ModerationBase,
+        KickFlags
+    )
 
 from commands.moderation.cases import CaseType
 
@@ -31,11 +34,11 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_kick(
-    base:        "ModerationBase",
-    interaction: discord.Interaction,
-    member:      discord.Member,
-    reason:      str,
-    proof:       discord.Attachment | None = None,
+    base        : "ModerationBase",
+    interaction : discord.Interaction,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -44,9 +47,9 @@ async def run_kick(
     if not base.can_apply_standard_actions(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
-            texts="You lack the necessary permissions to kick members.",
-            subtitle="Invalid permissions."
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to kick members.",
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -68,25 +71,25 @@ async def run_kick(
         if not can_proceed:
             await send_major_error(
                 interaction,
-                f"Rate limit exceeded. {error_msg}.\n"
-                f"Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle="Rate limit exceeded."
+                texts    = f"Rate limit exceeded. {error_msg}.\n"
+                            "Continuing to exceed rate limits will result in your own quarantine.",
+                subtitle = "Rate limit exceeded."
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
 
         base.add_rate_limit_entry(str(actor.id), "kick")
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     try:
         await member.kick(reason=f"Kicked by {actor}: {reason}")
 
         kicks = base.ensure_data_section("kicks")
         kicks[str(member.id)] = {
-            "kicked_at": datetime.now().isoformat(),
-            "kicked_by": actor.id,
-            "reason":    reason
+            "kicked_at" : datetime.now().isoformat(),
+            "kicked_by" : actor.id,
+            "reason"    : reason
         }
         base.save_data()
 
@@ -95,33 +98,33 @@ async def run_kick(
         if proof:
             metadata["proof_url"] = proof.url
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.KICK,
-            moderator=actor,
-            reason=reason,
-            target_user=member,
-            metadata=metadata if metadata else None
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.KICK,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member,
+            metadata    = metadata if metadata else None
         )
 
         embed = discord.Embed(
-            title="Member Kicked",
-            color=COLOR_ORANGE,
-            timestamp=datetime.now()
+            title     = "Member Kicked",
+            color     = COLOR_ORANGE,
+            timestamp = datetime.now()
         )
-        embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
-        embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
-        embed.add_field(name="Reason",    value=reason,                            inline=False)
+        _ = embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
+        _ = embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
+        _ = embed.add_field(name="Reason",    value=reason,                            inline=False)
         if proof:
-            embed.set_image(url=proof.url)
+            _ = embed.set_image(url=proof.url)
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            "I lack the necessary permissions to kick this member.",
-            subtitle="Invalid configuration. Contact the owner."
+            texts    = "I lack the necessary permissions to kick this member.",
+            subtitle = "Invalid configuration. Contact the owner."
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -129,10 +132,10 @@ async def run_kick(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_kick_prefix(
-    base:   "ModerationBase",
-    ctx:    commands.Context[commands.Bot],
-    member: discord.Member,
-    flags:  "KickFlags",
+    base   : "ModerationBase",
+    ctx    : commands.Context[commands.Bot],
+    member : discord.Member,
+    flags  : KickFlags,
 ) -> None:
     actor = ctx.author
     if not isinstance(actor, discord.Member):
@@ -147,7 +150,7 @@ async def run_kick_prefix(
         return
 
     if not flags.r:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
             f"Please provide a reason for the kick."
         )
@@ -156,7 +159,7 @@ async def run_kick_prefix(
     reason = flags.r
 
     if member.id == actor.id:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
             f"You cannot kick yourself."
         )
@@ -164,7 +167,7 @@ async def run_kick_prefix(
 
     can_moderate, error_msg = base.check_can_moderate_target(actor, member)
     if not can_moderate:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
             f"{error_msg}"
         )
@@ -177,7 +180,7 @@ async def run_kick_prefix(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "kick")
         if not can_proceed:
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to kick member!**\n"
                 f"Rate limit exceeded. {error_msg}.\n"
                 f"-# Continuing to exceed rate limits will result in your own quarantine."
@@ -192,37 +195,37 @@ async def run_kick_prefix(
 
         kicks = base.ensure_data_section("kicks")
         kicks[str(member.id)] = {
-            "kicked_at": datetime.now().isoformat(),
-            "kicked_by": actor.id,
-            "reason":    reason
+            "kicked_at" : datetime.now().isoformat(),
+            "kicked_by" : actor.id,
+            "reason"    : reason
         }
         base.save_data()
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.KICK,
-            moderator=actor,
-            reason=reason,
-            target_user=member
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.KICK,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member
         )
 
         if flags.s:
-            await ctx.message.delete()
+            _ = await ctx.message.delete()
             return
 
         embed = discord.Embed(
-            title="Member Kicked",
-            color=COLOR_ORANGE,
-            timestamp=datetime.now()
+            title     = "Member Kicked",
+            color     = COLOR_ORANGE,
+            timestamp = datetime.now()
         )
-        embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
-        embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
-        embed.add_field(name="Reason",    value=reason,                            inline=False)
+        _ = embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
+        _ = embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
+        _ = embed.add_field(name="Reason",    value=reason,                            inline=False)
 
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to kick member!**\n"
             f"I lack the necessary permissions to kick members.\n"
             f"-# Contact the owner."

@@ -23,5 +23,5 @@ async def run_shutdown(
     with contextlib.suppress(discord.HTTPException, discord.Forbidden):
         await ctx.message.delete()
 
-    await ctx.send("Shutting down bot...", delete_after=1)
+    _ = await ctx.send("Shutting down bot...", delete_after=1)
     await bot.close()

@@ -23,9 +23,9 @@ async def run_load(
     cogs:        list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        await interaction.response.send_message(
-            view=PermissionError(),
-            ephemeral=True
+        _ = await interaction.response.send_message(
+            view      = PermissionError(),
+            ephemeral = True
         )
         return
 
@@ -39,9 +39,9 @@ async def run_load(
 
     try:
         await bot.load_extension(cog)
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"Loaded cog `{cog}`.",
-            ephemeral=True
+            ephemeral = True
         )
         log.info("Loaded cog %s", cog)
     except Exception as e:

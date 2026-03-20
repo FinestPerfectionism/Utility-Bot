@@ -22,8 +22,8 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_timeouts(
-    base:        "ModerationBase",
-    interaction: discord.Interaction,
+    base        : "ModerationBase",
+    interaction : discord.Interaction,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -42,7 +42,7 @@ async def run_timeouts(
     if not guild:
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     timed_out_members = [m for m in guild.members if m.is_timed_out()]
 
@@ -81,8 +81,8 @@ async def run_timeouts(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_timeouts_prefix(
-    base: "ModerationBase",
-    ctx:  commands.Context[commands.Bot],
+    base : "ModerationBase",
+    ctx  : commands.Context[commands.Bot],
 ) -> None:
     actor = ctx.author
     if not isinstance(actor, discord.Member):
@@ -107,7 +107,7 @@ async def run_timeouts_prefix(
             description = "No members are currently timed out.",
             color       = COLOR_GREEN
         )
-        await ctx.send(embed=embed)
+        _ = await ctx.send(embed=embed)
         return
 
     fields: list[tuple[str, str]] = []
@@ -138,4 +138,4 @@ async def run_timeouts_prefix(
         delete_delay    = 10,
         delete_callback = msg.delete,
     )
-    await msg.edit(embed=view.get_embed(), view=view)
+    _ = await msg.edit(embed=view.get_embed(), view=view)

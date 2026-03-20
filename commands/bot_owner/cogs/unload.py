@@ -17,13 +17,13 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_unload(
-    bot:         commands.Bot,
-    interaction: discord.Interaction,
-    cog:         str,
-    cogs:        list[str],
+    bot         : commands.Bot,
+    interaction : discord.Interaction,
+    cog         : str,
+    cogs        : list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             view=PermissionError(),
             ephemeral=True
         )
@@ -39,9 +39,9 @@ async def run_unload(
 
     try:
         await bot.unload_extension(cog)
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"Unloaded cog `{cog}`.",
-            ephemeral=True
+            ephemeral = True
         )
         log.info("Unloaded cog %s", cog)
     except Exception as e:

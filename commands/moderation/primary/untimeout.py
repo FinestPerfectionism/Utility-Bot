@@ -53,7 +53,7 @@ async def run_untimeout(
         await send_minor_error(interaction, f"{member.mention} is not currently timed out.")
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     guild = interaction.guild
     if not guild:
@@ -66,7 +66,7 @@ async def run_untimeout(
             del base.data["timeouts"][str(member.id)]
             base.save_data()
 
-        await base.cases_manager.log_case(
+        _ = await base.cases_manager.log_case(
             guild       = guild,
             case_type   = CaseType.UNTIMEOUT,
             moderator   = actor,
@@ -79,9 +79,9 @@ async def run_untimeout(
             color=COLOR_GREEN,
             timestamp=datetime.now()
         )
-        embed.add_field(name="Member",   value=member.mention, inline=True)
-        embed.add_field(name="Director", value=actor.mention,  inline=True)
-        embed.add_field(name="Reason",   value=reason,         inline=False)
+        _ = embed.add_field(name="Member",   value=member.mention, inline=True)
+        _ = embed.add_field(name="Director", value=actor.mention,  inline=True)
+        _ = embed.add_field(name="Reason",   value=reason,         inline=False)
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -115,7 +115,7 @@ async def run_untimeout_prefix(
         return
 
     if not flags.r:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
             f"Please provide a reason."
         )
@@ -124,7 +124,7 @@ async def run_untimeout_prefix(
     reason = flags.r
 
     if not member.is_timed_out():
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
             f"{member.mention} is not currently timed out."
         )
@@ -141,7 +141,7 @@ async def run_untimeout_prefix(
             del base.data["timeouts"][str(member.id)]
             base.save_data()
 
-        await base.cases_manager.log_case(
+        _ = await base.cases_manager.log_case(
             guild       = guild,
             case_type   = CaseType.UNTIMEOUT,
             moderator   = actor,
@@ -150,7 +150,7 @@ async def run_untimeout_prefix(
         )
 
         if flags.s:
-            await ctx.message.delete()
+            _ = await ctx.message.delete()
             return
 
         embed = discord.Embed(
@@ -158,14 +158,14 @@ async def run_untimeout_prefix(
             color=COLOR_GREEN,
             timestamp=datetime.now()
         )
-        embed.add_field(name="Member",   value=member.mention, inline=True)
-        embed.add_field(name="Director", value=actor.mention,  inline=True)
-        embed.add_field(name="Reason",   value=reason,         inline=False)
+        _ = embed.add_field(name="Member",   value=member.mention, inline=True)
+        _ = embed.add_field(name="Director", value=actor.mention,  inline=True)
+        _ = embed.add_field(name="Reason",   value=reason,         inline=False)
 
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to remove timeout!**\n"
             f"I lack the necessary permissions to remove timeouts.\n"
             f"-# Contact the owner."

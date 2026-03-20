@@ -84,7 +84,7 @@ async def run_ban(
 
         base.add_rate_limit_entry(str(actor.id), "ban")
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     dm_value        = delete_messages if delete_messages is not None else 0
     delete_messages = max(0, min(7, dm_value))
@@ -110,7 +110,7 @@ async def run_ban(
         if proof:
             metadata["proof_url"] = proof.url
 
-        await base.cases_manager.log_case(
+        _ = await base.cases_manager.log_case(
             guild       = guild,
             case_type   = CaseType.BAN,
             moderator   = actor,
@@ -124,11 +124,11 @@ async def run_ban(
             color     = COLOR_RED,
             timestamp = datetime.now()
         )
-        embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
-        embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
-        embed.add_field(name="Reason",    value=reason,                            inline=False)
+        _ = embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
+        _ = embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
+        _ = embed.add_field(name="Reason",    value=reason,                            inline=False)
         if proof:
-            embed.set_image(url=proof.url)
+            _ = embed.set_image(url=proof.url)
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -162,7 +162,7 @@ async def run_ban_prefix(
         return
 
     if not flags.r:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
             f"Please provide a reason for the ban."
         )
@@ -172,7 +172,7 @@ async def run_ban_prefix(
     delete_messages = max(0, min(7, flags.d))
 
     if member.id == actor.id:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
             f"You cannot ban yourself."
         )
@@ -180,7 +180,7 @@ async def run_ban_prefix(
 
     can_moderate, error_msg = base.check_can_moderate_target(actor, member)
     if not can_moderate:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
             f"{error_msg}"
         )
@@ -193,7 +193,7 @@ async def run_ban_prefix(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "ban")
         if not can_proceed:
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
                 f"Rate limit exceeded. {error_msg}.\n"
                 f"-# Continuing to exceed rate limits will result in your own quarantine."
@@ -217,7 +217,7 @@ async def run_ban_prefix(
         }
         base.save_data()
 
-        await base.cases_manager.log_case(
+        _ = await base.cases_manager.log_case(
             guild       = guild,
             case_type   = CaseType.BAN,
             moderator   = actor,
@@ -235,14 +235,14 @@ async def run_ban_prefix(
             color     = COLOR_RED,
             timestamp = datetime.now()
         )
-        embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
-        embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
-        embed.add_field(name="Reason",    value=reason,                            inline=False)
+        _ = embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
+        _ = embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
+        _ = embed.add_field(name="Reason",    value=reason,                            inline=False)
 
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to ban member!**\n"
              "I lack the necessary permissions to ban members.\n"
              "-# Contact the owner."

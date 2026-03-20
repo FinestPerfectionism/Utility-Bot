@@ -91,7 +91,7 @@ async def run_timeout(
 
         base.add_rate_limit_entry(str(actor.id), "timeout")
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     try:
         until = discord.utils.utcnow() + timedelta(seconds=duration_seconds)
@@ -112,14 +112,14 @@ async def run_timeout(
         if proof:
             metadata["proof_url"] = proof.url
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.TIMEOUT,
-            moderator=actor,
-            reason=reason,
-            target_user=member,
-            duration=duration,
-            metadata=metadata
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.TIMEOUT,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member,
+            duration    = duration,
+            metadata    = metadata
         )
 
         embed = discord.Embed(
@@ -127,13 +127,13 @@ async def run_timeout(
             color=COLOR_ORANGE,
             timestamp=datetime.now()
         )
-        embed.add_field(name="Member",    value=member.mention,                      inline=True)
-        embed.add_field(name="Moderator", value=actor.mention,                       inline=True)
-        embed.add_field(name="Duration",  value=duration,                            inline=True)
-        embed.add_field(name="Expires",   value=discord.utils.format_dt(until, "R"), inline=True)
-        embed.add_field(name="Reason",    value=reason,                              inline=False)
+        _ = embed.add_field(name="Member",    value=member.mention,                      inline=True)
+        _ = embed.add_field(name="Moderator", value=actor.mention,                       inline=True)
+        _ = embed.add_field(name="Duration",  value=duration,                            inline=True)
+        _ = embed.add_field(name="Expires",   value=discord.utils.format_dt(until, "R"), inline=True)
+        _ = embed.add_field(name="Reason",    value=reason,                              inline=False)
         if proof:
-            embed.set_image(url=proof.url)
+            _ = embed.set_image(url=proof.url)
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
@@ -167,14 +167,14 @@ async def run_timeout_prefix(
         return
 
     if not flags.r:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
             f"Please provide a reason for the timeout."
         )
         return
 
     if not flags.d:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
             f"Please provide a duration. Use: 30s, 5m, 1h, 2d, 1w"
         )
@@ -184,7 +184,7 @@ async def run_timeout_prefix(
     duration = flags.d
 
     if member.id == actor.id:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
             f"You cannot timeout yourself."
         )
@@ -192,7 +192,7 @@ async def run_timeout_prefix(
 
     can_moderate, error_msg = base.check_can_moderate_target(actor, member)
     if not can_moderate:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
             f"{error_msg}"
         )
@@ -200,7 +200,7 @@ async def run_timeout_prefix(
 
     duration_seconds = base.parse_duration(duration)
     if not duration_seconds:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
             f"Invalid duration format. Use: 30s, 5m, 1h, 2d, 1w"
         )
@@ -208,7 +208,7 @@ async def run_timeout_prefix(
 
     max_duration = 28 * 86400
     if duration_seconds > max_duration:
-        await ctx.send(
+        _ = await ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
             f"Timeout duration cannot exceed 28 days. You provided: {duration}"
         )
@@ -221,7 +221,7 @@ async def run_timeout_prefix(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "timeout")
         if not can_proceed:
-            await ctx.send(
+            _ = await ctx.send(
                 f"{CONTESTED_EMOJI_ID} **Failed to timeout member!**\n"
                 f"Rate limit exceeded. {error_msg}.\n"
                 f"-# Continuing to exceed rate limits will result in your own quarantine."
@@ -245,14 +245,14 @@ async def run_timeout_prefix(
         }
         base.save_data()
 
-        await base.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.TIMEOUT,
-            moderator=actor,
-            reason=reason,
-            target_user=member,
-            duration=duration,
-            metadata={"until": until.isoformat()}
+        _ = await base.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.TIMEOUT,
+            moderator   = actor,
+            reason      = reason,
+            target_user = member,
+            duration    = duration,
+            metadata    = {"until": until.isoformat()}
         )
 
         if flags.s:
@@ -264,16 +264,16 @@ async def run_timeout_prefix(
             color=COLOR_ORANGE,
             timestamp=datetime.now()
         )
-        embed.add_field(name="Member",    value=member.mention,                      inline=True)
-        embed.add_field(name="Moderator", value=actor.mention,                       inline=True)
-        embed.add_field(name="Duration",  value=duration,                            inline=True)
-        embed.add_field(name="Expires",   value=discord.utils.format_dt(until, "R"), inline=True)
-        embed.add_field(name="Reason",    value=reason,                              inline=False)
+        _ = embed.add_field(name="Member",    value=member.mention,                      inline=True)
+        _ = embed.add_field(name="Moderator", value=actor.mention,                       inline=True)
+        _ = embed.add_field(name="Duration",  value=duration,                            inline=True)
+        _ = embed.add_field(name="Expires",   value=discord.utils.format_dt(until, "R"), inline=True)
+        _ = embed.add_field(name="Reason",    value=reason,                              inline=False)
 
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to timeout member!**\n"
             f"I lack the necessary permissions to timeout members.\n"
             f"-# Contact the owner."

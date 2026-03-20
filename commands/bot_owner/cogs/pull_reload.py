@@ -18,18 +18,18 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_pull_reload(
-    bot:         commands.Bot,
-    interaction: discord.Interaction,
-    cogs:        list[str],
+    bot         : commands.Bot,
+    interaction : discord.Interaction,
+    cogs        : list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             view=PermissionError(),
             ephemeral=True
         )
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     proc = await asyncio.create_subprocess_exec(
         "git", "pull", "origin", "main",
@@ -43,11 +43,11 @@ async def run_pull_reload(
     if proc.returncode != 0:
         await send_major_error(
             interaction,
-            f"Pull failed. All cogs failed to reload.\n"
-             "```py\n"
-            f"{pull_output[:1800]}\n"
-             "```",
-            subtitle="Invalid operation."
+            texts    = f"Pull failed. All cogs failed to reload.\n"
+                        "```py\n"
+                       f"{pull_output[:1800]}\n"
+                        "```",
+            subtitle = "Invalid operation."
         )
         log.error("git pull failed (exit %s):\n%s", proc.returncode, pull_output)
         return
@@ -65,11 +65,11 @@ async def run_pull_reload(
         msg = "\n".join(f"{c}: {e}" for c, e in failed)
         await send_minor_error(
             interaction,
-            f"Pull succeeded. Some cogs failed to reload.\n{msg}",
-            subtitle="Invalid operation."
+            texts    = f"Pull succeeded. Some cogs failed to reload.\n{msg}",
+            subtitle = "Invalid operation."
         )
     else:
         await interaction.followup.send(
             f"Pulled and reloaded all cogs successfully.\n```\n{pull_output[:1800]}\n```",
-            ephemeral=True,
+            ephemeral = True,
         )

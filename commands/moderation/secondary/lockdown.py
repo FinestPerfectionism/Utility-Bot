@@ -123,12 +123,12 @@ class LockdownCommands(commands.Cog):
 
         if not self.data["active"]:
             embed = discord.Embed(
-                title="Lockdown Status",
-                description="The server is **not** currently in lockdown.",
-                color=COLOR_GREEN,
-                timestamp=datetime.now()
+                title       = "Lockdown Status",
+                description = "The server is **not** currently in lockdown.",
+                color       = COLOR_GREEN,
+                timestamp   = datetime.now()
             )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            _ = await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
         activated_at = datetime.fromisoformat(self.data["activated_at"])
@@ -139,42 +139,42 @@ class LockdownCommands(commands.Cog):
         activated_by_mention = activated_by.mention if activated_by else f"Unknown User ({self.data['activated_by']})"
 
         embed = discord.Embed(
-            title="Lockdown Active",
-            color=COLOR_RED,
-            timestamp=datetime.now()
+            title     = "Lockdown Active",
+            color     = COLOR_RED,
+            timestamp = datetime.now()
         )
-        embed.add_field(
-            name="Activated By",
-            value=activated_by_mention,
-            inline=True
+        _ = embed.add_field(
+            name   = "Activated By",
+            value  = activated_by_mention,
+            inline = True
         )
-        embed.add_field(
-            name="Activated",
-            value=discord.utils.format_dt(activated_at, 'R'),
-            inline=True
+        _ = embed.add_field(
+            name   = "Activated",
+            value  = discord.utils.format_dt(activated_at, 'R'),
+            inline = True
         )
-        embed.add_field(
-            name="Channels Locked",
-            value=str(len(self.data["channel_permissions"])),
-            inline=True
+        _ = embed.add_field(
+            name   = "Channels Locked",
+            value  = str(len(self.data["channel_permissions"])),
+            inline = True
         )
-        embed.add_field(
-            name="Reason",
-            value=self.data["reason"],
-            inline=False
+        _ = embed.add_field(
+            name   = "Reason",
+            value  = self.data["reason"],
+            inline = False
         )
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @lockdown_group.command(
-        name="activate",
-        description="Activate server lockdown."
+        name        = "activate",
+        description = "Activate server lockdown."
     )
     @app_commands.describe(reason="Reason for lockdown.")
     async def lockdown_activate(
         self,
-        interaction: discord.Interaction,
-        reason: str
+        interaction : discord.Interaction,
+        reason      : str
     ) -> None:
         reason = reason
 
@@ -185,9 +185,9 @@ class LockdownCommands(commands.Cog):
         if not self.can_manage_lockdown(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to activate lockdown.",
-                subtitle="Invalid permissions."
+                title    ="Unauthorized!",
+                texts    = "You lack the necessary permissions to activate lockdown.",
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -198,7 +198,7 @@ class LockdownCommands(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral=True)
 
         guild = interaction.guild
         if guild is None:
@@ -208,8 +208,8 @@ class LockdownCommands(commands.Cog):
         if not staff_role:
             await send_major_error(
                 interaction,
-                "Staff role not found.",
-                subtitle=f"Invalid IDs. Contact <@{BOT_OWNER_ID}>."
+                texts    = "Staff role not found.",
+                subtitle = f"Invalid IDs. Contact <@{BOT_OWNER_ID}>."
             )
             return
 
@@ -226,64 +226,64 @@ class LockdownCommands(commands.Cog):
                     overwrites: discord.PermissionOverwrite = channel.overwrites_for(default_role)
 
                     permission_backup[str(channel.id)] = {
-                        "send_messages": overwrites.send_messages,
-                        "send_messages_in_threads": overwrites.send_messages_in_threads,
-                        "create_public_threads": overwrites.create_public_threads,
-                        "create_private_threads": overwrites.create_private_threads,
-                        "connect": overwrites.connect,
-                        "speak": overwrites.speak,
+                        "send_messages"            : overwrites.send_messages,
+                        "send_messages_in_threads" : overwrites.send_messages_in_threads,
+                        "create_public_threads"    : overwrites.create_public_threads,
+                        "create_private_threads"   : overwrites.create_private_threads,
+                        "connect"                  : overwrites.connect,
+                        "speak"                    : overwrites.speak,
                     }
 
                     await channel.set_permissions(
                         default_role,
-                        send_messages=False,
-                        send_messages_in_threads=False,
-                        create_public_threads=False,
-                        create_private_threads=False,
-                        connect=False,
-                        speak=False,
-                        reason=f"Lockdown engaged by {actor}"
+                        send_messages            = False,
+                        send_messages_in_threads = False,
+                        create_public_threads    = False,
+                        create_private_threads   = False,
+                        connect                  = False,
+                        speak                    = False,
+                        reason                   = f"UB Lockdown: Lockdown engaged by {actor}"
                     )
 
                     if isinstance(channel, discord.TextChannel):
                         await channel.set_permissions(
                             staff_role,
-                            send_messages=True,
-                            send_messages_in_threads=True,
-                            reason=f"Lockdown engaged by {actor} —— Adding staff overrides"
+                            send_messages            = True,
+                            send_messages_in_threads = True,
+                            reason                   = f"UB Lockdown: lockdown engaged by {actor} —— Adding staff overrides"
                         )
 
                     channels_locked += 1
 
-        self.data["active"] = True
-        self.data["activated_at"] = datetime.now().isoformat()
-        self.data["activated_by"] = actor.id
-        self.data["reason"] = reason
+        self.data["active"]              = True
+        self.data["activated_at"]        = datetime.now().isoformat()
+        self.data["activated_by"]        = actor.id
+        self.data["reason"]              = reason
         self.data["channel_permissions"] = permission_backup
         self.save_data()
 
-        await self.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.LOCKDOWN_ADD,
-            moderator=actor,
-            reason=reason,
-            target_user=None,
-            metadata={"channels_locked": channels_locked}
+        _ = await self.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.LOCKDOWN_ADD,
+            moderator   = actor,
+            reason      = reason,
+            target_user = None,
+            metadata    = {"channels_locked": channels_locked}
         )
 
         embed = discord.Embed(
-            title="Lockdown Engaged",
-            color=COLOR_RED,
-            timestamp=datetime.now()
+            title     = "Lockdown Engaged",
+            color     = COLOR_RED,
+            timestamp = datetime.now()
         )
-        embed.add_field(name="Director", value=actor.mention, inline=True)
-        embed.add_field(name="Channels Locked", value=str(channels_locked), inline=True)
-        embed.add_field(name="Reason", value=reason, inline=False)
-        embed.add_field(
-            name="Note",
-            value=f"Staff members ({staff_role.mention}) can still send messages.\n"
-                  f"New members joining will be automatically kicked.",
-            inline=False
+        _ = embed.add_field(name="Director", value=actor.mention, inline=True)
+        _ = embed.add_field(name="Channels Locked", value=str(channels_locked), inline=True)
+        _ = embed.add_field(name="Reason", value=reason, inline=False)
+        _ = embed.add_field(
+            name   = "Note",
+            value  = f"Staff members ({staff_role.mention}) can still send messages.\n"
+                     f"New members joining will be automatically kicked.",
+            inline = False
         )
 
         await interaction.followup.send(embed=embed, ephemeral=True)
@@ -300,9 +300,9 @@ class LockdownCommands(commands.Cog):
         if not self.can_manage_lockdown(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to lift lockdown.",
-                subtitle="Invalid permissions."
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to lift lockdown.",
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -313,7 +313,7 @@ class LockdownCommands(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral=True)
 
         guild = interaction.guild
         if guild is None:
@@ -361,13 +361,13 @@ class LockdownCommands(commands.Cog):
         self.data["channel_permissions"] = {}
         self.save_data()
 
-        await self.cases_manager.log_case(
-            guild=guild,
-            case_type=CaseType.LOCKDOWN_REMOVE,
-            moderator=actor,
-            reason="Lockdown lifted",
-            target_user=None,
-            metadata={"channels_restored": channels_restored}
+        _ = await self.cases_manager.log_case(
+            guild       = guild,
+            case_type   = CaseType.LOCKDOWN_REMOVE,
+            moderator   = actor,
+            reason      = "UB Lockdown: lockdown lifted by ",
+            target_user = None,
+            metadata    = {"channels_restored": channels_restored}
         )
 
         embed = discord.Embed(
@@ -375,11 +375,11 @@ class LockdownCommands(commands.Cog):
             color=COLOR_GREEN,
             timestamp=datetime.now()
         )
-        embed.add_field(name="Director", value=actor.mention, inline=True)
-        embed.add_field(name="Channels Restored", value=str(channels_restored), inline=True)
+        _ = embed.add_field(name="Director", value=actor.mention, inline=True)
+        _ = embed.add_field(name="Channels Restored", value=str(channels_restored), inline=True)
 
         if channels_not_found > 0:
-            embed.add_field(
+            _ = embed.add_field(
                 name=f"{CONTESTED_EMOJI_ID} Channels Not Found",
                 value=f"{channels_not_found} channel(s) no longer exist and could not be restored.",
                 inline=False
@@ -400,16 +400,16 @@ class LockdownCommands(commands.Cog):
         with contextlib.suppress(discord.Forbidden, Exception):
             bot_member: discord.Member | None = guild.get_member(self.bot.user.id) if self.bot.user else None
             if bot_member:
-                await self.cases_manager.log_case(
-                    guild=guild,
-                    case_type=CaseType.KICK,
-                    moderator=bot_member,
-                    reason="*Server is in lockdown —— automatic kick*",
-                    target_user=member,
-                    metadata={"auto_kick": True, "lockdown": True}
+                _ = await self.cases_manager.log_case(
+                    guild       = guild,
+                    case_type   = CaseType.KICK,
+                    moderator   = bot_member,
+                    reason      = "*Server is in lockdown —— automatic kick*",
+                    target_user = member,
+                    metadata    = {"auto_kick": True, "lockdown": True}
                 )
 
-            await member.kick(reason="Server is in lockdown")
+            await member.kick(reason="UB Lockdown: server is in lockdown")
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(LockdownCommands(cast("UtilityBot", bot)))

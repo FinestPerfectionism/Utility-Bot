@@ -57,12 +57,12 @@ def _build_purge_embed(
         color=COLOR_BLURPLE,
         timestamp=datetime.now(tz=timezone.utc)
     )
-    embed.add_field(name="Deleted",   value=str(deleted_count), inline=True)
-    embed.add_field(name="Moderator", value=moderator.mention,  inline=True)
+    _ = embed.add_field(name="Deleted",   value=str(deleted_count), inline=True)
+    _ = embed.add_field(name="Moderator", value=moderator.mention,  inline=True)
     if member:
-        embed.add_field(name="From User", value=member.mention, inline=True)
+        _ = embed.add_field(name="From User", value=member.mention, inline=True)
     if proof:
-        embed.set_image(url=proof.url)
+        _ = embed.set_image(url=proof.url)
     return embed
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -104,7 +104,7 @@ async def run_purge(
     if not guild:
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral=True)
 
     try:
         if member:
@@ -133,7 +133,7 @@ async def run_purge(
         if proof:
             metadata["proof_url"] = proof.url
 
-        await base.cases_manager.log_case(
+        _ = await base.cases_manager.log_case(
             guild       = guild,
             case_type   = CaseType.PURGE,
             moderator   = actor,
@@ -176,7 +176,7 @@ async def run_purge_prefix(
         return
 
     if amount < 1 or amount > 100:
-        await ctx.send(
+        _ = ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
             f"Amount must be between 1 and 100."
         )
@@ -184,7 +184,7 @@ async def run_purge_prefix(
 
     channel = _get_purgeable_channel(ctx.channel)
     if channel is None:
-        await ctx.send(
+        _ = ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
             f"This command cannot be used in this channel type."
         )
@@ -196,7 +196,7 @@ async def run_purge_prefix(
 
     member = flags.u
     if not flags.r:
-        await ctx.send(
+        _ = ctx.send(
             f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
             f"Please provide a reason for the purge."
         )
@@ -222,14 +222,14 @@ async def run_purge_prefix(
             deleted = await channel.purge(limit=amount, before=ctx.message, bulk=True)
 
         with contextlib.suppress(discord.NotFound):
-            await ctx.message.delete()
+            _ = ctx.message.delete()
 
         metadata: dict[str, Any] = {
-            "deleted_messages": len(deleted),
-            "channel_id":       channel.id
+            "deleted_messages" : len(deleted),
+            "channel_id"       :  channel.id
         }
 
-        await base.cases_manager.log_case(
+        _ = await base.cases_manager.log_case(
             guild       = guild,
             case_type   = CaseType.PURGE,
             moderator   = actor,
@@ -245,7 +245,7 @@ async def run_purge_prefix(
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:
-        await ctx.send(
+        _ = ctx.send(
             f"{DENIED_EMOJI_ID} **Failed to purge messages!**\n"
             f"I lack the necessary permissions to delete messages.\n"
             f"-# Contact the owner."

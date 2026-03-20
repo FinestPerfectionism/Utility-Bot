@@ -108,7 +108,7 @@ class HealthFixView(discord.ui.View):
         if not isinstance(interaction.user, discord.Member):
             return
 
-        await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral=True)
 
         fixed: list[str] = []
         failed: list[str] = []
@@ -121,9 +121,9 @@ class HealthFixView(discord.ui.View):
                 for perm in DANGEROUS_PERMISSIONS:
                     if _perm_value(new_perms, perm):
                         setattr(new_perms, perm, False)
-                await everyone.edit(
-                    permissions=new_perms,
-                    reason=f"Health fix by {interaction.user}: removing dangerous @everyone permissions"
+                _ = await everyone.edit(
+                    permissions = new_perms,
+                    reason      = f"Health fix by {interaction.user}: removing dangerous @everyone permissions"
                 )
                 fixed.append("Removed dangerous permissions from @everyone role")
             except discord.Forbidden:
@@ -167,7 +167,7 @@ class HealthFixView(discord.ui.View):
                         new_perms = role.permissions
                         for perm in NATIVE_MOD_PERMS:
                             setattr(new_perms, perm, False)
-                        await role.edit(
+                        _ = await role.edit(
                             permissions=new_perms,
                             reason=f"Health fix by {interaction.user}: removing native mod permissions"
                         )
@@ -180,7 +180,7 @@ class HealthFixView(discord.ui.View):
 
         if "VERIFICATION_LEVEL" in self.fixable:
             try:
-                await guild.edit(
+                _ = await guild.edit(
                     verification_level=discord.VerificationLevel.medium,
                     reason=f"Health fix by {interaction.user}: setting verification level to Medium"
                 )
@@ -190,7 +190,7 @@ class HealthFixView(discord.ui.View):
 
         if "CONTENT_FILTER" in self.fixable:
             try:
-                await guild.edit(
+                _ = await guild.edit(
                     explicit_content_filter=discord.ContentFilter.all_members,
                     reason=f"Health fix by {interaction.user}: enabling content filter for all members"
                 )
@@ -202,9 +202,9 @@ class HealthFixView(discord.ui.View):
             quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
             if quarantine_role:
                 try:
-                    await quarantine_role.edit(
-                        permissions=discord.Permissions.none(),
-                        reason=f"Health fix by {interaction.user}: clearing quarantine role permissions"
+                    _ = await quarantine_role.edit(
+                        permissions = discord.Permissions.none(),
+                        reason      = f"Health fix by {interaction.user}: clearing quarantine role permissions"
                     )
                     fixed.append("Cleared all permissions from the quarantine role")
                 except discord.Forbidden:
@@ -254,28 +254,28 @@ class HealthFixView(discord.ui.View):
         )
 
         if fixed:
-            embed.add_field(
+            _ = embed.add_field(
                 name="Fixed",
                 value="\n".join(f"{ACCEPTED_EMOJI_ID} {item}" for item in fixed),
                 inline=False
             )
 
         if failed:
-            embed.add_field(
+            _ = embed.add_field(
                 name="Could Not Fix",
                 value="\n".join(f"{DENIED_EMOJI_ID} {item}" for item in failed),
                 inline=False
             )
 
         if not fixed and not failed:
-            embed.description = "Nothing to fix."
+            _ = _ = embed.description = "Nothing to fix."
 
         button.disabled = True
         for child in self.children:
             if isinstance(child, discord.ui.Button):
                 child.disabled = True
 
-        await interaction.response.edit_message(view=self)
+        _ = await interaction.response.edit_message(view=self)
         await interaction.followup.send("Applying fixes...", ephemeral=True)
 
         checks = await self.cog.run_checks(self.guild)
@@ -322,19 +322,19 @@ class HealthFixView(discord.ui.View):
 
                 lines.append(line)
 
-            updated_embed.add_field(
+            _ = updated_embed.add_field(
                 name=category_name,
                 value="\n".join(lines),
                 inline=False
             )
 
-        updated_embed.set_footer(text=f"{passed_count}/{total} checks passed")
+        _ = updated_embed.set_footer(text=f"{passed_count}/{total} checks passed")
 
         remaining_fixable = [c["id"] for c in checks if not c["passed"] and c["fixable"]]
         if not remaining_fixable:
-            self.clear_items()
+            _ = self.clear_items()
 
-        await interaction.edit_original_response(embed=updated_embed, view=self)
+        _ = await interaction.edit_original_response(embed=updated_embed, view=self)
         await interaction.followup.send(embed=embed, ephemeral=True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -429,20 +429,20 @@ class HealthCommands(commands.Cog):
 
         quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
         checks.append({
-            "id": "QUARANTINE_EXISTS",
-            "label": "Quarantine role exists",
-            "passed": quarantine_role is not None,
-            "fixable": False,
-            "manual_note": "Create a quarantine role and update QUARANTINE_ROLE_ID in constants.",
+            "id"          : "QUARANTINE_EXISTS",
+            "label"       : "Quarantine role exists",
+            "passed"      : quarantine_role is not None,
+            "fixable"     : False,
+            "manual_note" : "Create a quarantine role."
         })
 
         qr_has_perms = quarantine_role is not None and quarantine_role.permissions.value != 0
         checks.append({
-            "id": "QUARANTINE_ROLE_CLEAN",
-            "label": "Quarantine role has no permissions enabled",
-            "passed": not qr_has_perms,
-            "fixable": quarantine_role is not None,
-            "detail": "The quarantine role should have zero permissions." if qr_has_perms else "",
+            "id"      : "QUARANTINE_ROLE_CLEAN",
+            "label"   : "Quarantine role has no permissions enabled",
+            "passed"  : not qr_has_perms,
+            "fixable" : quarantine_role is not None,
+            "detail"  : "The quarantine role should have zero permissions." if qr_has_perms else "",
         })
 
         if quarantine_role:
@@ -458,7 +458,7 @@ class HealthCommands(commands.Cog):
             qr_channel_ok = len(channels_missing_deny) == 0
         else:
             channels_missing_deny = []
-            qr_channel_ok = False
+            qr_channel_ok         = False
 
         checks.append({
             "id": "QUARANTINE_CHANNEL_DENY",
@@ -553,7 +553,7 @@ class HealthCommands(commands.Cog):
         if not guild:
             return
 
-        await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral=True)
 
         checks = await self.run_checks(guild)
 
@@ -590,7 +590,7 @@ class HealthCommands(commands.Cog):
                 if not check["passed"] and check.get("detail"):
                     line += f"\n-# ↳ {check['detail']}"
                 lines.append(line)
-            embed.add_field(
+            _ = embed.add_field(
                 name=category_name,
                 value="\n".join(lines),
                 inline=False
@@ -601,7 +601,7 @@ class HealthCommands(commands.Cog):
             if not c["passed"] and not c["fixable"] and c.get("manual_note")
         ]
         if manual_fixes:
-            embed.add_field(
+            _ = embed.add_field(
                 name=f"{CONTESTED_EMOJI_ID}  Manual Action Required",
                 value="\n".join(
                     f"**{c['label']}**\n-# ↳ {c['manual_note']}"
@@ -610,7 +610,7 @@ class HealthCommands(commands.Cog):
                 inline=False
             )
 
-        embed.set_footer(text=f"{passed}/{total} checks passed")
+        _ = embed.set_footer(text=f"{passed}/{total} checks passed")
 
         fixable = [c["id"] for c in checks if not c["passed"] and c["fixable"]]
         view = HealthFixView(guild, fixable, self)
