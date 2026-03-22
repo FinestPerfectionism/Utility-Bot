@@ -51,6 +51,11 @@ class RoleConfig:
     channels: list[int] = field(default_factory=list)
 
 @dataclass
+class UserConfig:
+    user_id:  int
+    channels: list[int] = field(default_factory=list)
+
+@dataclass
 class ArgumentInfo:
     roles:       list[int]  = field(default_factory=list)
     required:    bool       = True
@@ -64,6 +69,7 @@ class CommandHelpData:
     prefix:      bool
     slash:       bool
     run_roles:   list[RoleConfig]
+    run_users:   list[UserConfig]
     has_inverse: bool | str
     arguments:   dict[str, ArgumentInfo] = field(default_factory=dict)
     aliases:     list[str]               = field(default_factory=list)
@@ -76,11 +82,13 @@ def help_description(
     prefix:                                bool = False,
     slash:                                 bool = True,
     run_roles:          list[RoleConfig] | None = None,
+    run_users:          list[UserConfig] | None = None,
     has_inverse:                    bool | str  = False,
     arguments:   dict[str, ArgumentInfo] | None = None,
     aliases:                   list[str] | None = None,
 ) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     run_roles = run_roles or []
+    run_users = run_users or []
     arguments = arguments or {}
     aliases   = aliases   or []
 
@@ -90,6 +98,7 @@ def help_description(
             prefix=prefix,
             slash=slash,
             run_roles=run_roles,
+            run_users=run_users,
             has_inverse=has_inverse,
             arguments=arguments,
             aliases=aliases,
@@ -114,6 +123,24 @@ def check_access(
 ) -> tuple[str, list[str], list[str], list[int]]:
     member_role_ids = {r.id for r in member.roles}
 
+    # ── User-level override ──────────────────────────────────────────────────
+    user_match = next((uc for uc in data.run_users if uc.user_id == member.id), None)
+    if user_match is not None:
+        allowed_channels: list[int] = [] if not user_match.channels else sorted(user_match.channels)
+
+        accessible:   list[str] = []
+        inaccessible: list[str] = []
+        for arg_name, arg_info in data.arguments.items():
+            if not arg_info.roles or member_role_ids.intersection(arg_info.roles):
+                accessible.append(arg_name)
+            else:
+                inaccessible.append(arg_name)
+
+        if inaccessible or allowed_channels:
+            return "partial", accessible, inaccessible, allowed_channels
+        return "full", accessible, inaccessible, allowed_channels
+    # ────────────────────────────────────────────────────────────────────────
+
     if data.run_roles:
         matching = [rc for rc in data.run_roles if rc.role_id in member_role_ids]
         if not matching:
@@ -121,7 +148,7 @@ def check_access(
 
         unrestricted = any(not rc.channels for rc in matching)
         if unrestricted:
-            allowed_channels: list[int] = []
+            allowed_channels = []
         else:
             seen: set[int] = set()
             for rc in matching:
@@ -130,8 +157,8 @@ def check_access(
     else:
         allowed_channels = []
 
-    accessible:   list[str] = []
-    inaccessible: list[str] = []
+    accessible   = []
+    inaccessible = []
     for arg_name, arg_info in data.arguments.items():
         if not arg_info.roles or member_role_ids.intersection(arg_info.roles):
             accessible.append(arg_name)
@@ -216,6 +243,17 @@ def build_help_view(
                 roles_lines.append(f"- {role_mention} *(channels: {channels_str})*")
             else:
                 roles_lines.append(f"- {role_mention}")
+
+    if data.run_users:
+        for uc in data.run_users:
+            user_mention = f"<@{uc.user_id}>"
+            if uc.channels:
+                channels_str = " ".join(f"<#{cid}>" for cid in uc.channels)
+                roles_lines.append(f"- {user_mention} *(channels: {channels_str})*")
+            else:
+                roles_lines.append(f"- {user_mention}")
+
+    if roles_lines:
         roles_block = "\n".join(roles_lines)
     else:
         roles_block = "- No role restriction."
@@ -356,7 +394,7 @@ async def run_help(
         respond = ctx_or_inter.send
     else:
         if not isinstance(ctx_or_inter.user, discord.Member):
-            await ctx_or_inter.response.send_message(
+            _ = await ctx_or_inter.response.send_message(
                 "Cannot resolve guild member context.",
                 ephemeral=True,
             )
@@ -377,7 +415,7 @@ async def run_help(
         collect_slash_commands(bot.tree.get_commands(), seen_callbacks, lines)
 
         if lines:
-            await respond(
+            _ = await respond(
                 embed=discord.Embed(
                     title="Available Commands",
                     description="\n".join(lines),
@@ -385,14 +423,14 @@ async def run_help(
                 )
             )
         else:
-            await respond("No documented commands found.", ephemeral=True)
+            _ = await respond("No documented commands found.", ephemeral=True)
         return
 
     parts    = command_name.strip().lstrip("/").split()
     callback = find_nested_command(bot, parts)
 
     if callback is None or not hasattr(callback, "__help_data__"):
-        await respond(
+        _ = await respond(
             f"Command `{command_name}` not found or has no help data.",
             ephemeral=True,
         )
@@ -405,4 +443,4 @@ async def run_help(
         data=data,
         member=member,
     )
-    await respond(view=view)
+    _ = await respond(view=view)
