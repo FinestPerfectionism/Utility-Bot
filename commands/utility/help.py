@@ -5,12 +5,11 @@ from core.help import (
     HelpedCallable,
     find_nested_command,
     build_help_view,
-    help_description,
-    ArgumentInfo,
 )
 from constants import (
     COLOR_BLURPLE,
     BOT_OWNER_ID,
+    CONTESTED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -48,11 +47,12 @@ def _build_info_view() -> discord.ui.LayoutView:
 async def _run_help(
     bot:          commands.Bot,
     ctx_or_inter: commands.Context[commands.Bot] | discord.Interaction,
-    command_name: str | None,
+    command_name: str                            | None,
 ) -> None:
     if isinstance(ctx_or_inter, commands.Context):
         if not isinstance(ctx_or_inter.author, discord.Member):
-            await ctx_or_inter.send(
+            _ = await ctx_or_inter.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to parse help data!**\n"
                 "Cannot resolve guild member context.",
             )
             return
@@ -60,7 +60,8 @@ async def _run_help(
         respond = ctx_or_inter.send
     else:
         if not isinstance(ctx_or_inter.user, discord.Member):
-            await ctx_or_inter.response.send_message(
+            _ = await ctx_or_inter.response.send_message(
+               f"{CONTESTED_EMOJI_ID} **Failed to parse help data!**\n"
                 "Cannot resolve guild member context.",
                 ephemeral=True,
             )
@@ -69,16 +70,16 @@ async def _run_help(
         respond = ctx_or_inter.response.send_message
 
     if not command_name:
-        await respond(view=_build_info_view(), allowed_mentions=_NO_PING)
+        _ = await respond(view=_build_info_view(), allowed_mentions=_NO_PING)
         return
 
     parts    = command_name.strip().lstrip("/").split()
     callback = find_nested_command(bot, parts)
 
     if callback is None or not hasattr(callback, "__help_data__"):
-        await respond(
+        _ = await respond(
+            f"{CONTESTED_EMOJI_ID} Failed to parse help data!"
             f"Command `{command_name}` not found or has no help data.",
-            ephemeral=True,
         )
         return
 
@@ -88,7 +89,7 @@ async def _run_help(
         data=data,
         member=member,
     )
-    await respond(view=view)
+    _ = await respond(view=view)
 
 
 class HelpCommands(commands.Cog):
@@ -100,17 +101,6 @@ class HelpCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name="help")
-    @help_description(
-        desc="Shows general bot information or detailed help for a documented command.",
-        prefix=True,
-        slash=False,
-        arguments={
-            "command_name": ArgumentInfo(
-                required=False,
-                description="Optional command name to inspect, such as `moderation ban` or `timezone`.",
-            ),
-        },
-    )
     async def help(
         self,
         ctx: commands.Context[commands.Bot],
@@ -122,7 +112,7 @@ class HelpCommands(commands.Cog):
 
         query = command_name.lower().strip()
 
-        snarky_responses = {
+        responses = {
             "<cmd>": "Brocacho... you're supposed to replace `<cmd>` with the command you want help with.\n"
                      "-# Genuinely wondering how one makes it this far without realizing something as simple as this. 🥀",
             "super_secret_command": "There is no super secret command in ba sing se.",
@@ -130,8 +120,8 @@ class HelpCommands(commands.Cog):
             "me": "No. <:laugh5:1481288430150484111>"
         }
 
-        if query in snarky_responses:
-            await ctx.send(snarky_responses[query])
+        if query in responses:
+            _ = await ctx.send(responses[query])
             return None
 
         return await _run_help(self.bot, ctx, command_name)

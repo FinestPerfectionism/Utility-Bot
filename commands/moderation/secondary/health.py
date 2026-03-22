@@ -37,7 +37,7 @@ from core.help import (
     RoleConfig,
 )
 from core.utils import send_major_error
-from core.permissions import is_director, is_senior_moderator
+from core.permissions import is_director
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Health Check
@@ -350,7 +350,7 @@ class HealthCommands(commands.Cog):
         self.bot = bot
 
     def can_use(self, member: discord.Member) -> bool:
-        return is_director(member) or is_senior_moderator(member)
+        return is_director(member)
 
     async def run_checks(self, guild: discord.Guild) -> list[dict[str, Any]]:
         checks: list[dict[str, Any]] = []
@@ -540,10 +540,10 @@ class HealthCommands(commands.Cog):
         description="View server health and run automated fixes."
     )
     @help_description(
-        desc="Views a server health report and offers automated fixes for supported issues. Restricted to Directors and Senior Moderators.",
+        desc="Directors only —— Views a server health report and runs automated fixes if any issues are found.",
         prefix=False,
         slash=True,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
     )
     async def health(self, interaction: discord.Interaction) -> None:
         actor = interaction.user

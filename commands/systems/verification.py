@@ -31,10 +31,9 @@ class VerificationCommands(commands.Cog):
     # .verify/.v Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.guild_only()
     @commands.command(name="verify", aliases=["v"])
     @help_description(
-        desc="Staff-only command that manually verifies a member inside the server.",
+        desc="Staff only —— Manually verifies a member inside the server.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
@@ -78,7 +77,7 @@ class VerificationCommands(commands.Cog):
         aliases=["un-verify", "uv", "deverify", "de-verify", "dv"]
     )
     @help_description(
-        desc="Staff-only command that removes verification from a member inside the server.",
+        desc="Staff only —— Manually unverifies a member inside the server.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],

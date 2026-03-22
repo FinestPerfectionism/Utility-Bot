@@ -61,7 +61,6 @@ class NominationFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     user:    discord.Member | None = commands.flag(aliases=["u"], default=None)
     case_id: str            | None = commands.flag(name="id", default=None)
 
-
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Nomination Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -86,7 +85,7 @@ class NominationCommands(commands.Cog):
 
     @commands.command(name="nomination", aliases=["nom"])
     @help_description(
-        desc="Director-only workflow for triggering, accepting, or denying supporting-director nominations.",
+        desc="Directors only —— workflow for triggering, accepting, or denying supporting-director nominations.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -149,7 +148,7 @@ class NominationCommands(commands.Cog):
         self.data[case_id] = case
         save_nomination_data(self.data)
 
-        await ctx.send(
+        _ = await ctx.send(
             f"{ACCEPTED_EMOJI_ID} **Successfully started Director Nomination!**\n"
             f"ID: `{case_id}`"
         )
@@ -178,7 +177,7 @@ class NominationCommands(commands.Cog):
         n = sum(1 for uid in case["acceptors"] if uid in director_ids)
         m = len(directors)
 
-        await ctx.send(
+        _ = await ctx.send(
             f"{ACCEPTED_EMOJI_ID} **Successfully added Director Nomination to nomination case `{case_id}`!**\n"
             f"{n}/{m} Directors for."
         )
@@ -194,7 +193,7 @@ class NominationCommands(commands.Cog):
     ) -> None:
         target = guild.get_member(case["target_id"])
 
-        self.data.pop(case_id, None)
+        _ = self.data.pop(case_id, None)
         save_nomination_data(self.data)
 
         if target is None:

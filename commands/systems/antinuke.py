@@ -48,7 +48,7 @@ class AntiNukeCommands(commands.Cog):
         description="Status of the anti-nuke system."
     )
     @help_description(
-        desc="Director-only command to view the anti-nuke configuration and per-action limits.",
+        desc="Directors only —— Views the anti-nuke system configuration and per-action limits.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -77,7 +77,7 @@ class AntiNukeCommands(commands.Cog):
         )
 
         status_text = "Enabled" if enabled else "Disabled"
-        embed.add_field(
+        _ = embed.add_field(
             name="Status",
             value=status_text,
             inline=True
@@ -85,15 +85,15 @@ class AntiNukeCommands(commands.Cog):
 
         if log_channel_id:
             log_channel = interaction.guild.get_channel(log_channel_id) if interaction.guild else None
-            embed.add_field(
+            _ = embed.add_field(
                 name="Log Channel",
                 value=log_channel.mention if log_channel else f"<#{log_channel_id}> (deleted)",
                 inline=True
             )
         else:
-            embed.add_field(name="Log Channel", value="Not configured", inline=True)
+            _ = embed.add_field(name="Log Channel", value="Not configured", inline=True)
 
-        embed.add_field(name="\u200b", value="\u200b", inline=False)
+        _ = embed.add_field(name="\u200b", value="\u200b", inline=False)
 
         limits = self.config["limits"]
         for action_type, settings in limits.items():
@@ -101,15 +101,15 @@ class AntiNukeCommands(commands.Cog):
             hourly = settings.get("hourly", "N/A")
             daily = settings.get("daily", "N/A")
             limit_text = f"Hourly: {hourly}\nDaily: {daily}"
-            embed.add_field(name=action_name, value=limit_text, inline=True)
+            _ = embed.add_field(name=action_name, value=limit_text, inline=True)
 
-        embed.set_footer(text="Directors are exempt from all limits")
+        _ = embed.set_footer(text="Directors are exempt from all limits")
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @antinuke_group.command(name="toggle", description="Enable or disable anti-nuke protection.")
     @help_description(
-        desc="Director-only command to toggle anti-nuke protection on or off.",
+        desc="Directors only —— Toggle anti-nuke system.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -140,11 +140,11 @@ class AntiNukeCommands(commands.Cog):
             timestamp=datetime.now()
         )
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @antinuke_group.command(name="set-limit", description="Configure limits for a specific action type.")
     @help_description(
-        desc="Director-only command to set hourly and daily anti-nuke limits for a tracked action type.",
+        desc="Directors only —— command to set hourly and daily anti-nuke limits for a tracked action type.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -206,11 +206,11 @@ class AntiNukeCommands(commands.Cog):
             color=COLOR_GREEN,
             timestamp=datetime.now()
         )
-        embed.add_field(name="Action", value=action.replace("_", " ").title(), inline=True)
-        embed.add_field(name="Hourly Limit", value=str(hourly), inline=True)
-        embed.add_field(name="Daily Limit", value=str(daily), inline=True)
+        _ = embed.add_field(name="Action", value=action.replace("_", " ").title(), inline=True)
+        _ = embed.add_field(name="Hourly Limit", value=str(hourly), inline=True)
+        _ = embed.add_field(name="Daily Limit", value=str(daily), inline=True)
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @antinuke_setlimit.autocomplete('action')
     async def antinuke_setlimit_autocomplete(
@@ -225,9 +225,9 @@ class AntiNukeCommands(commands.Cog):
             if current.lower() in action.lower()
         ][:25]
 
-    @antinuke_group.command(name="config", description="Configure the anti-nuke log channel.")
+    @antinuke_group.command(name="configure", description="Configure the anti-nuke log channel.")
     @help_description(
-        desc="Director-only command to choose the channel that receives anti-nuke alerts.",
+        desc="Directors only —— Configures the channel that receives anti-nuke alerts.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -264,7 +264,7 @@ class AntiNukeCommands(commands.Cog):
             timestamp=datetime.now()
         )
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot: commands.Bot) -> None:
     antinuke_system = bot.get_cog("AntiNukeSystem")

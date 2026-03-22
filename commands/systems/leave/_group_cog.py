@@ -31,6 +31,7 @@ from .remove import run_leave_remove
 from constants import (
     PERSONAL_LEAVE_ROLE_ID,
     STAFF_ROLE_ID,
+    DIRECTORS_ROLE_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -41,7 +42,7 @@ class LeaveCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot  = bot
         self.data = load_data()
-        self._automation_loop.start()
+        _ = self._automation_loop.start()
 
     leave_group = app_commands.Group(
         name="leave",
@@ -139,7 +140,7 @@ class LeaveCommands(commands.Cog):
             if roles_to_remove:
                 await member.remove_roles(*roles_to_remove, reason="UB Leave: Scheduled leave automation")
             await member.add_roles(personal_leave_role, reason="UB Leave: Scheduled leave automation")
-            await member.edit(nick=new_nick)
+            _ = await member.edit(nick=new_nick)
         except discord.HTTPException:
             return
 
@@ -187,7 +188,7 @@ class LeaveCommands(commands.Cog):
             expected_short = f"PL | {base_name}"
 
             if current_nick in (expected_long, expected_short):
-                await member.edit(nick=stored_name)
+                _ = await member.edit(nick=stored_name)
 
             if roles_to_restore:
                 await member.add_roles(*roles_to_restore, reason="UB Leave: Scheduled leave automation")
@@ -216,17 +217,17 @@ class LeaveCommands(commands.Cog):
             app_commands.Choice(name="Hard Clean", value="hard_clean"),
         ]
     )
-    @app_commands.rename(leave_type="type")
+    @app_commands.rename(leave_type="type", begin_date="begin-date", end_date="end-date")
     @help_description(
-        desc="Staff command for adding personal leave to yourself or another staff member, with optional scheduling or cleaning options.",
+        desc="Directors only —— Adds personal leave to yourself or another staff member, with optional scheduling and leave types.",
         prefix=False,
         slash=True,
-        run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
+        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
             "type": ArgumentInfo(description="Leave mode to apply.", choices=["none", "soft_clean", "hard_clean"]),
             "target": ArgumentInfo(required=False, description="Staff member to place on leave; defaults to yourself."),
-            "begin_date": ArgumentInfo(required=False, description="Optional future start date in YYYY-MM-DD format."),
-            "end_date": ArgumentInfo(required=False, description="Optional future end date in YYYY-MM-DD format."),
+            "begin-date": ArgumentInfo(required=False, description="Optional future start date in YYYY-MM-DD format."),
+            "end-date": ArgumentInfo(required=False, description="Optional future end date in YYYY-MM-DD format."),
             "timer": ArgumentInfo(required=False, description="Optional duration such as 1w2d3h4m."),
         },
     )
@@ -248,11 +249,16 @@ class LeaveCommands(commands.Cog):
     @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
     @help_description(
-        desc="Removes personal leave from yourself or another staff member. Self-removal also works for your own scheduled leave entry.",
+        desc="Staff only —— Removes personal leave from yourself or another staff member. Self-removal also works for your own scheduled leave entry.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
-        arguments={"target": ArgumentInfo(required=False, description="Staff member whose leave should be removed; defaults to yourself.")},
+        arguments={"target": ArgumentInfo(
+                required=False,
+                description="Staff member whose leave should be removed; defaults to yourself.",
+                roles=[DIRECTORS_ROLE_ID]
+            )
+        },
     )
     async def leave_remove(
         self,

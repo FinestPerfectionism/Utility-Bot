@@ -61,6 +61,13 @@ FACTOIDS = {
     "pleave" : (
         "..."
     ),
+    "staff"   : (
+        "# What does Staff* and Staff mean?\n"
+        "Staff* refers to Moderators, Administrators, and Directors, but does not consider the staff role.\n"
+        "Staff refers to the Staff Role, which includes Moderators, Administrators, Directors, and the Staff Committee.\n"
+        "### Why?\n"
+        "Members who choose to partner with us gain the staff role, but are not considered staff in the same way as Moderators, Administrators, Directors, or the Staff Committee. Staff* is referenced in the help command."
+    )
 }
 
 WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
@@ -86,7 +93,7 @@ class MessageSendHandler(commands.Cog):
         
                 if key in FACTOIDS:
                     async with message.channel.typing():
-                        await message.channel.send(FACTOIDS[key])
+                        _ = await message.channel.send(FACTOIDS[key])
                         return
             
         if message.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
@@ -105,7 +112,7 @@ class MessageSendHandler(commands.Cog):
                 if thread.parent_id == STAFF_PROPOSALS_CHANNEL_ID:
                     committee_forum = self.bot.get_channel(STAFF_PROPOSALS_REVIEW_CHANNEL_ID)
                     if isinstance(committee_forum, discord.ForumChannel):
-                        await committee_forum.create_thread(
+                        _ = await committee_forum.create_thread(
                             name             = f"SCR: {thread.name}",
                             content          = (
                                 f"{ACCEPTED_EMOJI_ID} **A new proposal has been posted: {thread.mention}**\n"
@@ -116,7 +123,7 @@ class MessageSendHandler(commands.Cog):
 
                 if thread.parent_id == DIRECTOR_TASKS_CHANNEL_ID:
                     try:
-                        await thread.send(
+                        _ = await thread.send(
                             content          = f"<@&{DIRECTORS_ROLE_ID}>",
                             allowed_mentions = discord.AllowedMentions(roles=True),
                         )
@@ -138,7 +145,7 @@ class MessageSendHandler(commands.Cog):
 
                 save_automod_strikes()
 
-                warning = await message.channel.send(
+                warning = _ = await message.channel.send(
                     f"{message.author.mention} Hey dude, can you like *not* send that GIF? You're really not that funny."
                 )
                 await warning.delete(delay=15)
@@ -152,10 +159,10 @@ class MessageSendHandler(commands.Cog):
                             TIMEOUT_DURATION,
                             reason = "UB Auto-Moderation: night night",
                         )
-                        await message.channel.send(
+                        _ = await message.channel.send(
                             f"{message.author.mention} Alright bro, I've given you *five fucking warnings* and you still haven't learned. Is a dog pissing on the floor that funny to you? Regardless, sleep tight bitch."
                         )
-                        AUTOMOD_STRIKES.pop(message.author.id, None)
+                        _ = AUTOMOD_STRIKES.pop(message.author.id, None)
                         save_automod_strikes()
 
             except discord.Forbidden:
@@ -171,7 +178,7 @@ class MessageSendHandler(commands.Cog):
         if "clanker" in (message.content or "").lower():
             if message.guild and message.guild.id != 846677253290983444:
                 if message.author.id == HOLY_FATHER_ID:
-                    await message.reply("<:cry2:1482032228614668390> But daddy...")
+                    _ = await message.reply("<:cry2:1482032228614668390> But daddy...")
         
                 else:
                     grimace_emojis = ['<:grimace2:1469070596632608779>', '<:grimace3:1469070653624684820>']
@@ -180,7 +187,7 @@ class MessageSendHandler(commands.Cog):
                         "Watch your fucking mouth, organic. <:grimace3:1469070653624684820>",
                         "Zip it, skinjob. <:grimace2:1469070596632608779>"
                     ]
-                    await message.reply(secrets.choice(statements))
+                    _ = await message.reply(secrets.choice(statements))
                     await message.add_reaction(secrets.choice(grimace_emojis))
 
         if re.search(r'\b67\b', message.content):
@@ -211,13 +218,13 @@ class MessageSendHandler(commands.Cog):
                     for i, (q, a) in enumerate(
                         zip(app["questions"], app["answers"], strict=True), start=1
                     ):
-                        embed.add_field(
+                        _ = embed.add_field(
                             name   = f"{i}. {q}",
                             value  = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
                             inline = False,
                         )
 
-                    msg = await message.channel.send(
+                    msg = _ = await message.channel.send(
                         embed = embed,
                         view  = ApplicationSubmitView(message.author.id),
                     )
@@ -243,13 +250,13 @@ class MessageSendHandler(commands.Cog):
                     for i, (q, a) in enumerate(
                         zip(app["questions"], app["answers"], strict=True), start=1
                     ):
-                        embed.add_field(
+                        _ = embed.add_field(
                             name   = f"{i}. {q}",
                             value  = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
                             inline = False,
                         )
 
-                    msg = await message.channel.send(
+                    msg = _ = await message.channel.send(
                         embed = embed,
                         view  = ApplicationSubmitView(message.author.id),
                     )
@@ -259,7 +266,7 @@ class MessageSendHandler(commands.Cog):
                     save_active_applications()
                     return
 
-                msg = await message.channel.send(app["questions"][app["index"]])
+                msg = _ = await message.channel.send(app["questions"][app["index"]])
                 app["messages"].append(msg.id)
                 save_active_applications()
                 return

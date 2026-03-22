@@ -406,7 +406,10 @@ class ModerationBase(commands.Cog):
         )
 
     def can_apply_standard_actions(self, member: discord.Member) -> bool:
-        return is_senior_moderator(member)
+        return is_moderator(member)
+
+    def can_untimeout(self, member: discord.Member) -> bool:
+        return is_director(member) or is_senior_moderator(member)
 
     def can_reverse_actions(self, member: discord.Member) -> bool:
         return is_director(member)

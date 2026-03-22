@@ -259,7 +259,7 @@ class ProposalCommands(
         ]
     )
     @help_description(
-        desc="Staff-committee command to set the official proposal decision for the current proposal thread in the main guild.",
+        desc="Staff Committee only —— Sets the official proposal decision for the current proposal thread.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
@@ -382,7 +382,7 @@ class ProposalCommands(
         ]
     )
     @help_description(
-        desc="Staff-committee command to apply or remove a process tag on the current proposal thread in the main guild.",
+        desc="Staff Committee only —— Applies or removes a process tag on the current proposal thread.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
@@ -507,7 +507,7 @@ class ProposalCommands(
         ]
     )
     @help_description(
-        desc="Staff-committee command to finalize and lock the current proposal thread after final resolution.",
+        desc="Staff Committee only —— Finalizes and locks the current proposal thread after final resolution.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
@@ -601,7 +601,7 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="unlock",
+        name="un-lock",
         description="Unlock a previously finalized proposal."
     )
     @app_commands.describe(
@@ -615,7 +615,7 @@ class ProposalCommands(
         ]
     )
     @help_description(
-        desc="Staff-committee command to unlock a finalized proposal thread in the main guild.",
+        desc="Staff Committee only —— Unlocks a finalized proposal thread.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
@@ -689,7 +689,7 @@ class ProposalCommands(
         ]
     )
     @help_description(
-        desc="Staff-committee command to remove the standstill status from the current proposal thread in the main guild.",
+        desc="Staff Committee only —— Removes the standstill status from the current proposal thread.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
@@ -733,11 +733,11 @@ class ProposalCommands(
                 "This proposal is not currently in Standstill."
             )
 
-        await interaction.response.defer()
+        _ = await interaction.response.defer()
 
         tags = [t for t in thread.applied_tags if t.id != standstill_tag.id]
 
-        await thread.edit(applied_tags=tags)
+        _ = await thread.edit(applied_tags=tags)
 
         await interaction.followup.send(
             f"**Proposal Unstandstilled**\n"
@@ -759,7 +759,7 @@ class ProposalCommands(
         aliases = ["d", "del"]
     )
     @help_description(
-        desc="Director-only prefix command that deletes the current staff proposal thread.",
+        desc="Directors only —— Ddeletes the current staff proposal thread.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],

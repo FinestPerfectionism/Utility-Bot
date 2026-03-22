@@ -57,7 +57,7 @@ class PingCommands(commands.Cog, name="ping"):
         ]
     )
     @help_description(
-        desc="Pings the staff role if you are staff.",
+        desc="Staff only —— Pings the Staff role.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
@@ -79,7 +79,7 @@ class PingCommands(commands.Cog, name="ping"):
         ]
     )
     @help_description(
-        desc="Pings the senior moderators role if you are a moderator.",
+        desc="Moderators only —— Pings the Senior Moderators role.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID)],
@@ -101,7 +101,7 @@ class PingCommands(commands.Cog, name="ping"):
         ]
     )
     @help_description(
-        desc="Pings the senior administrators role if you are an administrator.",
+        desc="Administrators only —— Pings the Senior Administrators role.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
@@ -123,7 +123,7 @@ class PingCommands(commands.Cog, name="ping"):
         ]
     )
     @help_description(
-        desc="Pings the directors role if you are a senior moderator or senior administrator.",
+        desc="Senior Moderators or Senior Administrators only —— Pings the Directors role.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=SENIOR_ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
@@ -149,12 +149,12 @@ class PingCommands(commands.Cog, name="ping"):
         aliases=[
                                "s-committee", "s-c",
             "staff_committee", "s_committee", "s_c",
-            "staffcommittee" , "scommittee" , "sc",
+            "staffcommittee" , "scommittee" , "sc" ,
             "committee"      , "com"
         ]
     )
     @help_description(
-        desc="Pings the staff committee role if you are in the committee, or if you are staff inside a staff-proposals thread.",
+        desc="Staff Committee only or Staff (staff-proposals thread) only —— Pings the Staff Committee role.",
         prefix=True,
         slash=False,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID), RoleConfig(role_id=STAFF_ROLE_ID, channels=[STAFF_PROPOSALS_CHANNEL_ID])],

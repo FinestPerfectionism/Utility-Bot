@@ -69,12 +69,12 @@ class ApplicationsCommands(
         ]
     )
     @help_description(
-        desc="Director-only command to add or remove a user from the applications blacklist in the main guild.",
+        desc="Directors only —— Add or remove a user from the applications blacklist.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["add", "remove"]),
+            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
             "user": ArgumentInfo(description="User to blacklist or unblacklist from applications."),
         },
     )
@@ -117,7 +117,7 @@ class ApplicationsCommands(
             target_list.append(user_id)
             save_blacklist()
 
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{user.mention} has been blacklisted from Applications.",
                 ephemeral=True
             )
@@ -133,7 +133,7 @@ class ApplicationsCommands(
             target_list.remove(user_id)
             save_blacklist()
 
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{user.mention} has been removed from the Applications blacklist.",
                 ephemeral=True
             )
@@ -173,13 +173,13 @@ class ApplicationsCommands(
         ],
     )
     @help_description(
-        desc="Director-only command to open or close moderator or administrator applications.",
+        desc="Directors only —— Open or close moderator or administrator applications.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "application": ArgumentInfo(description="Application type to modify.", choices=["mod", "admin"]),
-            "state": ArgumentInfo(description="Whether that application should be open or closed.", choices=["open", "closed"]),
+            "application": ArgumentInfo(description="Application type to modify.", choices=["Moderators", "Administrators"]),
+            "state": ArgumentInfo(description="Whether that application should be open or closed.", choices=["Open", "Closed"]),
         },
     )
     @directors_only()

@@ -31,21 +31,21 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_untimeout(
-    base:        "ModerationBase",
-    interaction: discord.Interaction,
-    member:      discord.Member,
-    reason:      str,
+    base        : "ModerationBase",
+    interaction : discord.Interaction,
+    member      : discord.Member,
+    reason      : str,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_reverse_actions(actor):
+    if not base.can_untimeout(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
-            texts="You lack the necessary permissions to remove timeouts.",
-            subtitle="Invalid permissions."
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to remove timeouts.",
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -75,21 +75,20 @@ async def run_untimeout(
         )
 
         embed = discord.Embed(
-            title="Timeout Removed",
-            color=COLOR_GREEN,
-            timestamp=datetime.now()
+            title     = "Timeout Removed",
+            color     = COLOR_GREEN,
+            timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",   value=member.mention, inline=True)
-        _ = embed.add_field(name="Director", value=actor.mention,  inline=True)
-        _ = embed.add_field(name="Reason",   value=reason,         inline=False)
-
+        _ = embed.add_field(name="Member", value=member.mention, inline=True)
+        _ = embed.add_field(name="Senior Moderator", value=actor.mention, inline=True)
+        _ = embed.add_field(name="Reason", value=reason, inline=False)
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            "I lack the necessary permissions to remove timeout from this member.",
-            subtitle="Invalid configuration. Contact the owner."
+            texts    = "I lack the necessary permissions to remove timeout from this member.",
+            subtitle = "Invalid configuration. Contact the owner."
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -106,7 +105,7 @@ async def run_untimeout_prefix(
     if not isinstance(actor, discord.Member):
         return
 
-    if not base.can_reverse_actions(actor):
+    if not base.can_untimeout(actor):
         await base.send_prefix_denied(
             ctx,
             "Failed to remove timeout",
@@ -154,14 +153,13 @@ async def run_untimeout_prefix(
             return
 
         embed = discord.Embed(
-            title="Timeout Removed",
-            color=COLOR_GREEN,
-            timestamp=datetime.now()
+            title     = "Timeout Removed",
+            color     = COLOR_GREEN,
+            timestamp = datetime.now()
         )
         _ = embed.add_field(name="Member",   value=member.mention, inline=True)
-        _ = embed.add_field(name="Director", value=actor.mention,  inline=True)
+        _ = embed.add_field(name="Senior Moderator", value=actor.mention,  inline=True)
         _ = embed.add_field(name="Reason",   value=reason,         inline=False)
-
         await base.send_prefix_temp_embed(ctx, embed)
 
     except discord.Forbidden:

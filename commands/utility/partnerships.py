@@ -60,7 +60,7 @@ class PartnershipCommands(commands.Cog):
         if not isinstance(channel, discord.TextChannel):
             await send_major_error(
                 interaction,
-                texts    =    "Partnership channel not configured.",
+                texts    =  "Partnership channel not configured.",
                 subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>",
             )
             return None
@@ -91,7 +91,7 @@ class PartnershipCommands(commands.Cog):
         server_link        = "The server's invite link. Must be a valid Discord invite of the form `https://discord.gg/example`."
     )
     @help_description(
-        desc="Director-only command to add a partnership entry and rebuild the partnerships channel layout.",
+        desc="Directors only —— Adds a partnership entry and rebuilds the partnerships channel layout.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -188,7 +188,7 @@ class PartnershipCommands(commands.Cog):
     @partnership.command(name="remove", description="Remove a server partnership.")
     @app_commands.describe(server_name="The name of the server to remove.")
     @help_description(
-        desc="Director-only command to remove a partnership entry and rebuild the partnerships channel layout.",
+        desc="Directors only —— Removes a partnership entry and rebuilds the partnerships channel layout.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -200,7 +200,7 @@ class PartnershipCommands(commands.Cog):
         interaction: discord.Interaction,
         server_name: str,
     ) -> None:
-        await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral=True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -255,7 +255,7 @@ class PartnershipCommands(commands.Cog):
     )
     @app_commands.autocomplete(server_name=_server_name_autocomplete)
     @help_description(
-        desc="Director-only command to update an existing partnership entry. Provide only the fields you want to change.",
+        desc="Directors only —— Updates an existing partnership entry and rebuilds the partnerships channel layout.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],

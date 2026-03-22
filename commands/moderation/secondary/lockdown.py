@@ -114,7 +114,7 @@ class LockdownCommands(commands.Cog):
         description="View the current lockdown status."
     )
     @help_description(
-        desc="Director-only command to view the current lockdown state and summary.",
+        desc="Directors only —— Views the current lockdown state and summary.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -184,7 +184,7 @@ class LockdownCommands(commands.Cog):
     )
     @app_commands.describe(reason="Reason for lockdown.")
     @help_description(
-        desc="Director-only command to activate lockdown across the server.",
+        desc="Directors only —— Activates lockdown across the server.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -312,7 +312,7 @@ class LockdownCommands(commands.Cog):
         description="Lift server lockdown."
     )
     @help_description(
-        desc="Director-only command to lift an active server lockdown and restore saved permissions.",
+        desc="Directors only —— Lifs an active server lockdown and restores saved permissions.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],

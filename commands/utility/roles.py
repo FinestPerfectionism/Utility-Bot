@@ -37,7 +37,7 @@ class RoleCommands(
         description="List all permissions for a selected role."
     )
     @help_description(
-        desc        = "The role permissions command lists all permissions for a selected role.",
+        desc        = "Directors only —— Lists all permissions for a selected role.",
         prefix      = False,
         slash       = True,
         run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -91,7 +91,7 @@ class RoleCommands(
         role2="The second role to compare.",
     )
     @help_description(
-        desc        = "The role permissions-compare command lists all differing permissions for two selected roles.",
+        desc        = "Directors only —— Lists all differing permissions for two selected roles.",
         prefix      = False,
         slash       = True,
         run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -190,14 +190,14 @@ class RoleCommands(
         ],
     )
     @help_description(
-        desc="Lists members by whether they have a role and whether they are humans, bots, or both.",
+        desc="Directors only —— Lists members by whether they have a role and whether they are humans, bots, or both.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
             "role": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Role to inspect."),
-            "role_filter": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Whether to list members who have or do not have the role.", choices=["whohas", "whodoesnthave"]),
-            "person_filter": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Whether to list humans, bots, or both.", choices=["humans", "bots", "both"]),
+            "role_filter": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Whether to list members who have or do not have the role.", choices=["Who has", "Who doesnt have"]),
+            "person_filter": ArgumentInfo(roles=[DIRECTORS_ROLE_ID], description="Whether to list humans, bots, or both.", choices=["Humans", "Bots", "Both"]),
         },
     )
     @directors_only()

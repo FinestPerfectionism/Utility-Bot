@@ -25,6 +25,7 @@ from core.utils import send_minor_error
 from events.systems.tickets import stop_resolution
 
 from constants import (
+    CONTESTED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     STAFF_ROLE_ID,
@@ -70,12 +71,12 @@ class TicketsCommands(
         ]
     )
     @help_description(
-        desc="Director-only command to add or remove a user from the ticket blacklist in the main guild.",
+        desc="Directors only —— Add or remove a user from the ticket blacklist.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["add", "remove"]),
+            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
             "user": ArgumentInfo(description="User to blacklist or unblacklist from tickets."),
         },
     )
@@ -118,7 +119,7 @@ class TicketsCommands(
             target_list.append(user_id)
             save_blacklist()
 
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{user.mention} has been blacklisted from Tickets.",
                 ephemeral=True
             )
@@ -134,7 +135,7 @@ class TicketsCommands(
             target_list.remove(user_id)
             save_blacklist()
 
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{user.mention} has been removed from the Tickets blacklist.",
                 ephemeral=True
             )
@@ -148,7 +149,7 @@ class TicketsCommands(
         aliases=["a"]
     )
     @help_description(
-        desc="Archives the current ticket thread. Only the ticket opener or a moderator can use it inside a ticket thread.",
+        desc="Moderators only —— Archives the current ticket thread. Only the ticket opener or a moderator can use it inside a ticket thread.",
         prefix=True,
         slash=False,
         aliases=["a"],
@@ -157,13 +158,15 @@ class TicketsCommands(
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**\n"
                 "This command can only be used in a ticket thread."
             )
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**\n"
                 "This command can only be used in a ticket thread."
             )
             return
@@ -181,15 +184,16 @@ class TicketsCommands(
         opener_id = THREAD_OPENERS.get(channel.id)
 
         if not is_mod and ctx.author.id != opener_id:
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**\n"
                 "Only the ticket opener or a moderator can close this ticket."
             )
             return
 
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
-        await ctx.send("Archiving ticket.")
-        await channel.edit(locked=True, archived=True)
+        _ = await ctx.send("Archiving ticket.")
+        _ = await channel.edit(locked=True, archived=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .claim Command
@@ -197,7 +201,7 @@ class TicketsCommands(
 
     @commands.command(name="claim")
     @help_description(
-        desc="Claims the current ticket thread for a moderator or director.",
+        desc="Moderators only —— Claims the current ticket thread.",
         prefix=True,
         slash=False,
     )
@@ -205,13 +209,15 @@ class TicketsCommands(
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
                 "This command can only be used in a ticket thread."
             )
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
                 "This command can only be used in a ticket thread."
             )
             return
@@ -231,21 +237,24 @@ class TicketsCommands(
         )
 
         if not is_staff:
-            await ctx.send(
-                "Only moderators and directors can claim tickets."
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
+                "Only moderators can claim tickets."
             )
             return
 
         existing_claimer_id = TICKET_CLAIMS.get(channel.id)
         if existing_claimer_id == ctx.author.id:
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
                 "You have already claimed this ticket."
             )
             return
 
         TICKET_CLAIMS[channel.id] = ctx.author.id
         save_ticket_state()
-        await ctx.send(
+        _ = await ctx.send(
+            f"{CONTESTED_EMOJI_ID} **Successfully claimed ticket!**\n"
             f"Ticket claimed by {ctx.author.mention}."
         )
 
@@ -258,7 +267,7 @@ class TicketsCommands(
         aliases=["e", "esc"]
     )
     @help_description(
-        desc="Escalates the current ticket thread to Directors. Must be used by a moderator in a ticket thread.",
+        desc="Moderators only —— Escalates the current ticket thread to Directors.",
         prefix=True,
         slash=False,
         aliases=["e", "esc"],
@@ -267,13 +276,15 @@ class TicketsCommands(
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
                 "This command can only be used in a ticket thread."
             )
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
                 "This command can only be used in a ticket thread."
             )
             return
@@ -287,21 +298,24 @@ class TicketsCommands(
 
         mod_role = guild.get_role(MODERATORS_ROLE_ID)
         if mod_role is None or mod_role not in ctx.author.roles:
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
                 "Only moderators can escalate tickets."
             )
             return
 
         if TICKET_TYPES.get(channel.id) != "moderator":
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
                 "This ticket is not a moderator ticket or is already escalated."
             )
             return
 
         opener_id = THREAD_OPENERS.get(channel.id)
         if opener_id is None:
-            await ctx.send(
-                "Could not find the ticket opener. The ticket may not be tracked."
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
+                "This ticket does not have a parsed opener. The ticket may not be tracked."
             )
             return
 
@@ -314,13 +328,14 @@ class TicketsCommands(
         TICKET_TYPES[channel.id] = "director"
         save_ticket_state()
 
-        await channel.edit(name=new_name)
+        _ = await channel.edit(name=new_name)
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
         if director_role:
-            await channel.send(director_role.mention)
+            _ = await channel.send(director_role.mention)
 
-        await ctx.send(
+        _ = await ctx.send(
+           f"{CONTESTED_EMOJI_ID} **Successfully escalated ticket!**\n"
             "Ticket has been escalated to Directors."
         )
 
