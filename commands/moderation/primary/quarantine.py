@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -10,10 +8,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from ._base import (
-        ModerationBase,
-        QuarantineFlags,
-    )
+    from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
 
@@ -26,8 +21,6 @@ from core.permissions import is_director
 from constants import (
     BOT_OWNER_ID,
     COLOR_RED,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -153,130 +146,3 @@ async def run_quarantine(
             base.save_data()
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .quarantine Logic
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def run_quarantine_prefix(
-    base:   "ModerationBase",
-    ctx:    commands.Context[commands.Bot],
-    member: discord.Member,
-    flags:  QuarantineFlags,
-) -> None:
-    actor = ctx.author
-    if not isinstance(actor, discord.Member):
-        return
-
-    if not base.can_quarantine(actor):
-        await base.send_prefix_denied(
-            ctx,
-            "Failed to quarantine member",
-            "You lack the necessary permissions to add members to quarantine.",
-            "No permissions."
-        )
-        return
-
-    if not flags.r:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
-            f"Please provide a reason for the quarantine."
-        )
-        return
-
-    reason = flags.r
-
-    if member.id == actor.id:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
-            f"You cannot quarantine yourself."
-        )
-        return
-
-    if not base.check_hierarchy(actor, member):
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
-            f"You cannot quarantine members with a role ≥ to yours."
-        )
-        return
-
-    quarantined = base.ensure_data_section("quarantined")
-
-    if str(member.id) in quarantined:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
-            f"{member.mention} is already quarantined."
-        )
-        return
-
-    guild = ctx.guild
-    if not guild:
-        return
-
-    if not is_director(actor):
-        can_proceed, error_msg = base.check_rate_limit(str(actor.id), "quarantine")
-        if not can_proceed:
-            _ = await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to quarantine member!**\n"
-                f"Rate limit exceeded. {error_msg}.\n"
-                f"-# Continuing to exceed rate limits will result in your own quarantine."
-            )
-            await base.auto_quarantine_moderator(actor, guild)
-            return
-
-        base.add_rate_limit_entry(str(actor.id), "quarantine")
-
-    quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
-    if not quarantine_role:
-        return
-
-    saved_roles = [
-        role.id for role in member.roles
-        if role.id not in (guild.default_role.id, base.QUARANTINE_ROLE_ID)
-    ]
-
-    quarantined[str(member.id)] = {
-        "roles":          saved_roles,
-        "quarantined_at": datetime.now().isoformat(),
-        "quarantined_by": actor.id,
-        "reason":         reason
-    }
-    base.save_data()
-
-    try:
-        roles_to_remove = [role for role in member.roles if role.id != guild.default_role.id]
-        await member.remove_roles(*roles_to_remove, reason=f"Quarantined by {actor}")
-        await member.add_roles(quarantine_role, reason=f"Quarantined by {actor}: {reason}")
-
-        _ = await base.cases_manager.log_case(
-            guild       = guild,
-            case_type   = CaseType.QUARANTINE_ADD,
-            moderator   = actor,
-            reason      = reason,
-            target_user = member,
-            metadata    = {"roles_saved": len(saved_roles)}
-        )
-
-        if flags.s:
-            await ctx.message.delete()
-            return
-
-        embed = discord.Embed(
-            title     = "Member Quarantined",
-            color     = COLOR_RED,
-            timestamp = datetime.now()
-        )
-        _ = embed.add_field(name="Member",      value=member.mention,        inline=True)
-        _ = embed.add_field(name="Moderator",   value=actor.mention,         inline=True)
-        _ = embed.add_field(name="Roles Saved", value=str(len(saved_roles)), inline=True)
-        _ = embed.add_field(name="Reason",      value=reason,                inline=False)
-
-        await base.send_prefix_temp_embed(ctx, embed)
-
-    except discord.Forbidden:
-        _ = await ctx.send(
-            f"{DENIED_EMOJI_ID} **Failed to quarantine member!**\n"
-            f"I lack the necessary permissions to run this command.\n"
-            f"-# Contact the owner."
-        )
-        if str(member.id) in quarantined:
-            del quarantined[str(member.id)]
-            base.save_data()

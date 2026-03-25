@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -67,56 +65,3 @@ async def run_quarantines(
     await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .quarantines Logic
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def run_quarantines_prefix(
-    base : "ModerationBase",
-    ctx  : commands.Context[commands.Bot],
-) -> None:
-    actor = ctx.author
-    if not isinstance(actor, discord.Member):
-        return
-
-    if not base.can_view_moderation(actor):
-        await base.send_prefix_denied(
-            ctx,
-            "Failed to retrieve quarantine list",
-            "You lack the necessary permissions to view quarantined members.",
-            "No permissions."
-        )
-        return
-
-    if not base.data.get("quarantined"):
-        embed = discord.Embed(
-            description = "No members are currently quarantined.",
-            color       = COLOR_GREEN
-        )
-        await ctx.send(embed=embed)
-        return
-
-    guild = ctx.guild
-    if not guild:
-        return
-
-    fields: list[tuple[str, str]] = []
-    for user_id, entry in base.data["quarantined"].items():
-        target         = guild.get_member(int(user_id))
-        member_name    = target.mention if target else f"Unknown User ({user_id})"
-        quarantined_at = datetime.fromisoformat(entry["quarantined_at"])
-        fields.append((
-            member_name,
-            f"Quarantined: {discord.utils.format_dt(quarantined_at, 'R')}\n"
-            f"Saved roles: {len(entry['roles'])}"
-        ))
-
-    msg = await ctx.send(embed=discord.Embed(description="Loading...", color=COLOR_ORANGE))
-    view = ModerationListPaginator(
-        ctx,
-        "Quarantined Members",
-        COLOR_ORANGE,
-        fields,
-        delete_delay    = 10,
-        delete_callback = msg.delete,
-    )
-    await msg.edit(embed=view.get_embed(), view=view)

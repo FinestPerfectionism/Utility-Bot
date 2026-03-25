@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -22,8 +20,6 @@ from core.utils import (
 
 from constants import (
     COLOR_GREEN,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -92,79 +88,3 @@ async def run_untimeout(
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .un-timeout Logic
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def run_untimeout_prefix(
-    base:   "ModerationBase",
-    ctx:    commands.Context[commands.Bot],
-    member: discord.Member,
-    flags:  UntimeoutFlags,
-) -> None:
-    actor = ctx.author
-    if not isinstance(actor, discord.Member):
-        return
-
-    if not base.can_untimeout(actor):
-        await base.send_prefix_denied(
-            ctx,
-            "Failed to remove timeout",
-            "You lack the necessary permissions to remove timeouts."
-        )
-        return
-
-    if not flags.r:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
-            f"Please provide a reason."
-        )
-        return
-
-    reason = flags.r
-
-    if not member.is_timed_out():
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to remove timeout!**\n"
-            f"{member.mention} is not currently timed out."
-        )
-        return
-
-    guild = ctx.guild
-    if not guild:
-        return
-
-    try:
-        await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
-
-        if "timeouts" in base.data and str(member.id) in base.data["timeouts"]:
-            del base.data["timeouts"][str(member.id)]
-            base.save_data()
-
-        _ = await base.cases_manager.log_case(
-            guild       = guild,
-            case_type   = CaseType.UNTIMEOUT,
-            moderator   = actor,
-            reason      = reason,
-            target_user = member
-        )
-
-        if flags.s:
-            _ = await ctx.message.delete()
-            return
-
-        embed = discord.Embed(
-            title     = "Timeout Removed",
-            color     = COLOR_GREEN,
-            timestamp = datetime.now()
-        )
-        _ = embed.add_field(name="Member",   value=member.mention, inline=True)
-        _ = embed.add_field(name="Senior Moderator", value=actor.mention,  inline=True)
-        _ = embed.add_field(name="Reason",   value=reason,         inline=False)
-        await base.send_prefix_temp_embed(ctx, embed)
-
-    except discord.Forbidden:
-        _ = await ctx.send(
-            f"{DENIED_EMOJI_ID} **Failed to remove timeout!**\n"
-            f"I lack the necessary permissions to remove timeouts.\n"
-            f"-# Contact the owner."
-        )

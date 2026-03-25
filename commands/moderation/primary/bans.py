@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -15,7 +13,6 @@ from core.utils import send_major_error
 from constants import (
     COLOR_GREEN,
     COLOR_BLACK,
-    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -81,68 +78,3 @@ async def run_bans(
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .bans Logic
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def run_bans_prefix(
-    base: "ModerationBase",
-    ctx:  commands.Context[commands.Bot],
-) -> None:
-    actor = ctx.author
-    if not isinstance(actor, discord.Member):
-        return
-
-    if not base.can_view_moderation(actor):
-        await base.send_prefix_denied(
-            ctx,
-            "Failed to retrieve ban list",
-            "You lack the necessary permissions to view bans."
-        )
-        return
-
-    guild = ctx.guild
-    if not guild:
-        return
-
-    try:
-        bans = [entry async for entry in guild.bans(limit=None)]
-
-        if not bans:
-            embed = discord.Embed(
-                description = "No members are currently banned.",
-                color       = COLOR_GREEN
-            )
-            _ = await ctx.send(embed=embed)
-            return
-
-        fields: list[tuple[str, str]] = []
-        for ban_entry in bans:
-            user     = ban_entry.user
-            ban_data = base.data.get("bans", {}).get(str(user.id))
-
-            if ban_data:
-                banned_at = datetime.fromisoformat(ban_data["banned_at"])
-                reason    = ban_data["reason"]
-                value     = f"Banned: {discord.utils.format_dt(banned_at, 'R')}\nReason: {reason}"
-            else:
-                value = f"Reason: {ban_entry.reason}"
-
-            fields.append((f"{user} ({user.id})", value))
-
-        msg = await ctx.send(embed=discord.Embed(description="Loading...", color=COLOR_BLACK))
-        view = ModerationListPaginator(
-            ctx,
-            "Banned Members",
-            COLOR_BLACK,
-            fields,
-            delete_delay    = 10,
-            delete_callback = msg.delete,
-        )
-        _ = await msg.edit(embed=view.get_embed(), view=view)
-
-    except discord.Forbidden:
-        _ = await ctx.send(
-            f"{DENIED_EMOJI_ID} **Failed to retrieve ban list!**\n"
-            f"I lack the necessary permissions to view bans.\n"
-            f"-# Contact the owner."
-        )

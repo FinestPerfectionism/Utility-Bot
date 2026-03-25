@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 import contextlib
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -23,8 +21,6 @@ from core.utils import (
 
 from constants import (
     COLOR_GREEN,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -121,110 +117,3 @@ async def run_unban(
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .un-ban Logic
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def run_unban_prefix(
-    base:  "ModerationBase",
-    ctx:   commands.Context[commands.Bot],
-    user:  str,
-    flags: UnbanFlags,
-) -> None:
-    actor = ctx.author
-    if not isinstance(actor, discord.Member):
-        return
-
-    if not base.can_reverse_actions(actor):
-        await base.send_prefix_denied(
-            ctx,
-            "Failed to unban user",
-            "You lack the necessary permissions to unban members."
-        )
-        return
-
-    if not flags.r:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
-            f"Please provide a reason for the unban."
-        )
-        return
-
-    reason = flags.r
-
-    guild = ctx.guild
-    if not guild:
-        return
-
-    user_to_unban: discord.User | None = None
-
-    if user.isdigit():
-        with contextlib.suppress(discord.NotFound):
-            user_to_unban = await base.bot.fetch_user(int(user))
-
-    if not user_to_unban:
-        try:
-            bans = [entry async for entry in guild.bans(limit=None)]
-            for ban_entry in bans:
-                if (
-                    str(ban_entry.user.id) == user or
-                    str(ban_entry.user) == user or
-                    ban_entry.user.name == user
-                ):
-                    user_to_unban = ban_entry.user
-                    break
-        except discord.Forbidden:
-            _ = await ctx.send(
-                f"{DENIED_EMOJI_ID} **Failed to unban user!**\n"
-                f"I lack the necessary permissions to view bans.\n"
-                f"-# Contact the owner."
-            )
-            return
-
-    if not user_to_unban:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
-            f"Could not find a banned user matching `{user}`."
-        )
-        return
-
-    try:
-        await guild.unban(user_to_unban, reason=f"Unbanned by {actor}: {reason}")
-
-        if "bans" in base.data and str(user_to_unban.id) in base.data["bans"]:
-            del base.data["bans"][str(user_to_unban.id)]
-            base.save_data()
-
-        _ = await base.cases_manager.log_case(
-            guild       = guild,
-            case_type   = CaseType.UNBAN,
-            moderator   = actor,
-            reason      = reason,
-            target_user = user_to_unban
-        )
-
-        if flags.s:
-            await ctx.message.delete()
-            return
-
-        embed = discord.Embed(
-            title="User Unbanned",
-            color=COLOR_GREEN,
-            timestamp=datetime.now()
-        )
-        _ = embed.add_field(name="User",     value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
-        _ = embed.add_field(name="Director", value=actor.mention,                                   inline=True)
-        _ = embed.add_field(name="Reason",   value=reason,                                          inline=False)
-
-        await base.send_prefix_temp_embed(ctx, embed)
-
-    except discord.NotFound:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to unban user!**\n"
-            f"{user_to_unban.mention} is not currently banned."
-        )
-    except discord.Forbidden:
-        _ = await ctx.send(
-            f"{DENIED_EMOJI_ID} **Failed to unban user!**\n"
-            f"I lack the necessary permissions to unban members.\n"
-            f"-# Contact the owner."
-        )
