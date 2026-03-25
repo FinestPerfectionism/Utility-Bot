@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 import contextlib
 from datetime import datetime, timezone
 from typing import (
@@ -11,10 +9,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from ._base import (
-        ModerationBase,
-        PurgeFlags
-    )
+    from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
 
@@ -25,8 +20,6 @@ from core.utils import (
 
 from constants import (
     COLOR_BLURPLE,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -154,99 +147,3 @@ async def run_purge(
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .purge Logic
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def run_purge_prefix(
-    base:   "ModerationBase",
-    ctx:    commands.Context[commands.Bot],
-    amount: int,
-    flags:  PurgeFlags,
-) -> None:
-    actor = ctx.author
-    if not isinstance(actor, discord.Member):
-        return
-
-    if not base.can_apply_standard_actions(actor):
-        await base.send_prefix_denied(
-            ctx,
-            "Failed to purge messages",
-            "You lack the necessary permissions to purge messages."
-        )
-        return
-
-    if amount < 1 or amount > 100:
-        _ = ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
-            f"Amount must be between 1 and 100."
-        )
-        return
-
-    channel = _get_purgeable_channel(ctx.channel)
-    if channel is None:
-        _ = ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
-            f"This command cannot be used in this channel type."
-        )
-        return
-
-    guild = ctx.guild
-    if not guild:
-        return
-
-    member = flags.u
-    if not flags.r:
-        _ = ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to purge messages!**\n"
-            f"Please provide a reason for the purge."
-        )
-        return
-
-    member = flags.u
-    reason = flags.r
-
-    try:
-        if member:
-            target_id = member.id
-            cutoff    = datetime.now(tz=timezone.utc)
-            deleted   = await channel.purge(
-                limit  = amount,
-                check  = lambda m: (
-                    m.author.id == target_id
-                    and (cutoff - m.created_at).days < 14
-                ),
-                before = ctx.message,
-                bulk   = True
-            )
-        else:
-            deleted = await channel.purge(limit=amount, before=ctx.message, bulk=True)
-
-        with contextlib.suppress(discord.NotFound):
-            _ = ctx.message.delete()
-
-        metadata: dict[str, Any] = {
-            "deleted_messages" : len(deleted),
-            "channel_id"       :  channel.id
-        }
-
-        _ = await base.cases_manager.log_case(
-            guild       = guild,
-            case_type   = CaseType.PURGE,
-            moderator   = actor,
-            reason      = reason,
-            target_user = member if member else None,
-            metadata    = metadata
-        )
-
-        if flags.s:
-            return
-
-        embed = _build_purge_embed(len(deleted), actor, member)
-        await base.send_prefix_temp_embed(ctx, embed)
-
-    except discord.Forbidden:
-        _ = ctx.send(
-            f"{DENIED_EMOJI_ID} **Failed to purge messages!**\n"
-            f"I lack the necessary permissions to delete messages.\n"
-            f"-# Contact the owner."
-        )

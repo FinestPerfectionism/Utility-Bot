@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-
 import asyncio
 import contextlib
 import json
@@ -41,54 +40,13 @@ from constants import (
     MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
     JUNIOR_MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
-    DENIED_EMOJI_ID,
 )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Flag Converters
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-class BaseModFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    r: str = commands.flag(
-        name    = "r",
-        aliases = ["reason"]
-    )
-    s: bool = commands.flag(
-        name     = "s",
-        aliases  = ["silent", "suppress", "shush"],
-        default  = False,
-        max_args = 0
-    )
-
-class BanFlags(BaseModFlags):
-    d: int = commands.flag(name="d", aliases=["delete", "days"], default=7)
-
-class UnbanFlags(BaseModFlags):
-    pass
-
-class QuarantineFlags(BaseModFlags):
-    pass
-
-class UnquarantineFlags(BaseModFlags):
-    pass
-
-class KickFlags(BaseModFlags):
-    pass
-
-class TimeoutFlags(BaseModFlags):
-    d: str | None = commands.flag(name="d", aliases=["duration"], default=None)
-
-class UntimeoutFlags(BaseModFlags):
-    pass
-
-class PurgeFlags(BaseModFlags):
-    u: discord.Member | None = commands.flag(name="u", aliases=["user"], default=None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation List Paginator
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-_Context = discord.Interaction | commands.Context[commands.Bot]
+_Context = discord.Interaction
 
 class ModerationListPaginator(discord.ui.View):
     def __init__(
@@ -159,9 +117,7 @@ class ModerationListPaginator(discord.ui.View):
         return embed
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if isinstance(self.context, discord.Interaction):
-            return interaction.user == self.context.user
-        return interaction.user == self.context.author
+        return interaction.user == self.context.user
 
     @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
     async def first_page(
@@ -453,32 +409,6 @@ class ModerationBase(commands.Cog):
             return False, "Target user is greater than or equal to your highest role."
 
         return True, ""
-
-    async def send_prefix_denied(
-        self,
-        ctx: commands.Context[commands.Bot],
-        failure_text: str,
-        detail_text: str,
-        subtitle: str = "Invalid permissions.",
-    ) -> None:
-        _ = await ctx.send(
-            f"{DENIED_EMOJI_ID} **{failure_text}!**\n"
-            f"{detail_text}\n"
-            f"-# {subtitle}"
-        )
-
-    async def send_prefix_temp_embed(
-        self,
-        ctx: commands.Context[commands.Bot],
-        embed: discord.Embed,
-        *,
-        delete_after: float = 10,
-    ) -> None:
-        msg = await ctx.send(embed=embed)
-        await asyncio.sleep(delete_after)
-        with contextlib.suppress(discord.NotFound):
-            await msg.delete()
-
     async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild) -> None:
         if not guild or not self.bot.user:
             return

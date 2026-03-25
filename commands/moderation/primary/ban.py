@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -10,10 +8,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    from ._base import (
-        ModerationBase,
-        BanFlags
-    )
+    from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
 
@@ -25,8 +20,6 @@ from core.permissions import is_director
 
 from constants import (
     COLOR_RED,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -140,110 +133,3 @@ async def run_ban(
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .ban Logic
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-async def run_ban_prefix(
-    base    : ModerationBase,
-    ctx     : commands.Context[commands.Bot],
-    member  : discord.Member,
-    flags   : BanFlags,
-) -> None:
-    actor = ctx.author
-    if not isinstance(actor, discord.Member):
-        return
-
-    if not base.can_apply_standard_actions(actor):
-        await base.send_prefix_denied(
-            ctx,
-            "Failed to ban member",
-            "You lack the necessary permissions to ban members."
-        )
-        return
-
-    if not flags.r:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-            f"Please provide a reason for the ban."
-        )
-        return
-
-    reason          = flags.r
-    delete_messages = max(0, min(7, flags.d))
-
-    if member.id == actor.id:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-            f"You cannot ban yourself."
-        )
-        return
-
-    can_moderate, error_msg = base.check_can_moderate_target(actor, member)
-    if not can_moderate:
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-            f"{error_msg}"
-        )
-        return
-
-    guild = ctx.guild
-    if not guild:
-        return
-
-    if not is_director(actor):
-        can_proceed, error_msg = base.check_rate_limit(str(actor.id), "ban")
-        if not can_proceed:
-            _ = await ctx.send(
-                f"{CONTESTED_EMOJI_ID} **Failed to ban member!**\n"
-                f"Rate limit exceeded. {error_msg}.\n"
-                f"-# Continuing to exceed rate limits will result in your own quarantine."
-            )
-            await base.auto_quarantine_moderator(actor, guild)
-            return
-
-        base.add_rate_limit_entry(str(actor.id), "ban")
-
-    try:
-        await member.ban(
-            reason                 = f"Banned by {actor}: {reason}",
-            delete_message_seconds = delete_messages * 86400
-        )
-
-        bans = base.ensure_data_section("bans")
-        bans[str(member.id)] = {
-            "banned_at" : datetime.now().isoformat(),
-            "banned_by" : actor.id,
-            "reason"    : reason
-        }
-        base.save_data()
-
-        _ = await base.cases_manager.log_case(
-            guild       = guild,
-            case_type   = CaseType.BAN,
-            moderator   = actor,
-            reason      = reason,
-            target_user = member,
-            metadata    = {"delete_message_days": delete_messages}
-        )
-
-        if flags.s:
-            await ctx.message.delete()
-            return
-
-        embed = discord.Embed(
-            title     = "Member Banned",
-            color     = COLOR_RED,
-            timestamp = datetime.now()
-        )
-        _ = embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
-        _ = embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
-        _ = embed.add_field(name="Reason",    value=reason,                            inline=False)
-
-        await base.send_prefix_temp_embed(ctx, embed)
-
-    except discord.Forbidden:
-        _ = await ctx.send(
-            f"{DENIED_EMOJI_ID} **Failed to ban member!**\n"
-             "I lack the necessary permissions to ban members.\n"
-             "-# Contact the owner."
-        )
