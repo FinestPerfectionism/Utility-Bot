@@ -63,14 +63,14 @@ async def _run_help(
             _ = await ctx_or_inter.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to parse help data!**\n"
                 "Cannot resolve guild member context.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
         member  = ctx_or_inter.user
         respond = ctx_or_inter.response.send_message
 
     if not command_name:
-        _ = await respond(view=_build_info_view(), allowed_mentions=_NO_PING)
+        _ = await respond(view = _build_info_view(), allowed_mentions=_NO_PING)
         return
 
     parts    = command_name.strip().lstrip("/").split()
@@ -89,7 +89,7 @@ async def _run_help(
         data=data,
         member=member,
     )
-    _ = await respond(view=view)
+    _ = await respond(view = view)
 
 
 class HelpCommands(commands.Cog):

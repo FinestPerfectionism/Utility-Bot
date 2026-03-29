@@ -17,7 +17,7 @@ async def cog_autocomplete(
     return [
         app_commands.Choice(
             name=cog,
-            value=cog
+            value = cog
         )
         for cog in get_cogs()
         if current.lower() in cog.lower()

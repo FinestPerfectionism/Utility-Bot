@@ -25,25 +25,25 @@ class MemberEditCog(AuditCog):
             embed = discord.Embed(
                 title="Nickname Changed",
                 color=COLOR_BLURPLE,
-                timestamp=datetime.now(UTC)
+                timestamp = datetime.now(UTC)
             )
 
             embed.add_field(
                 name="Member",
-                value=f"`{after}`\n`{after.id}`",
-                inline=False
+                value = f"`{after}`\n`{after.id}`",
+                inline = False
             )
             embed.add_field(
                 name="Nickname Changed",
-                value=f"**Before:** `{before.nick or 'None'}`\n**After:** `{after.nick or 'None'}`",
-                inline=False
+                value = f"**Before:** `{before.nick or 'None'}`\n**After:** `{after.nick or 'None'}`",
+                inline = False
             )
 
             if executor:
                 embed.add_field(
                     name="Changed By",
-                    value=f"`{executor}`\n`{executor.id}`",
-                    inline=False
+                    value = f"`{executor}`\n`{executor.id}`",
+                    inline = False
                 )
 
             await self._enqueue(log_channel, embed)
@@ -67,28 +67,28 @@ class MemberEditCog(AuditCog):
             embed = discord.Embed(
                 title="Member Roles Changed",
                 color=COLOR_BLURPLE,
-                timestamp=datetime.now(UTC)
+                timestamp = datetime.now(UTC)
             )
 
             embed.add_field(
                 name="Member",
-                value=f"`{after}`\n`{after.id}`",
-                inline=False
+                value = f"`{after}`\n`{after.id}`",
+                inline = False
             )
 
             if added_roles:
                 role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in added_roles])
-                embed.add_field(name="Roles Added", value=role_list, inline=False)
+                embed.add_field(name="Roles Added", value = role_list, inline = False)
 
             if removed_roles:
                 role_list = "\n".join([f"`{role.name}`\n`{role.id}`" for role in removed_roles])
-                embed.add_field(name="Roles Removed", value=role_list, inline=False)
+                embed.add_field(name="Roles Removed", value = role_list, inline = False)
 
             if executor:
                 embed.add_field(
                     name="Changed By",
-                    value=f"`{executor}`\n`{executor.id}`",
-                    inline=False
+                    value = f"`{executor}`\n`{executor.id}`",
+                    inline = False
                 )
 
             await self._enqueue(log_channel, embed)

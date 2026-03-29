@@ -145,8 +145,8 @@ class MinorError(discord.ui.LayoutView):
             if i > 0:
                 container.add_item(
                     discord.ui.Separator(
-                        visible=True,
-                        spacing=discord.SeparatorSpacing.small
+                        visible = True,
+                        spacing = discord.SeparatorSpacing.small
                     )
                 )
             container.add_item(discord.ui.TextDisplay(content=text))
@@ -175,8 +175,8 @@ class MajorError(discord.ui.LayoutView):
             if i > 0:
                 container.add_item(
                     discord.ui.Separator(
-                        visible=True,
-                        spacing=discord.SeparatorSpacing.small
+                        visible = True,
+                        spacing = discord.SeparatorSpacing.small
                     )
                 )
             container.add_item(discord.ui.TextDisplay(content=text))
@@ -197,14 +197,14 @@ async def send_minor_error(
     if interaction.response.is_done():
         await interaction.followup.send(
             content=" ",
-            view=view,
-            ephemeral=True,
+            view = view,
+            ephemeral = True,
         )
     else:
         await interaction.response.send_message(
             content=" ",
-            view=view,
-            ephemeral=True,
+            view = view,
+            ephemeral = True,
         )
 
 async def send_major_error(
@@ -221,14 +221,14 @@ async def send_major_error(
     if interaction.response.is_done():
         await interaction.followup.send(
             content=" ",
-            view=view,
-            ephemeral=True,
+            view = view,
+            ephemeral = True,
         )
     else:
         await interaction.response.send_message(
             content=" ",
-            view=view,
-            ephemeral=True,
+            view = view,
+            ephemeral = True,
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

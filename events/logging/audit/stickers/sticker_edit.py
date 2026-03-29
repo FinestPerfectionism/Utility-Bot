@@ -37,35 +37,35 @@ class StickerEditCog(AuditCog):
         embed = discord.Embed(
             title="Sticker Edited",
             color=COLOR_BLURPLE,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         for before_sticker, after_sticker in edited:
             embed.add_field(
                 name="Sticker",
-                value=f"`{after_sticker.id}`",
-                inline=False
+                value = f"`{after_sticker.id}`",
+                inline = False
             )
 
             if before_sticker.name != after_sticker.name:
                 embed.add_field(
                     name="Name Changed",
-                    value=f"**Before:** `{before_sticker.name}`\n**After:** `{after_sticker.name}`",
-                    inline=False
+                    value = f"**Before:** `{before_sticker.name}`\n**After:** `{after_sticker.name}`",
+                    inline = False
                 )
 
             if before_sticker.description != after_sticker.description:
                 embed.add_field(
                     name="Description Changed",
-                    value=f"**Before:** `{before_sticker.description or 'None'}`\n**After:** `{after_sticker.description or 'None'}`",
-                    inline=False
+                    value = f"**Before:** `{before_sticker.description or 'None'}`\n**After:** `{after_sticker.description or 'None'}`",
+                    inline = False
                 )
 
         if executor:
             embed.add_field(
                 name="Edited By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

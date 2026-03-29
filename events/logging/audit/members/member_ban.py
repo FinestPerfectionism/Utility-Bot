@@ -24,20 +24,20 @@ class MemberBanCog(AuditCog):
         embed = discord.Embed(
             title="Member Banned",
             color=COLOR_RED,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         embed.add_field(
             name="User",
-            value=f"`{user}`\n`{user.id}`",
-            inline=True
+            value = f"`{user}`\n`{user.id}`",
+            inline = True
         )
 
         if executor:
             embed.add_field(
                 name="Banned By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

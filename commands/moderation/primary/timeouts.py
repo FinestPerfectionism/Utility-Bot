@@ -40,7 +40,7 @@ async def run_timeouts(
     if not guild:
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     timed_out_members = [m for m in guild.members if m.is_timed_out()]
 
@@ -49,7 +49,7 @@ async def run_timeouts(
             description = "No members are currently timed out.",
             color       = COLOR_GREEN
         )
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
         return
 
     fields: list[tuple[str, str]] = []
@@ -72,6 +72,4 @@ async def run_timeouts(
         fields.append((f"{member} ({member.id})", value))
 
     view = ModerationListPaginator(interaction, "Timed Out Members", COLOR_YELLOW, fields)
-    await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)

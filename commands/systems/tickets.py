@@ -62,11 +62,11 @@ class TicketsCommands(
         action=[
             app_commands.Choice(
                 name="Add",
-                value="add"
+                value = "add"
             ),
             app_commands.Choice(
                 name="Remove",
-                value="remove"
+                value = "remove"
             )
         ]
     )
@@ -121,7 +121,7 @@ class TicketsCommands(
 
             _ = await interaction.response.send_message(
                 f"{user.mention} has been blacklisted from Tickets.",
-                ephemeral=True
+                ephemeral = True
             )
 
         else:
@@ -137,7 +137,7 @@ class TicketsCommands(
 
             _ = await interaction.response.send_message(
                 f"{user.mention} has been removed from the Tickets blacklist.",
-                ephemeral=True
+                ephemeral = True
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

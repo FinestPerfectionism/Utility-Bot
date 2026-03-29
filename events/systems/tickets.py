@@ -81,7 +81,7 @@ async def _run_resolution_checks(
 
         await channel.send(
             f"<@{user_id}>, has your issue been resolved?",
-            view=ResolutionView(),
+            view = ResolutionView(),
         )
 
         interval_minutes *= 2
@@ -121,7 +121,7 @@ def start_resolution_task(
 
 class ResolutionView(discord.ui.View):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
     @discord.ui.button(
         label="Yes",
@@ -145,7 +145,7 @@ class ResolutionView(discord.ui.View):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to respond to resolution check!**"
                 "Only the ticket opener can respond to this.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -176,14 +176,14 @@ class ResolutionView(discord.ui.View):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to respond to resolution check!**"
                 "Only the ticket opener can respond to this.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
         await interaction.response.send_message(
            f"{ACCEPTED_EMOJI_ID} **Understood.**"
             "Understood! We'll check back in with you later.",
-            ephemeral=True,
+            ephemeral = True,
         )
 
 
@@ -213,7 +213,7 @@ class AddMemberModal(discord.ui.Modal, title="Add Member to Ticket"):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!**"
                 "Invalid user ID.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -227,7 +227,7 @@ class AddMemberModal(discord.ui.Modal, title="Add Member to Ticket"):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!"
                 "User not found in this server.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -235,7 +235,7 @@ class AddMemberModal(discord.ui.Modal, title="Add Member to Ticket"):
         await interaction.response.send_message(
             f"{ACCEPTED_EMOJI_ID} **Successfully added member to ticket.**"
             f"Added {member.mention} to the ticket.",
-            ephemeral=True,
+            ephemeral = True,
         )
 
 
@@ -245,7 +245,7 @@ class AddMemberModal(discord.ui.Modal, title="Add Member to Ticket"):
 
 class TicketControlPanel(discord.ui.LayoutView):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
         for item in self.walk_children():
             if not isinstance(item, discord.ui.Button):
                 continue
@@ -307,7 +307,7 @@ class TicketControlPanel(discord.ui.LayoutView):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**"
                 "Only the ticket opener or a moderator can archive this ticket.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -326,7 +326,7 @@ class TicketControlPanel(discord.ui.LayoutView):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to lock ticket!**"
                 "Only moderators can lock this ticket.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -344,7 +344,7 @@ class TicketControlPanel(discord.ui.LayoutView):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to close ticket!**"
                 "Only moderators can close this ticket.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -362,7 +362,7 @@ class TicketControlPanel(discord.ui.LayoutView):
             await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!**"
                 "Only moderators can add members to tickets.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -378,7 +378,7 @@ class TicketControlPanel(discord.ui.LayoutView):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**"
                 "Only moderators can claim tickets.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -389,7 +389,7 @@ class TicketControlPanel(discord.ui.LayoutView):
             await interaction.response.send_message(
                f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**"
                 "You have already claimed this ticket.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -407,7 +407,7 @@ class TicketControlPanel(discord.ui.LayoutView):
 
 class TicketComponents(discord.ui.LayoutView):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
         for item in self.walk_children():
             if isinstance(item, discord.ui.Select) and item.custom_id == "ticket:select":
                 item.callback = self.open_ticket
@@ -424,14 +424,14 @@ class TicketComponents(discord.ui.LayoutView):
                 "**Note:** You may run `.archive` to close your ticket."
             )
         ),
-        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large), # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=(
                 "We look forward to assisting you! Sincerely,\n"
                 "-# The Goobers Moderator team."
             )
         ),
-        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large), # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.ActionRow( # type: ignore
             discord.ui.Select(
                 placeholder="Select ticket type...",
@@ -439,12 +439,12 @@ class TicketComponents(discord.ui.LayoutView):
                 options=[
                     discord.SelectOption(
                         label="Contact Moderators",
-                        value="moderator",
+                        value = "moderator",
                         description="Open a ticket with moderators for issues or questions.",
                     ),
                     discord.SelectOption(
                         label="Contact Directors",
-                        value="director",
+                        value = "director",
                         description="Open a ticket with Directors for staff issues.",
                     ),
                 ],
@@ -466,7 +466,7 @@ class TicketComponents(discord.ui.LayoutView):
             await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
                 "Tickets can only be opened in text channels.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -476,7 +476,7 @@ class TicketComponents(discord.ui.LayoutView):
             await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **You have been blacklisted from opening tickets!**\n"
                 "You are blacklisted from opening tickets. Contact a Director.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -491,14 +491,14 @@ class TicketComponents(discord.ui.LayoutView):
                 await interaction.response.send_message(
                    f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
                     "Directors may not open tickets of any type.",
-                    ephemeral=True,
+                    ephemeral = True,
                 )
                 return
             if STAFF_ROLE_ID in role_ids and ticket_type == "moderator":
                 await interaction.response.send_message(
                    f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
                     "Staff members may only open director tickets.",
-                    ephemeral=True,
+                    ephemeral = True,
                 )
                 return
 
@@ -507,7 +507,7 @@ class TicketComponents(discord.ui.LayoutView):
             await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
                 f"You already have an open ticket: <#{existing_thread_id}>",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -532,7 +532,7 @@ class TicketComponents(discord.ui.LayoutView):
         if role:
             await thread.send(role.mention)
 
-        await thread.send(view=TicketControlPanel())
+        await thread.send(view = TicketControlPanel())
 
         bot = _bot_ref
         if bot is not None:
@@ -550,7 +550,7 @@ class TicketComponents(discord.ui.LayoutView):
         await interaction.response.send_message(
             f"{ACCEPTED_EMOJI_ID} **Successfully opened ticket!**\n"
             f"Ticket created: {thread.mention}",
-            ephemeral=True,
+            ephemeral = True,
         )
 
 

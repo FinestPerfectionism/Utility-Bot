@@ -40,7 +40,7 @@ async def run_leave_remove(
         )
         return
 
-    await interaction.response.defer(ephemeral=True)
+    await interaction.response.defer(ephemeral = True)
 
     invocator = interaction.user
     if not isinstance(invocator, discord.Member):
@@ -106,7 +106,7 @@ async def run_leave_remove(
             "Confirming will cancel this scheduled leave before it applies."
         )
         view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
-        msg          = await interaction.followup.send(view=view, ephemeral=True)
+        msg          = await interaction.followup.send(view = view, ephemeral = True)
         view.message = msg
         await view.wait()
 
@@ -116,7 +116,7 @@ async def run_leave_remove(
         data.pop(str(target_member.id), None)
         save_data(data)
         who = "Your" if target_member.id == interaction.user.id else f"{target_member.mention}'s"
-        await interaction.followup.send(f"{who} scheduled leave has been cancelled.", ephemeral=True)
+        await interaction.followup.send(f"{who} scheduled leave has been cancelled.", ephemeral = True)
         return
 
     if not is_active:
@@ -133,7 +133,7 @@ async def run_leave_remove(
             "Running `/leave remove` now will override and clear that automation. Proceed?"
         )
         view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
-        msg          = await interaction.followup.send(view=view, ephemeral=True)
+        msg          = await interaction.followup.send(view = view, ephemeral = True)
         view.message = msg
         await view.wait()
 
@@ -233,9 +233,9 @@ async def run_leave_remove(
         )
     else:
         if target_member.id == interaction.user.id:
-            await interaction.followup.send("You have been removed from personal leave.", ephemeral=True)
+            await interaction.followup.send("You have been removed from personal leave.", ephemeral = True)
         else:
             await interaction.followup.send(
                 f"{target_member.mention} has been removed from personal leave.",
-                ephemeral=True
+                ephemeral = True
             )

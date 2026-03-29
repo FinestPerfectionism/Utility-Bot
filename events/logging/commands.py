@@ -35,20 +35,20 @@ class CommandLogger(commands.Cog):
         embed = discord.Embed(
             title="Application Command Executed",
             color=COLOR_BLURPLE,
-            timestamp=interaction.created_at,
+            timestamp = interaction.created_at,
         )
 
         embed.add_field(
             name="User",
-            value=f"`{interaction.user}`\n`{interaction.user.id}`",
-            inline=True,
+            value = f"`{interaction.user}`\n`{interaction.user.id}`",
+            inline = True,
         )
 
         if interaction.guild:
             embed.add_field(
                 name="Guild",
-                value=f"`{interaction.guild}`\n`{interaction.guild.id}`",
-                inline=True,
+                value = f"`{interaction.guild}`\n`{interaction.guild.id}`",
+                inline = True,
             )
 
         cmd = interaction.command
@@ -56,8 +56,8 @@ class CommandLogger(commands.Cog):
 
         embed.add_field(
             name="Command",
-            value=f"`{cmd_name}`",
-            inline=True,
+            value = f"`{cmd_name}`",
+            inline = True,
         )
 
         display_channel = "DM"
@@ -70,8 +70,8 @@ class CommandLogger(commands.Cog):
 
         embed.add_field(
             name="Channel",
-            value=display_channel,
-            inline=False,
+            value = display_channel,
+            inline = False,
         )
 
         await channel.send(embed=embed)
@@ -89,36 +89,36 @@ class CommandLogger(commands.Cog):
         embed = discord.Embed(
             title="Prefix Command Executed",
             color=COLOR_BLURPLE,
-            timestamp=ctx.message.created_at,
+            timestamp = ctx.message.created_at,
         )
 
         embed.add_field(
             name="User",
-            value=f"`{ctx.author}`\n`{ctx.author.id}`",
-            inline=True,
+            value = f"`{ctx.author}`\n`{ctx.author.id}`",
+            inline = True,
         )
 
         if ctx.guild:
             embed.add_field(
                 name="Guild",
-                value=f"`{ctx.guild}`\n`{ctx.guild.id}`",
-                inline=True,
+                value = f"`{ctx.guild}`\n`{ctx.guild.id}`",
+                inline = True,
             )
 
         embed.add_field(
             name="Command",
-            value=f"`.{ctx.command.qualified_name if ctx.command else 'Unknown'}`",
-            inline=True,
+            value = f"`.{ctx.command.qualified_name if ctx.command else 'Unknown'}`",
+            inline = True,
         )
 
         embed.add_field(
             name="Channel",
-            value=(
+            value = (
                 ctx.channel.mention
                 if isinstance(ctx.channel, (discord.TextChannel, discord.Thread))
                 else "DM"
             ),
-            inline=False,
+            inline = False,
         )
 
         await channel.send(embed=embed)

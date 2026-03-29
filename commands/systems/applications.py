@@ -60,11 +60,11 @@ class ApplicationsCommands(
         action=[
             app_commands.Choice(
                 name="Add",
-                value="add"
+                value = "add"
             ),
             app_commands.Choice(
                 name="Remove",
-                value="remove"
+                value = "remove"
             )
         ]
     )
@@ -119,7 +119,7 @@ class ApplicationsCommands(
 
             _ = await interaction.response.send_message(
                 f"{user.mention} has been blacklisted from Applications.",
-                ephemeral=True
+                ephemeral = True
             )
 
         else:
@@ -135,7 +135,7 @@ class ApplicationsCommands(
 
             _ = await interaction.response.send_message(
                 f"{user.mention} has been removed from the Applications blacklist.",
-                ephemeral=True
+                ephemeral = True
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -154,21 +154,21 @@ class ApplicationsCommands(
         application=[
             app_commands.Choice(
                 name="Moderators",
-                value="mod"
+                value = "mod"
             ),
             app_commands.Choice(
                 name="Administrators",
-                value="admin"
+                value = "admin"
             ),
         ],
         state=[
             app_commands.Choice(
                 name="Open",
-                value="open"
+                value = "open"
             ),
             app_commands.Choice(
                 name="Closed",
-                value="closed"
+                value = "closed"
             ),
         ],
     )
@@ -204,7 +204,7 @@ class ApplicationsCommands(
 
         await interaction.response.send_message(
             f"{application.name} applications have been {state.value}.",
-            ephemeral=True,
+            ephemeral = True,
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

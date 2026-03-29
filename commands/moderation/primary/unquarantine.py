@@ -63,7 +63,7 @@ async def run_unquarantine(
         await send_minor_error(interaction, f"{member.mention} is already not quarantined.")
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     quarantine_data           = base.data.get("quarantined", {}).get(str(member.id))
     saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
@@ -108,30 +108,28 @@ async def run_unquarantine(
         embed = discord.Embed(
             title="Member Unquarantined",
             color=COLOR_GREEN,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",        value=member.mention,         inline=True)
-        _ = embed.add_field(name="Director",      value=actor.mention,          inline=True)
-        _ = embed.add_field(name="Roles Restored", value=str(len(roles_to_add)), inline=True)
-        _ = embed.add_field(name="Reason",        value=reason,                 inline=False)
+        _ = embed.add_field(name="Member",        value = member.mention,         inline = True)
+        _ = embed.add_field(name="Director",      value = actor.mention,          inline = True)
+        _ = embed.add_field(name="Roles Restored", value = str(len(roles_to_add)), inline = True)
+        _ = embed.add_field(name="Reason",        value = reason,                 inline = False)
 
         if roles_not_found:
             _ = embed.add_field(
-                name=f"{CONTESTED_EMOJI_ID} Roles Not Found",
-                value=f"{len(roles_not_found)} role(s) no longer exist and could not be restored.",
-                inline=False
+                name   = f"{CONTESTED_EMOJI_ID} Roles Not Found",
+                value  = f"{len(roles_not_found)} role(s) no longer exist and could not be restored.",
+                inline = False
             )
 
         if proof:
             _ = embed.set_image(url=proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            "I lack the necessary permissions to run this command.",
-            subtitle="Invalid configuration. Contact the owner."
+            texts    = "I lack the necessary permissions to unquarantine this member.",
+            subtitle = "Invalid configuration. Contact the owner."
         )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

@@ -83,22 +83,22 @@ class MessageDeleteHandler(commands.Cog):
         embed = discord.Embed(
             title="Message Deleted",
             color=COLOR_RED,
-            timestamp=discord.utils.utcnow(),
+            timestamp = discord.utils.utcnow(),
         )
         embed.add_field(
             name="Author",
-            value=f"`{message.author}`\n`{message.author.id}`",
-            inline=True,
+            value = f"`{message.author}`\n`{message.author.id}`",
+            inline = True,
         )
         embed.add_field(
             name="Deleted By",
-            value=deleter,
-            inline=True,
+            value = deleter,
+            inline = True,
         )
         embed.add_field(
             name="Channel",
-            value=channel_display(message.channel),
-            inline=True,
+            value = channel_display(message.channel),
+            inline = True,
         )
 
         content = message.content or "[No content, likely an embed or attachment]"
@@ -106,13 +106,13 @@ class MessageDeleteHandler(commands.Cog):
 
         embed.add_field(
             name="Content",
-            value=display_content,
-            inline=True,
+            value = display_content,
+            inline = True,
         )
         embed.add_field(
             name="Attachments",
-            value=format_attachments(message.attachments),
-            inline=True,
+            value = format_attachments(message.attachments),
+            inline = True,
         )
 
         embed.set_footer(text="Please note that the \"Deleted By\" section guesses by checking the audit log, and may not always be accurate")

@@ -73,7 +73,7 @@ class PartnershipCommands(commands.Cog):
     ) -> list[app_commands.Choice[str]]:
         data = load_partnership_data()
         return [
-            app_commands.Choice(name=p["server_name"], value=p["server_name"])
+            app_commands.Choice(name=p["server_name"], value = p["server_name"])
             for p in data["partnerships"]
             if current.lower() in p["server_name"].lower()
         ][:25]
@@ -120,7 +120,7 @@ class PartnershipCommands(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral = True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -166,7 +166,7 @@ class PartnershipCommands(commands.Cog):
 
         await interaction.followup.send(
             f"Partnership with **{server_name}** has been added successfully. Updating the channel...",
-            ephemeral=True,
+            ephemeral = True,
         )
 
         try:
@@ -200,7 +200,7 @@ class PartnershipCommands(commands.Cog):
         interaction: discord.Interaction,
         server_name: str,
     ) -> None:
-        _ = await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -222,7 +222,7 @@ class PartnershipCommands(commands.Cog):
 
         await interaction.followup.send(
             f"Partnership with **{server_name}** has been removed. Updating the channel...",
-            ephemeral=True,
+            ephemeral = True,
         )
 
         try:
@@ -286,7 +286,7 @@ class PartnershipCommands(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral = True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -345,7 +345,7 @@ class PartnershipCommands(commands.Cog):
 
         await interaction.followup.send(
             f"Partnership with **{display_name}** has been updated. Updating the channel...",
-            ephemeral=True,
+            ephemeral = True,
         )
 
         try:

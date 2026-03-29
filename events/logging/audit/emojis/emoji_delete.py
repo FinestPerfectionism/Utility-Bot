@@ -32,21 +32,21 @@ class EmojiDeleteCog(AuditCog):
         embed = discord.Embed(
             title="Emoji Deleted",
             color=COLOR_RED,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         for emoji in removed:
             embed.add_field(
                 name="Emoji",
-                value=f"`{emoji.name}`\n`{emoji.id}`",
-                inline=True
+                value = f"`{emoji.name}`\n`{emoji.id}`",
+                inline = True
             )
 
         if executor:
             embed.add_field(
                 name="Deleted By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

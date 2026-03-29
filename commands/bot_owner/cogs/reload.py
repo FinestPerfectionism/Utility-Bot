@@ -17,10 +17,10 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_reload(
-    bot:         commands.Bot,
-    interaction: discord.Interaction,
-    cog:         str | None,
-    cogs:        list[str],
+    bot         : commands.Bot,
+    interaction : discord.Interaction,
+    cog         : str | None,
+    cogs        : list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(

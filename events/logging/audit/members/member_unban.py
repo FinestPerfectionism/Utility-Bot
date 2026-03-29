@@ -24,20 +24,20 @@ class MemberUnbanCog(AuditCog):
         embed = discord.Embed(
             title="Member Unbanned",
             color=COLOR_GREEN,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         embed.add_field(
             name="User",
-            value=f"`{user}`\n`{user.id}`",
-            inline=True
+            value = f"`{user}`\n`{user.id}`",
+            inline = True
         )
 
         if executor:
             embed.add_field(
                 name="Unbanned By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

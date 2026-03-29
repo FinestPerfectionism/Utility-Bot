@@ -20,8 +20,8 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_bans(
-    base:        "ModerationBase",
-    interaction: discord.Interaction,
+    base        : "ModerationBase",
+    interaction : discord.Interaction,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -40,7 +40,7 @@ async def run_bans(
     if not guild:
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     try:
         bans = [entry async for entry in guild.bans(limit=None)]
@@ -50,7 +50,7 @@ async def run_bans(
                 description = "No members are currently banned.",
                 color       = COLOR_GREEN
             )
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            await interaction.followup.send(embed=embed, ephemeral = True)
             return
 
         fields: list[tuple[str, str]] = []
@@ -68,13 +68,11 @@ async def run_bans(
             fields.append((f"{user} ({user.id})", value))
 
         view = ModerationListPaginator(interaction, "Banned Members", COLOR_BLACK, fields)
-        await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
+        await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)
 
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            "I lack the necessary permissions to view bans.",
-            subtitle="Invalid configuration. Contact the owner."
+            texts    = "I lack the necessary permissions to view banned members.",
+            subtitle = "Invalid configuration. Contact the owner."
         )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

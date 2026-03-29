@@ -62,13 +62,13 @@ class RoleEditCog(AuditCog):
         embed = discord.Embed(
             title="Role Updated",
             color=COLOR_BLURPLE,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         embed.add_field(
             name="Role",
-            value=f"`{after.name}`\n`{after.id}`",
-            inline=False
+            value = f"`{after.name}`\n`{after.id}`",
+            inline = False
         )
 
         change_name: str
@@ -78,21 +78,21 @@ class RoleEditCog(AuditCog):
             if after_val is None:
                 embed.add_field(
                     name=f"{change_name} Changed",
-                    value=before_val,
-                    inline=False
+                    value = before_val,
+                    inline = False
                 )
             else:
                 embed.add_field(
                     name=f"{change_name} Changed",
-                    value=f"**Before:** `{before_val}`\n**After:** `{after_val}`",
-                    inline=False
+                    value = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
+                    inline = False
                 )
 
         if executor:
             embed.add_field(
                 name="Changed By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

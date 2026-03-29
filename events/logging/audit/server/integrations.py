@@ -57,23 +57,23 @@ class IntegrationsCog(AuditCog):
         embed = discord.Embed(
             title=title,
             color=color,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         embed.add_field(
             name="Server",
-            value=f"`{guild.name}`\n`{guild.id}`",
-            inline=False
+            value = f"`{guild.name}`\n`{guild.id}`",
+            inline = False
         )
 
         if target_name:
-            embed.add_field(name="Integration", value=f"`{target_name}`", inline=False)
+            embed.add_field(name="Integration", value = f"`{target_name}`", inline = False)
 
         if executor:
             embed.add_field(
                 name="Action By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

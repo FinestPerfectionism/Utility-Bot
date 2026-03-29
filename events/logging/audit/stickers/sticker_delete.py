@@ -30,21 +30,21 @@ class StickerDeleteCog(AuditCog):
         embed = discord.Embed(
             title="Sticker Deleted",
             color=COLOR_RED,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         for sticker in removed:
             embed.add_field(
                 name="Sticker",
-                value=f"`{sticker.name}`\n`{sticker.id}`",
-                inline=True
+                value = f"`{sticker.name}`\n`{sticker.id}`",
+                inline = True
             )
 
         if executor:
             embed.add_field(
                 name="Deleted By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

@@ -140,7 +140,7 @@ class LockdownCommands(commands.Cog):
                 color       = COLOR_GREEN,
                 timestamp   = datetime.now()
             )
-            _ = await interaction.response.send_message(embed=embed, ephemeral=True)
+            _ = await interaction.response.send_message(embed=embed, ephemeral = True)
             return
 
         activated_at = datetime.fromisoformat(self.data["activated_at"])
@@ -176,7 +176,7 @@ class LockdownCommands(commands.Cog):
             inline = False
         )
 
-        _ = await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     @lockdown_group.command(
         name        = "activate",
@@ -217,7 +217,7 @@ class LockdownCommands(commands.Cog):
             )
             return
 
-        _ = await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         guild = interaction.guild
         if guild is None:
@@ -295,9 +295,9 @@ class LockdownCommands(commands.Cog):
             color     = COLOR_RED,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Director", value=actor.mention, inline=True)
-        _ = embed.add_field(name="Channels Locked", value=str(channels_locked), inline=True)
-        _ = embed.add_field(name="Reason", value=reason, inline=False)
+        _ = embed.add_field(name="Director", value = actor.mention, inline = True)
+        _ = embed.add_field(name="Channels Locked", value = str(channels_locked), inline = True)
+        _ = embed.add_field(name="Reason", value = reason, inline = False)
         _ = embed.add_field(
             name   = "Note",
             value  = f"Staff members ({staff_role.mention}) can still send messages.\n"
@@ -305,7 +305,7 @@ class LockdownCommands(commands.Cog):
             inline = False
         )
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     @lockdown_group.command(
         name="lift",
@@ -338,7 +338,7 @@ class LockdownCommands(commands.Cog):
             )
             return
 
-        _ = await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         guild = interaction.guild
         if guild is None:
@@ -398,19 +398,19 @@ class LockdownCommands(commands.Cog):
         embed = discord.Embed(
             title="Lockdown Lifted",
             color=COLOR_GREEN,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Director", value=actor.mention, inline=True)
-        _ = embed.add_field(name="Channels Restored", value=str(channels_restored), inline=True)
+        _ = embed.add_field(name="Director", value = actor.mention, inline = True)
+        _ = embed.add_field(name="Channels Restored", value = str(channels_restored), inline = True)
 
         if channels_not_found > 0:
             _ = embed.add_field(
                 name=f"{CONTESTED_EMOJI_ID} Channels Not Found",
-                value=f"{channels_not_found} channel(s) no longer exist and could not be restored.",
-                inline=False
+                value = f"{channels_not_found} channel(s) no longer exist and could not be restored.",
+                inline = False
             )
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:

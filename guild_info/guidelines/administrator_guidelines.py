@@ -12,7 +12,7 @@ class AdministratorComponents1(discord.ui.LayoutView):
 
 class AdministratorComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
         self.container = discord.ui.Container( # type: ignore
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -22,16 +22,16 @@ class AdministratorComponents2(discord.ui.LayoutView):
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
             ),
             discord.ui.Separator( # type: ignore
-                visible=False,
-                spacing=discord.SeparatorSpacing.small
+                visible = False,
+                spacing = discord.SeparatorSpacing.small
             ),
             discord.ui.Separator( # type: ignore
-                visible=True,
-                spacing=discord.SeparatorSpacing.small
+                visible = True,
+                spacing = discord.SeparatorSpacing.small
             ),
             discord.ui.Separator( # type: ignore
-                visible=False,
-                spacing=discord.SeparatorSpacing.small
+                visible = False,
+                spacing = discord.SeparatorSpacing.small
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=

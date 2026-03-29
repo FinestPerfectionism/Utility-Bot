@@ -27,12 +27,12 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_ban(
-    base:            "ModerationBase",
-    interaction:     discord.Interaction,
-    member:          discord.Member,
-    reason:          str,
-    delete_messages: int                | None = 0,
-    proof:           discord.Attachment | None = None,
+    base            : "ModerationBase",
+    interaction     : discord.Interaction,
+    member          : discord.Member,
+    reason          : str,
+    delete_messages : int                | None = 0,
+    proof           : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -77,7 +77,7 @@ async def run_ban(
 
         base.add_rate_limit_entry(str(actor.id), "ban")
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     dm_value        = delete_messages if delete_messages is not None else 0
     delete_messages = max(0, min(7, dm_value))
@@ -117,13 +117,13 @@ async def run_ban(
             color     = COLOR_RED,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
-        _ = embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
-        _ = embed.add_field(name="Reason",    value=reason,                            inline=False)
+        _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)
+        _ = embed.add_field(name = "Moderator", value = actor.mention,                     inline = True)
+        _ = embed.add_field(name = "Reason",    value = reason,                            inline = False)
         if proof:
             _ = embed.set_image(url=proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.Forbidden:
         await send_major_error(
@@ -131,5 +131,3 @@ async def run_ban(
             texts    = "I lack the necessary permissions to ban this member.",
             subtitle = "Invalid configuration. Contact the owner."
         )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

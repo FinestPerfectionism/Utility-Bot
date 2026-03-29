@@ -66,7 +66,7 @@ class Ready(commands.Cog):
                     break
                 try:
                     extra: str = await asyncio.wait_for(
-                        self._console_queue.get(), timeout=remaining
+                        self._console_queue.get(), timeout = remaining
                     )
                     buffer.append(extra)
                 except TimeoutError:
@@ -106,7 +106,8 @@ class Ready(commands.Cog):
                 continue
             question = data["questions"][data["index"]]
             await dm.send(
-                f"**{ACCEPTED_EMOJI_ID} Successfully resumed application after restart.**\n{question}"
+                f"**{ACCEPTED_EMOJI_ID} Successfully resumed application after restart.**\n"
+                f"{question}"
             )
 
     async def restore_application_views(self) -> None:
@@ -122,7 +123,7 @@ class Ready(commands.Cog):
             except discord.NotFound:
                 continue
             if msg.components:
-                self.bot.add_view(DecisionView(), message_id=msg.id)
+                self.bot.add_view(DecisionView(), message_id = msg.id)
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:

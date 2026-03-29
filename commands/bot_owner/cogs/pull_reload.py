@@ -24,17 +24,17 @@ async def run_pull_reload(
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
-            view=PermissionError(),
-            ephemeral=True
+            view      = PermissionError(),
+            ephemeral = True
         )
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     proc = await asyncio.create_subprocess_exec(
         "git", "pull", "origin", "main",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+        stdout = asyncio.subprocess.PIPE,
+        stderr = asyncio.subprocess.PIPE,
     )
     stdout, stderr = await proc.communicate()
 

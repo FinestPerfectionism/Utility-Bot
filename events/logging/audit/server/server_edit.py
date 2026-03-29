@@ -101,13 +101,13 @@ class ServerEditCog(AuditCog):
         embed = discord.Embed(
             title="Server Updated",
             color=COLOR_BLURPLE,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         embed.add_field(
             name="Server",
-            value=f"`{after.name}`\n`{after.id}`",
-            inline=False
+            value = f"`{after.name}`\n`{after.id}`",
+            inline = False
         )
 
         change_name: str
@@ -116,15 +116,15 @@ class ServerEditCog(AuditCog):
         for change_name, before_val, after_val in changes:
             embed.add_field(
                 name=f"{change_name} Changed",
-                value=f"**Before:** `{before_val}`\n**After:** `{after_val}`",
-                inline=False
+                value = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
+                inline = False
             )
 
         if executor:
             embed.add_field(
                 name="Changed By",
-                value=f"`{executor}`\n`{executor.id}`",
-                inline=False
+                value = f"`{executor}`\n`{executor.id}`",
+                inline = False
             )
 
         await self._enqueue(log_channel, embed)

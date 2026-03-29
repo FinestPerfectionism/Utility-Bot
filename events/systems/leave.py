@@ -33,7 +33,7 @@ class LeaveFormatView(discord.ui.LayoutView):
 
 class LeaveComponents(discord.ui.LayoutView):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
         for item in self.walk_children():
             if isinstance(item, discord.ui.Button):
                 if item.custom_id == "leave:open":
@@ -60,11 +60,11 @@ class LeaveComponents(discord.ui.LayoutView):
             )
 
         ),
-        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large), # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content="Sincerely,\n-# The Goobers Directorate team."
         ),
-        discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large), # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.ActionRow( # type: ignore
             discord.ui.Button(
                 style=discord.ButtonStyle.primary,
@@ -85,8 +85,8 @@ class LeaveComponents(discord.ui.LayoutView):
             return
 
         await interaction.response.send_message(
-            view=LeaveFormatView(),
-            ephemeral=True,
+            view = LeaveFormatView(),
+            ephemeral = True,
         )
 
     async def open_leave(self, interaction: discord.Interaction) -> None:
@@ -102,7 +102,7 @@ class LeaveComponents(discord.ui.LayoutView):
             await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                 "Leave requests can only be opened in text channels.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
 
@@ -115,7 +115,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                     "Please do not open a leave request as a Director. Instead, contact other Directors in the proper union and use `/leave add` with the proper arguments.",
-                    ephemeral=True,
+                    ephemeral = True,
                 )
                 return
 
@@ -123,7 +123,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                     "Please do not open a leave request while not existing within the Staff team.",
-                    ephemeral=True,
+                    ephemeral = True,
                 )
                 return
 
@@ -132,7 +132,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                     f"Please do not open a leave request while you already have an open leave request: {thread.mention}",
-                    ephemeral=True,
+                    ephemeral = True,
                 )
                 return
 
@@ -151,7 +151,7 @@ class LeaveComponents(discord.ui.LayoutView):
         await interaction.response.send_message(
             f"{ACCEPTED_EMOJI_ID} **Successfully opened leave request.**\n"
             f"Thread: {thread.mention}",
-            ephemeral=True,
+            ephemeral = True,
         )
 
 class LeaveSystem(commands.Cog):

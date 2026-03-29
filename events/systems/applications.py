@@ -70,12 +70,12 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
         self.accepted = accepted
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer(
-            ephemeral=True
+        _ = await interaction.response.defer(
+            ephemeral = True
         )
         await interaction.followup.send(
             "Decision recorded.",
-            ephemeral=True
+            ephemeral = True
         )
         guild = interaction.guild
 
@@ -91,7 +91,7 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
         if self.applicant_id not in ACTIVE_APPLICATIONS:
             await interaction.followup.send(
                 "This application has already been handled.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -141,13 +141,13 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
                 if combined_role and member:
                     await member.add_roles(combined_role)
 
-            await user.send(
+            _ = await user.send(
                 f"{ACCEPTED_EMOJI_ID} **Application accepted!**\n"
                 f"-# Your application has been accepted! Welcome to the staff team!\n"
                 f"-# **Notes:** {self.notes.value}" 
             )
         else:
-            await user.send(
+            _ = await user.send(
                 f"{DENIED_EMOJI_ID} **Application denied.**\n"
                 f"-# Your application has been denied."
                 f"-# **Notes:** {self.notes.value}"
@@ -157,26 +157,26 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
             title=msg.embeds[0].title if msg.embeds else "Application Decision",
             color=COLOR_GREEN if self.accepted else COLOR_RED
         )
-        new_embed.add_field(
+        _ = new_embed.add_field(
             name="Decision",
-            value="Accepted" if self.accepted else "Denied",
-            inline=True
+            value = "Accepted" if self.accepted else "Denied",
+            inline = True
         )
-        new_embed.add_field(
+        _ = new_embed.add_field(
             name="Handled By",
-            value=interaction.user.mention,
-            inline=True
+            value = interaction.user.mention,
+            inline = True
         )
-        new_embed.add_field(
+        _ = new_embed.add_field(
             name="Decision Notes",
-            value=self.notes.value,
-            inline=False
+            value = self.notes.value,
+            inline = False
         )
 
-        new_embed.set_footer(text="Decision Made")
+        _ = new_embed.set_footer(text="Decision Made")
         new_embed.timestamp = interaction.created_at
 
-        await msg.edit(embed=new_embed, view=None)
+        _ = await msg.edit(embed=new_embed, view = None)
 
         archive_channel = interaction.client.get_channel(
             ARCHIVED_APPLICATION_LOG_CHANNEL_ID
@@ -187,19 +187,19 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
 
             if original_embed:
                 archive_embed = discord.Embed(
-                    title="Archived Application",
-                    color=COLOR_BLURPLE,
-                    timestamp=interaction.created_at
+                    title     = "Archived Application",
+                    color     = COLOR_BLURPLE,
+                    timestamp = interaction.created_at
                 )
 
                 for field in original_embed.fields:
-                    archive_embed.add_field(
-                        name=field.name,
-                        value=field.value,
-                        inline=False
+                    _ = archive_embed.add_field(
+                        name   = field.name,
+                        value  = field.value,
+                        inline = False
                     )
 
-                await archive_channel.send(embed=archive_embed)
+                _ = await archive_channel.send(embed=archive_embed)
 
         thread_id = ACTIVE_APPLICATIONS.get(self.applicant_id, {}).get("thread_id")
         if thread_id:
@@ -207,11 +207,11 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
                 channel = await interaction.client.fetch_channel(thread_id)
 
                 if isinstance(channel, discord.Thread):
-                    await channel.edit(locked=True, archived=True)
+                    _ = await channel.edit(locked=True, archived=True)
             except discord.NotFound:
                 pass
 
-        ACTIVE_APPLICATIONS.pop(self.applicant_id, None)
+        _ = ACTIVE_APPLICATIONS.pop(self.applicant_id, None)
         save_active_applications()
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -220,7 +220,7 @@ class DecisionModal(ui.Modal, title="Decision Reason"):
 
 class DecisionView(ui.View):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
     @ui.button(label="Accept", style=discord.ButtonStyle.success, custom_id="decision:accept")
     async def accept(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
@@ -235,16 +235,16 @@ class DecisionView(ui.View):
         if not data:
             await interaction.response.send_message(
                 "This application has already been handled.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         await interaction.response.send_modal(
             DecisionModal(
-                applicant_id=data["applicant_id"],
-                app_type=data["type"],
-                accepted=True,
-                message_id=msg.id
+                applicant_id = data["applicant_id"],
+                app_type     = data["type"],
+                accepted     = True,
+                message_id   = msg.id
             )
         )
 
@@ -261,7 +261,7 @@ class DecisionView(ui.View):
         if not data:
             await interaction.response.send_message(
                 "This application has already been handled.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -270,7 +270,7 @@ class DecisionView(ui.View):
                 applicant_id=data["applicant_id"],
                 app_type=data["type"],
                 accepted=False,
-                message_id=msg.id
+                message_id = msg.id
             )
         )
 
@@ -287,7 +287,7 @@ class DecisionView(ui.View):
         if not data:
             await interaction.response.send_message(
                 "This application has already been handled.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -300,11 +300,11 @@ class DecisionView(ui.View):
         if not cases_cog:
             await interaction.response.send_message(
                 "Case history is unavailable.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral = True)
 
         applicant_id = data["applicant_id"]
         cases = cases_cog.cases_manager.get_cases(guild_id=guild.id, user_id=applicant_id)
@@ -314,7 +314,7 @@ class DecisionView(ui.View):
                 description="This applicant has no recorded cases.",
                 color=COLOR_GREEN
             )
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            await interaction.followup.send(embed=embed, ephemeral = True)
             return
 
         applicant = interaction.client.get_user(applicant_id)
@@ -329,7 +329,7 @@ class DecisionView(ui.View):
         embed = discord.Embed(
             title=title,
             color=COLOR_BLURPLE,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
 
         for case in cases[:25]:
@@ -355,15 +355,15 @@ class DecisionView(ui.View):
             value_parts.append(f"**When:** {discord.utils.format_dt(timestamp, 'R')}")
 
             embed.add_field(
-                name=f"Case #{case['case_id']}",
-                value="\n".join(value_parts),
-                inline=False
+                name   = f"Case #{case['case_id']}",
+                value  =  "\n".join(value_parts),
+                inline = False
             )
 
         if len(cases) > 25:
             embed.set_footer(text=f"Showing 25 of {len(cases)} cases")
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Questions / State
@@ -454,7 +454,7 @@ def can_apply(member: discord.Member, app_type: str) -> bool:
 
 class ApplicationSubmitView(ui.View):
     def __init__(self, user_id: int) -> None:
-        super().__init__(timeout=300)
+        super().__init__(timeout = 300)
         self.user_id = user_id
 
     @ui.button(label="Edit", style=discord.ButtonStyle.secondary)
@@ -466,9 +466,8 @@ class ApplicationSubmitView(ui.View):
         data["reviewing"] = False
         await interaction.response.send_message(
             "Select a question to edit:",
-            view=EditQuestionSelectView(
-            self.user_id),
-            ephemeral=True
+            view = EditQuestionSelectView(self.user_id),
+            ephemeral = True
         )
 
     @ui.button(label="Submit", style=discord.ButtonStyle.success)
@@ -476,8 +475,9 @@ class ApplicationSubmitView(ui.View):
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             await interaction.response.send_message(
+               f"{CONTESTED_EMOJI_ID} **Failed to submit application!**\n"
                 "This application is no longer active",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -489,7 +489,7 @@ class ApplicationSubmitView(ui.View):
                 try:
                     review_msg = await dm_channel.fetch_message(
                         data["review_message_id"])
-                    await review_msg.edit(view=None)
+                    await review_msg.edit(view = None)
                 except discord.NotFound:
                     pass
         except discord.NotFound:
@@ -509,8 +509,8 @@ class ApplicationSubmitView(ui.View):
         for i, (q, a) in enumerate(zip(data["questions"], data["answers"], strict=True), start=1):
             embed.add_field(
                 name=f"{i}. {q}",
-                value=a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
-                inline=False
+                value = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
+                inline = False
             )
 
         msg = await channel.send(
@@ -518,7 +518,7 @@ class ApplicationSubmitView(ui.View):
             embed=embed
         )
 
-        await msg.edit(view=DecisionView())
+        await msg.edit(view = DecisionView())
 
         thread = await msg.create_thread(
             name=f"{interaction.user.display_name}'s "
@@ -534,7 +534,7 @@ class ApplicationSubmitView(ui.View):
 
         await interaction.response.send_message(
             "Application submitted.",
-            ephemeral=True
+            ephemeral = True
         )
 
     @ui.button(label="Cancel", style=discord.ButtonStyle.danger)
@@ -542,7 +542,7 @@ class ApplicationSubmitView(ui.View):
         await delete_application_messages(interaction.client, self.user_id)
         await interaction.response.send_message(
             "Your application has been cancelled and deleted.",
-            ephemeral=True
+            ephemeral = True
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -551,7 +551,7 @@ class ApplicationSubmitView(ui.View):
 
 class ApplicationComponents(discord.ui.LayoutView):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
         for item in self.walk_children():
             if isinstance(item, discord.ui.Button):
@@ -572,15 +572,15 @@ class ApplicationComponents(discord.ui.LayoutView):
             "**Note:** All applications are and will be taken seriously. Be professional — take your time. You may cancel and delete your application at any point by typing `.cancel`."
         ),
         discord.ui.Separator( # type: ignore
-            visible=True,
-            spacing=discord.SeparatorSpacing.large
+            visible = True,
+            spacing = discord.SeparatorSpacing.large
         ),
         discord.ui.TextDisplay(  # type: ignore
             content="We look forward to reviewing any and all applications! Sincerely,\n-# The Goobers Directorate team."
         ),
         discord.ui.Separator( # type: ignore
-            visible=True,
-            spacing=discord.SeparatorSpacing.large
+            visible = True,
+            spacing = discord.SeparatorSpacing.large
         ),
         discord.ui.ActionRow(  # type: ignore
             discord.ui.Button(
@@ -611,46 +611,46 @@ class ApplicationComponents(discord.ui.LayoutView):
 
 class ApplicationMenuView(ui.View):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
     async def handle_mod_application(self, interaction: discord.Interaction) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **You have been blacklisted from opening applications!**\n"
                 "You are blacklisted from opening applications. Contact a Director.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if interaction.user.id in ACTIVE_APPLICATIONS:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "You already have an active application. Please finish or cancel it before starting a new one.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if not APPLICATIONS_OPEN["mod"]:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "Sorry, Moderator applications are closed right now!",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if not isinstance(interaction.user, discord.Member):
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "This can only be used in a server.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if not can_apply(interaction.user, "mod"):
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "You already exist within the Goobers Moderation Team.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -677,50 +677,50 @@ class ApplicationMenuView(ui.View):
         data["messages"].append(msg.id)
         save_active_applications()
 
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"{ACCEPTED_EMOJI_ID} **Successfully opened application.**\n"
             "The application has been sent to your DMs.",
-            ephemeral=True
+            ephemeral = True
         )
 
     async def handle_admin_application(self, interaction: discord.Interaction) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **You have been blacklisted from opening applications!**\n"
                 "You are blacklisted from opening applications. Contact a Director.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if interaction.user.id in ACTIVE_APPLICATIONS:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "You already have an active application. Please finish or cancel it before starting a new one.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if not APPLICATIONS_OPEN["admin"]:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "Sorry, Administrator applications are closed right now!",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if not isinstance(interaction.user, discord.Member):
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "This can only be used in a server.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
         if not can_apply(interaction.user, "admin"):
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
                 "You already exist within the Goobers Administration Team.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -747,10 +747,10 @@ class ApplicationMenuView(ui.View):
         data["messages"].append(msg.id)
         save_active_applications()
 
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"{ACCEPTED_EMOJI_ID} **Successfully opened application!**\n"
             "The application has been sent to your DMs.",
-            ephemeral=True
+            ephemeral = True
         )
 
     async def mod_btn(self, interaction: discord.Interaction, _: discord.ui.Button[discord.ui.View]) -> None:
@@ -765,7 +765,7 @@ class ApplicationMenuView(ui.View):
 
 class EditQuestionSelectView(ui.View):
     def __init__(self, user_id: int) -> None:
-        super().__init__(timeout=120)
+        super().__init__(timeout = 120)
         self.user_id = user_id
 
         data = ACTIVE_APPLICATIONS.get(user_id)
@@ -776,7 +776,7 @@ class EditQuestionSelectView(ui.View):
             discord.SelectOption(
                 label=f"Question {i + 1}",
                 description=(q[:97] + "...") if len(q) > 100 else q,
-                value=str(i)) for i, q in enumerate(data["questions"]
+                value = str(i)) for i, q in enumerate(data["questions"]
            )
         ]
 
@@ -804,9 +804,9 @@ class EditQuestionSelect(discord.ui.Select[discord.ui.View]):
         data["reviewing"] = False
         save_active_applications()
 
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"**Editing Question:**\n{data['questions'][data['index']]}",
-            ephemeral=True
+            ephemeral = True
         )
 
 class ApplicationsSystem(commands.Cog):

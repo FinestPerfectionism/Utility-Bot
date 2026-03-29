@@ -110,14 +110,13 @@ class ModerationCommands(
         await run_ban(self, interaction, member, reason, delete_messages, proof)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation un-ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="un-ban", description="Unban a user from the server.")
+    @app_commands.command(name="un-ban", description="Un-ban a member from the server.")
     @app_commands.describe(
-        user   = "The user ID, username, or tag to unban.",
-        reason = "Reason for the ban removal."
+        user   = "The member ID, username, or tag to un-ban.",
+        reason = "Reason for the un-ban."
     )
     @help_description(
         desc        = "Unbans a user from the server.",
@@ -139,7 +138,6 @@ class ModerationCommands(
         await run_unban(self, interaction, user, reason)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation bans Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -154,7 +152,6 @@ class ModerationCommands(
         await run_bans(self, interaction)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation kick Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -185,7 +182,6 @@ class ModerationCommands(
         await run_kick(self, interaction, member, reason, proof)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -220,11 +216,10 @@ class ModerationCommands(
         await run_timeout(self, interaction, member, duration, reason, proof)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation un-timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="un-timeout", description="Remove timeout from a member.")
+    @app_commands.command(name="un-timeout", description="Un-timeout a member.")
     @help_description(
         desc        = "Senior Moderators only —— Removes an active timeout from a member.",
         prefix      = False,
@@ -237,8 +232,8 @@ class ModerationCommands(
         },
     )
     @app_commands.describe(
-        member = "The member to remove timeout from.",
-        reason = "Reason for the timeout removal."
+        member = "The member to un-timeout.",
+        reason = "Reason for the un-timeout."
     )
     async def untimeout(
         self,
@@ -249,7 +244,6 @@ class ModerationCommands(
         await run_untimeout(self, interaction, member, reason)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation timeouts Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -264,7 +258,6 @@ class ModerationCommands(
         await run_timeouts(self, interaction)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation purge Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -283,7 +276,7 @@ class ModerationCommands(
     )
     @app_commands.describe(
         amount = "Number of messages to delete.",
-        reason = "Reason for the message purge.",
+        reason = "Reason for the purge.",
         member = "Only delete messages from this member.",
         proof  = "Optional proof attachment."
     )
@@ -298,7 +291,6 @@ class ModerationCommands(
         await run_purge(self, interaction, amount, reason, member, proof)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation quarantines Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -313,7 +305,6 @@ class ModerationCommands(
         await run_quarantines(self, interaction)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
@@ -345,11 +336,10 @@ class ModerationCommands(
         await run_quarantine(self, interaction, member, reason, proof)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
     # /moderation un-quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="un-quarantine", description="Unquarantine a member.")
+    @app_commands.command(name="un-quarantine", description="Un-quarantine a member.")
     @help_description(
         desc        = "Directors only —— Removes a member from quarantine.",
         prefix      = False,
@@ -363,8 +353,8 @@ class ModerationCommands(
         },
     )
     @app_commands.describe(
-        member = "The member to remove from quarantine.",
-        reason = "Reason for the quarantine removal.",
+        member = "The member to un-quarantine.",
+        reason = "Reason for the un-quarantine.",
         proof  = "Optional proof attachment."
     )
     async def unquarantine(
@@ -375,8 +365,6 @@ class ModerationCommands(
         proof       : discord.Attachment | None = None
     ) -> None:
         await run_unquarantine(self, interaction, member, reason, proof)
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ModerationCommands(cast("UtilityBot", bot)))

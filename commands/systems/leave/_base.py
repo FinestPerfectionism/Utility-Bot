@@ -157,7 +157,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         roles_to_remove: list[discord.Role],
         warning_text:    str,
     ) -> None:
-        super().__init__(timeout=60)
+        super().__init__(timeout = 60)
         self.invocator_id    = invocator_id
         self.target          = target
         self.roles_to_remove = roles_to_remove
@@ -177,7 +177,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
 
         container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
         container.add_item(self._text_display)
-        container.add_item(discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large))
+        container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
         container.add_item(self._action_row)
 
         self.add_item(container)
@@ -214,7 +214,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
 
         self._disable_buttons()
         self._text_display.content = f"{self.target.mention} has been hard cleaned —— {len(self.roles_to_remove)} staff role(s) removed."
-        await interaction.response.edit_message(view=self)
+        await interaction.response.edit_message(view = self)
 
     async def _cancel_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
@@ -225,14 +225,14 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self.stop()
 
         self._text_display.content = "Hard clean cancelled —— no changes were made."
-        await interaction.response.edit_message(view=self)
+        await interaction.response.edit_message(view = self)
 
     async def on_timeout(self) -> None:
         self._disable_buttons()
         if self.message:
             with contextlib.suppress(discord.HTTPException):
                 self._text_display.content = "Hard clean timed out —— no changes were made."
-                await self.message.edit(view=self)
+                await self.message.edit(view = self)
 
 class InterferenceConfirmView(discord.ui.LayoutView):
     def __init__(
@@ -240,7 +240,7 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         invocator_id: int,
         warning_text: str,
     ) -> None:
-        super().__init__(timeout=60)
+        super().__init__(timeout = 60)
         self.invocator_id = invocator_id
         self.confirmed    = False
         self.message: discord.WebhookMessage | None = None
@@ -259,7 +259,7 @@ class InterferenceConfirmView(discord.ui.LayoutView):
 
         container: discord.ui.Container[InterferenceConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
         container.add_item(self._text_display)
-        container.add_item(discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.large))
+        container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
         container.add_item(self._action_row)
 
         self.add_item(container)
@@ -277,7 +277,7 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         self._disable_buttons()
         self._text_display.content = "Proceeding —— automation override confirmed."
         self.stop()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.edit_message(view = self)
 
     async def _cancel_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
@@ -287,11 +287,11 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         self._disable_buttons()
         self._text_display.content = "Action cancelled —— no changes were made."
         self.stop()
-        await interaction.response.edit_message(view=self)
+        await interaction.response.edit_message(view = self)
 
     async def on_timeout(self) -> None:
         self._disable_buttons()
         if self.message:
             with contextlib.suppress(discord.HTTPException):
                 self._text_display.content = "Action timed out —— no changes were made."
-                await self.message.edit(view=self)
+                await self.message.edit(view = self)

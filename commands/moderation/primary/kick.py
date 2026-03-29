@@ -73,7 +73,7 @@ async def run_kick(
 
         base.add_rate_limit_entry(str(actor.id), "kick")
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     try:
         await member.kick(reason=f"Kicked by {actor}: {reason}")
@@ -105,13 +105,13 @@ async def run_kick(
             color     = COLOR_ORANGE,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",    value=f"{member.mention} ({member.id})", inline=True)
-        _ = embed.add_field(name="Moderator", value=actor.mention,                     inline=True)
-        _ = embed.add_field(name="Reason",    value=reason,                            inline=False)
+        _ = embed.add_field(name="Member",    value = f"{member.mention} ({member.id})", inline = True)
+        _ = embed.add_field(name="Moderator", value = actor.mention,                     inline = True)
+        _ = embed.add_field(name="Reason",    value = reason,                            inline = False)
         if proof:
             _ = embed.set_image(url=proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.Forbidden:
         await send_major_error(
@@ -119,5 +119,3 @@ async def run_kick(
             texts    = "I lack the necessary permissions to kick this member.",
             subtitle = "Invalid configuration. Contact the owner."
         )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

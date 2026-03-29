@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+
 import asyncio
 import contextlib
 import json
@@ -58,7 +59,7 @@ class ModerationListPaginator(discord.ui.View):
         delete_delay:    float | None = None,
         delete_callback: Any          = None,
     ) -> None:
-        super().__init__(timeout=120)
+        super().__init__(timeout = 120)
         self.context         = context
         self.title           = title
         self.color           = color
@@ -108,7 +109,7 @@ class ModerationListPaginator(discord.ui.View):
         )
 
         for name, value in page_fields:
-            _ = embed.add_field(name=name, value=value, inline=False)
+            _ = embed.add_field(name=name, value = value, inline = False)
 
         _ = embed.set_footer(
             text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.fields)} total"
@@ -129,7 +130,7 @@ class ModerationListPaginator(discord.ui.View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
     async def previous_page(
@@ -142,7 +143,7 @@ class ModerationListPaginator(discord.ui.View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
     async def next_page(
@@ -155,7 +156,7 @@ class ModerationListPaginator(discord.ui.View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
     async def last_page(
@@ -167,7 +168,7 @@ class ModerationListPaginator(discord.ui.View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Base

@@ -6,11 +6,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ._base import (
-        ModerationBase,
-    
-        UnbanFlags
-    )
+    from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
 
@@ -50,7 +46,7 @@ async def run_unban(
     if not guild:
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     user_to_unban: discord.User | None = None
 
@@ -99,21 +95,19 @@ async def run_unban(
         embed = discord.Embed(
             title="User Unbanned",
             color=COLOR_GREEN,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
-        _ = embed.add_field(name="User",     value=f"{user_to_unban.mention} ({user_to_unban.id})", inline=True)
-        _ = embed.add_field(name="Director", value=actor.mention,                                   inline=True)
-        _ = embed.add_field(name="Reason",   value=reason,                                          inline=False)
+        _ = embed.add_field(name="User",     value = f"{user_to_unban.mention} ({user_to_unban.id})", inline = True)
+        _ = embed.add_field(name="Director", value = actor.mention,                                   inline = True)
+        _ = embed.add_field(name="Reason",   value = reason,                                          inline = False)
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.NotFound:
         await send_minor_error(interaction, f"{user_to_unban.mention} is not banned.")
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            "I lack the necessary permissions to unban this user.",
-            subtitle="Invalid configuration. Contact the owner."
+            texts    = "I lack the necessary permissions to unban this member.",
+            subtitle = "Invalid configuration. Contact the owner."
         )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

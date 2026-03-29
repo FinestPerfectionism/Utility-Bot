@@ -97,7 +97,7 @@ def _get_health_color(score: float) -> discord.Color:
 
 class HealthFixView(discord.ui.View):
     def __init__(self, guild: discord.Guild, fixable: list[str], cog: "HealthCommands") -> None:
-        super().__init__(timeout=300)
+        super().__init__(timeout = 300)
         self.guild = guild
         self.fixable = fixable
         self.cog = cog
@@ -112,7 +112,7 @@ class HealthFixView(discord.ui.View):
         if not isinstance(interaction.user, discord.Member):
             return
 
-        _ = await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         fixed: list[str] = []
         failed: list[str] = []
@@ -254,21 +254,21 @@ class HealthFixView(discord.ui.View):
         embed = discord.Embed(
             title="Health Fix Results",
             color=COLOR_GREEN if not failed else (COLOR_ORANGE if fixed else COLOR_RED),
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
 
         if fixed:
             _ = embed.add_field(
                 name="Fixed",
-                value="\n".join(f"{ACCEPTED_EMOJI_ID} {item}" for item in fixed),
-                inline=False
+                value = "\n".join(f"{ACCEPTED_EMOJI_ID} {item}" for item in fixed),
+                inline = False
             )
 
         if failed:
             _ = embed.add_field(
                 name="Could Not Fix",
-                value="\n".join(f"{DENIED_EMOJI_ID} {item}" for item in failed),
-                inline=False
+                value = "\n".join(f"{DENIED_EMOJI_ID} {item}" for item in failed),
+                inline = False
             )
 
         if not fixed and not failed:
@@ -279,8 +279,8 @@ class HealthFixView(discord.ui.View):
             if isinstance(child, discord.ui.Button):
                 child.disabled = True
 
-        _ = await interaction.response.edit_message(view=self)
-        await interaction.followup.send("Applying fixes...", ephemeral=True)
+        _ = await interaction.response.edit_message(view = self)
+        await interaction.followup.send("Applying fixes...", ephemeral = True)
 
         checks = await self.cog.run_checks(self.guild)
 
@@ -292,7 +292,7 @@ class HealthFixView(discord.ui.View):
         updated_embed = discord.Embed(
             title=f"Server Health — {score:.0f}%",
             color=color,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
 
         categories = [
@@ -328,8 +328,8 @@ class HealthFixView(discord.ui.View):
 
             _ = updated_embed.add_field(
                 name=category_name,
-                value="\n".join(lines),
-                inline=False
+                value = "\n".join(lines),
+                inline = False
             )
 
         _ = updated_embed.set_footer(text=f"{passed_count}/{total} checks passed")
@@ -338,8 +338,8 @@ class HealthFixView(discord.ui.View):
         if not remaining_fixable:
             _ = self.clear_items()
 
-        _ = await interaction.edit_original_response(embed=updated_embed, view=self)
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        _ = await interaction.edit_original_response(embed=updated_embed, view = self)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Health Commands
@@ -563,7 +563,7 @@ class HealthCommands(commands.Cog):
         if not guild:
             return
 
-        _ = await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         checks = await self.run_checks(guild)
 
@@ -575,7 +575,7 @@ class HealthCommands(commands.Cog):
         embed = discord.Embed(
             title=f"Server Health — {score:.0f}%",
             color=color,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
 
         categories = [
@@ -602,8 +602,8 @@ class HealthCommands(commands.Cog):
                 lines.append(line)
             _ = embed.add_field(
                 name=category_name,
-                value="\n".join(lines),
-                inline=False
+                value = "\n".join(lines),
+                inline = False
             )
 
         manual_fixes = [
@@ -613,11 +613,11 @@ class HealthCommands(commands.Cog):
         if manual_fixes:
             _ = embed.add_field(
                 name=f"{CONTESTED_EMOJI_ID}  Manual Action Required",
-                value="\n".join(
+                value = "\n".join(
                     f"**{c['label']}**\n-# ↳ {c['manual_note']}"
                     for c in manual_fixes
                 ),
-                inline=False
+                inline = False
             )
 
         _ = embed.set_footer(text=f"{passed}/{total} checks passed")
@@ -625,7 +625,7 @@ class HealthCommands(commands.Cog):
         fixable = [c["id"] for c in checks if not c["passed"] and c["fixable"]]
         view = HealthFixView(guild, fixable, self)
 
-        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, view = view, ephemeral = True)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(HealthCommands(cast("UtilityBot", bot)))

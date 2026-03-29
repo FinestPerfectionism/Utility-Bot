@@ -88,7 +88,7 @@ class ErrorLogger(commands.Cog):
             title=title,
             description=description,
             color=COLOR_BLURPLE,
-            timestamp=discord.utils.utcnow(),
+            timestamp = discord.utils.utcnow(),
         )
 
         await channel.send(embed=embed)
@@ -110,35 +110,35 @@ class ErrorLogger(commands.Cog):
         embed = discord.Embed(
             title=title,
             color=COLOR_RED,
-            timestamp=discord.utils.utcnow(),
+            timestamp = discord.utils.utcnow(),
         )
 
         if user:
             embed.add_field(
                 name="User",
-                value=f"`{user}`\n`{user.id}`",
-                inline=True,
+                value = f"`{user}`\n`{user.id}`",
+                inline = True,
             )
 
         if guild:
             embed.add_field(
                 name="Guild",
-                value=f"`{guild}`\n`{guild.id}`",
-                inline=True,
+                value = f"`{guild}`\n`{guild.id}`",
+                inline = True,
             )
 
         if command_display:
             embed.add_field(
                 name="Command",
-                value=f"```{command_display}```",
-                inline=True,
+                value = f"```{command_display}```",
+                inline = True,
             )
 
         if error_text:
             embed.add_field(
                 name="Error",
-                value=f"```python\n{error_text}\n```",
-                inline=False,
+                value = f"```python\n{error_text}\n```",
+                inline = False,
             )
 
         if traceback_text:
@@ -268,16 +268,16 @@ class ErrorLogger(commands.Cog):
         if isinstance(error, WrongGuild):
             if not interaction.response.is_done():
                 await interaction.response.send_message(
-                    view=WrongGuildError(),
-                    ephemeral=True,
+                    view = WrongGuildError(),
+                    ephemeral = True,
                 )
             return
 
         if isinstance(error, PermissionDenied):
             if not interaction.response.is_done():
                 await interaction.response.send_message(
-                    view=PermissionError(),
-                    ephemeral=True,
+                    view = PermissionError(),
+                    ephemeral = True,
                 )
             return
 

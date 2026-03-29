@@ -243,19 +243,19 @@ class ProposalCommands(
     )
     @app_commands.choices(
         status=[
-            app_commands.Choice(name="Accepted",   value="accepted"),
-            app_commands.Choice(name="Contested",  value="contested"),
-            app_commands.Choice(name="Denied",     value="denied"),
-            app_commands.Choice(name="Standstill", value="standstill"),
+            app_commands.Choice(name="Accepted",   value = "accepted"),
+            app_commands.Choice(name="Contested",  value = "contested"),
+            app_commands.Choice(name="Denied",     value = "denied"),
+            app_commands.Choice(name="Standstill", value = "standstill"),
         ],
         reason=[
-            app_commands.Choice(name="Committee accepted.",        value="Committee accepted."),
-            app_commands.Choice(name="Committee contested.",       value="Committee contested."),
-            app_commands.Choice(name="Committee denied.",          value="Committee denied."),
-            app_commands.Choice(name="Out of scope.",              value="Out of scope."),
-            app_commands.Choice(name="Proposand unimplementable.", value="Proposand unimplementable."),
-            app_commands.Choice(name="Unique circumstances.",      value="Unique circumstances."),
-            app_commands.Choice(name="Veto.",                      value="Veto."),
+            app_commands.Choice(name="Committee accepted.",        value = "Committee accepted."),
+            app_commands.Choice(name="Committee contested.",       value = "Committee contested."),
+            app_commands.Choice(name="Committee denied.",          value = "Committee denied."),
+            app_commands.Choice(name="Out of scope.",              value = "Out of scope."),
+            app_commands.Choice(name="Proposand unimplementable.", value = "Proposand unimplementable."),
+            app_commands.Choice(name="Unique circumstances.",      value = "Unique circumstances."),
+            app_commands.Choice(name="Veto.",                      value = "Veto."),
         ]
     )
     @help_description(
@@ -375,10 +375,10 @@ class ProposalCommands(
     )
     @app_commands.choices(
         tag=[
-            app_commands.Choice(name="Needs Revision",       value="needs_revision"),
-            app_commands.Choice(name="Needs Implementation", value="needs_implementation"),
-            app_commands.Choice(name="Owner Action",         value="owner_action"),
-            app_commands.Choice(name="S. Director Action",   value="sdirector_action"),
+            app_commands.Choice(name="Needs Revision",       value = "needs_revision"),
+            app_commands.Choice(name="Needs Implementation", value = "needs_implementation"),
+            app_commands.Choice(name="Owner Action",         value = "owner_action"),
+            app_commands.Choice(name="S. Director Action",   value = "sdirector_action"),
         ]
     )
     @help_description(
@@ -478,7 +478,7 @@ class ProposalCommands(
         await interaction.followup.send(
             f"**{action}: {tag_label}**"
             f"{chr(10) + format_body('', notes) if notes else ''}",
-            ephemeral=True,
+            ephemeral = True,
         )
 
         await _update_control_message(
@@ -502,8 +502,8 @@ class ProposalCommands(
     )
     @app_commands.choices(
         reason=[
-            app_commands.Choice(name="Proposand implemented.", value="Proposand implemented."),
-            app_commands.Choice(name="Issue resolved.",        value="Issue resolved."),
+            app_commands.Choice(name="Proposand implemented.", value = "Proposand implemented."),
+            app_commands.Choice(name="Issue resolved.",        value = "Issue resolved."),
         ]
     )
     @help_description(
@@ -610,8 +610,8 @@ class ProposalCommands(
     )
     @app_commands.choices(
         reason=[
-            app_commands.Choice(name="New issue.",                 value="New issue."),
-            app_commands.Choice(name="Further discussion needed.", value="Further discussion needed."),
+            app_commands.Choice(name="New issue.",                 value = "New issue."),
+            app_commands.Choice(name="Further discussion needed.", value = "Further discussion needed."),
         ]
     )
     @help_description(
@@ -683,9 +683,9 @@ class ProposalCommands(
     )
     @app_commands.choices(
         reason=[
-            app_commands.Choice(name="Circumstances resolved.",          value="Circumstances resolved."),
-            app_commands.Choice(name="Evaluation resuming.",             value="Evaluation resuming."),
-            app_commands.Choice(name="Committee direction established.", value="Committee direction established."),
+            app_commands.Choice(name="Circumstances resolved.",          value = "Circumstances resolved."),
+            app_commands.Choice(name="Evaluation resuming.",             value = "Evaluation resuming."),
+            app_commands.Choice(name="Committee direction established.", value = "Committee direction established."),
         ]
     )
     @help_description(

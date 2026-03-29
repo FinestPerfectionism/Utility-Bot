@@ -141,13 +141,13 @@ class RoleCommands(
         else:
             embed.add_field(
                 name=role1.name,
-                value="\n".join(diffs_role1),
-                inline=True
+                value = "\n".join(diffs_role1),
+                inline = True
             )
             embed.add_field(
                 name=role2.name,
-                value="\n".join(diffs_role2),
-                inline=True
+                value = "\n".join(diffs_role2),
+                inline = True
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -167,25 +167,25 @@ class RoleCommands(
         role_filter=[
             app_commands.Choice(
                 name="Who has",
-                value="whohas"
+                value = "whohas"
             ),
             app_commands.Choice(
                 name="Who doesn't have",
-                value="whodoesnthave"
+                value = "whodoesnthave"
             ),
         ],
         person_filter=[
             app_commands.Choice(
                 name="humans",
-                value="humans"
+                value = "humans"
             ),
             app_commands.Choice(
                 name="bots",
-                value="bots"
+                value = "bots"
             ),
             app_commands.Choice(
                 name="both",
-                value="both"
+                value = "both"
             ),
         ],
     )

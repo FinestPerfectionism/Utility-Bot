@@ -56,7 +56,7 @@ from constants import (
 
 class ClassificationView(discord.ui.View):
     def __init__(self, case_id: int, cases_manager: "CasesManager") -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
         self.case_id       = case_id
         self.cases_manager = cases_manager
 
@@ -64,10 +64,10 @@ class ClassificationView(discord.ui.View):
         self.deny_button.custom_id   = f"classify:deny:{case_id}"
 
     @discord.ui.button(
-        label     = "Accept",
-        style     = discord.ButtonStyle.success,
-        emoji     = "✅",
-        custom_id = "classify:accept:0",
+        label     =  "Accept",
+        style     =  discord.ButtonStyle.success,
+        emoji     = f"{ACCEPTED_EMOJI_ID}",
+        custom_id =  "classify:accept:0",
     )
     async def accept_button(
         self,
@@ -95,31 +95,31 @@ class ClassificationView(discord.ui.View):
             )
             return
 
-        self.cases_manager.approve_visibility(self.case_id)
+        _ = self.cases_manager.approve_visibility(self.case_id)
 
         thread = interaction.channel
         if isinstance(thread, discord.Thread):
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**"
             )
             with contextlib.suppress(discord.HTTPException):
-                await thread.edit(locked=True, archived=True)
+                _ = await thread.edit(locked=True, archived=True)
         else:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**",
-                ephemeral=True,
+                ephemeral = True,
             )
 
         for child in self.children:
             if isinstance(child, discord.ui.Button):
                 child.disabled = True
         with contextlib.suppress(discord.HTTPException):
-            await interaction.message.edit(view=self) if interaction.message else None
+            await interaction.message.edit(view = self) if interaction.message else None
 
     @discord.ui.button(
         label     = "Deny",
         style     = discord.ButtonStyle.danger,
-        emoji     = "❌",
+        emoji     = f"{DENIED_EMOJI_ID}",
         custom_id = "classify:deny:0",
     )
     async def deny_button(
@@ -148,26 +148,26 @@ class ClassificationView(discord.ui.View):
             )
             return
 
-        self.cases_manager.deny_visibility(self.case_id)
+        _ = self.cases_manager.deny_visibility(self.case_id)
 
         thread = interaction.channel
         if isinstance(thread, discord.Thread):
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**"
             )
             with contextlib.suppress(discord.HTTPException):
-                await thread.edit(locked=True, archived=True)
+                _ = await thread.edit(locked=True, archived=True)
         else:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**",
-                ephemeral=True,
+                ephemeral = True,
             )
 
         for child in self.children:
             if isinstance(child, discord.ui.Button):
                 child.disabled = True
         with contextlib.suppress(discord.HTTPException):
-            await interaction.message.edit(view=self) if interaction.message else None
+            await interaction.message.edit(view = self) if interaction.message else None
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Paginators
@@ -181,7 +181,7 @@ class CaseQueryPaginator(discord.ui.View):
         title:       str,
         color_map:   dict[str, discord.Color],
     ) -> None:
-        super().__init__(timeout=120)
+        super().__init__(timeout = 120)
         self.interaction = interaction
         self.cases       = cases
         self.title       = title
@@ -248,9 +248,9 @@ class CaseQueryPaginator(discord.ui.View):
 
         for case in page_cases:
             name, value = self._format_case_field(case)
-            embed.add_field(name=name, value=value, inline=False)
+            _ = embed.add_field(name=name, value = value, inline = False)
 
-        embed.set_footer(
+        _ = embed.set_footer(
             text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.cases)} cases total"
         )
 
@@ -267,7 +267,7 @@ class CaseQueryPaginator(discord.ui.View):
     ) -> None:
         self.page = 0
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
     async def previous_page(
@@ -278,7 +278,7 @@ class CaseQueryPaginator(discord.ui.View):
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
     async def next_page(
@@ -289,7 +289,7 @@ class CaseQueryPaginator(discord.ui.View):
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
     async def last_page(
@@ -299,7 +299,7 @@ class CaseQueryPaginator(discord.ui.View):
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
 
 class CaseViewPaginator(discord.ui.View):
@@ -309,7 +309,7 @@ class CaseViewPaginator(discord.ui.View):
         case_embed:  discord.Embed,
         notes:       list[dict[str, Any]],
     ) -> None:
-        super().__init__(timeout=120)
+        super().__init__(timeout = 120)
         self.interaction = interaction
         self.case_embed  = case_embed
         self.notes       = notes
@@ -337,7 +337,7 @@ class CaseViewPaginator(discord.ui.View):
         end        = start + self.per_page
         page_notes = self.notes[start:end]
 
-        embed.add_field(name="—— Notes ——", value="\u200b", inline=False)
+        _ = embed.add_field(name="—— Notes ——", value = "\u200b", inline = False)
 
         for note in page_notes:
             note_created = datetime.fromisoformat(note["created_at"])
@@ -347,13 +347,13 @@ class CaseViewPaginator(discord.ui.View):
             ]
             if note.get("content"):
                 note_parts.append(f"\n{note['content']}")
-            embed.add_field(
+            _ = embed.add_field(
                 name   = f"Note #{note['case_id']}",
                 value  = "\n".join(note_parts),
                 inline = False,
             )
 
-        embed.set_footer(
+        _ = embed.set_footer(
             text=f"Notes page {self.page + 1}/{self.max_page + 1} · {len(self.notes)} notes total"
         )
 
@@ -370,7 +370,7 @@ class CaseViewPaginator(discord.ui.View):
     ) -> None:
         self.page = 0
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
     async def previous_page(
@@ -381,7 +381,7 @@ class CaseViewPaginator(discord.ui.View):
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
     async def next_page(
@@ -392,7 +392,7 @@ class CaseViewPaginator(discord.ui.View):
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
     @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
     async def last_page(
@@ -402,7 +402,7 @@ class CaseViewPaginator(discord.ui.View):
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
-        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Commands
@@ -517,44 +517,44 @@ class CasesCommands(commands.Cog):
         mod_added = False
         with contextlib.suppress(discord.NotFound, discord.HTTPException):
             mod = await self.bot.fetch_user(case["moderator_id"])
-            embed.add_field(name="Moderator", value=mod.mention, inline=True)
+            _ = embed.add_field(name="Moderator", value = mod.mention, inline = True)
             mod_added = True
         if not mod_added:
-            embed.add_field(name="Moderator", value=case["moderator_name"], inline=True)
+            _ = embed.add_field(name="Moderator", value = case["moderator_name"], inline = True)
 
         if case.get("target_user_id"):
             user_added = False
             with contextlib.suppress(discord.NotFound, discord.HTTPException):
                 user = await self.bot.fetch_user(case["target_user_id"])
-                embed.add_field(name="User", value=f"{user.mention} ({user.id})", inline=True)
+                _ = embed.add_field(name="User", value = f"{user.mention} ({user.id})", inline = True)
                 user_added = True
             if not user_added:
-                embed.add_field(
+                _ = embed.add_field(
                     name   = "User",
                     value  = f"{case['target_user_name']} ({case['target_user_id']})",
                     inline = True,
                 )
 
         if case.get("duration"):
-            embed.add_field(name="Duration", value=case["duration"], inline=True)
+            _ = embed.add_field(name="Duration", value = case["duration"], inline = True)
 
         if case.get("reason"):
-            embed.add_field(name="Reason", value=case["reason"], inline=False)
+            _ = embed.add_field(name="Reason", value = case["reason"], inline = False)
 
         if case.get("content"):
-            embed.add_field(name="Content", value=case["content"], inline=False)
+            _ = embed.add_field(name="Content", value = case["content"], inline = False)
 
         if case.get("related_case_id"):
-            embed.add_field(name="Related Case", value=f"#{case['related_case_id']}", inline=True)
+            _ = embed.add_field(name="Related Case", value = f"#{case['related_case_id']}", inline = True)
 
         vis = case.get("visibility_level", "moderators")
-        embed.add_field(
+        _ = embed.add_field(
             name   = "Visibility",
             value  = str(vis).replace("_", " ").title(),
             inline = True,
         )
 
-        embed.add_field(
+        _ = embed.add_field(
             name   = "Created",
             value  = discord.utils.format_dt(created, "R"),
             inline = True,
@@ -562,7 +562,7 @@ class CasesCommands(commands.Cog):
 
         if case.get("edited_at"):
             edited = datetime.fromisoformat(case["edited_at"])
-            embed.add_field(
+            _ = embed.add_field(
                 name   = "Edited",
                 value  = discord.utils.format_dt(edited, "R"),
                 inline = True,
@@ -570,7 +570,7 @@ class CasesCommands(commands.Cog):
 
         if case.get("pending_visibility"):
             pending = str(case["pending_visibility"]).replace("_", " ").title()
-            embed.add_field(name="Pending Visibility", value=pending, inline=True)
+            _ = embed.add_field(name="Pending Visibility", value = pending, inline = True)
 
         return embed
 
@@ -667,7 +667,7 @@ class CasesCommands(commands.Cog):
                 )
                 return
 
-        await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         cases = self.cases_manager.get_cases(
             guild_id      = guild.id,
@@ -697,7 +697,7 @@ class CasesCommands(commands.Cog):
             description = f"No cases found{' for ' + filter_text if filter_text else ''}."
 
             embed = discord.Embed(description=description, color=COLOR_GREEN)
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            await interaction.followup.send(embed=embed, ephemeral = True)
             return
 
         title_parts: list[str] = []
@@ -711,7 +711,7 @@ class CasesCommands(commands.Cog):
         title = "Cases " + " ".join(title_parts) if title_parts else "All Cases"
 
         view = CaseQueryPaginator(interaction, cases, title, self.COLOR_MAP)
-        await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
+        await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases view Command
@@ -749,7 +749,7 @@ class CasesCommands(commands.Cog):
         if not guild:
             return
 
-        await interaction.response.defer(ephemeral=True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         case = self.cases_manager.get_case_by_id(case_id)
 
@@ -775,11 +775,11 @@ class CasesCommands(commands.Cog):
         visible_notes = [n for n in notes if self._can_see_case(actor, n)]
 
         if not visible_notes:
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            await interaction.followup.send(embed=embed, ephemeral = True)
             return
 
         view = CaseViewPaginator(interaction, embed, visible_notes)
-        await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
+        await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases add-note Command
@@ -866,7 +866,7 @@ class CasesCommands(commands.Cog):
             color       = COLOR_GREEN,
             timestamp   = datetime.now(),
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases edit-entry Command
@@ -924,14 +924,14 @@ class CasesCommands(commands.Cog):
             )
             return
 
-        self.cases_manager.edit_case(case_id, content)
+        _ = self.cases_manager.edit_case(case_id, content)
 
         embed = discord.Embed(
             description = f"Note **#{case_id}** has been updated.",
             color       = COLOR_GREEN,
             timestamp   = datetime.now(),
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases delete-entry Command
@@ -975,14 +975,14 @@ class CasesCommands(commands.Cog):
             await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
             return
 
-        self.cases_manager.delete_case(case_id)
+        _ = self.cases_manager.delete_case(case_id)
 
         embed = discord.Embed(
             description = f"Case **#{case_id}** has been deleted.",
             color       = COLOR_GREEN,
             timestamp   = datetime.now(),
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases classify Command
@@ -1038,13 +1038,13 @@ class CasesCommands(commands.Cog):
 
         if is_director(actor):
             label = visibility.replace("_", " ").title()
-            self.cases_manager.set_visibility(case_id, visibility)
+            _ = self.cases_manager.set_visibility(case_id, visibility)
             embed = discord.Embed(
                 description = f"Case **#{case_id}** visibility set to **{label}**.",
                 color       = COLOR_GREEN,
                 timestamp   = datetime.now(),
             )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            _ = await interaction.response.send_message(embed=embed, ephemeral = True)
             return
 
         if visibility == "directors" and not is_director(actor):
@@ -1074,7 +1074,7 @@ class CasesCommands(commands.Cog):
 
         label = visibility.replace("_", " ").title()
 
-        self.cases_manager.request_visibility(case_id, visibility)
+        _ = self.cases_manager.request_visibility(case_id, visibility)
 
         view           = ClassificationView(case_id, self.cases_manager)
         thread_name    = f"DR: Classification Request by {actor.display_name}"
@@ -1089,7 +1089,7 @@ class CasesCommands(commands.Cog):
             view    = view,
         )
 
-        self.bot.add_view(view, message_id=thread_with_message.message.id)
+        self.bot.add_view(view, message_id = thread_with_message.message.id)
 
         embed = discord.Embed(
             description = (
@@ -1099,7 +1099,7 @@ class CasesCommands(commands.Cog):
             color     = COLOR_YELLOW,
             timestamp = datetime.now(),
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases config Command
@@ -1135,7 +1135,7 @@ class CasesCommands(commands.Cog):
         self.cases_manager.config["log_channel_id"] = channel.id
         self.cases_manager.save_config()
 
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"Case logs will now be sent to {channel.mention}.",
             ephemeral = True,
         )

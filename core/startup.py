@@ -194,14 +194,14 @@ class Startup(commands.Cog):
             if msg_id is not None:
                 try:
                     await channel.fetch_message(msg_id)
-                    self.bot.add_view(view_cls(), message_id=msg_id)
+                    self.bot.add_view(view_cls(), message_id = msg_id)
                     continue
                 except discord.NotFound:
                     pass
 
-            msg = await channel.send(view=view_cls())
+            msg = await channel.send(view = view_cls())
             self.layout_message_ids[key] = msg.id
-            self.bot.add_view(view_cls(), message_id=msg.id)
+            self.bot.add_view(view_cls(), message_id = msg.id)
             save_layout_message_ids(self.layout_message_ids)
 
         layout_handlers: list[tuple[str, int, Callable[[discord.TextChannel], Coroutine[Any, Any, None]]]] = [
@@ -242,22 +242,22 @@ class Startup(commands.Cog):
         if msg_id:
             try:
                 await channel.fetch_message(msg_id)
-                self.bot.add_view(view, message_id=msg_id)
+                self.bot.add_view(view, message_id = msg_id)
                 log.info("Verification layout restored")
-                log.debug("Verification message_id=%s", msg_id)
+                log.debug("Verification message_id = %s", msg_id)
                 return
             except discord.NotFound:
-                log.debug("Verification message_id=%s not found", msg_id)
+                log.debug("Verification message_id = %s not found", msg_id)
             except discord.HTTPException as e:
                 log.exception("Failed restoring verification layout: %s", e)
 
         try:
-            message = await channel.send(view=view)
+            message = await channel.send(view = view)
             verification_cog.set_verification_message_id(message.id)
-            self.bot.add_view(view, message_id=message.id)
+            self.bot.add_view(view, message_id = message.id)
 
             log.info("Verification layout created")
-            log.debug("Verification message_id=%s", message.id)
+            log.debug("Verification message_id = %s", message.id)
 
         except discord.HTTPException as e:
             log.exception("Failed creating verification layout: %s", e)
@@ -287,9 +287,9 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Rules: sending component 1")
-                msg1 = await channel.send(view=RuleComponents1())
+                msg1 = await channel.send(view = RuleComponents1())
                 log.info("Rules: sending component 2")
-                msg2 = await channel.send(view=RuleComponents2(timestamp=current_timestamp))
+                msg2 = await channel.send(view = RuleComponents2(timestamp = current_timestamp))
             except discord.HTTPException as e:
                 log.exception("Rules layout failed during send: %s", e)
                 return
@@ -297,12 +297,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["rules"] = [msg1.id, msg2.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(RuleComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(RuleComponents2(timestamp = current_timestamp), message_id = msg2.id)
             log.info("Rules layout created")
             log.debug("Rules message_ids=%s", self.layout_message_ids["rules"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(RuleComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(RuleComponents2(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Rules layout restored")
             log.debug("Rules message_ids=%s", msg_ids)
 
@@ -331,15 +331,15 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Staff proposals: sending component 1")
-                msg1 = await channel.send(view=StaffProposalComponents1())
+                msg1 = await channel.send(view = StaffProposalComponents1())
                 log.info("Staff proposals: sending component 2a")
-                msg2a = await channel.send(view=StaffProposalComponents2a(timestamp=current_timestamp))
+                msg2a = await channel.send(view = StaffProposalComponents2a(timestamp = current_timestamp))
                 log.info("Staff proposals: sending component 2b")
-                msg2b = await channel.send(view=StaffProposalComponents2b())
+                msg2b = await channel.send(view = StaffProposalComponents2b())
                 log.info("Staff proposals: sending component 3")
-                msg3 = await channel.send(view=StaffProposalComponents3())
+                msg3 = await channel.send(view = StaffProposalComponents3())
                 log.info("Staff proposals: sending component 4")
-                msg4 = await channel.send(view=StaffProposalComponents4())
+                msg4 = await channel.send(view = StaffProposalComponents4())
             except discord.HTTPException as e:
                 log.exception("Staff proposals layout failed during send: %s", e)
                 return
@@ -347,12 +347,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["staff_proposals"] = [msg1.id, msg2a.id, msg2b.id, msg3.id, msg4.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(StaffProposalComponents2a(timestamp=current_timestamp), message_id=msg2a.id)
+            self.bot.add_view(StaffProposalComponents2a(timestamp = current_timestamp), message_id = msg2a.id)
             log.info("Staff proposals layout created")
             log.debug("Staff proposals message_ids=%s", self.layout_message_ids["staff_proposals"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(StaffProposalComponents2a(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(StaffProposalComponents2a(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Staff proposals layout restored")
             log.debug("Staff proposals message_ids=%s", msg_ids)
 
@@ -381,9 +381,9 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Partnership requirements: sending component 1")
-                msg1 = await channel.send(view=RequirementComponents1())
+                msg1 = await channel.send(view = RequirementComponents1())
                 log.info("Partnership requirements: sending component 2")
-                msg2 = await channel.send(view=RequirementComponents2(timestamp=current_timestamp))
+                msg2 = await channel.send(view = RequirementComponents2(timestamp = current_timestamp))
             except discord.HTTPException as e:
                 log.exception("Partnership requirements layout failed during send: %s", e)
                 return
@@ -391,12 +391,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["partnership_requirements"] = [msg1.id, msg2.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(RequirementComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(RequirementComponents2(timestamp = current_timestamp), message_id = msg2.id)
             log.info("Partnership requirements layout created")
             log.debug("Partnership requirements message_ids=%s", self.layout_message_ids["partnership_requirements"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(RequirementComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(RequirementComponents2(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Partnership requirements layout restored")
             log.debug("Partnership requirements message_ids=%s", msg_ids)
 
@@ -420,13 +420,13 @@ class Startup(commands.Cog):
 
         if all_exist:
             log.info("Partnership layout restored")
-            log.debug("Partnership header_message_id=%s message_ids=%s", header_msg_id, msg_ids)
+            log.debug("Partnership header_message_id = %s message_ids=%s", header_msg_id, msg_ids)
             return
 
         try:
             await rebuild_partnership_layout(channel, data)
             log.info("Partnership layout created")
-            log.debug("Partnership header_message_id=%s message_ids=%s", data["header_message_id"], data["message_ids"])
+            log.debug("Partnership header_message_id = %s message_ids=%s", data["header_message_id"], data["message_ids"])
         except discord.HTTPException as e:
             log.exception("Partnership layout failed: %s", e)
 
@@ -455,19 +455,19 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Hierarchy: sending component 1")
-                msg1 = await channel.send(view=HierarchyComponents1())
+                msg1 = await channel.send(view = HierarchyComponents1())
                 log.info("Hierarchy: sending component 2")
-                msg2 = await channel.send(view=HierarchyComponents2(timestamp=current_timestamp))
+                msg2 = await channel.send(view = HierarchyComponents2(timestamp = current_timestamp))
                 log.info("Hierarchy: sending component 3")
-                msg3 = await channel.send(view=HierarchyComponents3())
+                msg3 = await channel.send(view = HierarchyComponents3())
                 log.info("Hierarchy: sending component 4")
-                msg4 = await channel.send(view=HierarchyComponents4())
+                msg4 = await channel.send(view = HierarchyComponents4())
                 log.info("Hierarchy: sending component 5")
-                msg5 = await channel.send(view=HierarchyComponents5())
+                msg5 = await channel.send(view = HierarchyComponents5())
                 log.info("Hierarchy: sending component 6")
-                msg6 = await channel.send(view=HierarchyComponents6())
+                msg6 = await channel.send(view = HierarchyComponents6())
                 log.info("Hierarchy: sending component 7")
-                msg7 = await channel.send(view=HierarchyComponents7())
+                msg7 = await channel.send(view = HierarchyComponents7())
             except discord.HTTPException as e:
                 log.exception("Hierarchy layout failed during send: %s", e)
                 return
@@ -475,12 +475,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["hierarchy"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id, msg6.id, msg7.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(HierarchyComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(HierarchyComponents2(timestamp = current_timestamp), message_id = msg2.id)
             log.info("Hierarchy layout created")
             log.debug("Hierarchy message_ids=%s", self.layout_message_ids["hierarchy"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(HierarchyComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(HierarchyComponents2(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Hierarchy layout restored")
             log.debug("Hierarchy message_ids=%s", msg_ids)
 
@@ -509,11 +509,11 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Moderation guidelines: sending component 1")
-                msg1 = await channel.send(view=ModerationComponents1())
+                msg1 = await channel.send(view = ModerationComponents1())
                 log.info("Moderation guidelines: sending component 2")
-                msg2 = await channel.send(view=ModerationComponents2(timestamp=current_timestamp))
+                msg2 = await channel.send(view = ModerationComponents2(timestamp = current_timestamp))
                 log.info("Moderation guidelines: sending component 3")
-                msg3 = await channel.send(view=ModerationComponents3())
+                msg3 = await channel.send(view = ModerationComponents3())
             except discord.HTTPException as e:
                 log.exception("Moderation guidelines layout failed during send: %s", e)
                 return
@@ -521,12 +521,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["moderation_guidelines"] = [msg1.id, msg2.id, msg3.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(ModerationComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(ModerationComponents2(timestamp = current_timestamp), message_id = msg2.id)
             log.info("Moderation guidelines layout created")
             log.debug("Moderation guidelines message_ids=%s", self.layout_message_ids["moderation_guidelines"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(ModerationComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(ModerationComponents2(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Moderation guidelines layout restored")
             log.debug("Moderation guidelines message_ids=%s", msg_ids)
 
@@ -555,13 +555,13 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Administrator guidelines: sending component 1")
-                msg1 = await channel.send(view=AdministratorComponents1())
+                msg1 = await channel.send(view = AdministratorComponents1())
                 log.info("Administrator guidelines: sending component 2")
-                msg2 = await channel.send(view=AdministratorComponents2(timestamp=current_timestamp))
+                msg2 = await channel.send(view = AdministratorComponents2(timestamp = current_timestamp))
                 log.info("Administrator guidelines: sending component 3")
-                msg3 = await channel.send(view=AdministratorComponents3())
+                msg3 = await channel.send(view = AdministratorComponents3())
                 log.info("Administrator guidelines: sending component 4")
-                msg4 = await channel.send(view=AdministratorComponents4())
+                msg4 = await channel.send(view = AdministratorComponents4())
             except discord.HTTPException as e:
                 log.exception("Administrator guidelines layout failed during send: %s", e)
                 return
@@ -569,12 +569,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["administrator_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(AdministratorComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(AdministratorComponents2(timestamp = current_timestamp), message_id = msg2.id)
             log.info("Administrator guidelines layout created")
             log.debug("Administrator guidelines message_ids=%s", self.layout_message_ids["administrator_guidelines"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(AdministratorComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(AdministratorComponents2(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Administrator guidelines layout restored")
             log.debug("Administrator guidelines message_ids=%s", msg_ids)
 
@@ -603,13 +603,13 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Staff guidelines: sending component 1")
-                msg1 = await channel.send(view=StaffComponents1())
+                msg1 = await channel.send(view = StaffComponents1())
                 log.info("Staff guidelines: sending component 2")
-                msg2 = await channel.send(view=StaffComponents2(timestamp=current_timestamp))
+                msg2 = await channel.send(view = StaffComponents2(timestamp = current_timestamp))
                 log.info("Staff guidelines: sending component 3")
-                msg3 = await channel.send(view=StaffComponents3())
+                msg3 = await channel.send(view = StaffComponents3())
                 log.info("Staff guidelines: sending component 4")
-                msg4 = await channel.send(view=StaffComponents4())
+                msg4 = await channel.send(view = StaffComponents4())
             except discord.HTTPException as e:
                 log.exception("Staff guidelines layout failed during send: %s", e)
                 return
@@ -617,12 +617,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["staff_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(StaffComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(StaffComponents2(timestamp = current_timestamp), message_id = msg2.id)
             log.info("Staff guidelines layout created")
             log.debug("Staff guidelines message_ids=%s", self.layout_message_ids["staff_guidelines"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(StaffComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(StaffComponents2(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Staff guidelines layout restored")
             log.debug("Staff guidelines message_ids=%s", msg_ids)
 
@@ -651,15 +651,15 @@ class Startup(commands.Cog):
 
             try:
                 log.info("Directorate guidelines: sending component 1")
-                msg1 = await channel.send(view=DirectorateComponents1())
+                msg1 = await channel.send(view = DirectorateComponents1())
                 log.info("Directorate guidelines: sending component 2")
-                msg2 = await channel.send(view=DirectorateComponents2(timestamp=current_timestamp))
+                msg2 = await channel.send(view = DirectorateComponents2(timestamp = current_timestamp))
                 log.info("Directorate guidelines: sending component 3")
-                msg3 = await channel.send(view=DirectorateComponents3())
+                msg3 = await channel.send(view = DirectorateComponents3())
                 log.info("Directorate guidelines: sending component 4")
-                msg4 = await channel.send(view=DirectorateComponents4())
+                msg4 = await channel.send(view = DirectorateComponents4())
                 log.info("Directorate guidelines: sending component 5")
-                msg5 = await channel.send(view=DirectorateComponents5())
+                msg5 = await channel.send(view = DirectorateComponents5())
             except discord.HTTPException as e:
                 log.exception("Directorate guidelines layout failed during send: %s", e)
                 return
@@ -667,12 +667,12 @@ class Startup(commands.Cog):
             self.layout_message_ids["directorate_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id]
             save_layout_message_ids(self.layout_message_ids)
 
-            self.bot.add_view(DirectorateComponents2(timestamp=current_timestamp), message_id=msg2.id)
+            self.bot.add_view(DirectorateComponents2(timestamp = current_timestamp), message_id = msg2.id)
             log.info("Directorate guidelines layout created")
             log.debug("Directorate guidelines message_ids=%s", self.layout_message_ids["directorate_guidelines"])
         else:
             current_timestamp = int(time.time())
-            self.bot.add_view(DirectorateComponents2(timestamp=current_timestamp), message_id=msg_ids[1])
+            self.bot.add_view(DirectorateComponents2(timestamp = current_timestamp), message_id = msg_ids[1])
             log.info("Directorate guidelines layout restored")
             log.debug("Directorate guidelines message_ids=%s", msg_ids)
 

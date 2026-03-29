@@ -65,7 +65,7 @@ async def run_leave_add(
         )
         return
 
-    await interaction.response.defer(ephemeral=True)
+    await interaction.response.defer(ephemeral = True)
 
     invocator = interaction.user
     if not isinstance(invocator, discord.Member):
@@ -189,7 +189,7 @@ async def run_leave_add(
                 "Running `/leave add` now will override and clear that automation. Proceed?"
             )
             view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
-            msg          = await interaction.followup.send(view=view, ephemeral=True)
+            msg          = await interaction.followup.send(view = view, ephemeral = True)
             view.message = msg
             await view.wait()
 
@@ -222,7 +222,7 @@ async def run_leave_add(
             roles_to_remove = roles_to_remove,
             warning_text    = warning_text,
         )
-        msg          = await interaction.followup.send(view=view, ephemeral=True)
+        msg          = await interaction.followup.send(view = view, ephemeral = True)
         view.message = msg
         return
 
@@ -287,7 +287,7 @@ async def run_leave_add(
         who = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
         await interaction.followup.send(
             f"{who} been scheduled for personal leave starting {begin_stamp}{end_note}.",
-            ephemeral=True
+            ephemeral = True
         )
         return
 
@@ -343,7 +343,7 @@ async def run_leave_add(
         who = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
         await interaction.followup.send(
             f"{who} been placed on personal leave.{end_note}",
-            ephemeral=True
+            ephemeral = True
         )
 
     except discord.Forbidden:

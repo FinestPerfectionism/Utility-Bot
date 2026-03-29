@@ -396,7 +396,7 @@ async def run_help(
         if not isinstance(ctx_or_inter.user, discord.Member):
             _ = await ctx_or_inter.response.send_message(
                 "Cannot resolve guild member context.",
-                ephemeral=True,
+                ephemeral = True,
             )
             return
         member  = ctx_or_inter.user
@@ -423,7 +423,7 @@ async def run_help(
                 )
             )
         else:
-            _ = await respond("No documented commands found.", ephemeral=True)
+            _ = await respond("No documented commands found.", ephemeral = True)
         return
 
     parts    = command_name.strip().lstrip("/").split()
@@ -432,7 +432,7 @@ async def run_help(
     if callback is None or not hasattr(callback, "__help_data__"):
         _ = await respond(
             f"Command `{command_name}` not found or has no help data.",
-            ephemeral=True,
+            ephemeral = True,
         )
         return
 
@@ -443,4 +443,4 @@ async def run_help(
         data=data,
         member=member,
     )
-    _ = await respond(view=view)
+    _ = await respond(view = view)

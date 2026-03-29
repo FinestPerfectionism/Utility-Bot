@@ -60,7 +60,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
     )
 
     def __init__(self, correct_code: str, cog: "VerificationHandler") -> None:
-        super().__init__(timeout=300)
+        super().__init__(timeout = 300)
         self.correct_code: str = correct_code
         self.cog: VerificationHandler = cog
 
@@ -71,7 +71,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
             await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired. Please restart.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -80,7 +80,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
             await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired. Please restart.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -98,7 +98,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
             await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired due to too many failed attempts. Please restart.",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -107,7 +107,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
         await interaction.response.send_message(
             f"{DENIED_EMOJI_ID} **Incorrect code!**\n"
             f"Please re-enter the code and try again. Attempts remaining: {remaining}",
-            ephemeral=True
+            ephemeral = True
         )
 
 class VerificationButton(discord.ui.Button[discord.ui.View]):
@@ -144,7 +144,7 @@ class HelpButton(discord.ui.Button[discord.ui.View]):
 
 class VerificationComponents(discord.ui.LayoutView):
     def __init__(self, cog: "VerificationHandler") -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
         self.cog = cog
 
         container = discord.ui.Container( # type: ignore
@@ -162,8 +162,8 @@ class VerificationComponents(discord.ui.LayoutView):
                 )
             ),
             discord.ui.Separator( # type: ignore
-                visible=True,
-                spacing=discord.SeparatorSpacing.large
+                visible = True,
+                spacing = discord.SeparatorSpacing.large
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=(
@@ -172,8 +172,8 @@ class VerificationComponents(discord.ui.LayoutView):
                 )
             ),
             discord.ui.Separator( # type: ignore
-                visible=True,
-                spacing=discord.SeparatorSpacing.large
+                visible = True,
+                spacing = discord.SeparatorSpacing.large
             ),
             discord.ui.ActionRow( # type: ignore
                 VerificationButton(cog),
@@ -388,7 +388,7 @@ class VerificationHandler(commands.Cog):
 
     class HelpComponents(discord.ui.LayoutView):
         def __init__(self, cog: commands.Cog) -> None:
-            super().__init__(timeout=None)
+            super().__init__(timeout = None)
             self.cog = cog
 
             container = discord.ui.Container( # type: ignore
@@ -409,12 +409,12 @@ class VerificationHandler(commands.Cog):
 
     async def start_help(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
-            view=self.HelpComponents(self),
-            ephemeral=True,
+            view = self.HelpComponents(self),
+            ephemeral = True,
         )
 
     async def start_verification(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral = True)
 
         user = interaction.user
         guild = interaction.guild
@@ -427,7 +427,7 @@ class VerificationHandler(commands.Cog):
             await interaction.followup.send(
                 f"**{CONTESTED_EMOJI_ID} Failed to open verification session!**\n"
                 "You are already verified!",
-                ephemeral=True
+                ephemeral = True
             )
             return
 
@@ -455,7 +455,7 @@ class VerificationHandler(commands.Cog):
                     await interaction.response.send_message(
                         f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                         "Verification session expired. Please restart.",
-                        ephemeral=True
+                        ephemeral = True
                     )
                     return
 
@@ -477,8 +477,8 @@ class VerificationHandler(commands.Cog):
                 )
             ),
             discord.ui.Separator( # type: ignore
-                visible=True,
-                spacing=discord.SeparatorSpacing.large
+                visible = True,
+                spacing = discord.SeparatorSpacing.large
             ),
             discord.ui.MediaGallery( # type: ignore
                 discord.MediaGalleryItem(
@@ -486,8 +486,8 @@ class VerificationHandler(commands.Cog):
                 ),
             ),
             discord.ui.Separator( # type: ignore
-                visible=True,
-                spacing=discord.SeparatorSpacing.large
+                visible = True,
+                spacing = discord.SeparatorSpacing.large
             ),
             discord.ui.ActionRow(SubmitButton()), # type: ignore
             accent_color=COLOR_BLURPLE,
@@ -496,9 +496,9 @@ class VerificationHandler(commands.Cog):
         layout.add_item(container) # type: ignore
 
         await interaction.followup.send(
-            view=layout,
+            view = layout,
             files=[file],
-            ephemeral=True,
+            ephemeral = True,
         )
 
     async def verify_user(self, interaction: discord.Interaction) -> None:
@@ -534,7 +534,7 @@ class VerificationHandler(commands.Cog):
             await interaction.response.send_message(
                 f"{ACCEPTED_EMOJI_ID} **Successfully verified!\n**"
                 "Welcome to the server!",
-                ephemeral=True
+                ephemeral = True
             )
 
         except discord.Forbidden:

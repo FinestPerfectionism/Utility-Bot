@@ -79,7 +79,7 @@ async def run_quarantine(
 
         base.add_rate_limit_entry(str(actor.id), "quarantine")
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
     if not quarantine_role:
@@ -126,23 +126,21 @@ async def run_quarantine(
             color     = COLOR_RED,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",      value=member.mention,        inline=True)
-        _ = embed.add_field(name="Moderator",   value=actor.mention,         inline=True)
-        _ = embed.add_field(name="Roles Saved", value=str(len(saved_roles)), inline=True)
-        _ = embed.add_field(name="Reason",      value=reason,                inline=False)
+        _ = embed.add_field(name="Member",      value = member.mention,        inline = True)
+        _ = embed.add_field(name="Moderator",   value = actor.mention,         inline = True)
+        _ = embed.add_field(name="Roles Saved", value = str(len(saved_roles)), inline = True)
+        _ = embed.add_field(name="Reason",      value = reason,                inline = False)
         if proof:
             _ = embed.set_image(url=proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            texts    = "I lack the necessary permissions to run this command.",
+            texts    = "I lack the necessary permissions to quarantine this member.",
             subtitle = "Invalid configuration. Contact the owner."
         )
         if str(member.id) in quarantined:
             del quarantined[str(member.id)]
             base.save_data()
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

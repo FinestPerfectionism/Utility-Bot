@@ -212,9 +212,9 @@ class LeaveCommands(commands.Cog):
     )
     @app_commands.choices(
         leave_type=[
-            app_commands.Choice(name="None",       value="none"),
-            app_commands.Choice(name="Soft Clean", value="soft_clean"),
-            app_commands.Choice(name="Hard Clean", value="hard_clean"),
+            app_commands.Choice(name="None",       value = "none"),
+            app_commands.Choice(name="Soft Clean", value = "soft_clean"),
+            app_commands.Choice(name="Hard Clean", value = "hard_clean"),
         ]
     )
     @app_commands.rename(leave_type="type", begin_date="begin-date", end_date="end-date")

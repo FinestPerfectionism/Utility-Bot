@@ -17,10 +17,10 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_load(
-    bot:         commands.Bot,
-    interaction: discord.Interaction,
-    cog:         str,
-    cogs:        list[str],
+    bot         : commands.Bot,
+    interaction : discord.Interaction,
+    cog         : str,
+    cogs        : list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
@@ -48,6 +48,6 @@ async def run_load(
         await send_major_error(
             interaction,
             f"Failed to load `{cog}`: {e}",
-            subtitle="Invalid operation."
+            subtitle = "Invalid operation."
         )
         log.error("Failed to load cog %s: %s", cog, e)

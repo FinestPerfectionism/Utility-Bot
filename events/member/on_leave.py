@@ -50,16 +50,16 @@ class MemberLeaveHandler(commands.Cog):
             title=msg.embeds[0].title if msg.embeds else "Application Decision",
             color=COLOR_RED,
         )
-        embed.add_field(name="Decision", value="Denied", inline=True)
-        embed.add_field(name="Handled By", value="*Automatic*", inline=True)
+        embed.add_field(name="Decision", value = "Denied", inline = True)
+        embed.add_field(name="Handled By", value = "*Automatic*", inline = True)
         embed.add_field(
             name="Decision Notes",
-            value="*Applicant left the server.*",
-            inline=False,
+            value = "*Applicant left the server.*",
+            inline = False,
         )
         embed.set_footer(text="Decision Made")
         embed.timestamp = discord.utils.utcnow()
-        await msg.edit(embed=embed, view=None)
+        await msg.edit(embed=embed, view = None)
         thread_id = data.get("thread_id")
         if thread_id:
             try:

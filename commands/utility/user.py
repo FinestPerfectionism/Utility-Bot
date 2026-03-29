@@ -289,7 +289,7 @@ class UserCommands(commands.Cog):
 
     class TimezoneMatchPaginator(discord.ui.View):
         def __init__(self, ctx: commands.Context[commands.Bot], matches: list[str]) -> None:
-            super().__init__(timeout=120)
+            super().__init__(timeout = 120)
             self.ctx = ctx
             self.matches = matches
             self.per_page = 20
@@ -329,7 +329,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
@@ -339,7 +339,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
@@ -349,7 +349,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
@@ -358,7 +358,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -509,7 +509,7 @@ class UserCommands(commands.Cog):
                     view = self.UserMatchPaginator(ctx, matches)
                     await ctx.send(
                         content=view.get_page_content(),
-                        view=view
+                        view = view
                     )
                     return
                 else:
@@ -575,7 +575,7 @@ class UserCommands(commands.Cog):
                 view = self.TimezoneMatchPaginator(ctx, result)
                 await ctx.send(
                     content=view.get_page_content(),
-                    view=view
+                    view = view
                 )
 
                 def check(m: discord.Message) -> bool:
@@ -586,7 +586,7 @@ class UserCommands(commands.Cog):
                     )
 
                 try:
-                    msg = await self.bot.wait_for("message", timeout=30, check=check)
+                    msg = await self.bot.wait_for("message", timeout = 30, check=check)
                 except TimeoutError:
                     return
 
@@ -625,7 +625,7 @@ class UserCommands(commands.Cog):
 
     class UserMatchPaginator(discord.ui.View):
         def __init__(self, ctx: commands.Context[commands.Bot], matches: list[discord.Member]) -> None:
-            super().__init__(timeout=120)
+            super().__init__(timeout = 120)
             self.ctx = ctx
             self.matches = matches
             self.per_page = 20
@@ -661,7 +661,7 @@ class UserCommands(commands.Cog):
         async def update_message(self, interaction: discord.Interaction) -> None:
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
@@ -670,7 +670,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
@@ -680,7 +680,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
@@ -690,7 +690,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
@@ -699,7 +699,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view=self
+                view = self
             )
 
     @commands.command(name="userinfo", aliases=["ui"])
@@ -741,7 +741,7 @@ class UserCommands(commands.Cog):
                     view = self.UserMatchPaginator(ctx, matches)
                     await ctx.send(
                         content=view.get_page_content(),
-                        view=view
+                        view = view
                     )
                     return
                 else:

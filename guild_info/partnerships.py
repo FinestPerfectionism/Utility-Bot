@@ -42,7 +42,7 @@ class PartnershipComponents1(discord.ui.LayoutView):
 
 class PartnershipComponents2(discord.ui.LayoutView):
     def __init__(self, partnerships: list[PartnershipEntry], timestamp: int) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
         children: list[Any] = [
             discord.ui.TextDisplay(
@@ -53,9 +53,9 @@ class PartnershipComponents2(discord.ui.LayoutView):
                     "-# Partnerships assembled by the Directorate team."
                 )
             ),
-            discord.ui.Separator(visible=False, spacing=discord.SeparatorSpacing.small),
-            discord.ui.Separator(visible=True,  spacing=discord.SeparatorSpacing.small),
-            discord.ui.Separator(visible=False, spacing=discord.SeparatorSpacing.small),
+            discord.ui.Separator(visible = False, spacing = discord.SeparatorSpacing.small),
+            discord.ui.Separator(visible = True,  spacing = discord.SeparatorSpacing.small),
+            discord.ui.Separator(visible = False, spacing = discord.SeparatorSpacing.small),
         ]
 
         if not partnerships:
@@ -86,13 +86,13 @@ class PartnershipComponents2(discord.ui.LayoutView):
                 if i < len(partnerships) - 1:
                     children.append(
                         discord.ui.Separator(
-                            visible=True,
-                            spacing=discord.SeparatorSpacing.large,
+                            visible = True,
+                            spacing = discord.SeparatorSpacing.large,
                         )
                     )
 
         self.container = discord.ui.Container(*children)
-        self.add_item(self.container)
+        _ = self.add_item(self.container)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Helpers
@@ -133,8 +133,8 @@ def split_partnerships(
 
 
 async def rebuild_partnership_layout(
-    channel: discord.TextChannel,
-    data: PartnershipData,
+    channel : discord.TextChannel,
+    data    : PartnershipData,
 ) -> None:
     for msg_id in data["message_ids"]:
         try:
@@ -152,14 +152,14 @@ async def rebuild_partnership_layout(
             pass
 
     timestamp: int = int(time.time())
-    header_msg = await channel.send(view=PartnershipComponents1())
+    header_msg = await channel.send(view = PartnershipComponents1())
 
     partnerships = data["partnerships"]
     new_message_ids: list[int] = []
 
     if not partnerships:
         empty_msg = await channel.send(
-            view=PartnershipComponents2([], timestamp),
+            view = PartnershipComponents2([], timestamp),
             allowed_mentions=_NO_PINGS,
         )
         new_message_ids.append(empty_msg.id)
@@ -173,7 +173,7 @@ async def rebuild_partnership_layout(
                 for p in group
             ]
             msg = await channel.send(
-                view=PartnershipComponents2(group, timestamp),
+                view = PartnershipComponents2(group, timestamp),
                 files=files,
                 allowed_mentions=_NO_PINGS,
             )

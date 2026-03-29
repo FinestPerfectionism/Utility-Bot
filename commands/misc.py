@@ -21,8 +21,8 @@ class Ping(discord.ui.LayoutView):
         )
         self.add_item(
             discord.ui.Separator(
-                visible=True,
-                spacing=discord.SeparatorSpacing.small
+                visible = True,
+                spacing = discord.SeparatorSpacing.small
             )
         )
         self.add_item(
@@ -161,7 +161,7 @@ class MiscCommands(commands.Cog):
     async def ping(self, ctx: commands.Context[commands.Bot]) -> None:
         latency_ms = round(self.bot.latency * 1000)
         await ctx.send(
-            view=Ping(latency_ms)
+            view = Ping(latency_ms)
         )
 
 async def setup(bot: commands.Bot) -> None:

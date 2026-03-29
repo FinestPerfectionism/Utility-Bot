@@ -25,13 +25,13 @@ class ThreadDeleteCog(AuditCog):
         embed = discord.Embed(
             title="Thread Deleted",
             color=COLOR_RED,
-            timestamp=datetime.now(UTC)
+            timestamp = datetime.now(UTC)
         )
 
         embed.add_field(
             name="Thread",
-            value=f"`{thread.name}`\n`{thread.id}`",
-            inline=True
+            value = f"`{thread.name}`\n`{thread.id}`",
+            inline = True
         )
 
         parent_name: str = "Unknown Channel"
@@ -43,8 +43,8 @@ class ThreadDeleteCog(AuditCog):
 
         embed.add_field(
             name="Parent Channel",
-            value=f"`{parent_name}`\n`{parent_id}`",
-            inline=True
+            value = f"`{parent_name}`\n`{parent_id}`",
+            inline = True
         )
 
         await self._enqueue(log_channel, embed)

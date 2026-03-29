@@ -41,14 +41,14 @@ async def run_quarantines(
             description = "No members are currently quarantined.",
             color       = COLOR_GREEN
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
         return
 
     guild = interaction.guild
     if guild is None:
         return
 
-    await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     fields: list[tuple[str, str]] = []
     for user_id, entry in base.data["quarantined"].items():
@@ -62,6 +62,4 @@ async def run_quarantines(
         ))
 
     view = ModerationListPaginator(interaction, "Quarantined Members", COLOR_ORANGE, fields)
-    await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)

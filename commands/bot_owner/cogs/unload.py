@@ -24,8 +24,8 @@ async def run_unload(
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
-            view=PermissionError(),
-            ephemeral=True
+            view = PermissionError(),
+            ephemeral = True
         )
         return
 

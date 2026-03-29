@@ -49,7 +49,7 @@ async def run_untimeout(
         await send_minor_error(interaction, f"{member.mention} is not currently timed out.")
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     guild = interaction.guild
     if not guild:
@@ -75,16 +75,14 @@ async def run_untimeout(
             color     = COLOR_GREEN,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member", value=member.mention, inline=True)
-        _ = embed.add_field(name="Senior Moderator", value=actor.mention, inline=True)
-        _ = embed.add_field(name="Reason", value=reason, inline=False)
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        _ = embed.add_field(name="Member", value = member.mention, inline = True)
+        _ = embed.add_field(name="Senior Moderator", value = actor.mention, inline = True)
+        _ = embed.add_field(name="Reason", value = reason, inline = False)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            texts    = "I lack the necessary permissions to remove timeout from this member.",
+            texts    = "I lack the necessary permissions to un-timeout this member.",
             subtitle = "Invalid configuration. Contact the owner."
         )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

@@ -87,7 +87,7 @@ async def run_timeout(
 
         base.add_rate_limit_entry(str(actor.id), "timeout")
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     try:
         until = discord.utils.utcnow() + timedelta(seconds=duration_seconds)
@@ -121,23 +121,21 @@ async def run_timeout(
         embed = discord.Embed(
             title="Member Timed Out",
             color=COLOR_ORANGE,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",    value=member.mention,                      inline=True)
-        _ = embed.add_field(name="Moderator", value=actor.mention,                       inline=True)
-        _ = embed.add_field(name="Duration",  value=duration,                            inline=True)
-        _ = embed.add_field(name="Expires",   value=discord.utils.format_dt(until, "R"), inline=True)
-        _ = embed.add_field(name="Reason",    value=reason,                              inline=False)
+        _ = embed.add_field(name="Member",    value = member.mention,                      inline = True)
+        _ = embed.add_field(name="Moderator", value = actor.mention,                       inline = True)
+        _ = embed.add_field(name="Duration",  value = duration,                            inline = True)
+        _ = embed.add_field(name="Expires",   value = discord.utils.format_dt(until, "R"), inline = True)
+        _ = embed.add_field(name="Reason",    value = reason,                              inline = False)
         if proof:
             _ = embed.set_image(url=proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            "I lack the necessary permissions to timeout this member.",
-            subtitle="Invalid configuration. Contact the owner."
+            texts    = "I lack the necessary permissions to timeout this member.",
+            subtitle = "Invalid configuration. Contact the owner."
         )
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

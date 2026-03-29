@@ -233,12 +233,12 @@ class AntiNukeSystem(commands.Cog):
             title="Anti-Nuke Warning",
             description=f"{user.mention} is approaching rate limits",
             color=COLOR_ORANGE,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
-        embed.add_field(name="User", value=f"{user.mention} ({user.id})", inline=True)
-        embed.add_field(name="Action Type", value=action_type.replace("_", " ").title(), inline=True)
-        embed.add_field(name="Hourly", value=f"{hourly_count}/{hourly_limit}", inline=True)
-        embed.add_field(name="Daily", value=f"{daily_count}/{daily_limit}", inline=True)
+        embed.add_field(name="User", value = f"{user.mention} ({user.id})", inline = True)
+        embed.add_field(name="Action Type", value = action_type.replace("_", " ").title(), inline = True)
+        embed.add_field(name="Hourly", value = f"{hourly_count}/{hourly_limit}", inline = True)
+        embed.add_field(name="Daily", value = f"{daily_count}/{daily_limit}", inline = True)
 
         with contextlib.suppress(discord.Forbidden):
             await log_channel.send(embed=embed)
@@ -265,17 +265,17 @@ class AntiNukeSystem(commands.Cog):
             title="Anti-Nuke: User Quarantined",
             description=f"{member.mention} has been automatically quarantined for exceeding action limits.",
             color=COLOR_RED,
-            timestamp=datetime.now()
+            timestamp = datetime.now()
         )
-        embed.add_field(name="User", value=f"{member.mention} ({member.id})", inline=True)
-        embed.add_field(name="Action Type", value=action_type.replace("_", " ").title(), inline=True)
-        embed.add_field(name="Limit Exceeded", value=limit_type.title(), inline=True)
-        embed.add_field(name="Hourly Count", value=str(hourly_count), inline=True)
-        embed.add_field(name="Daily Count", value=str(daily_count), inline=True)
-        embed.add_field(name="\u200b", value="\u200b", inline=True)
+        embed.add_field(name="User", value = f"{member.mention} ({member.id})", inline = True)
+        embed.add_field(name="Action Type", value = action_type.replace("_", " ").title(), inline = True)
+        embed.add_field(name="Limit Exceeded", value = limit_type.title(), inline = True)
+        embed.add_field(name="Hourly Count", value = str(hourly_count), inline = True)
+        embed.add_field(name="Daily Count", value = str(daily_count), inline = True)
+        embed.add_field(name="\u200b", value = "\u200b", inline = True)
 
         if details:
-            embed.add_field(name="Details", value=details, inline=False)
+            embed.add_field(name="Details", value = details, inline = False)
 
         with contextlib.suppress(discord.Forbidden):
             await log_channel.send(embed=embed)
