@@ -32,10 +32,9 @@ class UtilityBot(commands.Bot):
         self.notes_manager: Any = None
 
     async def setup_hook(self) -> None:
-        from constants import GUILD_ID
         from core.cog_loader import discover_cogs
 
-        self.remove_command('help')
+        _ = self.remove_command('help')
 
         log: logging.Logger = logging.getLogger("Utility Bot")
 
@@ -58,9 +57,5 @@ class UtilityBot(commands.Bot):
                 log.info("Loaded cog: %s", cog)
             except Exception:
                 log.exception("Failed to load cog: %s", cog)
-
-        guild: discord.Object = discord.Object(id=GUILD_ID)
-        self.tree.copy_global_to(guild=guild)
-        await self.tree.sync(guild=guild)
 
 bot: UtilityBot = UtilityBot()
