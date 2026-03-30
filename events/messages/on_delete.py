@@ -39,11 +39,13 @@ class MessageDeleteHandler(commands.Cog):
         if message.channel.id == COUNTING_CHANNEL_ID:
             from events.messages.on_send import MessageSendHandler
             counting_cog = self.bot.get_cog("MessageSendHandler")
-            if isinstance(counting_cog, MessageSendHandler) and message.id == counting_cog.state.get("last_message_id"):
-                _ = await message.channel.send(
-                    f"{CONTESTED_EMOJI_ID} **Warning!**\n"
-                    f"{message.author.name} has deleted their message. The next number is {counting_cog.state['count'] + 1}."
-                )
+            if isinstance(counting_cog, MessageSendHandler):
+                last_id: int | None = counting_cog.state["last_message_id"]
+                if last_id is not None and message.id == last_id:
+                    _ = await message.channel.send(
+                        f"{CONTESTED_EMOJI_ID} **Warning!**\n"
+                        f"{message.author.name} has deleted their message. The next number is {counting_cog.state['count'] + 1}."
+                    )
             return
 
         if self.is_directorship_channel(message.channel):

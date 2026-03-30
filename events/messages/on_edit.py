@@ -54,15 +54,21 @@ class MessageEditHandler(commands.Cog):
 
         if before.author.bot or before.guild is None:
             return
-            
+
         if before.channel.id == COUNTING_CHANNEL_ID:
             from events.messages.on_send import MessageSendHandler
             counting_cog = self.bot.get_cog("MessageSendHandler")
-            if isinstance(counting_cog, MessageSendHandler) and before.id == counting_cog.state.get("last_message_id") and before.content != after.content:
-                _ = await after.channel.send(
-                    f"{CONTESTED_EMOJI_ID} **Warning!**\n"
-                    f"{before.author.name} has edited their message. The next number is {counting_cog.state['count'] + 1}."
-                )
+            if isinstance(counting_cog, MessageSendHandler):
+                last_id: int | None = counting_cog.state["last_message_id"]
+                if (
+                    last_id is not None
+                    and before.id == last_id
+                    and before.content != after.content
+                ):
+                    _ = await after.channel.send(
+                        f"{CONTESTED_EMOJI_ID} **Warning!**\n"
+                        f"{before.author.name} has edited their message. The next number is {counting_cog.state['count'] + 1}."
+                    )
             return
 
         if before.channel.id == WAPPLE_CHAIN_CHANNEL_ID:

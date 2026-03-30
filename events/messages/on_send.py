@@ -203,13 +203,13 @@ def _default_state() -> CountingState:
     }
 
 def _load_state() -> CountingState:
-    try:
-        if COUNTING_STATE_PATH.exists():
+    if COUNTING_STATE_PATH.exists():
+        try:
             with COUNTING_STATE_PATH.open("r", encoding="utf-8") as f:
                 raw: dict[str, Any] = json.load(f)
                 return {**_default_state(), **raw}
-    except Exception as e:
-        logging.warning("Could not load counting state: %s", e)
+        except Exception as e:
+            logging.warning("Could not load counting state: %s", e)
     return _default_state()
 
 def _save_state(state: CountingState) -> None:
@@ -233,9 +233,9 @@ class MessageSendHandler(commands.Cog):
         _save_state(self.state)
 
     def _reset(self) -> None:
-        self.state["count"]            = 0
-        self.state["last_author_id"]   = None
-        self.state["last_message_id"]  = None
+        self.state["count"]           = 0
+        self.state["last_author_id"]  = None
+        self.state["last_message_id"] = None
         self._save()
 
     async def _assign_failed_role(self, guild: discord.Guild, new_id: int) -> None:
@@ -261,6 +261,23 @@ class MessageSendHandler(commands.Cog):
 
         self.state["failed_user_id"] = new_id
         self._save()
+
+    async def _handle_counting_failure(
+        self,
+        message: discord.Message,
+        count_at_failure: int,
+    ) -> None:
+        try:
+            await message.add_reaction(DENIED_EMOJI_ID)
+        except discord.HTTPException:
+            pass
+        _ = await message.channel.send(
+            f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {count_at_failure}!**\n"
+            f"Start again at 1!"
+        )
+        if message.guild:
+            await self._assign_failed_role(message.guild, message.author.id)
+        self._reset()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -292,47 +309,25 @@ class MessageSendHandler(commands.Cog):
             result = _evaluate(message.content)
 
             if result is None:
-                try:
-                    await message.delete()
-                except discord.HTTPException:
-                    pass
                 return
 
             expected: int = self.state["count"] + 1
 
-            if message.author.id == self.state["last_author_id"] or (
-                self.state["count"] > 0 and _matches(result, self.state["count"])
-            ):
-                try:
-                    await message.add_reaction(DENIED_EMOJI_ID)
-                except discord.HTTPException:
-                    pass
-                _ = await message.channel.send(
-                    f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {self.state['count']}!**\n"
-                    f"Start again at 1!"
-                )
-                if message.guild:
-                    await self._assign_failed_role(message.guild, message.author.id)
-                self._reset()
+            if message.author.id == self.state["last_author_id"]:
+                await self._handle_counting_failure(message, self.state["count"])
+                return
+
+            if _matches(result, self.state["count"]) and self.state["count"] > 0:
+                await self._handle_counting_failure(message, self.state["count"])
                 return
 
             if not _matches(result, expected):
-                try:
-                    await message.add_reaction(DENIED_EMOJI_ID)
-                except discord.HTTPException:
-                    pass
-                _ = await message.channel.send(
-                    f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {self.state['count']}!**\n"
-                    f"Start again at 1!"
-                )
-                if message.guild:
-                    await self._assign_failed_role(message.guild, message.author.id)
-                self._reset()
+                await self._handle_counting_failure(message, self.state["count"])
                 return
 
-            self.state["count"]            = expected
-            self.state["last_author_id"]   = message.author.id
-            self.state["last_message_id"]  = message.id
+            self.state["count"]           = expected
+            self.state["last_author_id"]  = message.author.id
+            self.state["last_message_id"] = message.id
             self._save()
 
             try:
