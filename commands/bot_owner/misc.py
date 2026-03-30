@@ -163,9 +163,9 @@ async def run_eval(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_say(
-    ctx:            commands.Context[commands.Bot],
-    target_channel: discord.TextChannel | None,
-    message:        str,
+    ctx            : commands.Context[commands.Bot],
+    target_channel : discord.TextChannel | None,
+    message        : str,
 ) -> None:
     if ctx.author.id != BOT_OWNER_ID:
         _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)

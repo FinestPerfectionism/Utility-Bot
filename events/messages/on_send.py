@@ -1,10 +1,18 @@
 import discord
 from discord.ext import commands
 
+from typing import (
+    Callable,
+    Any,
+    TypedDict,
+)
 import re
-import secrets
-from datetime import timedelta
+import math
+import json
 import logging
+import secrets
+from pathlib import Path
+from datetime import timedelta
 
 from core.state import (
     AUTOMOD_DELETIONS,
@@ -18,8 +26,12 @@ from events.systems.applications import ApplicationSubmitView
 
 from constants import (
     ACCEPTED_EMOJI_ID,
+    DENIED_EMOJI_ID,
 
     COLOR_BLURPLE,
+
+    COUNTING_CHANNEL_ID,
+    COUNTING_FAILED_ROLE_ID,
 
     DIRECTOR_TASKS_CHANNEL_ID,
     STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
@@ -72,13 +84,183 @@ FACTOIDS = {
 
 WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
 
+COUNTING_STATE_PATH = Path("data/counting_state.json")
+
+_SUPER = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
+_SUB   = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
+
+_FONT_MAP = {
+    '𝟎':'0','𝟏':'1','𝟐':'2','𝟑':'3','𝟒':'4','𝟓':'5','𝟔':'6','𝟕':'7','𝟖':'8','𝟗':'9',
+    '𝟘':'0','𝟙':'1','𝟚':'2','𝟛':'3','𝟜':'4','𝟝':'5','𝟞':'6','𝟟':'7','𝟠':'8','𝟡':'9',
+    '𝟢':'0','𝟣':'1','𝟤':'2','𝟥':'3','𝟦':'4','𝟧':'5','𝟨':'6','𝟩':'7','𝟪':'8','𝟫':'9',
+    '𝟬':'0','𝟭':'1','𝟮':'2','𝟯':'3','𝟰':'4','𝟱':'5','𝟲':'6','𝟳':'7','𝟴':'8','𝟵':'9',
+    '𝟶':'0','𝟷':'1','𝟸':'2','𝟹':'3','𝟺':'4','𝟻':'5','𝟼':'6','𝟽':'7','𝟾':'8','𝟿':'9',
+    '𝜋':'pi','𝝅':'pi','𝞹':'pi',
+    '𝜏':'tau','𝝉':'tau','𝞽':'tau',
+    '𝑒':'e',
+}
+
+_FONT_PATTERN = re.compile('|'.join(re.escape(k) for k in _FONT_MAP))
+
+def _normalize_fonts(expr: str) -> str:
+    return _FONT_PATTERN.sub(lambda m: _FONT_MAP[m.group(0)], expr)
+
+_SUBSTITUTIONS: list[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]] = [
+    (re.compile(r'log([₀₁₂₃₄₅₆₇⁸₉]+)\s*\(([^)]+)\)'),
+     lambda m: f"math.log({m.group(2)},{m.group(1).translate(_SUB)})"),
+    (re.compile(r'(\S+?)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+)'),
+     lambda m: m.group(1) + "**" + m.group(2).translate(_SUPER)),
+    (re.compile(r'(\d+(?:\.\d+)?|\([^)]+\))\s*!'),
+     lambda m: f"math.factorial({m.group(1)})"),
+    (re.compile(r'⌊([^⌋]+)⌋'),  lambda m: f"math.floor({m.group(1)})"),
+    (re.compile(r'⌈([^⌉]+)⌉'),  lambda m: f"math.ceil({m.group(1)})"),
+    (re.compile(r'\^'),          "**"),
+    (re.compile(r'(\d)\s*\('),   r'\1*('),
+    (re.compile(r'\)\s*\('),     r')*('),
+    (re.compile(r'√\s*\(([^)]+)\)'), r'math.sqrt(\1)'),
+    (re.compile(r'√\s*(\d+(?:\.\d+)?)'), r'math.sqrt(\1)'),
+    (re.compile(r'\bpi\b|π'),     "math.pi"),
+    (re.compile(r'\btau\b|τ'),    "math.tau"),
+    (re.compile(r'\barcsin\b'),  "math.asin"),
+    (re.compile(r'\barccos\b'),  "math.acos"),
+    (re.compile(r'\barctan\b'),  "math.atan"),
+    (re.compile(r'÷'),           "/"),
+    (re.compile(r'×'),           "*"),
+]
+
+_SAFE_GLOBALS: dict[str, Any] = {
+    "__builtins__": {},
+    "math":      math,
+    "abs":       abs,
+    "round":     round,
+    "int":       int,
+    "float":     float,
+    "sqrt":      math.sqrt,
+    "log":       math.log,
+    "log2":      math.log2,
+    "log10":     math.log10,
+    "exp":       math.exp,
+    "sin":       math.sin,
+    "cos":       math.cos,
+    "tan":       math.tan,
+    "asin":      math.asin,
+    "acos":      math.acos,
+    "atan":      math.atan,
+    "ceil":      math.ceil,
+    "floor":     math.floor,
+    "factorial": math.factorial,
+    "gcd":       math.gcd,
+    "e":         math.e,
+    "pi":        math.pi,
+    "tau":       math.tau,
+}
+
+def _preprocess(expr: str) -> str:
+    expr = _normalize_fonts(expr)
+    for pattern, repl in _SUBSTITUTIONS:
+        if callable(repl):
+            expr = pattern.sub(repl, expr)
+        else:
+            expr = pattern.sub(repl, expr)
+    return expr
+
+def _evaluate(raw: str) -> float | None:
+    if len(raw) > 200:
+        return None
+    if not re.search(r'[\d⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉eEπτ𝜋𝝅𝞹𝜏𝝉𝞽𝑒!⌊⌋⌈⌉]', raw):
+        return None
+    if re.search(r'__|import|exec|eval|open|os|sys|compile|globals|locals|getattr|setattr|type|class', raw):
+        return None
+    try:
+        result = eval(_preprocess(raw), _SAFE_GLOBALS, {})
+        if isinstance(result, complex):
+            if abs(result.imag) > 1e-9:
+                return None
+            result = result.real
+        if not isinstance(result, (int, float)):
+            return None
+        if not math.isfinite(result):
+            return None
+        return float(result)
+    except Exception:
+        return None
+
+def _matches(result: float, expected: int) -> bool:
+    return abs(result - expected) < 1e-6
+
+class CountingState(TypedDict):
+    count:           int
+    last_author_id:  int | None
+    last_message_id: int | None
+    failed_user_id:  int | None
+
+def _default_state() -> CountingState:
+    return {
+        "count":           0,
+        "last_author_id":  None,
+        "last_message_id": None,
+        "failed_user_id":  None,
+    }
+
+def _load_state() -> CountingState:
+    try:
+        if COUNTING_STATE_PATH.exists():
+            with COUNTING_STATE_PATH.open("r", encoding="utf-8") as f:
+                raw: dict[str, Any] = json.load(f)
+                return {**_default_state(), **raw}
+    except Exception as e:
+        logging.warning("Could not load counting state: %s", e)
+    return _default_state()
+
+def _save_state(state: CountingState) -> None:
+    try:
+        COUNTING_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with COUNTING_STATE_PATH.open("w", encoding="utf-8") as f:
+            json.dump(state, f)
+    except Exception as e:
+        logging.error("Could not save counting state: %s", e)
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Message Sending
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MessageSendHandler(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+        self.bot   = bot
+        self.state = _load_state()
+
+    def _save(self) -> None:
+        _save_state(self.state)
+
+    def _reset(self) -> None:
+        self.state["count"]            = 0
+        self.state["last_author_id"]   = None
+        self.state["last_message_id"]  = None
+        self._save()
+
+    async def _assign_failed_role(self, guild: discord.Guild, new_id: int) -> None:
+        role = guild.get_role(COUNTING_FAILED_ROLE_ID)
+        if role is None:
+            return
+
+        old_id: int | None = self.state.get("failed_user_id")
+        if old_id is not None and old_id != new_id:
+            old_member = guild.get_member(old_id)
+            if old_member and role in old_member.roles:
+                try:
+                    await old_member.remove_roles(role, reason="Counting: no longer the last to fail")
+                except discord.HTTPException:
+                    pass
+
+        new_member = guild.get_member(new_id)
+        if new_member and role not in new_member.roles:
+            try:
+                await new_member.add_roles(role, reason="Counting: ruined the chain")
+            except discord.HTTPException:
+                pass
+
+        self.state["failed_user_id"] = new_id
+        self._save()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -90,12 +272,12 @@ class MessageSendHandler(commands.Cog):
         if content.startswith("?") and " " not in content[1:]:
              if message.guild and message.guild.id != 846677253290983444:
                 key = content[1:].lower()
-        
+
                 if key in FACTOIDS:
                     async with message.channel.typing():
                         _ = await message.channel.send(FACTOIDS[key])
                         return
-            
+
         if message.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
             content = message.content.strip()
 
@@ -104,6 +286,59 @@ class MessageSendHandler(commands.Cog):
                     await message.delete()
                 except discord.HTTPException:
                     pass
+            return
+
+        if message.channel.id == COUNTING_CHANNEL_ID:
+            result = _evaluate(message.content)
+
+            if result is None:
+                try:
+                    await message.delete()
+                except discord.HTTPException:
+                    pass
+                return
+
+            expected: int = self.state["count"] + 1
+
+            if message.author.id == self.state["last_author_id"] or (
+                self.state["count"] > 0 and _matches(result, self.state["count"])
+            ):
+                try:
+                    await message.add_reaction(DENIED_EMOJI_ID)
+                except discord.HTTPException:
+                    pass
+                _ = await message.channel.send(
+                    f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {self.state['count']}!**\n"
+                    f"Start again at 1!"
+                )
+                if message.guild:
+                    await self._assign_failed_role(message.guild, message.author.id)
+                self._reset()
+                return
+
+            if not _matches(result, expected):
+                try:
+                    await message.add_reaction(DENIED_EMOJI_ID)
+                except discord.HTTPException:
+                    pass
+                _ = await message.channel.send(
+                    f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {self.state['count']}!**\n"
+                    f"Start again at 1!"
+                )
+                if message.guild:
+                    await self._assign_failed_role(message.guild, message.author.id)
+                self._reset()
+                return
+
+            self.state["count"]            = expected
+            self.state["last_author_id"]   = message.author.id
+            self.state["last_message_id"]  = message.id
+            self._save()
+
+            try:
+                await message.add_reaction(ACCEPTED_EMOJI_ID)
+            except discord.HTTPException:
+                pass
             return
 
         if isinstance(message.channel, discord.Thread):
@@ -179,7 +414,7 @@ class MessageSendHandler(commands.Cog):
             if message.guild and message.guild.id != 846677253290983444:
                 if message.author.id == HOLY_FATHER_ID:
                     _ = await message.reply("<:cry2:1482032228614668390> But daddy...")
-        
+
                 else:
                     grimace_emojis = ['<:grimace2:1469070596632608779>', '<:grimace3:1469070653624684820>']
                     statements = [

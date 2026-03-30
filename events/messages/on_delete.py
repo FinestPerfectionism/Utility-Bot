@@ -1,19 +1,16 @@
 import discord
 from discord.ext import commands
-
 from typing import Any
-
 from core.utils import (
     channel_display,
     format_attachments,
 )
 from core.state import AUTOMOD_DELETIONS
-
 from constants import (
+    CONTESTED_EMOJI_ID,
+    COUNTING_CHANNEL_ID,
     DIRECTORSHIP_CATEGORY_ID,
-
     MESSAGE_DELETE_LOG_CHANNEL_ID,
-
     COLOR_RED,
 )
 
@@ -39,6 +36,16 @@ class MessageDeleteHandler(commands.Cog):
         if message.guild is None:
             return
 
+        if message.channel.id == COUNTING_CHANNEL_ID:
+            from events.messages.on_send import MessageSendHandler
+            counting_cog = self.bot.get_cog("MessageSendHandler")
+            if isinstance(counting_cog, MessageSendHandler) and message.id == counting_cog.state.get("last_message_id"):
+                _ = await message.channel.send(
+                    f"{CONTESTED_EMOJI_ID} **Warning!**\n"
+                    f"{message.author.name} has deleted their message. The next number is {counting_cog.state['count'] + 1}."
+                )
+            return
+
         if self.is_directorship_channel(message.channel):
             return
 
@@ -47,7 +54,6 @@ class MessageDeleteHandler(commands.Cog):
             return
 
         deleter = "Unknown"
-
         try:
             async for entry in message.guild.audit_logs(
                 limit=5,
@@ -57,10 +63,8 @@ class MessageDeleteHandler(commands.Cog):
                     continue
                 if entry.target.id != message.author.id:
                     continue
-
                 extra: Any = entry.extra
                 channel = getattr(extra, "channel", None)
-
                 if not isinstance(channel, discord.abc.GuildChannel):
                     continue
                 if channel.id != message.channel.id:
@@ -70,54 +74,49 @@ class MessageDeleteHandler(commands.Cog):
                 if entry.user:
                     deleter = f"`{entry.user}`\n`{entry.user.id}`"
                 break
-
         except (discord.Forbidden, discord.HTTPException):
             pass
 
         if message.id in AUTOMOD_DELETIONS:
-            deleter = "Utility Bot: Auto-Moderation"
+            deleter = "UB Auto-Moderation"
             AUTOMOD_DELETIONS.discard(message.id)
         elif deleter == "Unknown":
             deleter = "Self"
 
         embed = discord.Embed(
-            title="Message Deleted",
-            color=COLOR_RED,
+            title     = "Message Deleted",
+            color     = COLOR_RED,
             timestamp = discord.utils.utcnow(),
         )
-        embed.add_field(
-            name="Author",
-            value = f"`{message.author}`\n`{message.author.id}`",
+        _ = embed.add_field(
+            name   = "Author",
+            value  = f"`{message.author}`\n`{message.author.id}`",
             inline = True,
         )
-        embed.add_field(
-            name="Deleted By",
-            value = deleter,
+        _ = embed.add_field(
+            name   = "Deleted By",
+            value  = deleter,
             inline = True,
         )
-        embed.add_field(
-            name="Channel",
-            value = channel_display(message.channel),
+        _ = embed.add_field(
+            name   = "Channel",
+            value  = channel_display(message.channel),
             inline = True,
         )
-
         content = message.content or "[No content, likely an embed or attachment]"
         display_content = (content[:1021] + "...") if len(content) > 1024 else content
-
-        embed.add_field(
-            name="Content",
-            value = display_content,
+        _ = embed.add_field(
+            name   = "Content",
+            value  = display_content,
             inline = True,
         )
-        embed.add_field(
-            name="Attachments",
-            value = format_attachments(message.attachments),
+        _ = embed.add_field(
+            name   = "Attachments",
+            value  = format_attachments(message.attachments),
             inline = True,
         )
+        _ = embed.set_footer(text="Please note that the \"Deleted By\" section guesses by checking the audit log, and may not always be accurate")
+        _ = await log_channel.send(embed=embed)
 
-        embed.set_footer(text="Please note that the \"Deleted By\" section guesses by checking the audit log, and may not always be accurate")
-
-        await log_channel.send(embed=embed)
-        
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MessageDeleteHandler(bot))

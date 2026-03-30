@@ -1,21 +1,17 @@
 import discord
 from discord.ext import commands
-
 import re
-
 from core.utils import (
     channel_display,
     format_attachments,
     Messageable
 )
-
 from constants import (
+    CONTESTED_EMOJI_ID,
+    COUNTING_CHANNEL_ID,
     DIRECTORSHIP_CATEGORY_ID,
-
     MESSAGE_EDIT_LOG_CHANNEL_ID,
-
     COLOR_GREY,
-
     WAPPLE_CHAIN_CHANNEL_ID
 )
 
@@ -55,13 +51,22 @@ class MessageEditHandler(commands.Cog):
         before: discord.Message,
         after: discord.Message,
     ) -> None:
-        
+
         if before.author.bot or before.guild is None:
+            return
+            
+        if before.channel.id == COUNTING_CHANNEL_ID:
+            from events.messages.on_send import MessageSendHandler
+            counting_cog = self.bot.get_cog("MessageSendHandler")
+            if isinstance(counting_cog, MessageSendHandler) and before.id == counting_cog.state.get("last_message_id") and before.content != after.content:
+                _ = await after.channel.send(
+                    f"{CONTESTED_EMOJI_ID} **Warning!**\n"
+                    f"{before.author.name} has edited their message. The next number is {counting_cog.state['count'] + 1}."
+                )
             return
 
         if before.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
             content = (after.content or "").strip()
-
             if not WAPPLE_PATTERN.fullmatch(content):
                 try:
                     await after.delete()
@@ -74,49 +79,48 @@ class MessageEditHandler(commands.Cog):
 
         before_files = [a.url for a in before.attachments]
         after_files = [a.url for a in after.attachments]
-        
+
         if before.content == after.content and before_files == after_files:
             return
-            
+
         log_channel = before.guild.get_channel(MESSAGE_EDIT_LOG_CHANNEL_ID)
         if not isinstance(log_channel, Messageable):
             return
-            
+
         embed = discord.Embed(
-            title="Message Edited",
-            color=COLOR_GREY,
+            title     = "Message Edited",
+            color     = COLOR_GREY,
             timestamp = after.edited_at or discord.utils.utcnow(),
         )
-        embed.add_field(
-            name="Edited By",
-            value = f"`{before.author}`\n`{before.author.id}`",
+        _ = embed.add_field(
+            name   = "Edited By",
+            value  = f"`{before.author}`\n`{before.author.id}`",
             inline = True,
         )
-        embed.add_field(
-            name="Channel",
-            value = channel_display(before.channel),
+        _ = embed.add_field(
+            name   = "Channel",
+            value  = channel_display(before.channel),
             inline = True,
         )
         before_text = before.content or "[No content]"
         after_text = after.content or "[No content]"
-        embed.add_field(
-            name="Before",
-            value = before_text[:1021] + "..." if len(before_text) > 1024 else before_text,
+        _ = embed.add_field(
+            name   = "Before",
+            value  = before_text[:1021] + "..." if len(before_text) > 1024 else before_text,
             inline = True,
         )
-        embed.add_field(
-            name="After",
-            value = after_text[:1021] + "..." if len(after_text) > 1024 else after_text,
+        _ = embed.add_field(
+            name   = "After",
+            value  = after_text[:1021] + "..." if len(after_text) > 1024 else after_text,
             inline = True,
         )
-        embed.add_field(
-            name="Attachments (After)",
-            value = format_attachments(after.attachments),
+        _ = embed.add_field(
+            name   = "Attachments (After)",
+            value  = format_attachments(after.attachments),
             inline = True,
         )
-        await log_channel.send(embed=embed)
-
+        _ = await log_channel.send(embed=embed)
         await self.bot.process_commands(after)
-        
+
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MessageEditHandler(bot))

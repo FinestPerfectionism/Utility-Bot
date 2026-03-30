@@ -259,21 +259,27 @@ class CaseQueryPaginator(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user == self.interaction.user
 
-    @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = "<<",
+        style = discord.ButtonStyle.secondary
+    )
     async def first_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseQueryPaginator"],
+        interaction : discord.Interaction,
+        button      : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = "<",
+        style = discord.ButtonStyle.secondary
+    )
     async def previous_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseQueryPaginator"],
+        interaction : discord.Interaction,
+        button      : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
@@ -283,19 +289,22 @@ class CaseQueryPaginator(discord.ui.View):
     @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
     async def next_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseQueryPaginator"],
+        interaction : discord.Interaction,
+        button      : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = ">>",
+        style = discord.ButtonStyle.secondary
+    )
     async def last_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseQueryPaginator"],
+        interaction : discord.Interaction,
+        button      : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
@@ -362,43 +371,55 @@ class CaseViewPaginator(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user == self.interaction.user
 
-    @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = "<<",
+        style = discord.ButtonStyle.secondary
+    )
     async def first_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseViewPaginator"],
+        interaction : discord.Interaction,
+        button      : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = "<",
+        style = discord.ButtonStyle.secondary
+    )
     async def previous_page(
         self,
         interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseViewPaginator"],
+        button      : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = ">",
+        style = discord.ButtonStyle.secondary
+    )
     async def next_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseViewPaginator"],
+        interaction : discord.Interaction,
+        button      : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = ">>",
+        style = discord.ButtonStyle.secondary
+    )
     async def last_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["CaseViewPaginator"],
+        interaction : discord.Interaction,
+        button      : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
@@ -794,7 +815,7 @@ class CasesCommands(commands.Cog):
     )
     @app_commands.rename(case_id="case-id")
     @help_description(
-        desc="Adds a note to a user or an existing case, subject to visibility restrictions.",
+        desc="Adds a note to a user or an existing case.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -879,7 +900,7 @@ class CasesCommands(commands.Cog):
     )
     @app_commands.rename(case_id="case-id")
     @help_description(
-        desc="Edits a note entry when you are allowed to modify it.",
+        desc="Edits a note entry.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -941,7 +962,7 @@ class CasesCommands(commands.Cog):
     @app_commands.describe(case_id="The case ID to delete.")
     @app_commands.rename(case_id="case-id")
     @help_description(
-        desc="Director-only command to delete a case entry.",
+        desc="Directors only —— Delete a case entry. Use strictly for deleting test cases.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -949,8 +970,8 @@ class CasesCommands(commands.Cog):
     )
     async def cases_delete_entry(
         self,
-        interaction: discord.Interaction,
-        case_id:     int,
+        interaction : discord.Interaction,
+        case_id     : int,
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -1009,9 +1030,9 @@ class CasesCommands(commands.Cog):
     )
     async def cases_classify(
         self,
-        interaction: discord.Interaction,
-        case_id:     int,
-        visibility:  Literal["moderators", "senior_moderators", "directors"],
+        interaction : discord.Interaction,
+        case_id     : int,
+        visibility  : Literal["moderators", "senior_moderators", "directors"],
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
