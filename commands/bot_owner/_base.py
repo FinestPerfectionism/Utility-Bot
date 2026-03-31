@@ -16,7 +16,7 @@ async def cog_autocomplete(
 ) -> list[app_commands.Choice[str]]:
     return [
         app_commands.Choice(
-            name=cog,
+            name = cog,
             value = cog
         )
         for cog in get_cogs()

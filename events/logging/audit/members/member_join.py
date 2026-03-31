@@ -20,18 +20,18 @@ class MemberJoinCog(AuditCog):
             return
 
         embed = discord.Embed(
-            title="Member Joined",
-            color=COLOR_GREEN,
+            title = "Member Joined",
+            color = COLOR_GREEN,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Member",
+        _ = embed.add_field(
+            name = "Member",
             value = f"`{member}`\n`{member.id}`",
             inline = True
         )
-        embed.add_field(
-            name="Account Created",
+        _ = embed.add_field(
+            name = "Account Created",
             value = discord.utils.format_dt(member.created_at, style='R'),
             inline = True
         )

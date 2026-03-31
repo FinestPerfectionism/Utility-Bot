@@ -50,13 +50,13 @@ class ThreadEditCog(AuditCog):
             return
 
         embed = discord.Embed(
-            title="Thread Updated",
-            color=COLOR_BLURPLE,
+            title = "Thread Updated",
+            color = COLOR_BLURPLE,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Thread",
+        _ = embed.add_field(
+            name = "Thread",
             value = f"`{after.name}`\n`{after.id}`",
             inline = False
         )
@@ -65,8 +65,8 @@ class ThreadEditCog(AuditCog):
         before_val: str | int | None
         after_val:  str | int | None
         for change_name, before_val, after_val in changes:
-            embed.add_field(
-                name=f"{change_name} Changed",
+            _ = embed.add_field(
+                name = f"{change_name} Changed",
                 value = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
                 inline = False
             )

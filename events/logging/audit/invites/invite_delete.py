@@ -23,23 +23,23 @@ class InviteDeleteCog(AuditCog):
             return
 
         embed: discord.Embed = discord.Embed(
-            title="Invite Deleted",
-            color=COLOR_RED,
+            title = "Invite Deleted",
+            color = COLOR_RED,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(name="Code", value = f"`{invite.code}`", inline = True)
+        _ = embed.add_field(name = "Code", value = f"`{invite.code}`", inline = True)
 
         channel_name: str = getattr(invite.channel, 'name', 'Unknown Channel')
         channel_id: str = str(getattr(invite.channel, 'id', 'Unknown ID'))
 
-        embed.add_field(
-            name="Channel",
+        _ = embed.add_field(
+            name = "Channel",
             value = f"`{channel_name}`\n`{channel_id}`",
             inline = True
         )
 
         if invite.uses is not None:
-            embed.add_field(name="Uses", value = str(invite.uses), inline = True)
+            _ = embed.add_field(name = "Uses", value = str(invite.uses), inline = True)
 
         await self._enqueue(log_channel, embed)

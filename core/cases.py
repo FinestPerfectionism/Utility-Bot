@@ -222,7 +222,7 @@ class CasesManager:
             return
 
         log_channel = guild.get_channel(channel_id)
-        if not isinstance(log_channel, (discord.TextChannel, discord.Thread)):
+        if not isinstance(log_channel, discord.TextChannel | discord.Thread):
             return
 
         case_type = case_data["type"]
@@ -264,64 +264,64 @@ class CasesManager:
         mod_added = False
         moderator = guild.get_member(case_data["moderator_id"])
         if moderator:
-            embed.add_field(name="Moderator", value = moderator.mention, inline = True)
+            _ = embed.add_field(name = "Moderator", value = moderator.mention, inline = True)
             mod_added = True
         if not mod_added:
-            embed.add_field(name="Moderator", value = case_data["moderator_name"], inline = True)
+            _ = embed.add_field(name = "Moderator", value = case_data["moderator_name"], inline = True)
 
         if case_data["target_user_id"]:
             user_added = False
             with contextlib.suppress(discord.NotFound, discord.HTTPException):
                 user = await self.bot.fetch_user(case_data["target_user_id"])
-                embed.add_field(name="User", value = f"{user.mention} ({user.id})", inline = True)
+                _ = embed.add_field(name = "User", value = f"{user.mention} ({user.id})", inline = True)
                 user_added = True
             if not user_added:
-                embed.add_field(
+                _ = embed.add_field(
                     name   = "User",
                     value  = f"{case_data['target_user_name']} ({case_data['target_user_id']})",
                     inline = True
                 )
 
         if case_data.get("duration"):
-            embed.add_field(name="Duration", value = case_data["duration"], inline = True)
+            _ = embed.add_field(name = "Duration", value = case_data["duration"], inline = True)
 
         if case_data.get("reason"):
-            embed.add_field(name="Reason", value = case_data["reason"], inline = False)
+            _ = embed.add_field(name = "Reason", value = case_data["reason"], inline = False)
 
         if case_data.get("content"):
-            embed.add_field(name="Content", value = case_data["content"], inline = False)
+            _ = embed.add_field(name = "Content", value = case_data["content"], inline = False)
 
         if case_data.get("related_case_id"):
-            embed.add_field(name="Related Case", value = f"#{case_data['related_case_id']}", inline = True)
+            _ = embed.add_field(name = "Related Case", value = f"#{case_data['related_case_id']}", inline = True)
 
         metadata: dict[str, Any] = case_data.get("metadata") or {}
 
         if "deleted_messages" in metadata:
-            embed.add_field(name="Messages Deleted", value = str(metadata["deleted_messages"]), inline = True)
+            _ = embed.add_field(name = "Messages Deleted", value = str(metadata["deleted_messages"]), inline = True)
 
         if "channel_id" in metadata:
             action_channel = guild.get_channel(metadata["channel_id"])
             if action_channel:
-                embed.add_field(name="Channel", value = action_channel.mention, inline = True)
+                _ = embed.add_field(name = "Channel", value = action_channel.mention, inline = True)
 
         if "roles_saved" in metadata:
-            embed.add_field(name="Roles Saved", value = str(metadata["roles_saved"]), inline = True)
+            _ = embed.add_field(name = "Roles Saved", value = str(metadata["roles_saved"]), inline = True)
 
         if "roles_restored" in metadata:
-            embed.add_field(name="Roles Restored", value = str(metadata["roles_restored"]), inline = True)
+            _ = embed.add_field(name = "Roles Restored", value = str(metadata["roles_restored"]), inline = True)
 
         if "channels_locked" in metadata:
-            embed.add_field(name="Channels Locked", value = str(metadata["channels_locked"]), inline = True)
+            _ = embed.add_field(name = "Channels Locked", value = str(metadata["channels_locked"]), inline = True)
 
         if "channels_restored" in metadata:
-            embed.add_field(name="Channels Restored", value = str(metadata["channels_restored"]), inline = True)
+            _ = embed.add_field(name = "Channels Restored", value = str(metadata["channels_restored"]), inline = True)
 
         if "proof_url" in metadata:
-            embed.add_field(name="Proof", value = metadata["proof_url"], inline = False)
-            embed.set_image(url=metadata["proof_url"])
+            _ = embed.add_field(name = "Proof", value = metadata["proof_url"], inline = False)
+            _ = embed.set_image(url=metadata["proof_url"])
 
         with contextlib.suppress(discord.Forbidden):
-            await log_channel.send(embed=embed)
+            _ = await log_channel.send(embed=embed)
 
     def get_case_by_id(self, case_id: int) -> dict[str, Any] | None:
         self.data = self.load_data()
@@ -350,7 +350,7 @@ class CasesManager:
         cases: list[dict[str, Any]] = self.data["cases"]
         for i, case in enumerate(cases):
             if case["case_id"] == case_id:
-                cases.pop(i)
+                _ = cases.pop(i)
                 self.save_data()
                 return True
         return False

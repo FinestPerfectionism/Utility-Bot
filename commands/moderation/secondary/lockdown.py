@@ -105,12 +105,12 @@ class LockdownCommands(commands.Cog):
         )
 
     lockdown_group = app_commands.Group(
-        name="lockdown",
+        name = "lockdown",
         description="Directors only —— Server lockdown management."
     )
 
     @lockdown_group.command(
-        name="status",
+        name = "status",
         description="View the current lockdown status."
     )
     @help_description(
@@ -127,9 +127,9 @@ class LockdownCommands(commands.Cog):
         if not self.can_manage_lockdown(member):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -236,7 +236,7 @@ class LockdownCommands(commands.Cog):
         permission_backup = {}
 
         for channel in guild.channels:
-            if isinstance(channel, (discord.TextChannel, discord.VoiceChannel, discord.ForumChannel, discord.StageChannel)):
+            if isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel):
                 if self.is_channel_exempt(channel):
                     continue
 
@@ -295,9 +295,9 @@ class LockdownCommands(commands.Cog):
             color     = COLOR_RED,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Director", value = actor.mention, inline = True)
-        _ = embed.add_field(name="Channels Locked", value = str(channels_locked), inline = True)
-        _ = embed.add_field(name="Reason", value = reason, inline = False)
+        _ = embed.add_field(name = "Director", value = actor.mention, inline = True)
+        _ = embed.add_field(name = "Channels Locked", value = str(channels_locked), inline = True)
+        _ = embed.add_field(name = "Reason", value = reason, inline = False)
         _ = embed.add_field(
             name   = "Note",
             value  = f"Staff members ({staff_role.mention}) can still send messages.\n"
@@ -308,7 +308,7 @@ class LockdownCommands(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral = True)
 
     @lockdown_group.command(
-        name="lift",
+        name = "lift",
         description="Lift server lockdown."
     )
     @help_description(
@@ -349,7 +349,7 @@ class LockdownCommands(commands.Cog):
 
         for channel_id, perms in self.data["channel_permissions"].items():
             channel = guild.get_channel(int(channel_id))
-            if not channel or not isinstance(channel, (discord.TextChannel, discord.VoiceChannel, discord.ForumChannel, discord.StageChannel)):
+            if not channel or not isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel):
                 channels_not_found += 1
                 continue
 
@@ -396,16 +396,16 @@ class LockdownCommands(commands.Cog):
         )
 
         embed = discord.Embed(
-            title="Lockdown Lifted",
-            color=COLOR_GREEN,
+            title = "Lockdown Lifted",
+            color = COLOR_GREEN,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Director", value = actor.mention, inline = True)
-        _ = embed.add_field(name="Channels Restored", value = str(channels_restored), inline = True)
+        _ = embed.add_field(name = "Director", value = actor.mention, inline = True)
+        _ = embed.add_field(name = "Channels Restored", value = str(channels_restored), inline = True)
 
         if channels_not_found > 0:
             _ = embed.add_field(
-                name=f"{CONTESTED_EMOJI_ID} Channels Not Found",
+                name = f"{CONTESTED_EMOJI_ID} Channels Not Found",
                 value = f"{channels_not_found} channel(s) no longer exist and could not be restored.",
                 inline = False
             )

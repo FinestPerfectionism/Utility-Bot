@@ -47,28 +47,28 @@ class MemberLeaveHandler(commands.Cog):
         except discord.NotFound:
             return
         embed = discord.Embed(
-            title=msg.embeds[0].title if msg.embeds else "Application Decision",
-            color=COLOR_RED,
+            title = msg.embeds[0].title if msg.embeds else "Application Decision",
+            color = COLOR_RED,
         )
-        embed.add_field(name="Decision", value = "Denied", inline = True)
-        embed.add_field(name="Handled By", value = "*Automatic*", inline = True)
-        embed.add_field(
-            name="Decision Notes",
+        _ = embed.add_field(name = "Decision", value = "Denied", inline = True)
+        _ = embed.add_field(name = "Handled By", value = "*Automatic*", inline = True)
+        _ = embed.add_field(
+            name = "Decision Notes",
             value = "*Applicant left the server.*",
             inline = False,
         )
-        embed.set_footer(text="Decision Made")
+        _ = embed.set_footer(text="Decision Made")
         embed.timestamp = discord.utils.utcnow()
-        await msg.edit(embed=embed, view = None)
+        _ = await msg.edit(embed=embed, view = None)
         thread_id = data.get("thread_id")
         if thread_id:
             try:
                 channel = await self.bot.fetch_channel(thread_id)
                 if isinstance(channel, discord.Thread):
-                    await channel.edit(locked=True, archived=True)
+                    _ = await channel.edit(locked=True, archived=True)
             except discord.NotFound:
                 pass
-        ACTIVE_APPLICATIONS.pop(member.id, None)
+        _ = ACTIVE_APPLICATIONS.pop(member.id, None)
         save_active_applications()
         
 async def setup(bot: commands.Bot) -> None:

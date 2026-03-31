@@ -5,7 +5,7 @@ from discord.app_commands import CommandOnCooldown
 from discord.app_commands.errors import CommandNotFound
 
 from collections.abc import Coroutine
-
+from typing_extensions import override
 from typing import Any
 import traceback
 import sys
@@ -70,10 +70,10 @@ USER_INPUT_ERRORS = (
 
 class ErrorLogger(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
-        self.bot            = bot
+        self.bot                            = bot
         self._tasks: set[asyncio.Task[Any]] = set()
         self._rate_limit_hits               = 0
-        bot.tree.error(self.app_command_error_handler)
+        _ = bot.tree.error(self.app_command_error_handler)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Central Error Sender
@@ -85,58 +85,58 @@ class ErrorLogger(commands.Cog):
             return
 
         embed = discord.Embed(
-            title=title,
-            description=description,
-            color=COLOR_BLURPLE,
-            timestamp = discord.utils.utcnow(),
+            title       = title,
+            description = description,
+            color       = COLOR_BLURPLE,
+            timestamp   = discord.utils.utcnow(),
         )
 
-        await channel.send(embed=embed)
+        _ = await channel.send(embed=embed)
 
     async def send_error(
         self,
         *,
-        title: str,
-        user: discord.abc.User | None = None,
-        guild: discord.Guild | None = None,
-        command_display: str | None = None,
-        error_text: str | None = None,
-        traceback_text: str | None = None,
+        title           : str,
+        user            : discord.abc.User | None = None,
+        guild           : discord.Guild    | None = None,
+        command_display : str              | None = None,
+        error_text      : str              | None = None,
+        traceback_text  : str              | None = None,
     ) -> None:
         channel = self.bot.get_channel(BOT_ERRORS_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
 
         embed = discord.Embed(
-            title=title,
-            color=COLOR_RED,
+            title     = title,
+            color     = COLOR_RED,
             timestamp = discord.utils.utcnow(),
         )
 
         if user:
-            embed.add_field(
-                name="User",
-                value = f"`{user}`\n`{user.id}`",
+            _ = embed.add_field(
+                name   ="User",
+                value  = f"`{user}`\n`{user.id}`",
                 inline = True,
             )
 
         if guild:
-            embed.add_field(
-                name="Guild",
+            _ = embed.add_field(
+                name = "Guild",
                 value = f"`{guild}`\n`{guild.id}`",
                 inline = True,
             )
 
         if command_display:
-            embed.add_field(
-                name="Command",
+            _ = embed.add_field(
+                name = "Command",
                 value = f"```{command_display}```",
                 inline = True,
             )
 
         if error_text:
-            embed.add_field(
-                name="Error",
+            _ = embed.add_field(
+                name = "Error",
                 value = f"```python\n{error_text}\n```",
                 inline = False,
             )
@@ -148,10 +148,10 @@ class ErrorLogger(commands.Cog):
         else:
             embed.description = None
 
-        await channel.send(
-            content=f"<@{BOT_OWNER_ID}>",
-            embed=embed,
-            allowed_mentions=discord.AllowedMentions(users=True),
+        _ = await channel.send(
+            content          = f"<@{BOT_OWNER_ID}>",
+            embed            = embed,
+            allowed_mentions = discord.AllowedMentions(users=True),
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -162,7 +162,7 @@ class ErrorLogger(commands.Cog):
         self._rate_limit_hits += 1
 
         await self.send_error(
-            title="Rate Limited (429)",
+            title = "Rate Limited (429)",
             error_text=(
                 f"Source: {source}\n"
                 f"Hit {self._rate_limit_hits}/{MAX_429S} this session."
@@ -171,7 +171,7 @@ class ErrorLogger(commands.Cog):
 
         if self._rate_limit_hits >= MAX_429S:
             await self.send_error(
-                title="Auto-Shutdown: Too Many 429s",
+                title = "Auto-Shutdown: Too Many 429s",
                 error_text=(
                     f"Received {MAX_429S} rate limit responses this session. "
                     "Shutting down to prevent an IP ban."
@@ -195,7 +195,7 @@ class ErrorLogger(commands.Cog):
 
         if exc is None:
             await self.send_error(
-                title="Bot Event Error",
+                title = "Bot Event Error",
                 error_text=f"{event}: Unknown exception",
             )
             return
@@ -207,7 +207,7 @@ class ErrorLogger(commands.Cog):
         tb_text = "".join(traceback.format_exception(exc_type, exc, tb))
 
         await self.send_error(
-            title="Bot Event Error",
+            title = "Bot Event Error",
             error_text=f"{event}: {exc}",
             traceback_text=tb_text,
         )
@@ -229,7 +229,7 @@ class ErrorLogger(commands.Cog):
             await self.handle_rate_limit(ctx.message.content or "prefix command")
             return
 
-        if isinstance(actual_error, (commands.CheckFailure, commands.CommandNotFound)):
+        if isinstance(actual_error, commands.CheckFailure | commands.CommandNotFound):
             return
 
         if isinstance(actual_error, USER_INPUT_ERRORS):
@@ -240,7 +240,7 @@ class ErrorLogger(commands.Cog):
         )
 
         await self.send_error(
-            title="Prefix Command Error",
+            title = "Prefix Command Error",
             user=ctx.author,
             guild=ctx.guild,
             command_display=ctx.message.content,
@@ -261,22 +261,22 @@ class ErrorLogger(commands.Cog):
             await send_minor_error(
                 interaction,
                 f"Cooldown active. Try again in {error.retry_after:.1f}s.",
-                subtitle="Cooldown active."
+                subtitle = "Cooldown active."
             )
             return
 
         if isinstance(error, WrongGuild):
             if not interaction.response.is_done():
-                await interaction.response.send_message(
-                    view = WrongGuildError(),
+                _ = await interaction.response.send_message(
+                    view      = WrongGuildError(),
                     ephemeral = True,
                 )
             return
 
         if isinstance(error, PermissionDenied):
             if not interaction.response.is_done():
-                await interaction.response.send_message(
-                    view = PermissionError(),
+                _ = await interaction.response.send_message(
+                    view      = PermissionError(),
                     ephemeral = True,
                 )
             return
@@ -297,7 +297,7 @@ class ErrorLogger(commands.Cog):
         cmd_name = f"/{cmd.qualified_name}" if cmd else "Unknown"
 
         await self.send_error(
-            title="Application Command Error",
+            title = "Application Command Error",
             user=interaction.user,
             guild=interaction.guild,
             command_display=cmd_name,
@@ -316,7 +316,7 @@ class ErrorLogger(commands.Cog):
         )
 
         await self.send_error(
-            title="Extension Error",
+            title = "Extension Error",
             error_text=f"{extension}: {error}",
             traceback_text=tb_text,
         )
@@ -328,7 +328,7 @@ class ErrorLogger(commands.Cog):
     @commands.Cog.listener()
     async def on_socket_raw_receive(self, payload: dict[str, Any]) -> None:
         if payload.get("t") == "INVALID_SESSION":
-            await self.send_info(title="Invalid Gateway Session")
+            await self.send_info(title = "Invalid Gateway Session")
 
     async def guard_http(self, coro: Coroutine[Any, Any, Any]) -> None:
         try:
@@ -348,7 +348,7 @@ class ErrorLogger(commands.Cog):
             )
 
             await self.send_error(
-                title="HTTP / REST Error",
+                title = "HTTP / REST Error",
                 error_text=str(exc),
                 traceback_text=tb_text,
             )
@@ -359,7 +359,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     def create_task(self, coro: Coroutine[Any, Any, Any], *, name: str) -> asyncio.Task[Any]:
-        task = asyncio.create_task(coro, name=name)
+        task = asyncio.create_task(coro, name = name)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
         task.add_done_callback(self.task_done)
@@ -378,9 +378,9 @@ class ErrorLogger(commands.Cog):
             return
 
         if isinstance(exc, discord.HTTPException) and exc.status == 429:
-            self.create_task(
+            _ = self.create_task(
                 self.handle_rate_limit(f"task: {task.get_name()}"),
-                name="task_ratelimit_reporter"
+                name = "task_ratelimit_reporter"
             )
             return
 
@@ -388,13 +388,13 @@ class ErrorLogger(commands.Cog):
             traceback.format_exception(type(exc), exc, exc.__traceback__)
         )
 
-        self.create_task(
+        _ = self.create_task(
             self.send_error(
-                title="Background Task Error",
-                error_text=str(exc),
-                traceback_text=tb_text,
+                title          = "Background Task Error",
+                error_text     = str(exc),
+                traceback_text = tb_text,
             ),
-            name="task_error_reporter"
+            name = "task_error_reporter"
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -403,37 +403,37 @@ class ErrorLogger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_disconnect(self) -> None:
-        await self.send_info(title="Gateway Disconnected")
+        await self.send_info(title = "Gateway Disconnected")
 
     @commands.Cog.listener()
     async def on_resumed(self) -> None:
-        await self.send_info(title="Gateway Resumed")
+        await self.send_info(title = "Gateway Resumed")
 
     @commands.Cog.listener()
     async def on_shard_disconnect(self, shard_id: int) -> None:
         await self.send_info(
-            title="Shard Disconnected",
+            title = "Shard Disconnected",
             description=f"Shard {shard_id}"
         )
 
     @commands.Cog.listener()
     async def on_shard_connect(self, shard_id: int) -> None:
         await self.send_info(
-            title="Shard Connected",
+            title = "Shard Connected",
             description=f"Shard {shard_id}"
         )
 
     @commands.Cog.listener()
     async def on_shard_ready(self, shard_id: int) -> None:
         await self.send_info(
-            title="Shard Ready",
+            title = "Shard Ready",
             description=f"Shard {shard_id}"
         )
 
     @commands.Cog.listener()
     async def on_shard_resumed(self, shard_id: int) -> None:
         await self.send_info(
-            title="Shard Resumed",
+            title = "Shard Resumed",
             description=f"Shard {shard_id}"
         )
 
@@ -452,14 +452,15 @@ class ErrorLogger(commands.Cog):
             if exc else msg
         )
 
-        loop.create_task(
+        _ = loop.create_task(
             self.send_error(
-                title="Asyncio Event Loop Error",
-                error_text=str(msg),
-                traceback_text=tb_text,
+                title          = "Asyncio Event Loop Error",
+                error_text     = str(msg),
+                traceback_text = tb_text,
             )
         )
 
+    @override
     async def cog_load(self) -> None:
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(self.loop_exception_handler)
@@ -475,7 +476,7 @@ class WrongGuildError(discord.ui.LayoutView):
             "-# Bad command environment.\n"
             "Although you have the necessary permissions to run this command (Bot Owner), using it in this current Guild/DM will not work."
         )),
-        accent_color=COLOR_YELLOW,
+        accent_color = COLOR_YELLOW,
     )
 
 class PermissionError(discord.ui.LayoutView):
@@ -484,7 +485,7 @@ class PermissionError(discord.ui.LayoutView):
             f"### {DENIED_EMOJI_ID} Unauthorized!\n"
             "-# Invalid permissions.\n"
             "You lack the necessary permissions to run this command.")),
-        accent_color=COLOR_RED,
+        accent_color = COLOR_RED,
     )
 
 async def setup(bot: commands.Bot) -> None:

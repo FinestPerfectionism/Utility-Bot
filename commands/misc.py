@@ -16,16 +16,16 @@ class Ping(discord.ui.LayoutView):
     def __init__(self, ping: int) -> None:
         super().__init__()
 
-        self.add_item(
+        _ = self.add_item(
             discord.ui.TextDisplay(content="# I HAVE BEEN AWAKENEDDDD.")
         )
-        self.add_item(
+        _ = self.add_item(
             discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.small
             )
         )
-        self.add_item(
+        _ = self.add_item(
             discord.ui.TextDisplay(
                 content=f"*cough cough* My ping is {ping} milliseconds."
             )
@@ -37,14 +37,14 @@ class Ping(discord.ui.LayoutView):
 
 class MiscCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+        _ = self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /femboy Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="femboy",
+        name = "femboy",
         description="Such a good little utility kitten."
     )
     @help_description(
@@ -53,7 +53,7 @@ class MiscCommands(commands.Cog):
         slash=True,
     )
     async def femboy(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer()
+        _ = await interaction.response.defer()
         await interaction.followup.send(
             "i-i'm such a submissive wittle kitty UwU. *snuggles* I hewp cwose proposals... naa~~"
         )
@@ -63,7 +63,7 @@ class MiscCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name="super_secret_command"
+        name = "super_secret_command"
     )
     @help_description(
         desc="Runs a private easter-egg response path intended for the configured bot owner and a small hard-coded exception. Access is controlled by user ID checks inside the command, not by Discord roles.",
@@ -74,18 +74,18 @@ class MiscCommands(commands.Cog):
         author_id = ctx.author.id
 
         if author_id == BOT_OWNER_ID:
-            await ctx.send(
+            _ = await ctx.send(
                 "This is a super super secret command that is used by people that will use it super super secretly."
             )
             return
 
         if author_id == HOLY_FATHER_ID:
-            await ctx.send(
+            _ = await ctx.send(
                 "Hello daddy! <:puppy3:1464256700344303771> This is a super super secret command that is used by people that will use it super super secretly."
             )
             return
 
-        await ctx.send(
+        _ = await ctx.send(
             "Hmm… I don't think you're super super secret enough to use this super super secret command."
         ) 
 
@@ -94,7 +94,7 @@ class MiscCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="roulette",
+        name = "roulette",
         description="Have fun..."
     )
     @help_description(
@@ -110,17 +110,17 @@ class MiscCommands(commands.Cog):
             await send_minor_error(
                 interaction,
                 "This command can only be used in a server.",
-                subtitle="Bad command environment."
+                subtitle = "Bad command environment."
             )
             return
 
         if interaction.user.id == 1167207694424350740:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 "My developer is so fucking tired of unbanning you and adding your roles back that he has decided that you can never touch this command again. Dumbass. <:laugh5:1481288430150484111>"
             )
             return
 
-        await interaction.response.defer(ephemeral=False)
+        _ = await interaction.response.defer(ephemeral=False)
 
         import secrets
 
@@ -150,7 +150,7 @@ class MiscCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name="bot-ping",
+        name = "bot-ping",
     )
     @help_description(
         desc        = "The ping command displays the bot's current latency in milliseconds.",
@@ -160,7 +160,7 @@ class MiscCommands(commands.Cog):
     )
     async def ping(self, ctx: commands.Context[commands.Bot]) -> None:
         latency_ms = round(self.bot.latency * 1000)
-        await ctx.send(
+        _ = await ctx.send(
             view = Ping(latency_ms)
         )
 

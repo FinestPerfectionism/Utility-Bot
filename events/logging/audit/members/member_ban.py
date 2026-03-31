@@ -22,20 +22,20 @@ class MemberBanCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.ban, user.id)
 
         embed = discord.Embed(
-            title="Member Banned",
-            color=COLOR_RED,
+            title = "Member Banned",
+            color = COLOR_RED,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="User",
+        _ = embed.add_field(
+            name = "User",
             value = f"`{user}`\n`{user.id}`",
             inline = True
         )
 
         if executor:
-            embed.add_field(
-                name="Banned By",
+            _ = embed.add_field(
+                name = "Banned By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

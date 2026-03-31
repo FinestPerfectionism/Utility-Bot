@@ -60,13 +60,13 @@ class RoleEditCog(AuditCog):
         executor = await self.get_executor(after.guild, discord.AuditLogAction.role_update, after.id)
 
         embed = discord.Embed(
-            title="Role Updated",
-            color=COLOR_BLURPLE,
+            title = "Role Updated",
+            color = COLOR_BLURPLE,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Role",
+        _ = embed.add_field(
+            name = "Role",
             value = f"`{after.name}`\n`{after.id}`",
             inline = False
         )
@@ -76,21 +76,21 @@ class RoleEditCog(AuditCog):
         after_val: str | None
         for change_name, before_val, after_val in changes:
             if after_val is None:
-                embed.add_field(
-                    name=f"{change_name} Changed",
+                _ = embed.add_field(
+                    name = f"{change_name} Changed",
                     value = before_val,
                     inline = False
                 )
             else:
-                embed.add_field(
-                    name=f"{change_name} Changed",
+                _ = embed.add_field(
+                    name = f"{change_name} Changed",
                     value = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
                     inline = False
                 )
 
         if executor:
-            embed.add_field(
-                name="Changed By",
+            _ = embed.add_field(
+                name = "Changed By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

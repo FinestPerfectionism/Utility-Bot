@@ -39,12 +39,12 @@ class AntiNukeCommands(commands.Cog):
         self.save_config = antinuke_system.save_config
 
     antinuke_group = app_commands.Group(
-        name="anti-nuke",
+        name = "anti-nuke",
         description="Directors only —— Anti-nuke management."
     )
 
     @antinuke_group.command(
-        name="status",
+        name = "status",
         description="Status of the anti-nuke system."
     )
     @help_description(
@@ -61,9 +61,9 @@ class AntiNukeCommands(commands.Cog):
         if not self.is_director(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to view anti-nuke settings.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -71,14 +71,14 @@ class AntiNukeCommands(commands.Cog):
         log_channel_id = self.config.get("log_channel_id")
 
         embed = discord.Embed(
-            title="Anti-Nuke Configuration",
-            color=COLOR_GREEN if enabled else COLOR_RED,
+            title = "Anti-Nuke Configuration",
+            color = COLOR_GREEN if enabled else COLOR_RED,
             timestamp = datetime.now()
         )
 
         status_text = "Enabled" if enabled else "Disabled"
         _ = embed.add_field(
-            name="Status",
+            name = "Status",
             value = status_text,
             inline = True
         )
@@ -86,14 +86,14 @@ class AntiNukeCommands(commands.Cog):
         if log_channel_id:
             log_channel = interaction.guild.get_channel(log_channel_id) if interaction.guild else None
             _ = embed.add_field(
-                name="Log Channel",
+                name = "Log Channel",
                 value = log_channel.mention if log_channel else f"<#{log_channel_id}> (deleted)",
                 inline = True
             )
         else:
-            _ = embed.add_field(name="Log Channel", value = "Not configured", inline = True)
+            _ = embed.add_field(name = "Log Channel", value = "Not configured", inline = True)
 
-        _ = embed.add_field(name="\u200b", value = "\u200b", inline = False)
+        _ = embed.add_field(name = "\u200b", value = "\u200b", inline = False)
 
         limits = self.config["limits"]
         for action_type, settings in limits.items():
@@ -101,13 +101,13 @@ class AntiNukeCommands(commands.Cog):
             hourly = settings.get("hourly", "N/A")
             daily = settings.get("daily", "N/A")
             limit_text = f"Hourly: {hourly}\nDaily: {daily}"
-            _ = embed.add_field(name=action_name, value = limit_text, inline = True)
+            _ = embed.add_field(name = action_name, value = limit_text, inline = True)
 
         _ = embed.set_footer(text="Directors are exempt from all limits")
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
-    @antinuke_group.command(name="toggle", description="Enable or disable anti-nuke protection.")
+    @antinuke_group.command(name = "toggle", description="Enable or disable anti-nuke protection.")
     @help_description(
         desc="Directors only —— Toggle anti-nuke system.",
         prefix=False,
@@ -122,9 +122,9 @@ class AntiNukeCommands(commands.Cog):
         if not self.is_director(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -134,15 +134,15 @@ class AntiNukeCommands(commands.Cog):
         status = "enabled" if self.config["enabled"] else "disabled"
 
         embed = discord.Embed(
-            title=f"{ACCEPTED_EMOJI_ID} Anti-Nuke {status.title()}",
+            title = f"{ACCEPTED_EMOJI_ID} Anti-Nuke {status.title()}",
             description=f"Anti-nuke protection has been {status}.",
-            color=COLOR_GREEN if self.config["enabled"] else COLOR_ORANGE,
+            color = COLOR_GREEN if self.config["enabled"] else COLOR_ORANGE,
             timestamp = datetime.now()
         )
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
-    @antinuke_group.command(name="set-limit", description="Configure limits for a specific action type.")
+    @antinuke_group.command(name = "set-limit", description="Configure limits for a specific action type.")
     @help_description(
         desc="Directors only —— command to set hourly and daily anti-nuke limits for a tracked action type.",
         prefix=False,
@@ -173,9 +173,9 @@ class AntiNukeCommands(commands.Cog):
         if not self.is_director(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -201,14 +201,14 @@ class AntiNukeCommands(commands.Cog):
         self.save_config()
 
         embed = discord.Embed(
-            title=f"{ACCEPTED_EMOJI_ID} Limit Updated",
+            title = f"{ACCEPTED_EMOJI_ID} Limit Updated",
             description=f"Updated limits for {action.replace('_', ' ')}.",
-            color=COLOR_GREEN,
+            color = COLOR_GREEN,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Action", value = action.replace("_", " ").title(), inline = True)
-        _ = embed.add_field(name="Hourly Limit", value = str(hourly), inline = True)
-        _ = embed.add_field(name="Daily Limit", value = str(daily), inline = True)
+        _ = embed.add_field(name = "Action", value = action.replace("_", " ").title(), inline = True)
+        _ = embed.add_field(name = "Hourly Limit", value = str(hourly), inline = True)
+        _ = embed.add_field(name = "Daily Limit", value = str(daily), inline = True)
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
@@ -220,12 +220,12 @@ class AntiNukeCommands(commands.Cog):
     ) -> list[app_commands.Choice[str]]:
         actions = list(self.config["limits"].keys())
         return [
-            app_commands.Choice(name=action.replace("_", " ").title(), value = action)
+            app_commands.Choice(name = action.replace("_", " ").title(), value = action)
             for action in actions
             if current.lower() in action.lower()
         ][:25]
 
-    @antinuke_group.command(name="configure", description="Configure the anti-nuke log channel.")
+    @antinuke_group.command(name = "configure", description="Configure the anti-nuke log channel.")
     @help_description(
         desc="Directors only —— Configures the channel that receives anti-nuke alerts.",
         prefix=False,
@@ -248,9 +248,9 @@ class AntiNukeCommands(commands.Cog):
         if not self.is_director(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -258,9 +258,9 @@ class AntiNukeCommands(commands.Cog):
         self.save_config()
 
         embed = discord.Embed(
-            title=f"{ACCEPTED_EMOJI_ID} Log Channel Configured",
+            title = f"{ACCEPTED_EMOJI_ID} Log Channel Configured",
             description=f"Anti-nuke alerts will now be sent to {channel.mention}.",
-            color=COLOR_GREEN,
+            color = COLOR_GREEN,
             timestamp = datetime.now()
         )
 

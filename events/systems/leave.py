@@ -28,7 +28,7 @@ class LeaveFormatView(discord.ui.LayoutView):
                 "Leave requests created not following the format above will be ignored."
             )
         ),
-        accent_color=COLOR_GREEN,
+        accent_color = COLOR_GREEN,
     )
 
 class LeaveComponents(discord.ui.LayoutView):
@@ -77,15 +77,15 @@ class LeaveComponents(discord.ui.LayoutView):
                 custom_id="leave:format",
             )
         ),
-        accent_color=COLOR_GREEN,
+        accent_color = COLOR_GREEN,
     )
 
     async def format_leave(self, interaction: discord.Interaction) -> None:
         if interaction.response.is_done():
             return
 
-        await interaction.response.send_message(
-            view = LeaveFormatView(),
+        _ = await interaction.response.send_message(
+            view      = LeaveFormatView(),
             ephemeral = True,
         )
 
@@ -99,7 +99,7 @@ class LeaveComponents(discord.ui.LayoutView):
 
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                 "Leave requests can only be opened in text channels.",
                 ephemeral = True,
@@ -112,7 +112,7 @@ class LeaveComponents(discord.ui.LayoutView):
             role_ids = {role.id for role in user.roles}
 
             if DIRECTORS_ROLE_ID in role_ids:
-                await interaction.response.send_message(
+                _ = await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                     "Please do not open a leave request as a Director. Instead, contact other Directors in the proper union and use `/leave add` with the proper arguments.",
                     ephemeral = True,
@@ -120,7 +120,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 return
 
             if STAFF_ROLE_ID not in role_ids:
-                await interaction.response.send_message(
+                _ = await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                     "Please do not open a leave request while not existing within the Staff team.",
                     ephemeral = True,
@@ -129,7 +129,7 @@ class LeaveComponents(discord.ui.LayoutView):
 
         for thread in channel.threads:
             if thread.name == f"Leave —— {user.id}" and not thread.archived:
-                await interaction.response.send_message(
+                _ = await interaction.response.send_message(
                     f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
                     f"Please do not open a leave request while you already have an open leave request: {thread.mention}",
                     ephemeral = True,
@@ -137,7 +137,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 return
 
         thread = await channel.create_thread(
-            name=f"Leave —— {user.id}",
+            name = f"Leave —— {user.id}",
             type=discord.ChannelType.private_thread,
             invitable=False,
         )
@@ -146,9 +146,9 @@ class LeaveComponents(discord.ui.LayoutView):
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
         if director_role:
-            await thread.send(director_role.mention)
+            _ = await thread.send(director_role.mention)
 
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"{ACCEPTED_EMOJI_ID} **Successfully opened leave request.**\n"
             f"Thread: {thread.mention}",
             ephemeral = True,

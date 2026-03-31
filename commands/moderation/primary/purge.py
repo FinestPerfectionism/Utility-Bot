@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import discord
-import contextlib
-from datetime import datetime, timezone
+from datetime import (
+    datetime,
+    timezone
+)
 from typing import (
     TYPE_CHECKING,
     Any
@@ -35,7 +37,7 @@ PurgeableChannel = (
 def _get_purgeable_channel(
     channel: Any 
 ) -> PurgeableChannel | None:
-    if isinstance(channel, (discord.TextChannel, discord.VoiceChannel, discord.Thread)):
+    if isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.Thread):
         return channel
     return None
 
@@ -46,14 +48,14 @@ def _build_purge_embed(
     proof:         discord.Attachment | None = None,
 ) -> discord.Embed:
     embed = discord.Embed(
-        title="Messages Purged",
-        color=COLOR_BLURPLE,
+        title = "Messages Purged",
+        color = COLOR_BLURPLE,
         timestamp = datetime.now(tz=timezone.utc)
     )
-    _ = embed.add_field(name="Deleted",   value = str(deleted_count), inline = True)
-    _ = embed.add_field(name="Moderator", value = moderator.mention,  inline = True)
+    _ = embed.add_field(name = "Deleted",   value = str(deleted_count), inline = True)
+    _ = embed.add_field(name = "Moderator", value = moderator.mention,  inline = True)
     if member:
-        _ = embed.add_field(name="From User", value = member.mention, inline = True)
+        _ = embed.add_field(name = "From User", value = member.mention, inline = True)
     if proof:
         _ = embed.set_image(url=proof.url)
     return embed
@@ -77,9 +79,9 @@ async def run_purge(
     if not base.can_apply_standard_actions(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
+            title = "Unauthorized!",
             texts="You lack the necessary permissions to purge messages.",
-            subtitle="Invalid permissions."
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -90,7 +92,7 @@ async def run_purge(
     channel = _get_purgeable_channel(interaction.channel) 
 
     if channel is None:
-        await send_minor_error(interaction, "This command cannot be used in this channel type.", subtitle="Bad command environment.")
+        await send_minor_error(interaction, "This command cannot be used in this channel type.", subtitle = "Bad command environment.")
         return
 
     guild = interaction.guild

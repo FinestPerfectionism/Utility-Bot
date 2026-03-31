@@ -39,7 +39,7 @@ def _build_info_view() -> discord.ui.LayoutView:
     class InfoView(discord.ui.LayoutView):
         container = discord.ui.Container( # type: ignore
             discord.ui.TextDisplay(content=_BOT_INFO_TEXT), # type: ignore
-            accent_color=COLOR_BLURPLE,
+            accent_color = COLOR_BLURPLE,
         )
     return InfoView()
 
@@ -85,7 +85,7 @@ async def _run_help(
 
     data = cast("HelpedCallable", callback).__help_data__
     view = build_help_view(
-        command_name=" ".join(parts),
+        command_name = " ".join(parts),
         data=data,
         member=member,
     )
@@ -100,7 +100,7 @@ class HelpCommands(commands.Cog):
     # .help Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="help")
+    @commands.command(name = "help")
     async def help(
         self,
         ctx: commands.Context[commands.Bot],

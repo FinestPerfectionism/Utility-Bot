@@ -27,6 +27,9 @@ from events.systems.applications import (
 )
 
 from constants import (
+    ACCEPTED_EMOJI_ID,
+    CONTESTED_EMOJI_ID,
+
     STAFF_ROLE_ID,
     DIRECTORS_ROLE_ID,
 )
@@ -37,7 +40,7 @@ from constants import (
 
 class ApplicationsCommands(
     commands.GroupCog,
-    name="applications",
+    name = "applications",
     description="Moderators only —— Applications commands."
 ):
     def __init__(self, bot: commands.Bot) -> None:
@@ -49,7 +52,7 @@ class ApplicationsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="blacklist",
+        name = "blacklist",
         description="Blacklist or un-blacklist a user from applications."
     )
     @app_commands.describe(
@@ -59,11 +62,11 @@ class ApplicationsCommands(
     @app_commands.choices(
         action=[
             app_commands.Choice(
-                name="Add",
+                name = "Add",
                 value = "add"
             ),
             app_commands.Choice(
-                name="Remove",
+                name = "Remove",
                 value = "remove"
             )
         ]
@@ -143,7 +146,7 @@ class ApplicationsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="state-modify",
+        name = "state-modify",
         description="Open or close staff applications."
     )
     @app_commands.describe(
@@ -153,21 +156,21 @@ class ApplicationsCommands(
     @app_commands.choices(
         application=[
             app_commands.Choice(
-                name="Moderators",
+                name = "Moderators",
                 value = "mod"
             ),
             app_commands.Choice(
-                name="Administrators",
+                name = "Administrators",
                 value = "admin"
             ),
         ],
         state=[
             app_commands.Choice(
-                name="Open",
+                name = "Open",
                 value = "open"
             ),
             app_commands.Choice(
-                name="Closed",
+                name = "Closed",
                 value = "closed"
             ),
         ],
@@ -202,7 +205,7 @@ class ApplicationsCommands(
         APPLICATIONS_OPEN[application.value] = new_state
         save_application_state()
 
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"{application.name} applications have been {state.value}.",
             ephemeral = True,
         )
@@ -211,23 +214,23 @@ class ApplicationsCommands(
     # .cancel Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(
-        name="cancel"
-    )
+    @commands.command(name = "cancel")
     @help_description(
-        desc="Cancels your active application. This command only works in DMs while you have an active application.",
-        prefix=True,
-        slash=False,
+        desc   = "Cancels your active application. This command only works in DMs while you have an active application.",
+        prefix = True,
+        slash  = False,
     )
     async def cancel(self, ctx: commands.Context[commands.Bot]) -> None:
         if ctx.guild is not None:
-            await ctx.send(
+            _ = await ctx.send(
+              f"{CONTESTED_EMOJI_ID} **Failed to cancel application!**"
                 "This command can only be used in DMs."
             )
             return
 
         if ctx.author.id not in ACTIVE_APPLICATIONS:
-            await ctx.send(
+            _ = await ctx.send(
+               f"{CONTESTED_EMOJI_ID} **Failed to cancel application!**"
                 "This command can only be used with an active application to cancel."
             )
             return
@@ -238,6 +241,7 @@ class ApplicationsCommands(
         await delete_application_messages(client=self.bot, user_id=ctx.author.id)
 
         confirm = await ctx.send(
+           f"{ACCEPTED_EMOJI_ID} **Successfully cancelled application.**\n"
             "Your application has been cancelled and deleted."
         )
         await confirm.delete(delay=300)

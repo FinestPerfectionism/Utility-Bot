@@ -48,8 +48,8 @@ def register_ticket(user_id: int, thread_id: int, ticket_type: str) -> None:
 def unregister_ticket(thread_id: int) -> None:
     user_id = THREAD_OPENERS.pop(thread_id, None)
     if user_id is not None:
-        ACTIVE_TICKETS.pop(user_id, None)
-    TICKET_CLAIMS.pop(thread_id, None)
-    TICKET_TYPES.pop(thread_id, None)
-    RESOLUTION_STATE.pop(thread_id, None)
+        _ = ACTIVE_TICKETS.pop(user_id, None)
+    _ = TICKET_CLAIMS.pop(thread_id, None)
+    _ = TICKET_TYPES.pop(thread_id, None)
+    _ = RESOLUTION_STATE.pop(thread_id, None)
     save_ticket_state()

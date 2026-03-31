@@ -54,7 +54,7 @@ async def run_status(
 
     match activity_type.value:
         case "playing":
-            activity = discord.Game(name=text)
+            activity = discord.Game(name = text)
 
         case "watching":
             activity = discord.Activity(
@@ -81,7 +81,7 @@ async def run_status(
                     ephemeral = True,
                 )
                 return
-            activity = discord.Streaming(name=text, url=url)
+            activity = discord.Streaming(name = text, url=url)
 
         case "custom":
             activity = discord.Activity(

@@ -317,11 +317,11 @@ def build_help_view(
     class HelpView(discord.ui.LayoutView):
         container1 = discord.ui.Container( # type: ignore
             discord.ui.TextDisplay(content=main_text), # type: ignore
-            accent_color=COLOR_BLURPLE,
+            accent_color = COLOR_BLURPLE,
         )
         container2 = discord.ui.Container( # type: ignore
             discord.ui.TextDisplay(content=perm_text), # type: ignore
-            accent_color=perm_colour,
+            accent_color = perm_colour,
         )
 
     return HelpView()
@@ -388,7 +388,7 @@ async def run_help(
 ) -> None:
     if isinstance(ctx_or_inter, commands.Context):
         if not isinstance(ctx_or_inter.author, discord.Member):
-            await ctx_or_inter.send("Cannot resolve guild member context.")
+            _ = await ctx_or_inter.send("Cannot resolve guild member context.")
             return
         member  = ctx_or_inter.author
         respond = ctx_or_inter.send
@@ -417,9 +417,9 @@ async def run_help(
         if lines:
             _ = await respond(
                 embed=discord.Embed(
-                    title="Available Commands",
+                    title = "Available Commands",
                     description="\n".join(lines),
-                    color=COLOR_BLURPLE,
+                    color = COLOR_BLURPLE,
                 )
             )
         else:
@@ -439,7 +439,7 @@ async def run_help(
     data = cast("HelpedCallable", callback).__help_data__
 
     view = build_help_view(
-        command_name=" ".join(parts),
+        command_name = " ".join(parts),
         data=data,
         member=member,
     )

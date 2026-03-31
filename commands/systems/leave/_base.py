@@ -5,6 +5,7 @@ import os
 import contextlib
 import enum
 import re
+from typing_extensions import override
 from typing import (
     Any,
     cast
@@ -102,13 +103,13 @@ def normalize_entry(raw: str | dict[str, Any]) -> dict[str, Any]:
             "timer_seconds": None,
         }
     entry = dict(raw)
-    entry.setdefault("original_nick", None)
+    _ = entry.setdefault("original_nick", None)
     entry.setdefault("leave_type",    LeaveType.none.value)
     entry.setdefault("removed_roles", [])
-    entry.setdefault("begin_date",    None)
-    entry.setdefault("end_date",      None)
-    entry.setdefault("timer_end",     None)
-    entry.setdefault("timer_seconds", None)
+    _ = entry.setdefault("begin_date",    None)
+    _ = entry.setdefault("end_date",      None)
+    _ = entry.setdefault("timer_end",     None)
+    _ = entry.setdefault("timer_seconds", None)
     return entry
 
 def parse_timer(value: str) -> int | None:
@@ -170,17 +171,17 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self._cancel_button.callback = self._cancel_callback
 
         self._action_row: discord.ui.ActionRow[HardCleanConfirmView] = discord.ui.ActionRow()
-        self._action_row.add_item(self._confirm_button)
-        self._action_row.add_item(self._cancel_button)
+        _ = self._action_row.add_item(self._confirm_button)
+        _ = self._action_row.add_item(self._cancel_button)
 
         self._text_display: discord.ui.TextDisplay[HardCleanConfirmView] = discord.ui.TextDisplay(content=warning_text)
 
-        container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
-        container.add_item(self._text_display)
-        container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
-        container.add_item(self._action_row)
+        container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color = COLOR_RED)
+        _ = container.add_item(self._text_display)
+        _ = container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
+        _ = container.add_item(self._action_row)
 
-        self.add_item(container)
+        _ = self.add_item(container)
 
     def _disable_buttons(self) -> None:
         self._confirm_button.disabled = True
@@ -188,7 +189,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
 
     async def _confirm_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle="Invalid operation.")
+            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return
 
         self.stop()
@@ -198,41 +199,42 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         except discord.Forbidden:
             await send_major_error(
                 interaction,
-                title="Error!",
+                title = "Error!",
                 texts=f"I lack the permissions to remove roles from {self.target.mention}.",
-                subtitle="Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner."
             )
             return
         except discord.HTTPException:
             await send_major_error(
                 interaction,
-                title="Error!",
+                title = "Error!",
                 texts="A Discord API error occurred.",
-                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+                subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
             )
             return
 
         self._disable_buttons()
         self._text_display.content = f"{self.target.mention} has been hard cleaned —— {len(self.roles_to_remove)} staff role(s) removed."
-        await interaction.response.edit_message(view = self)
+        _ = await interaction.response.edit_message(view = self)
 
     async def _cancel_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle="Invalid operation.")
+            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return
 
         self._disable_buttons()
         self.stop()
 
         self._text_display.content = "Hard clean cancelled —— no changes were made."
-        await interaction.response.edit_message(view = self)
+        _ = await interaction.response.edit_message(view = self)
 
+    @override
     async def on_timeout(self) -> None:
         self._disable_buttons()
         if self.message:
             with contextlib.suppress(discord.HTTPException):
                 self._text_display.content = "Hard clean timed out —— no changes were made."
-                await self.message.edit(view = self)
+                _ = await self.message.edit(view = self)
 
 class InterferenceConfirmView(discord.ui.LayoutView):
     def __init__(
@@ -252,17 +254,17 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         self._cancel_button.callback = self._cancel_callback
 
         self._action_row: discord.ui.ActionRow[InterferenceConfirmView] = discord.ui.ActionRow()
-        self._action_row.add_item(self._confirm_button)
-        self._action_row.add_item(self._cancel_button)
+        _ = self._action_row.add_item(self._confirm_button)
+        _ = self._action_row.add_item(self._cancel_button)
 
         self._text_display: discord.ui.TextDisplay[InterferenceConfirmView] = discord.ui.TextDisplay(content=warning_text)
 
-        container: discord.ui.Container[InterferenceConfirmView] = discord.ui.Container(accent_color=COLOR_RED)
-        container.add_item(self._text_display)
-        container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
-        container.add_item(self._action_row)
+        container: discord.ui.Container[InterferenceConfirmView] = discord.ui.Container(accent_color = COLOR_RED)
+        _ = container.add_item(self._text_display)
+        _ = container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
+        _ = container.add_item(self._action_row)
 
-        self.add_item(container)
+        _ = self.add_item(container)
 
     def _disable_buttons(self) -> None:
         self._confirm_button.disabled = True
@@ -270,28 +272,29 @@ class InterferenceConfirmView(discord.ui.LayoutView):
 
     async def _confirm_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle="Invalid operation.")
+            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return
 
         self.confirmed = True
         self._disable_buttons()
         self._text_display.content = "Proceeding —— automation override confirmed."
         self.stop()
-        await interaction.response.edit_message(view = self)
+        _ = await interaction.response.edit_message(view = self)
 
     async def _cancel_callback(self, interaction: discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle="Invalid operation.")
+            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return
 
         self._disable_buttons()
         self._text_display.content = "Action cancelled —— no changes were made."
         self.stop()
-        await interaction.response.edit_message(view = self)
+        _ = await interaction.response.edit_message(view = self)
 
+    @override
     async def on_timeout(self) -> None:
         self._disable_buttons()
         if self.message:
             with contextlib.suppress(discord.HTTPException):
                 self._text_display.content = "Action timed out —— no changes were made."
-                await self.message.edit(view = self)
+                _ = await self.message.edit(view = self)

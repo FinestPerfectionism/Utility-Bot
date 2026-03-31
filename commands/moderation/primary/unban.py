@@ -93,13 +93,13 @@ async def run_unban(
         )
 
         embed = discord.Embed(
-            title="User Unbanned",
-            color=COLOR_GREEN,
+            title = "User Unbanned",
+            color = COLOR_GREEN,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="User",     value = f"{user_to_unban.mention} ({user_to_unban.id})", inline = True)
-        _ = embed.add_field(name="Director", value = actor.mention,                                   inline = True)
-        _ = embed.add_field(name="Reason",   value = reason,                                          inline = False)
+        _ = embed.add_field(name = "User",     value = f"{user_to_unban.mention} ({user_to_unban.id})", inline = True)
+        _ = embed.add_field(name = "Director", value = actor.mention,                                   inline = True)
+        _ = embed.add_field(name = "Reason",   value = reason,                                          inline = False)
 
         await interaction.followup.send(embed=embed, ephemeral = True)
 

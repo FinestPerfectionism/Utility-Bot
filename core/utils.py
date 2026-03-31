@@ -132,9 +132,9 @@ class MinorError(discord.ui.LayoutView):
     ) -> None:
         super().__init__()
 
-        container = discord.ui.Container(accent_color=COLOR_YELLOW) # type: ignore
+        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(accent_color = COLOR_YELLOW)
 
-        container.add_item(
+        _ = container.add_item(
             discord.ui.TextDisplay(
                 content=f"### {CONTESTED_EMOJI_ID} {title}\n"
                         f"-# {subtitle}"
@@ -143,13 +143,13 @@ class MinorError(discord.ui.LayoutView):
 
         for i, text in enumerate(texts):
             if i > 0:
-                container.add_item(
+                _ = container.add_item(
                     discord.ui.Separator(
                         visible = True,
                         spacing = discord.SeparatorSpacing.small
                     )
                 )
-            container.add_item(discord.ui.TextDisplay(content=text))
+            _ = container.add_item(discord.ui.TextDisplay(content=text))
 
         self.add_item(container) # type: ignore
 
@@ -162,9 +162,9 @@ class MajorError(discord.ui.LayoutView):
     ) -> None:
         super().__init__()
 
-        container = discord.ui.Container(accent_color=COLOR_RED) # type: ignore
+        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(accent_color = COLOR_RED)
 
-        container.add_item(
+        _ = container.add_item(
             discord.ui.TextDisplay(
                 content=f"### {DENIED_EMOJI_ID} {title}\n"
                         f"-# {subtitle}"
@@ -173,13 +173,13 @@ class MajorError(discord.ui.LayoutView):
 
         for i, text in enumerate(texts):
             if i > 0:
-                container.add_item(
+                _ = container.add_item(
                     discord.ui.Separator(
                         visible = True,
                         spacing = discord.SeparatorSpacing.small
                     )
                 )
-            container.add_item(discord.ui.TextDisplay(content=text))
+            _ = container.add_item(discord.ui.TextDisplay(content=text))
 
         self.add_item(container) # type: ignore
 
@@ -201,9 +201,9 @@ async def send_minor_error(
             ephemeral = True,
         )
     else:
-        await interaction.response.send_message(
-            content=" ",
-            view = view,
+        _ = await interaction.response.send_message(
+            content   = " ",
+            view      = view,
             ephemeral = True,
         )
 
@@ -225,9 +225,9 @@ async def send_major_error(
             ephemeral = True,
         )
     else:
-        await interaction.response.send_message(
-            content=" ",
-            view = view,
+        _ = await interaction.response.send_message(
+            content   = " ",
+            view      = view,
             ephemeral = True,
         )
 

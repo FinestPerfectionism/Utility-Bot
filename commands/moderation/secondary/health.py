@@ -104,7 +104,7 @@ class HealthFixView(discord.ui.View):
         
         if not fixable:
             for child in self.children:
-                if isinstance(child, (discord.ui.Button, discord.ui.Select)):
+                if isinstance(child, discord.ui.Button | discord.ui.Select):
                     child.disabled = True
                 
     @discord.ui.button(label="Fix Issues", style=discord.ButtonStyle.danger, emoji=f"{STANDSTILL_EMOJI_ID}")
@@ -252,27 +252,27 @@ class HealthFixView(discord.ui.View):
                 failed.append(f"Could not update anti-nuke config file: {e}")
 
         embed = discord.Embed(
-            title="Health Fix Results",
-            color=COLOR_GREEN if not failed else (COLOR_ORANGE if fixed else COLOR_RED),
+            title = "Health Fix Results",
+            color = COLOR_GREEN if not failed else (COLOR_ORANGE if fixed else COLOR_RED),
             timestamp = datetime.now()
         )
 
         if fixed:
             _ = embed.add_field(
-                name="Fixed",
+                name = "Fixed",
                 value = "\n".join(f"{ACCEPTED_EMOJI_ID} {item}" for item in fixed),
                 inline = False
             )
 
         if failed:
             _ = embed.add_field(
-                name="Could Not Fix",
+                name = "Could Not Fix",
                 value = "\n".join(f"{DENIED_EMOJI_ID} {item}" for item in failed),
                 inline = False
             )
 
         if not fixed and not failed:
-            _ = _ = embed.description = "Nothing to fix."
+            _ = embed.description = "Nothing to fix."
 
         button.disabled = True
         for child in self.children:
@@ -290,8 +290,8 @@ class HealthFixView(discord.ui.View):
         color = _get_health_color(score)
 
         updated_embed = discord.Embed(
-            title=f"Server Health — {score:.0f}%",
-            color=color,
+            title = f"Server Health — {score:.0f}%",
+            color = color,
             timestamp = datetime.now()
         )
 
@@ -327,7 +327,7 @@ class HealthFixView(discord.ui.View):
                 lines.append(line)
 
             _ = updated_embed.add_field(
-                name=category_name,
+                name = category_name,
                 value = "\n".join(lines),
                 inline = False
             )
@@ -536,7 +536,7 @@ class HealthCommands(commands.Cog):
         return checks
 
     @app_commands.command(
-        name="health",
+        name = "health",
         description="View server health and run automated fixes."
     )
     @help_description(
@@ -553,9 +553,9 @@ class HealthCommands(commands.Cog):
         if not self.can_use(actor):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to run a health check.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -573,8 +573,8 @@ class HealthCommands(commands.Cog):
         color = _get_health_color(score)
 
         embed = discord.Embed(
-            title=f"Server Health — {score:.0f}%",
-            color=color,
+            title = f"Server Health — {score:.0f}%",
+            color = color,
             timestamp = datetime.now()
         )
 
@@ -601,7 +601,7 @@ class HealthCommands(commands.Cog):
                     line += f"\n-# ↳ {check['detail']}"
                 lines.append(line)
             _ = embed.add_field(
-                name=category_name,
+                name = category_name,
                 value = "\n".join(lines),
                 inline = False
             )
@@ -612,7 +612,7 @@ class HealthCommands(commands.Cog):
         ]
         if manual_fixes:
             _ = embed.add_field(
-                name=f"{CONTESTED_EMOJI_ID}  Manual Action Required",
+                name = f"{CONTESTED_EMOJI_ID}  Manual Action Required",
                 value = "\n".join(
                     f"**{c['label']}**\n-# ↳ {c['manual_note']}"
                     for c in manual_fixes

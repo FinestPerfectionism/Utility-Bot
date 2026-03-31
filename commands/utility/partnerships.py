@@ -48,7 +48,7 @@ class PartnershipCommands(commands.Cog):
         self.bot = bot
 
     partnership = app_commands.Group(
-        name="partnership",
+        name = "partnership",
         description="Directors only —— Manage server partnerships.",
     )
 
@@ -73,7 +73,7 @@ class PartnershipCommands(commands.Cog):
     ) -> list[app_commands.Choice[str]]:
         data = load_partnership_data()
         return [
-            app_commands.Choice(name=p["server_name"], value = p["server_name"])
+            app_commands.Choice(name = p["server_name"], value = p["server_name"])
             for p in data["partnerships"]
             if current.lower() in p["server_name"].lower()
         ][:25]
@@ -82,7 +82,7 @@ class PartnershipCommands(commands.Cog):
     # /partnership add
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @partnership.command(name="add", description="Add a server partnership.")
+    @partnership.command(name = "add", description="Add a server partnership.")
     @app_commands.describe(
         server_picture     = "The server's picture.",
         server_name        = "The server's name.",
@@ -120,7 +120,7 @@ class PartnershipCommands(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral = True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -134,7 +134,7 @@ class PartnershipCommands(commands.Cog):
 
         try:
             image_bytes = await server_picture.read()
-            image_path.write_bytes(image_bytes)
+            _ = image_path.write_bytes(image_bytes)
         except discord.HTTPException as e:
             log.exception("Failed to download partnership attachment: %s", e)
             await send_major_error(
@@ -164,7 +164,7 @@ class PartnershipCommands(commands.Cog):
         }
         data["partnerships"].append(entry)
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"Partnership with **{server_name}** has been added successfully. Updating the channel...",
             ephemeral = True,
         )
@@ -173,7 +173,7 @@ class PartnershipCommands(commands.Cog):
             await rebuild_partnership_layout(channel, data)
         except discord.HTTPException as e:
             log.exception("Failed to rebuild partnership layout after add: %s", e)
-            data["partnerships"].pop()
+            _ = data["partnerships"].pop()
             image_path.unlink(missing_ok=True)
             await send_major_error(
                 interaction,
@@ -185,8 +185,8 @@ class PartnershipCommands(commands.Cog):
     # /partnership remove
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @partnership.command(name="remove", description="Remove a server partnership.")
-    @app_commands.describe(server_name="The name of the server to remove.")
+    @partnership.command(name = "remove", description="Remove a server partnership.")
+    @app_commands.describe(server_name = "The name of the server to remove.")
     @help_description(
         desc="Directors only —— Removes a partnership entry and rebuilds the partnerships channel layout.",
         prefix=False,
@@ -200,7 +200,7 @@ class PartnershipCommands(commands.Cog):
         interaction: discord.Interaction,
         server_name: str,
     ) -> None:
-        _ = await interaction.response.defer(ephemeral = True)
+        _ = _ = await interaction.response.defer(ephemeral = True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -220,7 +220,7 @@ class PartnershipCommands(commands.Cog):
         original = list(data["partnerships"])
         data["partnerships"] = [p for p in data["partnerships"] if p["server_name"] != server_name]
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"Partnership with **{server_name}** has been removed. Updating the channel...",
             ephemeral = True,
         )
@@ -244,7 +244,7 @@ class PartnershipCommands(commands.Cog):
     # /partnership update
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @partnership.command(name="update", description="Update an existing server partnership.")
+    @partnership.command(name = "update", description="Update an existing server partnership.")
     @app_commands.describe(
         server_name        = "The name of the server to update.",
         server_picture     = "The server's new picture.",
@@ -253,7 +253,7 @@ class PartnershipCommands(commands.Cog):
         server_owner       = "The server's new owner.",
         server_link        = "The server's new invite link. Must be a valid Discord invite of the form `https://discord.gg/example`."
     )
-    @app_commands.autocomplete(server_name=_server_name_autocomplete)
+    @app_commands.autocomplete(server_name = _server_name_autocomplete)
     @help_description(
         desc="Directors only —— Updates an existing partnership entry and rebuilds the partnerships channel layout.",
         prefix=False,
@@ -286,7 +286,7 @@ class PartnershipCommands(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral = True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -312,7 +312,7 @@ class PartnershipCommands(commands.Cog):
             new_image_path = IMAGE_DIR / new_filename
             try:
                 image_bytes = await server_picture.read()
-                new_image_path.write_bytes(image_bytes)
+                _ = new_image_path.write_bytes(image_bytes)
                 old_image_filename = entry["image_filename"]
                 entry["image_filename"] = new_filename
             except discord.HTTPException as e:
@@ -343,7 +343,7 @@ class PartnershipCommands(commands.Cog):
 
         display_name = entry["server_name"]
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"Partnership with **{display_name}** has been updated. Updating the channel...",
             ephemeral = True,
         )

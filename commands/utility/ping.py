@@ -24,7 +24,7 @@ log = logging.getLogger("Utility Bot")
 # Ping Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class PingCommands(commands.Cog, name="ping"):
+class PingCommands(commands.Cog, name = "ping"):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
@@ -37,11 +37,11 @@ class PingCommands(commands.Cog, name="ping"):
 
         if require_role and target_role and require_role in ctx.author.roles:
             try:
-                await ctx.send(target_role.mention)
+               _ =  await ctx.send(target_role.mention)
             except Exception as e:
                 log.error(f"Failed to ping role {ping_role_id}: {e}")
 
-    @commands.group(name="ping", invoke_without_command=True)
+    @commands.group(name = "ping", invoke_without_command=True)
     async def ping_group(self, ctx: commands.Context[commands.Bot]) -> None:
         return
 
@@ -50,7 +50,7 @@ class PingCommands(commands.Cog, name="ping"):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @ping_group.command(
-        name="staff",
+        name = "staff",
         aliases=[
             "s",
             "stf"
@@ -71,7 +71,7 @@ class PingCommands(commands.Cog, name="ping"):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @ping_group.command(
-        name="senior-moderators",
+        name = "senior-moderators",
         aliases=[
                                  "senior-mods", "senior-mod", "s-mods", "s-mod", "s-m",
             "senior_moderators", "senior_mods", "senior_mod", "s_mods", "s_mod", "s_m",
@@ -93,7 +93,7 @@ class PingCommands(commands.Cog, name="ping"):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @ping_group.command(
-        name="senior-administrators",
+        name = "senior-administrators",
         aliases=[
                                      "senior-admins", "senior-admin", "s-admins", "s-admin", "s-a",
             "senior_administrators", "senior_admins", "senior_admin", "s_admins", "s_admin", "s_a",
@@ -115,7 +115,7 @@ class PingCommands(commands.Cog, name="ping"):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @ping_group.command(
-        name="directors",
+        name = "directors",
         aliases=[
             "director",
             "dir",
@@ -138,14 +138,14 @@ class PingCommands(commands.Cog, name="ping"):
         s_mods = ctx.guild.get_role(SENIOR_MODERATORS_ROLE_ID)
 
         if directors and ((s_admins and s_admins in ctx.author.roles) or (s_mods and s_mods in ctx.author.roles)):
-            await ctx.send(directors.mention)
+           _ =  await ctx.send(directors.mention)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .ping staff-committee Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @ping_group.command(
-        name="staff-committee",
+        name = "staff-committee",
         aliases=[
                                "s-committee", "s-c",
             "staff_committee", "s_committee", "s_c",
@@ -176,7 +176,7 @@ class PingCommands(commands.Cog, name="ping"):
         )
 
         if committee in ctx.author.roles or (staff in ctx.author.roles and is_in_valid_thread):
-            await ctx.send(committee.mention)
+           _ =  await ctx.send(committee.mention)
 
 async def setup(bot: commands.Bot) -> None:
     cog = PingCommands(bot)

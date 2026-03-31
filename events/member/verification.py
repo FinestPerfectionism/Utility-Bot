@@ -6,6 +6,7 @@ from discord.ext import (
 
 import asyncio
 import logging
+from typing_extensions import override
 from typing import Any
 import secrets
 import json
@@ -50,7 +51,7 @@ logger = logging.getLogger("Utility Bot")
 # Verification System
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
+class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
     code_input: discord.ui.TextInput[discord.ui.Modal] = discord.ui.TextInput(
         label="CAPTCHA Code",
         placeholder="Enter the code from the image.",
@@ -64,11 +65,12 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
         self.correct_code: str = correct_code
         self.cog: VerificationHandler = cog
 
+    @override
     async def on_submit(self, interaction: discord.Interaction) -> None:
         session = self.cog.active_captchas.get(interaction.user.id)
 
         if not session:
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired. Please restart.",
                 ephemeral = True
@@ -77,7 +79,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
 
         if datetime.now() > session["expires_at"]:
             del self.cog.active_captchas[interaction.user.id]
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired. Please restart.",
                 ephemeral = True
@@ -95,7 +97,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
 
         if session["attempts"] >= 3:
             del self.cog.active_captchas[interaction.user.id]
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired due to too many failed attempts. Please restart.",
                 ephemeral = True
@@ -104,7 +106,7 @@ class CaptchaModal(discord.ui.Modal, title="Enter CAPTCHA Code"):
 
         remaining = 3 - session["attempts"]
 
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             f"{DENIED_EMOJI_ID} **Incorrect code!**\n"
             f"Please re-enter the code and try again. Attempts remaining: {remaining}",
             ephemeral = True
@@ -119,6 +121,7 @@ class VerificationButton(discord.ui.Button[discord.ui.View]):
         )
         self.cog = cog
 
+    @override
     async def callback(self, interaction: discord.Interaction) -> None:
         try:  
             await self.cog.start_verification(interaction)
@@ -126,7 +129,7 @@ class VerificationButton(discord.ui.Button[discord.ui.View]):
             await send_major_error(
                 interaction,
                 texts="An error occurred while starting verification.",
-                subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+                subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
             )
             logger.exception(f"Error in verification: {e}")
 
@@ -139,6 +142,7 @@ class HelpButton(discord.ui.Button[discord.ui.View]):
         )
         self.cog = cog
 
+    @override
     async def callback(self, interaction: discord.Interaction) -> None:
         await self.cog.start_help(interaction)
 
@@ -179,7 +183,7 @@ class VerificationComponents(discord.ui.LayoutView):
                 VerificationButton(cog),
                 HelpButton(cog),
             ),
-            accent_color=COLOR_GREEN,
+            accent_color = COLOR_GREEN,
         )
 
         self.add_item(container) # type: ignore
@@ -196,9 +200,11 @@ class VerificationHandler(commands.Cog):
         self.verification_message_id = None
         self.active_captchas: dict[int, dict[str, Any]] = {}
 
+    @override
     async def cog_load(self) -> None:
-        self.check_unverified_users.start()
+        _ = self.check_unverified_users.start()
 
+    @override
     async def cog_unload(self) -> None:
         self.check_unverified_users.cancel()
 
@@ -382,7 +388,7 @@ class VerificationHandler(commands.Cog):
 
         buffer: BytesIO = BytesIO()
         final_image.save(buffer, format="PNG")
-        buffer.seek(0)
+        _ = buffer.seek(0)
 
         return code, buffer
 
@@ -402,19 +408,19 @@ class VerificationHandler(commands.Cog):
                         "Please contact a staff member (moderator, administrator, or director) for assistance. They will run manual verification, as long as you __provide the captcha image__ that was difficult for you to read. The bot developer will be notified of the issue."
                     ),
                 ),
-                accent_color=COLOR_RED,
+                accent_color = COLOR_RED,
             )
 
             self.add_item(container) # type: ignore
 
     async def start_help(self, interaction: discord.Interaction) -> None:
-        await interaction.response.send_message(
+        _ = await interaction.response.send_message(
             view = self.HelpComponents(self),
             ephemeral = True,
         )
 
     async def start_verification(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer(ephemeral = True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         user = interaction.user
         guild = interaction.guild
@@ -448,22 +454,23 @@ class VerificationHandler(commands.Cog):
                     style=discord.ButtonStyle.green
                 )
 
+            @override
             async def callback(self, interaction: discord.Interaction) -> None:
                 session = verification_cog.active_captchas.get(interaction.user.id)
 
                 if not session:
-                    await interaction.response.send_message(
+                    _ = await interaction.response.send_message(
                         f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                         "Verification session expired. Please restart.",
                         ephemeral = True
                     )
                     return
 
-                await interaction.response.send_modal(
+                _ = await interaction.response.send_modal(
                     CaptchaModal(session["code"], verification_cog)
                 )
 
-        file = discord.File(image_buffer, filename="captcha.png")
+        file = discord.File(image_buffer, filename = "captcha.png")
 
         layout = discord.ui.LayoutView()
 
@@ -490,7 +497,7 @@ class VerificationHandler(commands.Cog):
                 spacing = discord.SeparatorSpacing.large
             ),
             discord.ui.ActionRow(SubmitButton()), # type: ignore
-            accent_color=COLOR_BLURPLE,
+            accent_color = COLOR_BLURPLE,
         )
 
         layout.add_item(container) # type: ignore
@@ -513,7 +520,7 @@ class VerificationHandler(commands.Cog):
             await send_major_error(
                 interaction,
                 "Verification role not found.",
-                subtitle=f"Invalid configuration. Contact <@{BOT_OWNER_ID}>."
+                subtitle = f"Invalid configuration. Contact <@{BOT_OWNER_ID}>."
             )
             return
 
@@ -531,7 +538,7 @@ class VerificationHandler(commands.Cog):
                 del self.data["unverified"][str(user.id)]
                 self.save_data()
 
-            await interaction.response.send_message(
+            _ = await interaction.response.send_message(
                 f"{ACCEPTED_EMOJI_ID} **Successfully verified!\n**"
                 "Welcome to the server!",
                 ephemeral = True
@@ -541,7 +548,7 @@ class VerificationHandler(commands.Cog):
             await send_major_error(
                 interaction,
                 "I lack the necessary permissions to assign roles.",
-                subtitle="Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner."
             )
 
     async def _send_mod_notification(self, guild: discord.Guild, lines: list[str]) -> None:
@@ -551,7 +558,7 @@ class VerificationHandler(commands.Cog):
         if not isinstance(mod_channel, discord.TextChannel):
             return
         with contextlib.suppress(discord.Forbidden, discord.HTTPException):
-            await mod_channel.send("\n".join(lines))
+            _ = await mod_channel.send("\n".join(lines))
 
     @tasks.loop(minutes=30)
     async def check_unverified_users(self) -> None:
@@ -599,7 +606,7 @@ class VerificationHandler(commands.Cog):
                             await msg.delete()
 
                 with contextlib.suppress(discord.Forbidden, discord.HTTPException):
-                    await member.send(
+                    _ = await member.send(
                         f"{DENIED_EMOJI_ID} **Guild removal!**\n"
                         "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
                         "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
@@ -621,7 +628,7 @@ class VerificationHandler(commands.Cog):
                 where: str = ""
 
                 try:
-                    await member.send(
+                    _ = await member.send(
                         f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
                         "You joined \"The Goobers\" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n"
                         "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."

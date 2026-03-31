@@ -34,27 +34,27 @@ class MemberRemoveCog(AuditCog):
             print(f"Error fetching audit log: {e}")
 
         embed = discord.Embed(
-            title="Member Kicked" if was_kicked else "Member Left",
-            color=COLOR_YELLOW,
+            title = "Member Kicked" if was_kicked else "Member Left",
+            color = COLOR_YELLOW,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Member",
+        _ = embed.add_field(
+            name = "Member",
             value = f"`{member}`\n`{member.id}`",
             inline = True
         )
 
         if member.joined_at:
-            embed.add_field(
-                name="Joined Server",
+            _ = embed.add_field(
+                name = "Joined Server",
                 value = discord.utils.format_dt(member.joined_at, style='R'),
                 inline = True
             )
 
         if executor:
-            embed.add_field(
-                name="Kicked By",
+            _ = embed.add_field(
+                name = "Kicked By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

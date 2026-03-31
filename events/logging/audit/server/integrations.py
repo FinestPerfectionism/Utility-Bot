@@ -55,23 +55,23 @@ class IntegrationsCog(AuditCog):
             color = COLOR_BLURPLE
 
         embed = discord.Embed(
-            title=title,
-            color=color,
+            title = title,
+            color = color,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Server",
+        _ = embed.add_field(
+            name = "Server",
             value = f"`{guild.name}`\n`{guild.id}`",
             inline = False
         )
 
         if target_name:
-            embed.add_field(name="Integration", value = f"`{target_name}`", inline = False)
+            _ = embed.add_field(name = "Integration", value = f"`{target_name}`", inline = False)
 
         if executor:
-            embed.add_field(
-                name="Action By",
+            _ = embed.add_field(
+                name = "Action By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

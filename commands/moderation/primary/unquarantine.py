@@ -106,14 +106,14 @@ async def run_unquarantine(
         )
 
         embed = discord.Embed(
-            title="Member Unquarantined",
-            color=COLOR_GREEN,
+            title = "Member Unquarantined",
+            color = COLOR_GREEN,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",        value = member.mention,         inline = True)
-        _ = embed.add_field(name="Director",      value = actor.mention,          inline = True)
-        _ = embed.add_field(name="Roles Restored", value = str(len(roles_to_add)), inline = True)
-        _ = embed.add_field(name="Reason",        value = reason,                 inline = False)
+        _ = embed.add_field(name = "Member",        value = member.mention,         inline = True)
+        _ = embed.add_field(name = "Director",      value = actor.mention,          inline = True)
+        _ = embed.add_field(name = "Roles Restored", value = str(len(roles_to_add)), inline = True)
+        _ = embed.add_field(name = "Reason",        value = reason,                 inline = False)
 
         if roles_not_found:
             _ = embed.add_field(

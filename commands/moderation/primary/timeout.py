@@ -44,9 +44,9 @@ async def run_timeout(
     if not base.can_apply_standard_actions(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
+            title = "Unauthorized!",
             texts="You lack the necessary permissions to timeout members.",
-            subtitle="Invalid permissions."
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -80,7 +80,7 @@ async def run_timeout(
                 interaction,
                 f"Rate limit exceeded. {error_msg}.\n"
                 f"Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle="Rate limit exceeded."
+                subtitle = "Rate limit exceeded."
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -119,15 +119,15 @@ async def run_timeout(
         )
 
         embed = discord.Embed(
-            title="Member Timed Out",
-            color=COLOR_ORANGE,
+            title = "Member Timed Out",
+            color = COLOR_ORANGE,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",    value = member.mention,                      inline = True)
-        _ = embed.add_field(name="Moderator", value = actor.mention,                       inline = True)
-        _ = embed.add_field(name="Duration",  value = duration,                            inline = True)
-        _ = embed.add_field(name="Expires",   value = discord.utils.format_dt(until, "R"), inline = True)
-        _ = embed.add_field(name="Reason",    value = reason,                              inline = False)
+        _ = embed.add_field(name = "Member",    value = member.mention,                      inline = True)
+        _ = embed.add_field(name = "Moderator", value = actor.mention,                       inline = True)
+        _ = embed.add_field(name = "Duration",  value = duration,                            inline = True)
+        _ = embed.add_field(name = "Expires",   value = discord.utils.format_dt(until, "R"), inline = True)
+        _ = embed.add_field(name = "Reason",    value = reason,                              inline = False)
         if proof:
             _ = embed.set_image(url=proof.url)
 

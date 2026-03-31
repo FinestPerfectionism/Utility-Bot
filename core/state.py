@@ -39,7 +39,7 @@ def save_layout_message_ids(layout_ids: dict[str, Any]) -> None:
 def save_automod_strikes() -> None:
     AUTOMOD_STRIKES_FILE.parent.mkdir(parents=True, exist_ok=True)
     data = {str(k): [t.isoformat() for t in v] for k, v in AUTOMOD_STRIKES.items()}
-    AUTOMOD_STRIKES_FILE.write_text(json.dumps(data, indent=4))
+    _ = AUTOMOD_STRIKES_FILE.write_text(json.dumps(data, indent=4))
 
 def load_automod_strikes() -> None:
     if not AUTOMOD_STRIKES_FILE.exists():
@@ -89,7 +89,7 @@ def load_application_state() -> None:
     APPLICATIONS_OPEN["admin"] = bool(data.get("admin", True))
 
 def save_application_state() -> None:
-    APPLICATION_STATE_FILE.write_text(
+    _ = APPLICATION_STATE_FILE.write_text(
         json.dumps(APPLICATIONS_OPEN, indent=4)
     )
 
@@ -135,7 +135,7 @@ def save_active_applications() -> None:
             "log_message_id": data.get("log_message_id")
         }
 
-    ACTIVE_APPLICATIONS_FILE.write_text(
+    _ = ACTIVE_APPLICATIONS_FILE.write_text(
         json.dumps(serializable, indent=4)
     )
 
@@ -153,6 +153,6 @@ def load_blacklist() -> None:
     BLACKLIST["tickets"] = list(map(int, data.get("tickets", [])))
 
 def save_blacklist() -> None:
-    BLACKLIST_FILE.write_text(
+    _ = BLACKLIST_FILE.write_text(
         json.dumps(BLACKLIST, indent=4)
     )

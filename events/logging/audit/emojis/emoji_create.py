@@ -30,21 +30,21 @@ class EmojiAddCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.emoji_create)
 
         embed = discord.Embed(
-            title="Emoji Added",
-            color=COLOR_GREEN,
+            title = "Emoji Added",
+            color = COLOR_GREEN,
             timestamp = datetime.now(UTC)
         )
 
         for emoji in added:
-            embed.add_field(
-                name="Emoji",
+            _ = embed.add_field(
+                name = "Emoji",
                 value = f"`{emoji.name}`\n`{emoji.id}`\n{emoji}",
                 inline = True
             )
 
         if executor:
-            embed.add_field(
-                name="Added By",
+            _ = embed.add_field(
+                name = "Added By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

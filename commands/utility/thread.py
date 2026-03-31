@@ -49,7 +49,7 @@ class ThreadCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name="lock",
+        name = "lock",
         aliases=["l"]
     )
     async def lock(self, ctx: commands.Context[commands.Bot]) -> None:
@@ -59,14 +59,14 @@ class ThreadCommands(commands.Cog):
         if not isinstance(ctx.channel, discord.Thread):
             return
 
-        await ctx.channel.edit(locked=True)
+        _ = await ctx.channel.edit(locked=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .close/.c Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name="close",
+        name = "close",
         aliases=["c"]
     )
     async def close(self, ctx: commands.Context[commands.Bot]) -> None:
@@ -76,8 +76,7 @@ class ThreadCommands(commands.Cog):
         if not isinstance(ctx.channel, discord.Thread):
             return
 
-        await ctx.channel.edit(archived=True)
-
+        _ = await ctx.channel.edit(archived=True)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ThreadCommands(bot))

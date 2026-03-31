@@ -116,7 +116,7 @@ class BotOwnerCommands(
     # .shutdown/.shut Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="shutdown", aliases=["shut"])
+    @commands.command(name = "shutdown", aliases=["shut"])
     @help_description(
         desc      = "Bot Owner only —— Shutdown the bot.",
         prefix    = True,
@@ -131,7 +131,7 @@ class BotOwnerCommands(
     # .restart/.r Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="restart", aliases=["r"])
+    @commands.command(name = "restart", aliases=["r"])
     @help_description(
         desc      = "Bot Owner only —— Restarts the bot",
         prefix    = True,
@@ -198,7 +198,7 @@ class BotOwnerCommands(
     # .eval Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="eval")
+    @commands.command(name = "eval")
     @help_description(
         desc      = "Bot Owner only —— Evaluate python code.",
         prefix    = True,
@@ -213,7 +213,7 @@ class BotOwnerCommands(
     # .say Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="say")
+    @commands.command(name = "say")
     async def say(
         self,
         ctx            : commands.Context[commands.Bot],

@@ -48,6 +48,6 @@ async def run_unload(
         await send_major_error(
             interaction,
             f"Failed to unload `{cog}`: {e}",
-            subtitle="Invalid operation."
+            subtitle = "Invalid operation."
         )
         log.error("Failed to unload cog %s: %s", cog, e)

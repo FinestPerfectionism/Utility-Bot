@@ -1,6 +1,10 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import (
+    commands,
+    tasks
+)
 import asyncio
+from typing_extensions import override
 
 from constants import (
     DIRECTORSHIP_CATEGORY_ID,
@@ -17,8 +21,9 @@ class AuditQueue(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self._queue: asyncio.Queue[tuple[discord.abc.Messageable, discord.Embed]] = asyncio.Queue()
-        self._queue_worker.start()
+        _ = self._queue_worker.start()
 
+    @override
     async def cog_unload(self) -> None:
         self._queue_worker.cancel()
 
@@ -29,7 +34,7 @@ class AuditQueue(commands.Cog):
 
         channel, embed = await self._queue.get()
         try:
-            await channel.send(embed=embed)
+            _ = await channel.send(embed=embed)
         except discord.RateLimited as e:
             await asyncio.sleep(e.retry_after)
             await self._queue.put((channel, embed))

@@ -1,5 +1,7 @@
 import discord
 
+from typing_extensions import override
+
 class AdministratorsRolesComponents(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
@@ -76,6 +78,7 @@ class AdministratorsRoles(discord.ui.Button[discord.ui.View]):
             custom_id = "persistent_administrator_button"
         )
 
+    @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = AdministratorsRolesComponents(),
@@ -90,6 +93,7 @@ class ModeratorsRoles(discord.ui.Button[discord.ui.View]):
             custom_id="persistent_moderator_button"
         )
 
+    @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = ModeratorsRolesComponents(),
@@ -104,6 +108,7 @@ class TrusteeRoles(discord.ui.Button[discord.ui.View]):
             custom_id="persistent_trustee_button"
         )
 
+    @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = TrusteeRolesComponents(),
@@ -118,6 +123,7 @@ class CommitteeRoles(discord.ui.Button[discord.ui.View]):
             custom_id="persistent_committee_button"
         )
 
+    @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = CommitteeRolesComponents(),

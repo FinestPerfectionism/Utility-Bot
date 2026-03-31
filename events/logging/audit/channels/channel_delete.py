@@ -25,29 +25,29 @@ class ChannelDeleteCog(AuditCog):
         executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_delete, channel.id)
 
         embed = discord.Embed(
-            title="Channel Deleted",
-            color=COLOR_RED,
+            title = "Channel Deleted",
+            color = COLOR_RED,
             timestamp = datetime.now(UTC)
         )
 
         channel_type = str(channel.type).replace('_', ' ').title()
-        embed.add_field(
-            name="Channel",
+        _ = embed.add_field(
+            name = "Channel",
             value = f"`{channel.name}`\n`{channel.id}`",
             inline = True
         )
-        embed.add_field(name="Type", value = channel_type, inline = True)
+        _ = embed.add_field(name = "Type", value = channel_type, inline = True)
 
         if hasattr(channel, 'category') and channel.category:
-            embed.add_field(
-                name="Category",
+            _ = embed.add_field(
+                name = "Category",
                 value = f"`{channel.category.name}`\n`{channel.category.id}`",
                 inline = True
             )
 
         if executor:
-            embed.add_field(
-                name="Deleted By",
+            _ = embed.add_field(
+                name = "Deleted By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

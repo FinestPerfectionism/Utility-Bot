@@ -189,20 +189,20 @@ class AntiNukeSystem(commands.Cog):
                     f"({hourly_count} hourly, {daily_count} daily). {details}"
                 )
 
-                await self.cases_manager.log_case(
-                    guild=guild,
-                    case_type=CaseType.QUARANTINE_ADD,
-                    moderator=bot_member,
-                    reason=reason,
-                    target_user=member,
-                    metadata={
-                        "roles_saved": len(saved_roles),
-                        "auto_quarantine": True,
-                        "antinuke_trigger": True,
-                        "action_type": action_type,
-                        "hourly_count": hourly_count,
-                        "daily_count": daily_count,
-                        "limit_type": limit_type
+                _ = await self.cases_manager.log_case(
+                    guild       = guild,
+                    case_type   = CaseType.QUARANTINE_ADD,
+                    moderator   = bot_member,
+                    reason      = reason,
+                    target_user = member,
+                    metadata    = {
+                        "roles_saved"      : len(saved_roles),
+                        "auto_quarantine"  : True,
+                        "antinuke_trigger" : True,
+                        "action_type"      : action_type,
+                        "hourly_count"     : hourly_count,
+                        "daily_count"      : daily_count,
+                        "limit_type"       : limit_type
                     }
                 )
 
@@ -226,22 +226,22 @@ class AntiNukeSystem(commands.Cog):
             return
 
         log_channel = guild.get_channel(log_channel_id)
-        if not isinstance(log_channel, (discord.TextChannel, discord.Thread)):
+        if not isinstance(log_channel, discord.TextChannel | discord.Thread):
             return
 
         embed = discord.Embed(
-            title="Anti-Nuke Warning",
+            title = "Anti-Nuke Warning",
             description=f"{user.mention} is approaching rate limits",
-            color=COLOR_ORANGE,
+            color = COLOR_ORANGE,
             timestamp = datetime.now()
         )
-        embed.add_field(name="User", value = f"{user.mention} ({user.id})", inline = True)
-        embed.add_field(name="Action Type", value = action_type.replace("_", " ").title(), inline = True)
-        embed.add_field(name="Hourly", value = f"{hourly_count}/{hourly_limit}", inline = True)
-        embed.add_field(name="Daily", value = f"{daily_count}/{daily_limit}", inline = True)
+        _ = embed.add_field(name = "User", value = f"{user.mention} ({user.id})", inline = True)
+        _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
+        _ = embed.add_field(name = "Hourly", value = f"{hourly_count}/{hourly_limit}", inline = True)
+        _ = embed.add_field(name = "Daily", value = f"{daily_count}/{daily_limit}", inline = True)
 
         with contextlib.suppress(discord.Forbidden):
-            await log_channel.send(embed=embed)
+            _ = await log_channel.send(embed=embed)
 
     async def send_quarantine_alert(
         self,
@@ -258,27 +258,27 @@ class AntiNukeSystem(commands.Cog):
             return
 
         log_channel = guild.get_channel(log_channel_id)
-        if not isinstance(log_channel, (discord.TextChannel, discord.Thread)):
+        if not isinstance(log_channel, discord.TextChannel | discord.Thread):
             return
 
         embed = discord.Embed(
-            title="Anti-Nuke: User Quarantined",
+            title = "Anti-Nuke: User Quarantined",
             description=f"{member.mention} has been automatically quarantined for exceeding action limits.",
-            color=COLOR_RED,
+            color = COLOR_RED,
             timestamp = datetime.now()
         )
-        embed.add_field(name="User", value = f"{member.mention} ({member.id})", inline = True)
-        embed.add_field(name="Action Type", value = action_type.replace("_", " ").title(), inline = True)
-        embed.add_field(name="Limit Exceeded", value = limit_type.title(), inline = True)
-        embed.add_field(name="Hourly Count", value = str(hourly_count), inline = True)
-        embed.add_field(name="Daily Count", value = str(daily_count), inline = True)
-        embed.add_field(name="\u200b", value = "\u200b", inline = True)
+        _ = embed.add_field(name = "User", value = f"{member.mention} ({member.id})", inline = True)
+        _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
+        _ = embed.add_field(name = "Limit Exceeded", value = limit_type.title(), inline = True)
+        _ = embed.add_field(name = "Hourly Count", value = str(hourly_count), inline = True)
+        _ = embed.add_field(name = "Daily Count", value = str(daily_count), inline = True)
+        _ = embed.add_field(name = "\u200b", value = "\u200b", inline = True)
 
         if details:
-            embed.add_field(name="Details", value = details, inline = False)
+            _ = embed.add_field(name = "Details", value = details, inline = False)
 
         with contextlib.suppress(discord.Forbidden):
-            await log_channel.send(embed=embed)
+            _ = await log_channel.send(embed=embed)
 
     async def send_quarantine_failure(
         self,
@@ -291,11 +291,11 @@ class AntiNukeSystem(commands.Cog):
             return
 
         log_channel = guild.get_channel(log_channel_id)
-        if not isinstance(log_channel, (discord.TextChannel, discord.Thread)):
+        if not isinstance(log_channel, discord.TextChannel | discord.Thread):
             return
 
         with contextlib.suppress(discord.Forbidden):
-            await log_channel.send(
+            _ = await log_channel.send(
                 f"{DENIED_EMOJI_ID} **Failed to quarantine {member.mention}!**\n"
                 "I lack the necessary permissions to quarantine members."
                 "-# Contact the owner."
@@ -315,7 +315,7 @@ class AntiNukeSystem(commands.Cog):
                 and entry.target.id == channel.id
                 and entry.user
             ):
-                await self.track_action(
+                _ = await self.track_action(
                     guild,
                     entry.user,
                     ActionType.CHANNEL_DELETE,
@@ -333,7 +333,7 @@ class AntiNukeSystem(commands.Cog):
                 and entry.target.id == channel.id
                 and entry.user
             ):
-                await self.track_action(
+                _ = await self.track_action(
                     guild,
                     entry.user,
                     ActionType.CHANNEL_CREATE,
@@ -354,7 +354,7 @@ class AntiNukeSystem(commands.Cog):
                 and entry.target.id == after.id
                 and entry.user
             ):
-                await self.track_action(
+                _ = await self.track_action(
                     guild,
                     entry.user,
                     ActionType.CHANNEL_UPDATE,
@@ -372,7 +372,7 @@ class AntiNukeSystem(commands.Cog):
                 and entry.target.id == role.id
                 and entry.user
             ):
-                await self.track_action(
+                _ = await self.track_action(
                     guild,
                     entry.user,
                     ActionType.ROLE_DELETE,
@@ -390,7 +390,7 @@ class AntiNukeSystem(commands.Cog):
                 and entry.target.id == role.id
                 and entry.user
             ):
-                await self.track_action(
+                _ = await self.track_action(
                     guild,
                     entry.user,
                     ActionType.ROLE_CREATE,
@@ -411,7 +411,7 @@ class AntiNukeSystem(commands.Cog):
                 and entry.target.id == after.id
                 and entry.user
             ):
-                await self.track_action(
+                _ = await self.track_action(
                     guild,
                     entry.user,
                     ActionType.ROLE_UPDATE,

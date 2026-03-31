@@ -31,7 +31,7 @@ class VerificationCommands(commands.Cog):
     # .verify/.v Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="verify", aliases=["v"])
+    @commands.command(name = "verify", aliases=["v"])
     @help_description(
         desc="Staff only —— Manually verifies a member inside the server.",
         prefix=True,
@@ -73,7 +73,7 @@ class VerificationCommands(commands.Cog):
 
     @commands.guild_only()
     @commands.command(
-        name="unverify",
+        name = "unverify",
         aliases=["un-verify", "uv", "deverify", "de-verify", "dv"]
     )
     @help_description(

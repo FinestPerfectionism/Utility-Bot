@@ -28,21 +28,21 @@ class StickerAddCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.sticker_create)
 
         embed = discord.Embed(
-            title="Sticker Added",
-            color=COLOR_GREEN,
+            title = "Sticker Added",
+            color = COLOR_GREEN,
             timestamp = datetime.now(UTC)
         )
 
         for sticker in added:
-            embed.add_field(
-                name="Sticker",
+            _ = embed.add_field(
+                name = "Sticker",
                 value = f"`{sticker.name}`\n`{sticker.id}`",
                 inline = True
             )
 
         if executor:
-            embed.add_field(
-                name="Added By",
+            _ = embed.add_field(
+                name = "Added By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

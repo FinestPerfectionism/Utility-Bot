@@ -201,7 +201,7 @@ async def _update_control_message(
 
     try:
         if existing:
-            await existing.edit(content=content)
+            _ = await existing.edit(content=content)
         else:
             msg = await thread.send(content)
             await msg.pin()
@@ -214,7 +214,7 @@ async def _update_control_message(
 
 class ProposalCommands(
     commands.GroupCog,
-    name="proposal",
+    name = "proposal",
     description="Staff Committee only —— Proposal commands.",
 ):
     def __init__(self, bot: commands.Bot) -> None:
@@ -233,7 +233,7 @@ class ProposalCommands(
     }
 
     @app_commands.command(
-        name="status",
+        name = "status",
         description="Set the official Staff Committee decision for this proposal."
     )
     @app_commands.describe(
@@ -243,19 +243,19 @@ class ProposalCommands(
     )
     @app_commands.choices(
         status=[
-            app_commands.Choice(name="Accepted",   value = "accepted"),
-            app_commands.Choice(name="Contested",  value = "contested"),
-            app_commands.Choice(name="Denied",     value = "denied"),
-            app_commands.Choice(name="Standstill", value = "standstill"),
+            app_commands.Choice(name = "Accepted",   value = "accepted"),
+            app_commands.Choice(name = "Contested",  value = "contested"),
+            app_commands.Choice(name = "Denied",     value = "denied"),
+            app_commands.Choice(name = "Standstill", value = "standstill"),
         ],
         reason=[
-            app_commands.Choice(name="Committee accepted.",        value = "Committee accepted."),
-            app_commands.Choice(name="Committee contested.",       value = "Committee contested."),
-            app_commands.Choice(name="Committee denied.",          value = "Committee denied."),
-            app_commands.Choice(name="Out of scope.",              value = "Out of scope."),
-            app_commands.Choice(name="Proposand unimplementable.", value = "Proposand unimplementable."),
-            app_commands.Choice(name="Unique circumstances.",      value = "Unique circumstances."),
-            app_commands.Choice(name="Veto.",                      value = "Veto."),
+            app_commands.Choice(name = "Committee accepted.",        value = "Committee accepted."),
+            app_commands.Choice(name = "Committee contested.",       value = "Committee contested."),
+            app_commands.Choice(name = "Committee denied.",          value = "Committee denied."),
+            app_commands.Choice(name = "Out of scope.",              value = "Out of scope."),
+            app_commands.Choice(name = "Proposand unimplementable.", value = "Proposand unimplementable."),
+            app_commands.Choice(name = "Unique circumstances.",      value = "Unique circumstances."),
+            app_commands.Choice(name = "Veto.",                      value = "Veto."),
         ]
     )
     @help_description(
@@ -281,9 +281,9 @@ class ProposalCommands(
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
 
         errors: list[str] = []
@@ -309,7 +309,7 @@ class ProposalCommands(
         if errors:
             return await send_minor_error(interaction, errors)
 
-        await interaction.response.defer()
+        _ = await interaction.response.defer()
 
         excluded_ids = set(TAG_STATUS.values())
         tags = [t for t in thread.applied_tags if t.id not in excluded_ids]
@@ -339,9 +339,9 @@ class ProposalCommands(
                 except ValueError as e:
                     return await send_major_error(interaction, str(e))
 
-        await thread.edit(applied_tags=tags)
+        _ = await thread.edit(applied_tags=tags)
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"{EMOJI_STATUS[status_value]} **Proposal {status.name}**\n"
             f"{format_body(reason_value, notes)}"
         )
@@ -365,7 +365,7 @@ class ProposalCommands(
     }
 
     @app_commands.command(
-        name="tag",
+        name = "tag",
         description="Apply or remove a process-related tag from this proposal."
     )
     @app_commands.describe(
@@ -375,10 +375,10 @@ class ProposalCommands(
     )
     @app_commands.choices(
         tag=[
-            app_commands.Choice(name="Needs Revision",       value = "needs_revision"),
-            app_commands.Choice(name="Needs Implementation", value = "needs_implementation"),
-            app_commands.Choice(name="Owner Action",         value = "owner_action"),
-            app_commands.Choice(name="S. Director Action",   value = "sdirector_action"),
+            app_commands.Choice(name = "Needs Revision",       value = "needs_revision"),
+            app_commands.Choice(name = "Needs Implementation", value = "needs_implementation"),
+            app_commands.Choice(name = "Owner Action",         value = "owner_action"),
+            app_commands.Choice(name = "S. Director Action",   value = "sdirector_action"),
         ]
     )
     @help_description(
@@ -404,9 +404,9 @@ class ProposalCommands(
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
 
         errors: list[str] = []
@@ -445,7 +445,7 @@ class ProposalCommands(
         if errors:
             return await send_minor_error(interaction, errors)
 
-        await interaction.response.defer()
+        _ = await interaction.response.defer()
 
         try:
             if tag_key in TAG_SPECIAL:
@@ -473,9 +473,9 @@ class ProposalCommands(
         else:
             action = "Removed"
 
-        await thread.edit(applied_tags=tags)
+        _ = await thread.edit(applied_tags=tags)
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"**{action}: {tag_label}**"
             f"{chr(10) + format_body('', notes) if notes else ''}",
             ephemeral = True,
@@ -493,7 +493,7 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="finalize",
+        name = "finalize",
         description="Lock this proposal after final resolution and implementation."
     )
     @app_commands.describe(
@@ -502,8 +502,8 @@ class ProposalCommands(
     )
     @app_commands.choices(
         reason=[
-            app_commands.Choice(name="Proposand implemented.", value = "Proposand implemented."),
-            app_commands.Choice(name="Issue resolved.",        value = "Issue resolved."),
+            app_commands.Choice(name = "Proposand implemented.", value = "Proposand implemented."),
+            app_commands.Choice(name = "Issue resolved.",        value = "Issue resolved."),
         ]
     )
     @help_description(
@@ -527,9 +527,9 @@ class ProposalCommands(
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
 
         errors: list[str] = []
@@ -564,7 +564,7 @@ class ProposalCommands(
         if errors:
             return await send_minor_error(interaction, errors)
 
-        await interaction.response.defer()
+        _ = await interaction.response.defer()
 
         strip_ids = {TAG_SPECIAL["locked"]}
         if implementing:
@@ -582,9 +582,9 @@ class ProposalCommands(
         except ValueError as e:
             return await send_major_error(interaction, str(e))
 
-        await thread.edit(applied_tags=tags, locked=True)
+        _ = await thread.edit(applied_tags=tags, locked=True)
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"**{EMOJI_FORUM_LOCK_ID} Proposal Finalized —— Locking Thread**\n"
             f"{format_body(reason.value, notes)}"
         )
@@ -601,7 +601,7 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="un-lock",
+        name = "un-lock",
         description="Unlock a previously finalized proposal."
     )
     @app_commands.describe(
@@ -610,8 +610,8 @@ class ProposalCommands(
     )
     @app_commands.choices(
         reason=[
-            app_commands.Choice(name="New issue.",                 value = "New issue."),
-            app_commands.Choice(name="Further discussion needed.", value = "Further discussion needed."),
+            app_commands.Choice(name = "New issue.",                 value = "New issue."),
+            app_commands.Choice(name = "Further discussion needed.", value = "Further discussion needed."),
         ]
     )
     @help_description(
@@ -635,9 +635,9 @@ class ProposalCommands(
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
 
         try:
@@ -651,13 +651,13 @@ class ProposalCommands(
                 "This proposal is not currently Locked."
             )
 
-        await interaction.response.defer()
+        _ = await interaction.response.defer()
 
         tags = [t for t in thread.applied_tags if t.id != TAG_SPECIAL["locked"]]
 
-        await thread.edit(applied_tags=tags, locked=False)
+        _ = await thread.edit(applied_tags=tags, locked=False)
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"**{EMOJI_FORUM_ID} Proposal Unlocked**\n"
             f"{format_body(reason.value, notes)}"
         )
@@ -674,7 +674,7 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="unstandstill",
+        name = "unstandstill",
         description="Remove the Standstill status so evaluation may resume."
     )
     @app_commands.describe(
@@ -683,9 +683,9 @@ class ProposalCommands(
     )
     @app_commands.choices(
         reason=[
-            app_commands.Choice(name="Circumstances resolved.",          value = "Circumstances resolved."),
-            app_commands.Choice(name="Evaluation resuming.",             value = "Evaluation resuming."),
-            app_commands.Choice(name="Committee direction established.", value = "Committee direction established."),
+            app_commands.Choice(name = "Circumstances resolved.",          value = "Circumstances resolved."),
+            app_commands.Choice(name = "Evaluation resuming.",             value = "Evaluation resuming."),
+            app_commands.Choice(name = "Committee direction established.", value = "Committee direction established."),
         ]
     )
     @help_description(
@@ -709,9 +709,9 @@ class ProposalCommands(
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title="Unauthorized!",
+                title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
+                subtitle = "Invalid permissions."
             )
 
         try:
@@ -739,7 +739,7 @@ class ProposalCommands(
 
         _ = await thread.edit(applied_tags=tags)
 
-        await interaction.followup.send(
+        _ = await interaction.followup.send(
             f"**Proposal Unstandstilled**\n"
             f"{format_body(reason.value, notes)}"
         )

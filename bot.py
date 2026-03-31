@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from typing_extensions import override
 from typing import Any
 
 from core.cases import CasesManager
@@ -12,15 +13,15 @@ import logging
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class UtilityBot(commands.Bot):
-    cases_manager: CasesManager
-    mod_data: dict[str, Any]
-    notes_manager: Any
+    cases_manager : CasesManager
+    mod_data      : dict[str, Any]
+    notes_manager : Any
 
     def __init__(self) -> None:
         intents: discord.Intents = discord.Intents.default()
-        intents.guilds          = True
-        intents.members         = True
-        intents.message_content = True
+        intents.guilds           = True
+        intents.members          = True
+        intents.message_content  = True
 
         super().__init__(
             command_prefix   = ".",
@@ -31,6 +32,7 @@ class UtilityBot(commands.Bot):
         self.mod_data: dict[str, Any] = {}
         self.notes_manager: Any = None
 
+    @override
     async def setup_hook(self) -> None:
         from core.cog_loader import discover_cogs
 

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 import json
 import logging
 from pathlib import Path
+from typing_extensions import override
 from typing import cast
 import asyncio
 import time
@@ -157,8 +158,9 @@ class Startup(commands.Cog):
         self.bot = bot
         self.layout_message_ids: dict[str, int | list[int]] = load_layout_message_ids()
 
+    @override
     async def cog_load(self) -> None:
-        self.bot.loop.create_task(self._wait_and_restore())
+        _ = self.bot.loop.create_task(self._wait_and_restore())
 
     async def _wait_and_restore(self) -> None:
         await self.bot.wait_until_ready()
@@ -193,7 +195,7 @@ class Startup(commands.Cog):
             msg_id = raw_id if isinstance(raw_id, int) else None
             if msg_id is not None:
                 try:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                     self.bot.add_view(view_cls(), message_id = msg_id)
                     continue
                 except discord.NotFound:
@@ -241,7 +243,7 @@ class Startup(commands.Cog):
 
         if msg_id:
             try:
-                await channel.fetch_message(msg_id)
+                _ = await channel.fetch_message(msg_id)
                 self.bot.add_view(view, message_id = msg_id)
                 log.info("Verification layout restored")
                 log.debug("Verification message_id = %s", msg_id)
@@ -270,7 +272,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 2:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -278,7 +280,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -314,7 +316,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 5:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -322,7 +324,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -364,7 +366,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 2:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -372,7 +374,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -411,9 +413,9 @@ class Startup(commands.Cog):
         all_exist = False
         if header_msg_id is not None and len(msg_ids) == expected_count:
             try:
-                await channel.fetch_message(header_msg_id)
+                _ = await channel.fetch_message(header_msg_id)
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -438,7 +440,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 7:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -446,7 +448,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -492,7 +494,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 3:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -500,7 +502,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -538,7 +540,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 4:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -546,7 +548,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -586,7 +588,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 4:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -594,7 +596,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -634,7 +636,7 @@ class Startup(commands.Cog):
         if len(msg_ids) == 5:
             try:
                 for msg_id in msg_ids:
-                    await channel.fetch_message(msg_id)
+                    _ = await channel.fetch_message(msg_id)
                 all_exist = True
             except discord.NotFound:
                 pass
@@ -642,7 +644,7 @@ class Startup(commands.Cog):
         if not all_exist:
             for msg_id in msg_ids:
                 try:
-                    msg = await channel.fetch_message(msg_id)
+                    msg = _ = await channel.fetch_message(msg_id)
                     await msg.delete()
                 except (discord.NotFound, discord.HTTPException):
                     pass
@@ -676,9 +678,9 @@ class Startup(commands.Cog):
             log.info("Directorate guidelines layout restored")
             log.debug("Directorate guidelines message_ids=%s", msg_ids)
 
+    @override
     async def cog_unload(self) -> None:
         pass
-
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Startup(bot))

@@ -59,7 +59,7 @@ def extract_name(nickname: str) -> str:
 class NominationFlags(commands.FlagConverter, prefix="/", delimiter=" "):
     action:  str = commands.flag(aliases=["a"])
     user:    discord.Member | None = commands.flag(aliases=["u"], default=None)
-    case_id: str            | None = commands.flag(name="id", default=None)
+    case_id: str            | None = commands.flag(name = "id", default=None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Nomination Commands
@@ -83,7 +83,7 @@ class NominationCommands(commands.Cog):
     # .nomination/.nom Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="nomination", aliases=["nom"])
+    @commands.command(name = "nomination", aliases=["nom"])
     @help_description(
         desc="Directors only —— workflow for triggering, accepting, or denying supporting-director nominations.",
         prefix=True,
@@ -212,7 +212,7 @@ class NominationCommands(commands.Cog):
 
         if len(new_nick) <= 32:
             with contextlib.suppress(discord.Forbidden, discord.HTTPException):
-                await target.edit(nick=new_nick)
+                _ = await target.edit(nick=new_nick)
 
     async def _handle_deny(
         self,
@@ -223,10 +223,10 @@ class NominationCommands(commands.Cog):
         if case_id is None or case_id not in self.data:
             return
 
-        self.data.pop(case_id, None)
+        _ = self.data.pop(case_id, None)
         save_nomination_data(self.data)
 
-        await ctx.send(
+        _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Ended nomination case `{case_id}`.**\n"
             f"Director {ctx.author.mention} has denied the nomination."
         )

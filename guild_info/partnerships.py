@@ -168,7 +168,7 @@ async def rebuild_partnership_layout(
             files: list[discord.File] = [
                 discord.File(
                     str(IMAGE_DIR / p["image_filename"]),
-                    filename=p["image_filename"],
+                    filename = p["image_filename"],
                 )
                 for p in group
             ]

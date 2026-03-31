@@ -5,11 +5,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ._base import (
-        ModerationBase,
-    
-        UntimeoutFlags
-    )
+    from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
 
@@ -75,9 +71,9 @@ async def run_untimeout(
             color     = COLOR_GREEN,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member", value = member.mention, inline = True)
-        _ = embed.add_field(name="Senior Moderator", value = actor.mention, inline = True)
-        _ = embed.add_field(name="Reason", value = reason, inline = False)
+        _ = embed.add_field(name = "Member", value = member.mention, inline = True)
+        _ = embed.add_field(name = "Senior Moderator", value = actor.mention, inline = True)
+        _ = embed.add_field(name = "Reason", value = reason, inline = False)
         await interaction.followup.send(embed=embed, ephemeral = True)
 
     except discord.Forbidden:

@@ -23,39 +23,39 @@ class InviteCreateCog(AuditCog):
             return
 
         embed: discord.Embed = discord.Embed(
-            title="Invite Created",
-            color=COLOR_GREEN,
+            title = "Invite Created",
+            color = COLOR_GREEN,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(name="Code", value = f"`{invite.code}`", inline = True)
+        _ = embed.add_field(name = "Code", value = f"`{invite.code}`", inline = True)
 
         channel_name: str = getattr(invite.channel, 'name', 'Unknown Channel')
         channel_id: str = str(getattr(invite.channel, 'id', 'Unknown ID'))
 
-        embed.add_field(
-            name="Channel",
+        _ = embed.add_field(
+            name = "Channel",
             value = f"`{channel_name}`\n`{channel_id}`",
             inline = True
         )
 
         if invite.inviter:
-            embed.add_field(
-                name="Created By",
+            _ = embed.add_field(
+                name = "Created By",
                 value = f"`{invite.inviter}`\n`{invite.inviter.id}`",
                 inline = False
             )
 
-        embed.add_field(
-            name="Expires In",
+        _ = embed.add_field(
+            name = "Expires In",
             value = f"{invite.max_age}s" if invite.max_age else "Never",
             inline = True
         )
-        embed.add_field(
-            name="Max Uses",
+        _ = embed.add_field(
+            name = "Max Uses",
             value = str(invite.max_uses) if invite.max_uses else "Unlimited",
             inline = True
         )
-        embed.add_field(name="Temporary", value = str(invite.temporary), inline = True)
+        _ = embed.add_field(name = "Temporary", value = str(invite.temporary), inline = True)
 
         await self._enqueue(log_channel, embed)

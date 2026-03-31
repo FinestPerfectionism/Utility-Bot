@@ -93,36 +93,36 @@ class ChannelEditCog(AuditCog):
         executor: discord.Member | None = await self.get_executor(after.guild, discord.AuditLogAction.channel_update, after.id)
 
         embed: discord.Embed = discord.Embed(
-            title="Channel Updated",
-            color=COLOR_BLURPLE,
+            title = "Channel Updated",
+            color = COLOR_BLURPLE,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Channel",
-            value = f"`{after.name}`\n`{after.id}`",
+        _ = embed.add_field(
+            name   =  "Channel",
+            value  = f"`{after.name}`\n`{after.id}`",
             inline = False
         )
 
         for change_name, b_val, a_val in changes:
-            embed.add_field(
-                name=f"{change_name} Changed",
-                value = f"**Before:** `{b_val}`\n**After:** `{a_val}`",
+            _ = embed.add_field(
+                name   = f"{change_name} Changed",
+                value  = f"**Before:** `{b_val}`\n**After:** `{a_val}`",
                 inline = False
             )
 
         for i, change_text in enumerate(overwrite_changes):
             field_value = change_text if len(change_text) <= 1024 else f"{change_text[:1021]}..."
-            embed.add_field(
-                name="Permission Overwrite Changed" if i == 0 else "\u200b",
-                value = field_value,
+            _ = embed.add_field(
+                name   = "Permission Overwrite Changed" if i == 0 else "\u200b",
+                value  = field_value,
                 inline = False
             )
 
         if executor:
-            embed.add_field(
-                name="Changed By",
-                value = f"`{executor}`\n`{executor.id}`",
+            _ = embed.add_field(
+                name   = "Changed By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )
 

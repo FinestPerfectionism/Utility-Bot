@@ -61,11 +61,11 @@ async def run_leave_add(
         await send_minor_error(
             interaction,
             "This command can only be used in a server.",
-            subtitle="Bad command environment."
+            subtitle = "Bad command environment."
         )
         return
 
-    await interaction.response.defer(ephemeral = True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     invocator = interaction.user
     if not isinstance(invocator, discord.Member):
@@ -158,9 +158,9 @@ async def run_leave_add(
     if not is_staff(invocator):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
+            title = "Unauthorized!",
             texts="You lack the necessary permissions to run this command.",
-            subtitle="Invalid permissions."
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -171,9 +171,9 @@ async def run_leave_add(
     if not can_manage_leave(invocator, target_member):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
+            title = "Unauthorized!",
             texts="You lack the necessary permissions to add personal leave to other Staff Members.",
-            subtitle="Invalid permissions."
+            subtitle = "Invalid permissions."
         )
         return
 
@@ -191,7 +191,7 @@ async def run_leave_add(
             view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
             msg          = await interaction.followup.send(view = view, ephemeral = True)
             view.message = msg
-            await view.wait()
+            _ = await view.wait()
 
             if not view.confirmed:
                 return
@@ -230,9 +230,9 @@ async def run_leave_add(
     if personal_leave_role is None:
         await send_major_error(
             interaction,
-            title="Error!",
+            title = "Error!",
             texts="I could not fetch the Personal Leave role.",
-            subtitle=f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
         )
         return
 
@@ -244,7 +244,7 @@ async def run_leave_add(
         await send_minor_error(
             interaction,
             "The resulting nickname, as well as `PL | nickname`, exceed Discord's 32 character limit.",
-            subtitle="Invalid operation."
+            subtitle = "Invalid operation."
         )
         return
 
@@ -312,7 +312,7 @@ async def run_leave_add(
         await target_member.add_roles(personal_leave_role)
         role_added = True
 
-        await target_member.edit(nick=new_nick)
+        _ = await target_member.edit(nick=new_nick)
         nick_changed = True
 
         data[str(target_member.id)] = {

@@ -1,9 +1,15 @@
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
+from datetime import (
+    datetime,
+    UTC
+)
 
 from constants import COLOR_GREEN
-from .._base import AuditCog, AuditQueue
+from .._base import (
+    AuditCog,
+    AuditQueue
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Channel Create Audit
@@ -25,33 +31,33 @@ class ChannelCreateCog(AuditCog):
         executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_create, channel.id)
 
         embed = discord.Embed(
-            title="Channel Created",
-            color=COLOR_GREEN,
+            title     = "Channel Created",
+            color     = COLOR_GREEN,
             timestamp = datetime.now(UTC)
         )
 
         channel_type = str(channel.type).replace('_', ' ').title()
-        embed.add_field(
-            name="Channel",
-            value = f"`{channel.name}`\n`{channel.id}`",
+        _ = embed.add_field(
+            name   = "Channel",
+            value  = f"`{channel.name}`\n`{channel.id}`",
             inline = True
         )
-        embed.add_field(name="Type", value = channel_type, inline = True)
+        _ = embed.add_field(name = "Type", value = channel_type, inline = True)
 
         if hasattr(channel, 'category') and channel.category:
-            embed.add_field(
-                name="Category",
-                value = f"`{channel.category.name}`\n`{channel.category.id}`",
+            _ = embed.add_field(
+                name   = "Category",
+                value  = f"`{channel.category.name}`\n`{channel.category.id}`",
                 inline = True
             )
 
         if hasattr(channel, 'position'):
-            embed.add_field(name="Position", value = str(channel.position), inline = True)
+            _ = embed.add_field(name = "Position", value = str(channel.position), inline = True)
 
         if executor:
-            embed.add_field(
-                name="Created By",
-                value = f"`{executor}`\n`{executor.id}`",
+            _ = embed.add_field(
+                name   = "Created By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )
 

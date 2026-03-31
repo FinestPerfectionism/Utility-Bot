@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 import contextlib
+from typing_extensions import override
 from typing import Any
 import asyncio
 import logging
@@ -31,6 +32,7 @@ class DiscordLogHandler(logging.Handler):
         super().__init__()
         self.queue = queue
 
+    @override
     def emit(self, record: logging.LogRecord) -> None:
         with contextlib.suppress(asyncio.QueueFull):
             self.queue.put_nowait(self.format(record))
@@ -88,7 +90,7 @@ class Ready(commands.Cog):
                 if not chunk.strip():
                     continue
                 try:
-                    await channel.send(f"```\n{chunk}\n```")
+                    _ = await channel.send(f"```\n{chunk}\n```")
                 except discord.HTTPException as e:
                     log.warning("Console channel send failed: %s", e)
                 await asyncio.sleep(1.0)
@@ -105,7 +107,7 @@ class Ready(commands.Cog):
             except discord.Forbidden:
                 continue
             question = data["questions"][data["index"]]
-            await dm.send(
+            _ = await dm.send(
                 f"**{ACCEPTED_EMOJI_ID} Successfully resumed application after restart.**\n"
                 f"{question}"
             )
@@ -130,7 +132,7 @@ class Ready(commands.Cog):
         if self._ran:
             return
         self._ran = True
-        await bot.tree.sync()
+        _ = await bot.tree.sync()
         
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(

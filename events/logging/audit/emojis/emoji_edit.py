@@ -36,26 +36,26 @@ class EmojiEditCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.emoji_update)
 
         embed = discord.Embed(
-            title="Emoji Edited",
-            color=COLOR_BLURPLE,
+            title = "Emoji Edited",
+            color = COLOR_BLURPLE,
             timestamp = datetime.now(UTC)
         )
 
         for before_emoji, after_emoji in edited:
-            embed.add_field(
-                name="Emoji",
+            _ = embed.add_field(
+                name = "Emoji",
                 value = f"`{after_emoji.id}`\n{after_emoji}",
                 inline = False
             )
-            embed.add_field(
-                name="Name Changed",
+            _ = embed.add_field(
+                name = "Name Changed",
                 value = f"**Before:** `{before_emoji.name}`\n**After:** `{after_emoji.name}`",
                 inline = False
             )
 
         if executor:
-            embed.add_field(
-                name="Edited By",
+            _ = embed.add_field(
+                name = "Edited By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

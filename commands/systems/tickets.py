@@ -39,7 +39,7 @@ from constants import (
 
 class TicketsCommands(
     commands.GroupCog,
-    name="tickets",
+    name = "tickets",
     description="Moderators only —— Tickets commands."
 ):
     def __init__(self, bot: commands.Bot) -> None:
@@ -51,7 +51,7 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name="blacklist",
+        name = "blacklist",
         description="Blacklist or un-blacklist a user from tickets."
     )
     @app_commands.describe(
@@ -61,11 +61,11 @@ class TicketsCommands(
     @app_commands.choices(
         action=[
             app_commands.Choice(
-                name="Add",
+                name = "Add",
                 value = "add"
             ),
             app_commands.Choice(
-                name="Remove",
+                name = "Remove",
                 value = "remove"
             )
         ]
@@ -145,7 +145,7 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name="archive",
+        name = "archive",
         aliases=["a"]
     )
     @help_description(
@@ -199,7 +199,7 @@ class TicketsCommands(
     # .claim Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="claim")
+    @commands.command(name = "claim")
     @help_description(
         desc="Moderators only —— Claims the current ticket thread.",
         prefix=True,
@@ -263,7 +263,7 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name="escalate",
+        name = "escalate",
         aliases=["e", "esc"]
     )
     @help_description(
@@ -328,7 +328,7 @@ class TicketsCommands(
         TICKET_TYPES[channel.id] = "director"
         save_ticket_state()
 
-        _ = await channel.edit(name=new_name)
+        _ = await channel.edit(name = new_name)
 
         director_role = guild.get_role(DIRECTORS_ROLE_ID)
         if director_role:

@@ -4,6 +4,7 @@ from discord import app_commands
 
 import contextlib
 from datetime import datetime
+from typing_extensions import override
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -248,7 +249,7 @@ class CaseQueryPaginator(discord.ui.View):
 
         for case in page_cases:
             name, value = self._format_case_field(case)
-            _ = embed.add_field(name=name, value = value, inline = False)
+            _ = embed.add_field(name = name, value = value, inline = False)
 
         _ = embed.set_footer(
             text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.cases)} cases total"
@@ -256,6 +257,7 @@ class CaseQueryPaginator(discord.ui.View):
 
         return embed
 
+    @override
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user == self.interaction.user
 
@@ -346,7 +348,7 @@ class CaseViewPaginator(discord.ui.View):
         end        = start + self.per_page
         page_notes = self.notes[start:end]
 
-        _ = embed.add_field(name="—— Notes ——", value = "\u200b", inline = False)
+        _ = embed.add_field(name = "—— Notes ——", value = "\u200b", inline = False)
 
         for note in page_notes:
             note_created = datetime.fromisoformat(note["created_at"])
@@ -368,6 +370,7 @@ class CaseViewPaginator(discord.ui.View):
 
         return embed
 
+    @override
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user == self.interaction.user
 
@@ -538,16 +541,16 @@ class CasesCommands(commands.Cog):
         mod_added = False
         with contextlib.suppress(discord.NotFound, discord.HTTPException):
             mod = await self.bot.fetch_user(case["moderator_id"])
-            _ = embed.add_field(name="Moderator", value = mod.mention, inline = True)
+            _ = embed.add_field(name = "Moderator", value = mod.mention, inline = True)
             mod_added = True
         if not mod_added:
-            _ = embed.add_field(name="Moderator", value = case["moderator_name"], inline = True)
+            _ = embed.add_field(name = "Moderator", value = case["moderator_name"], inline = True)
 
         if case.get("target_user_id"):
             user_added = False
             with contextlib.suppress(discord.NotFound, discord.HTTPException):
                 user = await self.bot.fetch_user(case["target_user_id"])
-                _ = embed.add_field(name="User", value = f"{user.mention} ({user.id})", inline = True)
+                _ = embed.add_field(name = "User", value = f"{user.mention} ({user.id})", inline = True)
                 user_added = True
             if not user_added:
                 _ = embed.add_field(
@@ -557,16 +560,16 @@ class CasesCommands(commands.Cog):
                 )
 
         if case.get("duration"):
-            _ = embed.add_field(name="Duration", value = case["duration"], inline = True)
+            _ = embed.add_field(name = "Duration", value = case["duration"], inline = True)
 
         if case.get("reason"):
-            _ = embed.add_field(name="Reason", value = case["reason"], inline = False)
+            _ = embed.add_field(name = "Reason", value = case["reason"], inline = False)
 
         if case.get("content"):
-            _ = embed.add_field(name="Content", value = case["content"], inline = False)
+            _ = embed.add_field(name = "Content", value = case["content"], inline = False)
 
         if case.get("related_case_id"):
-            _ = embed.add_field(name="Related Case", value = f"#{case['related_case_id']}", inline = True)
+            _ = embed.add_field(name = "Related Case", value = f"#{case['related_case_id']}", inline = True)
 
         vis = case.get("visibility_level", "moderators")
         _ = embed.add_field(
@@ -591,7 +594,7 @@ class CasesCommands(commands.Cog):
 
         if case.get("pending_visibility"):
             pending = str(case["pending_visibility"]).replace("_", " ").title()
-            _ = embed.add_field(name="Pending Visibility", value = pending, inline = True)
+            _ = embed.add_field(name = "Pending Visibility", value = pending, inline = True)
 
         return embed
 
@@ -604,7 +607,7 @@ class CasesCommands(commands.Cog):
     # /cases query Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="query", description="Query the moderation case history.")
+    @cases_group.command(name = "query", description="Query the moderation case history.")
     @app_commands.describe(
         user          = "Filter by user.",
         moderator     = "Filter by moderator.",
@@ -717,7 +720,7 @@ class CasesCommands(commands.Cog):
             filter_text = " and ".join(filters)
             description = f"No cases found{' for ' + filter_text if filter_text else ''}."
 
-            embed = discord.Embed(description=description, color=COLOR_GREEN)
+            embed = discord.Embed(description=description, color = COLOR_GREEN)
             await interaction.followup.send(embed=embed, ephemeral = True)
             return
 
@@ -738,7 +741,7 @@ class CasesCommands(commands.Cog):
     # /cases view Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="view", description="View a single case with its related notes.")
+    @cases_group.command(name = "view", description="View a single case with its related notes.")
     @app_commands.describe(case_id="The case ID to view.")
     @app_commands.rename(case_id="case-id")
     @help_description(
@@ -806,7 +809,7 @@ class CasesCommands(commands.Cog):
     # /cases add-note Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="add-note", description="Add a note to a user or case.")
+    @cases_group.command(name = "add-note", description="Add a note to a user or case.")
     @app_commands.describe(
         content    = "The note content.",
         user       = "The user to attach the note to.",
@@ -893,7 +896,7 @@ class CasesCommands(commands.Cog):
     # /cases edit-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="edit-entry", description="Edit a note entry.")
+    @cases_group.command(name = "edit-entry", description="Edit a note entry.")
     @app_commands.describe(
         case_id = "The case ID of the note to edit.",
         content = "The updated note content.",
@@ -958,7 +961,7 @@ class CasesCommands(commands.Cog):
     # /cases delete-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="delete-entry", description="Delete a case entry.")
+    @cases_group.command(name = "delete-entry", description="Delete a case entry.")
     @app_commands.describe(case_id="The case ID to delete.")
     @app_commands.rename(case_id="case-id")
     @help_description(
@@ -1009,7 +1012,7 @@ class CasesCommands(commands.Cog):
     # /cases classify Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="classify", description="Classify a case entry's visibility.")
+    @cases_group.command(name = "classify", description="Classify a case entry's visibility.")
     @app_commands.describe(
         case_id    = "The case ID to classify.",
         visibility = "The visibility restriction to apply or request.",
@@ -1126,7 +1129,7 @@ class CasesCommands(commands.Cog):
     # /cases config Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name="config", description="Configure the cases log channel.")
+    @cases_group.command(name = "config", description="Configure the cases log channel.")
     @app_commands.describe(channel="The channel where case logs will be sent.")
     @help_description(
         desc="Configures the channel used for case logs. Restricted to administrators and directors.",

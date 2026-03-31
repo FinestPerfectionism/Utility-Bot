@@ -41,9 +41,9 @@ async def run_quarantine(
     if not base.can_quarantine(actor):
         await send_major_error(
             interaction,
-            title="Unauthorized!",
+            title = "Unauthorized!",
             texts="You lack the necessary permissions to add members to quarantine.",
-            subtitle="No permissions."
+            subtitle = "No permissions."
         )
         return
 
@@ -126,10 +126,10 @@ async def run_quarantine(
             color     = COLOR_RED,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",      value = member.mention,        inline = True)
-        _ = embed.add_field(name="Moderator",   value = actor.mention,         inline = True)
-        _ = embed.add_field(name="Roles Saved", value = str(len(saved_roles)), inline = True)
-        _ = embed.add_field(name="Reason",      value = reason,                inline = False)
+        _ = embed.add_field(name = "Member",      value = member.mention,        inline = True)
+        _ = embed.add_field(name = "Moderator",   value = actor.mention,         inline = True)
+        _ = embed.add_field(name = "Roles Saved", value = str(len(saved_roles)), inline = True)
+        _ = embed.add_field(name = "Reason",      value = reason,                inline = False)
         if proof:
             _ = embed.set_image(url=proof.url)
 

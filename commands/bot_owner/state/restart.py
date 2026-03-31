@@ -54,7 +54,7 @@ async def restart_bot(
     try:
         await bot.change_presence(
             status   = discord.Status.idle,
-            activity = discord.CustomActivity(name="Restarting...")
+            activity = discord.CustomActivity(name = "Restarting...")
         )
 
         if confirm_msg:

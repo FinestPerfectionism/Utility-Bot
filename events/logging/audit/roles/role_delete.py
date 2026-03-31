@@ -22,22 +22,22 @@ class RoleDeleteCog(AuditCog):
         executor = await self.get_executor(role.guild, discord.AuditLogAction.role_delete, role.id)
 
         embed = discord.Embed(
-            title="Role Deleted",
-            color=COLOR_RED,
+            title = "Role Deleted",
+            color = COLOR_RED,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Role",
+        _ = embed.add_field(
+            name = "Role",
             value = f"`{role.name}`\n`{role.id}`",
             inline = True
         )
-        embed.add_field(name="Color", value = str(role.color), inline = True)
-        embed.add_field(name="Position", value = str(role.position), inline = True)
+        _ = embed.add_field(name = "Color", value = str(role.color), inline = True)
+        _ = embed.add_field(name = "Position", value = str(role.position), inline = True)
 
         if executor:
-            embed.add_field(
-                name="Deleted By",
+            _ = embed.add_field(
+                name = "Deleted By",
                 value = f"`{executor}`\n`{executor.id}`",
                 inline = False
             )

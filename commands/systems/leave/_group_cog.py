@@ -5,6 +5,7 @@ from discord.ext import (
 )
 from discord import app_commands
 
+from typing_extensions import override
 from typing import Any
 from datetime import (
     datetime,
@@ -45,10 +46,11 @@ class LeaveCommands(commands.Cog):
         _ = self._automation_loop.start()
 
     leave_group = app_commands.Group(
-        name="leave",
+        name = "leave",
         description="Staff only —— Leave commands."
     )
 
+    @override
     async def cog_unload(self) -> None:
         self._automation_loop.cancel()
 
@@ -202,7 +204,7 @@ class LeaveCommands(commands.Cog):
     # /leave add Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @leave_group.command(name="add", description="Add personal leave to yourself or another user.")
+    @leave_group.command(name = "add", description="Add personal leave to yourself or another user.")
     @app_commands.describe(
         leave_type = "The type of leave to apply.",
         target     = "The user to add personal leave to. Defaults to yourself.",
@@ -212,9 +214,9 @@ class LeaveCommands(commands.Cog):
     )
     @app_commands.choices(
         leave_type=[
-            app_commands.Choice(name="None",       value = "none"),
-            app_commands.Choice(name="Soft Clean", value = "soft_clean"),
-            app_commands.Choice(name="Hard Clean", value = "hard_clean"),
+            app_commands.Choice(name = "None",       value = "none"),
+            app_commands.Choice(name = "Soft Clean", value = "soft_clean"),
+            app_commands.Choice(name = "Hard Clean", value = "hard_clean"),
         ]
     )
     @app_commands.rename(leave_type="type", begin_date="begin-date", end_date="end-date")
@@ -246,7 +248,7 @@ class LeaveCommands(commands.Cog):
     # /leave remove Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @leave_group.command(name="remove", description="Remove personal leave from yourself or another user.")
+    @leave_group.command(name = "remove", description="Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
     @help_description(
         desc="Staff only —— Removes personal leave from yourself or another staff member. Self-removal also works for your own scheduled leave entry.",

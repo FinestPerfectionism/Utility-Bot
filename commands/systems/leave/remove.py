@@ -35,12 +35,12 @@ async def run_leave_remove(
     if not interaction.guild:
         await send_minor_error(
             interaction,
-            "This command can only be used in a server.",
-            subtitle="Bad command environment."
+            texts    = "This command can only be used in a server.",
+            subtitle = "Bad command environment."
         )
         return
 
-    await interaction.response.defer(ephemeral = True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     invocator = interaction.user
     if not isinstance(invocator, discord.Member):
@@ -59,9 +59,9 @@ async def run_leave_remove(
         if not is_staff(invocator):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to run this command.",
-                subtitle="Invalid permissions."
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to run this command.",
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -72,9 +72,9 @@ async def run_leave_remove(
         if not can_manage_leave(invocator, target_member):
             await send_major_error(
                 interaction,
-                title="Unauthorized!",
-                texts="You lack the necessary permissions to remove personal leave from other Staff Members.",
-                subtitle="Invalid permissions."
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to remove personal leave from other Staff Members.",
+                subtitle = "Invalid permissions."
             )
             return
 
@@ -89,9 +89,9 @@ async def run_leave_remove(
     if personal_leave_role is None:
         await send_major_error(
             interaction,
-            title="Error!",
+            title = "Error!",
             texts="I could not fetch the Personal Leave role.",
-            subtitle=f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
         )
         return
 
@@ -108,7 +108,7 @@ async def run_leave_remove(
         view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
         msg          = await interaction.followup.send(view = view, ephemeral = True)
         view.message = msg
-        await view.wait()
+        _ = await view.wait()
 
         if not view.confirmed:
             return
@@ -135,7 +135,7 @@ async def run_leave_remove(
         view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
         msg          = await interaction.followup.send(view = view, ephemeral = True)
         view.message = msg
-        await view.wait()
+        _ = await view.wait()
 
         if not view.confirmed:
             return
@@ -164,7 +164,7 @@ async def run_leave_remove(
 
         if current_nick in (expected_long, expected_short):
             try:
-                await target_member.edit(nick=stored_name)
+                _ = await target_member.edit(nick=stored_name)
             except discord.Forbidden:
                 nickname_error = "forbidden"
             except discord.HTTPException:
@@ -184,18 +184,18 @@ async def run_leave_remove(
     except discord.Forbidden:
         await send_major_error(
             interaction,
-            title="Error!",
+            title = "Error!",
             texts="I lack the necessary permissions to remove the Personal Leave role.",
-            subtitle="Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner."
         )
         return
 
     except discord.HTTPException:
         await send_major_error(
             interaction,
-            title="Error!",
+            title = "Error!",
             texts="A Discord API error occurred while removing the role. Please try again later.",
-            subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
         )
         return
 
@@ -208,28 +208,28 @@ async def run_leave_remove(
         else:
             await send_major_error(
                 interaction,
-                title="Error!",
+                title = "Error!",
                 texts="The role was removed, but I lack the necessary permissions to restore the nickname. Please change it back manually.",
-                subtitle="Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner."
             )
     elif nickname_error == "http":
         await send_minor_error(
             interaction,
             "The role was removed, but a Discord API error prevented the nickname from being restored.",
-            subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
         )
     elif roles_restore_error == "forbidden":
         await send_major_error(
             interaction,
-            title="Error!",
+            title = "Error!",
             texts="Personal leave was removed and the nickname restored, but I lack the permissions to re-add the original staff roles. Please restore them manually.",
-            subtitle="Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner."
         )
     elif roles_restore_error == "http":
         await send_minor_error(
             interaction,
             "Personal leave was removed and the nickname restored, but a Discord API error prevented the original staff roles from being re-added.",
-            subtitle=f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
         )
     else:
         if target_member.id == interaction.user.id:

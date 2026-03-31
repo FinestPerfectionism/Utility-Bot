@@ -27,32 +27,32 @@ class ThreadCreateCog(AuditCog):
             return
 
         embed = discord.Embed(
-            title="Thread Created",
-            color=COLOR_GREEN,
+            title     = "Thread Created",
+            color     = COLOR_GREEN,
             timestamp = datetime.now(UTC)
         )
 
-        embed.add_field(
-            name="Thread",
-            value = f"`{thread.name}`\n`{thread.id}`",
+        _ = embed.add_field(
+            name   =  "Thread",
+            value  = f"`{thread.name}`\n`{thread.id}`",
             inline = True
         )
-        embed.add_field(
-            name="Parent Channel",
-            value = f"`{parent.name}`\n`{parent.id}`",
+        _ = embed.add_field(
+            name   =  "Parent Channel",
+            value  = f"`{parent.name}`\n`{parent.id}`",
             inline = True
         )
 
         if thread.owner:
-            embed.add_field(
-                name="Created By",
-                value = f"`{thread.owner}`\n`{thread.owner.id}`",
+            _ = embed.add_field(
+                name   =  "Created By",
+                value  = f"`{thread.owner}`\n`{thread.owner.id}`",
                 inline = False
             )
 
-        embed.add_field(
-            name="Auto Archive Duration",
-            value = f"{thread.auto_archive_duration} min",
+        _ = embed.add_field(
+            name   =  "Auto Archive Duration",
+            value  = f"{thread.auto_archive_duration} min",
             inline = True
         )
 

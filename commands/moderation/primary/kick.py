@@ -105,9 +105,9 @@ async def run_kick(
             color     = COLOR_ORANGE,
             timestamp = datetime.now()
         )
-        _ = embed.add_field(name="Member",    value = f"{member.mention} ({member.id})", inline = True)
-        _ = embed.add_field(name="Moderator", value = actor.mention,                     inline = True)
-        _ = embed.add_field(name="Reason",    value = reason,                            inline = False)
+        _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)
+        _ = embed.add_field(name = "Moderator", value = actor.mention,                     inline = True)
+        _ = embed.add_field(name = "Reason",    value = reason,                            inline = False)
         if proof:
             _ = embed.set_image(url=proof.url)
 

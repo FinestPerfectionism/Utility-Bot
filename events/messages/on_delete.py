@@ -24,7 +24,7 @@ class MessageDeleteHandler(commands.Cog):
 
     def is_directorship_channel(self, channel: discord.abc.Messageable) -> bool:
         return (
-            isinstance(channel, (discord.TextChannel, discord.VoiceChannel, discord.StageChannel))
+            isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.StageChannel)
             and channel.category_id == DIRECTORSHIP_CATEGORY_ID
         ) or (
             isinstance(channel, discord.Thread)
@@ -61,7 +61,7 @@ class MessageDeleteHandler(commands.Cog):
                 limit=5,
                 action=discord.AuditLogAction.message_delete,
             ):
-                if not isinstance(entry.target, (discord.User, discord.Member)):
+                if not isinstance(entry.target, discord.User | discord.Member):
                     continue
                 if entry.target.id != message.author.id:
                     continue

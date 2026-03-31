@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from typing import (
+    cast,
     Callable,
     Any,
     TypedDict,
@@ -177,7 +178,7 @@ def _evaluate(raw: str) -> float | None:
             if abs(result.imag) > 1e-9:
                 return None
             result = result.real
-        if not isinstance(result, (int, float)):
+        if not isinstance(result, int | float):
             return None
         if not math.isfinite(result):
             return None
@@ -207,7 +208,7 @@ def _load_state() -> CountingState:
         try:
             with COUNTING_STATE_PATH.open("r", encoding="utf-8") as f:
                 raw: dict[str, Any] = json.load(f)
-                return {**_default_state(), **raw}
+                return cast(CountingState, {**_default_state(), **raw})
         except Exception as e:
             logging.warning("Could not load counting state: %s", e)
     return _default_state()

@@ -78,7 +78,7 @@ class ModerationCommands(
     # /moderation ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="ban", description="Ban a member from the server.")
+    @app_commands.command(name = "ban", description="Ban a member from the server.")
     @app_commands.describe(
         member          = "The member to ban.",
         reason          = "Reason for the ban.",
@@ -113,7 +113,7 @@ class ModerationCommands(
     # /moderation un-ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="un-ban", description="Un-ban a member from the server.")
+    @app_commands.command(name = "un-ban", description="Un-ban a member from the server.")
     @app_commands.describe(
         user   = "The member ID, username, or tag to un-ban.",
         reason = "Reason for the un-ban."
@@ -141,7 +141,7 @@ class ModerationCommands(
     # /moderation bans Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="bans", description="View all banned members.")
+    @app_commands.command(name = "bans", description="View all banned members.")
     @help_description(
         desc      = "Staff* only —— Lists all currently banned users.",
         prefix    = False,
@@ -155,7 +155,7 @@ class ModerationCommands(
     # /moderation kick Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="kick", description="Kick a member from the server.")
+    @app_commands.command(name = "kick", description="Kick a member from the server.")
     @help_description(
         desc      = "Senior Moderators only —— Kicks a member from the server.",
         prefix    = False,
@@ -185,7 +185,7 @@ class ModerationCommands(
     # /moderation timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="timeout", description="Timeout a member.")
+    @app_commands.command(name = "timeout", description="Timeout a member.")
     @help_description(
         desc        = "Moderators only —— Times out a member for a given duration.",
         prefix      = False,
@@ -219,7 +219,7 @@ class ModerationCommands(
     # /moderation un-timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="un-timeout", description="Un-timeout a member.")
+    @app_commands.command(name = "un-timeout", description="Un-timeout a member.")
     @help_description(
         desc        = "Senior Moderators only —— Removes an active timeout from a member.",
         prefix      = False,
@@ -247,7 +247,7 @@ class ModerationCommands(
     # /moderation timeouts Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="timeouts", description="View all timed out members.")
+    @app_commands.command(name = "timeouts", description="View all timed out members.")
     @help_description(
         desc      = "Staff* only —— Lists all currently timed out members.",
         prefix    = False,
@@ -261,7 +261,7 @@ class ModerationCommands(
     # /moderation purge Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="purge", description="Delete a specified number of messages.")
+    @app_commands.command(name = "purge", description="Delete a specified number of messages.")
     @help_description(
         desc      = "Moderators only —— Bulk deletes recent messages, optionally filtered to a single member.",
         prefix    = False,
@@ -294,9 +294,9 @@ class ModerationCommands(
     # /moderation quarantines Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="quarantines", description="View all quarantined members.")
+    @app_commands.command(name = "quarantines", description="View all quarantined members.")
     @help_description(
-        desc      = "Staff* only —— Lists all currently quarantined members.",
+        desc      = "Staff\\* only —— Lists all currently quarantined members.",
         prefix    = False,
         slash     = True,
         run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
@@ -308,7 +308,7 @@ class ModerationCommands(
     # /moderation quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="quarantine", description="Quarantine a member.")
+    @app_commands.command(name = "quarantine", description="Quarantine a member.")
     @help_description(
         desc        = "Senior Moderators only —— Places a member into quarantine.",
         prefix      = False,
@@ -339,7 +339,7 @@ class ModerationCommands(
     # /moderation un-quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name="un-quarantine", description="Un-quarantine a member.")
+    @app_commands.command(name = "un-quarantine", description="Un-quarantine a member.")
     @help_description(
         desc        = "Directors only —— Removes a member from quarantine.",
         prefix      = False,

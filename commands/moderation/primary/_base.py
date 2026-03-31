@@ -9,6 +9,7 @@ from datetime import (
     datetime,
     timedelta
 )
+from typing_extensions import override
 from typing import (
     TYPE_CHECKING,
     Any
@@ -109,7 +110,7 @@ class ModerationListPaginator(discord.ui.View):
         )
 
         for name, value in page_fields:
-            _ = embed.add_field(name=name, value = value, inline = False)
+            _ = embed.add_field(name = name, value = value, inline = False)
 
         _ = embed.set_footer(
             text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.fields)} total"
@@ -117,6 +118,7 @@ class ModerationListPaginator(discord.ui.View):
 
         return embed
 
+    @override
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user == self.context.user
 
