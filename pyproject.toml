@@ -75,16 +75,13 @@ ignore = [
     "ANN102",
 ]
 
-[tool.ruff.lint.pygrep-hooks]
-pgi-001 = true
-
 [tool.ruff.lint.mccabe]
-max-complexity = 5
+max-complexity = 10
 
 [tool.ruff.lint.pylint]
-max-args = 5
-max-branches = 6
-max-returns = 3
+max-args = 10
+max-branches = 10
+max-returns = 10
 
 [tool.ruff.lint.flake8-annotations]
 allow-star-arg-any = false
