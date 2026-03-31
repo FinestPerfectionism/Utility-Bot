@@ -1,45 +1,32 @@
-import discord
-
-import json
-import os
 import contextlib
 import enum
+import json
+import os
 import re
-from typing_extensions import override
-from typing import (
-    Any,
-    cast
-)
-from datetime import (
-    datetime,
-    UTC,
-    date as date_type
-)
+from datetime import UTC, datetime
+from datetime import date as date_type
+from typing import Any, cast
 
-from core.utils import (
-    send_minor_error,
-    send_major_error
-)
-from core.permissions import (
-    is_director,
-    is_staff
-)
+import discord
+from typing_extensions import override
 
 from constants import (
+    ADMINISTRATORS_ROLE_ID,
     BOT_OWNER_ID,
     COLOR_RED,
-    STAFF_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
-    JUNIOR_MODERATORS_ROLE_ID,
-    MODERATORS_ROLE_ID,
-    STAFF_COMMITTEE_ROLE_ID,
-    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
-    SENIOR_ADMINISTRATORS_ROLE_ID,
-    JUNIOR_ADMINISTRATORS_ROLE_ID,
-    ADMINISTRATORS_ROLE_ID,
     DIRECTORS_ROLE_ID,
+    JUNIOR_ADMINISTRATORS_ROLE_ID,
+    JUNIOR_MODERATORS_ROLE_ID,
+    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+    SENIOR_ADMINISTRATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
+    STAFF_COMMITTEE_ROLE_ID,
+    STAFF_ROLE_ID,
     SUPPORTING_DIRECTORS_ROLE_ID,
 )
+from core.permissions import is_director, is_staff
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Leave Base
@@ -201,7 +188,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
                 interaction,
                 title = "Error!",
                 texts=f"I lack the permissions to remove roles from {self.target.mention}.",
-                subtitle = "Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner.",
             )
             return
         except discord.HTTPException:
@@ -209,7 +196,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
                 interaction,
                 title = "Error!",
                 texts="A Discord API error occurred.",
-                subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+                subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
             )
             return
 

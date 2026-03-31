@@ -1,26 +1,24 @@
 from __future__ import annotations
 
-import discord
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from ._base import ModerationListPaginator
+from constants import COLOR_GREEN, COLOR_YELLOW
 from core.utils import send_major_error
 
-from constants import (
-    COLOR_GREEN,
-    COLOR_YELLOW
-)
+from ._base import ModerationListPaginator
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation timeouts Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_timeouts(
-    base        : "ModerationBase",
+    base        : ModerationBase,
     interaction : discord.Interaction,
 ) -> None:
     actor = interaction.user
@@ -32,7 +30,7 @@ async def run_timeouts(
             interaction,
             title    = "Unauthorized!",
             texts    = "You lack the necessary permissions to view timeouts.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -47,7 +45,7 @@ async def run_timeouts(
     if not timed_out_members:
         embed = discord.Embed(
             description = "No members are currently timed out.",
-            color       = COLOR_GREEN
+            color       = COLOR_GREEN,
         )
         await interaction.followup.send(embed=embed, ephemeral = True)
         return

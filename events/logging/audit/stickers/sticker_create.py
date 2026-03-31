@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_GREEN
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -30,21 +32,21 @@ class StickerAddCog(AuditCog):
         embed = discord.Embed(
             title = "Sticker Added",
             color = COLOR_GREEN,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         for sticker in added:
             _ = embed.add_field(
                 name = "Sticker",
                 value = f"`{sticker.name}`\n`{sticker.id}`",
-                inline = True
+                inline = True,
             )
 
         if executor:
             _ = embed.add_field(
                 name = "Added By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

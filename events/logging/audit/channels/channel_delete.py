@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_RED
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -27,29 +29,29 @@ class ChannelDeleteCog(AuditCog):
         embed = discord.Embed(
             title = "Channel Deleted",
             color = COLOR_RED,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
-        channel_type = str(channel.type).replace('_', ' ').title()
+        channel_type = str(channel.type).replace("_", " ").title()
         _ = embed.add_field(
             name = "Channel",
             value = f"`{channel.name}`\n`{channel.id}`",
-            inline = True
+            inline = True,
         )
         _ = embed.add_field(name = "Type", value = channel_type, inline = True)
 
-        if hasattr(channel, 'category') and channel.category:
+        if hasattr(channel, "category") and channel.category:
             _ = embed.add_field(
                 name = "Category",
                 value = f"`{channel.category.name}`\n`{channel.category.id}`",
-                inline = True
+                inline = True,
             )
 
         if executor:
             _ = embed.add_field(
                 name = "Deleted By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

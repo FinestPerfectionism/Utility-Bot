@@ -1,6 +1,3 @@
-import discord
-from discord.ext import commands
-
 import asyncio
 import contextlib
 import json
@@ -8,9 +5,12 @@ import logging
 import os
 import sys
 from datetime import (
-    datetime,
     UTC,
+    datetime,
 )
+
+import discord
+from discord.ext import commands
 
 from constants import (
     BOT_OWNER_ID,
@@ -54,7 +54,7 @@ async def restart_bot(
     try:
         await bot.change_presence(
             status   = discord.Status.idle,
-            activity = discord.CustomActivity(name = "Restarting...")
+            activity = discord.CustomActivity(name = "Restarting..."),
         )
 
         if confirm_msg:
@@ -63,7 +63,7 @@ async def restart_bot(
                     json.dump({
                         "channel_id": confirm_msg.channel.id,
                         "message_id": confirm_msg.id,
-                        "timestamp":  datetime.now(UTC).isoformat()
+                        "timestamp":  datetime.now(UTC).isoformat(),
                     }, f)
             except Exception as e:
                 logger.error("Failed to save restart info: %s", e)
@@ -82,7 +82,7 @@ async def restart_bot(
             try:
                 _ = await asyncio.wait_for(
                     asyncio.gather(*pending, return_exceptions=True),
-                    timeout = 5.0
+                    timeout = 5.0,
                 )
             except TimeoutError:
                 logger.warning("Some tasks did not cancel in time")

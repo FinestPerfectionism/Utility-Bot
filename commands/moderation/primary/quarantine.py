@@ -1,26 +1,22 @@
 from __future__ import annotations
 
-import discord
 from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    Any
-)
+from typing import TYPE_CHECKING, Any
+
+import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
-from core.permissions import is_director
-
 from constants import (
     BOT_OWNER_ID,
     COLOR_RED,
+)
+from core.permissions import is_director
+from core.utils import (
+    send_major_error,
+    send_minor_error,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -28,7 +24,7 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_quarantine(
-    base:        "ModerationBase",
+    base:        ModerationBase,
     interaction: discord.Interaction,
     member:      discord.Member,
     reason:      str,
@@ -43,7 +39,7 @@ async def run_quarantine(
             interaction,
             title = "Unauthorized!",
             texts="You lack the necessary permissions to add members to quarantine.",
-            subtitle = "No permissions."
+            subtitle = "No permissions.",
         )
         return
 
@@ -71,8 +67,8 @@ async def run_quarantine(
             await send_major_error(
                 interaction,
                 texts    = f"Rate limit exceeded. {error_msg}.\n"
-                           f"Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle =  "Rate limit exceeded."
+                            "Continuing to exceed rate limits will result in your own quarantine.",
+                subtitle =  "Rate limit exceeded.",
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -86,7 +82,7 @@ async def run_quarantine(
         await send_major_error(
             interaction,
             texts    =  "Quarantine role not found.",
-            subtitle = f"Invalid IDs. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid IDs. Contact <@{BOT_OWNER_ID}>.",
         )
         return
 
@@ -99,7 +95,7 @@ async def run_quarantine(
         "roles":          saved_roles,
         "quarantined_at": datetime.now().isoformat(),
         "quarantined_by": actor.id,
-        "reason":         reason
+        "reason":         reason,
     }
     base.save_data()
 
@@ -118,13 +114,13 @@ async def run_quarantine(
             moderator   = actor,
             reason      = reason,
             target_user = member,
-            metadata    = metadata
+            metadata    = metadata,
         )
 
         embed = discord.Embed(
             title     = "Member Quarantined",
             color     = COLOR_RED,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "Member",      value = member.mention,        inline = True)
         _ = embed.add_field(name = "Moderator",   value = actor.mention,         inline = True)
@@ -139,7 +135,7 @@ async def run_quarantine(
         await send_major_error(
             interaction,
             texts    = "I lack the necessary permissions to quarantine this member.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )
         if str(member.id) in quarantined:
             del quarantined[str(member.id)]

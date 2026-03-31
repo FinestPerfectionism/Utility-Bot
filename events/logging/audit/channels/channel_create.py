@@ -1,15 +1,11 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import (
-    datetime,
-    UTC
-)
 
 from constants import COLOR_GREEN
-from .._base import (
-    AuditCog,
-    AuditQueue
-)
+
+from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Channel Create Audit
@@ -33,32 +29,32 @@ class ChannelCreateCog(AuditCog):
         embed = discord.Embed(
             title     = "Channel Created",
             color     = COLOR_GREEN,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
-        channel_type = str(channel.type).replace('_', ' ').title()
+        channel_type = str(channel.type).replace("_", " ").title()
         _ = embed.add_field(
             name   = "Channel",
             value  = f"`{channel.name}`\n`{channel.id}`",
-            inline = True
+            inline = True,
         )
         _ = embed.add_field(name = "Type", value = channel_type, inline = True)
 
-        if hasattr(channel, 'category') and channel.category:
+        if hasattr(channel, "category") and channel.category:
             _ = embed.add_field(
                 name   = "Category",
                 value  = f"`{channel.category.name}`\n`{channel.category.id}`",
-                inline = True
+                inline = True,
             )
 
-        if hasattr(channel, 'position'):
+        if hasattr(channel, "position"):
             _ = embed.add_field(name = "Position", value = str(channel.position), inline = True)
 
         if executor:
             _ = embed.add_field(
                 name   = "Created By",
                 value  = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

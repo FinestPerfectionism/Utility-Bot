@@ -1,47 +1,32 @@
-import discord
-from discord.ext import (
-    commands,
-    tasks
-)
-
 import asyncio
-import logging
-from typing_extensions import override
-from typing import Any
-import secrets
+import contextlib
 import json
+import logging
 import os
 import random
+import secrets
 import string
-import contextlib
-from datetime import (
-    datetime,
-    timedelta
-)
+from datetime import datetime, timedelta
 from io import BytesIO
-from PIL import (
-    Image,
-    ImageDraw,
-    ImageFont,
-    ImageFilter
-)
-import numpy as np
+from typing import Any
 
-from constants import(
+import discord
+import numpy as np
+from discord.ext import commands, tasks
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from typing_extensions import override
+
+from constants import (
+    ACCEPTED_EMOJI_ID,
     BOT_OWNER_ID,
     COLOR_BLURPLE,
-
     COLOR_GREEN,
     COLOR_RED,
-
-    ACCEPTED_EMOJI_ID,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
-
-    VERIFICATION_CHANNEL_ID,
+    GOOBERS_ROLE_ID,
     MODERATORS_CHANNEL_ID,
-
-    GOOBERS_ROLE_ID
+    VERIFICATION_CHANNEL_ID,
 )
 from core.utils import send_major_error
 
@@ -57,7 +42,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
         placeholder="Enter the code from the image.",
         required=True,
         max_length=6,
-        min_length=6
+        min_length=6,
     )
 
     def __init__(self, correct_code: str, cog: "VerificationHandler") -> None:
@@ -73,7 +58,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
             _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired. Please restart.",
-                ephemeral = True
+                ephemeral = True,
             )
             return
 
@@ -82,7 +67,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
             _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired. Please restart.",
-                ephemeral = True
+                ephemeral = True,
             )
             return
 
@@ -100,7 +85,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
             _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                 "Verification session expired due to too many failed attempts. Please restart.",
-                ephemeral = True
+                ephemeral = True,
             )
             return
 
@@ -109,7 +94,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
         _ = await interaction.response.send_message(
             f"{DENIED_EMOJI_ID} **Incorrect code!**\n"
             f"Please re-enter the code and try again. Attempts remaining: {remaining}",
-            ephemeral = True
+            ephemeral = True,
         )
 
 class VerificationButton(discord.ui.Button[discord.ui.View]):
@@ -117,19 +102,19 @@ class VerificationButton(discord.ui.Button[discord.ui.View]):
         super().__init__(
             style=discord.ButtonStyle.primary,
             label="Verify",
-            custom_id="persistent_verification_button"
+            custom_id="persistent_verification_button",
         )
         self.cog = cog
 
     @override
     async def callback(self, interaction: discord.Interaction) -> None:
-        try:  
+        try:
             await self.cog.start_verification(interaction)
         except Exception as e:
             await send_major_error(
                 interaction,
                 texts="An error occurred while starting verification.",
-                subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+                subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
             )
             logger.exception(f"Error in verification: {e}")
 
@@ -138,7 +123,7 @@ class HelpButton(discord.ui.Button[discord.ui.View]):
         super().__init__(
             style=discord.ButtonStyle.red,
             label="Help!",
-            custom_id="persistent_help_button"
+            custom_id="persistent_help_button",
         )
         self.cog = cog
 
@@ -163,21 +148,21 @@ class VerificationComponents(discord.ui.LayoutView):
                     "4. **Finally,** get verified and gain access to the server!\n\n"
                     "**Note:** Failure to verify within 72 hours will result in the bot removing you from the guild. "
                     "You will be warned at 48 hours. This is __not__ a ban and you can rejoin and start the process again!"
-                )
+                ),
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.large
+                spacing = discord.SeparatorSpacing.large,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=(
                     "Welcome to the server! We look forward to meeting you,\n"
                     "-# The Goobers community."
-                )
+                ),
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.large
+                spacing = discord.SeparatorSpacing.large,
             ),
             discord.ui.ActionRow( # type: ignore
                 VerificationButton(cog),
@@ -220,16 +205,16 @@ class VerificationHandler(commands.Cog):
     def get_default_data(self) -> dict[str, Any]:
         return {
             "unverified": {},
-            "verification_message_id": None
+            "verification_message_id": None,
         }
 
     def save_data(self) -> None:
-        with open(self.data_file, 'w') as f:
+        with open(self.data_file, "w") as f:
             json.dump(self.data, f, indent=4)
 
     @staticmethod
     def generate_captcha() -> tuple[str, BytesIO]:
-        code: str = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6))
+        code: str = "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
         def sine_distort(img: Image.Image) -> Image.Image:
             w, h = img.size
@@ -242,7 +227,7 @@ class VerificationHandler(commands.Cog):
             for x in range(w):
                 offset: int = int(
                     amplitude * np.sin(2 * np.pi * x / period)
-                    + random.SystemRandom().randint(-2, 2)
+                    + random.SystemRandom().randint(-2, 2),
                 )
 
                 if offset > 0:
@@ -279,10 +264,10 @@ class VerificationHandler(commands.Cog):
 
         try:
             font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48,
             )
             small_font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18,
             )
         except Exception:
             font = ImageFont.load_default()
@@ -297,7 +282,7 @@ class VerificationHandler(commands.Cog):
                 c_base + random.SystemRandom().randint(-20, 20),
                 c_base + random.SystemRandom().randint(-20, 20),
                 c_base + random.SystemRandom().randint(-20, 20),
-                random.SystemRandom().randint(160, 210)
+                random.SystemRandom().randint(160, 210),
             )
             char_draw.text((10, 10), char, fill=color, font=font)
             angle: int = random.SystemRandom().randint(-30, 30)
@@ -316,8 +301,8 @@ class VerificationHandler(commands.Cog):
             baseline_points.append(
                 (
                     x_pos + char_img.size[0] // 2,
-                    y_offset + char_img.size[1] // 2
-                )
+                    y_offset + char_img.size[1] // 2,
+                ),
             )
 
         if len(baseline_points) >= 2:
@@ -325,7 +310,7 @@ class VerificationHandler(commands.Cog):
                 baseline_points,
                 fill=(40, 40, 40, 180),
                 width=3,
-                joint="curve"
+                joint="curve",
             )
 
         for _ in range(25):
@@ -337,7 +322,7 @@ class VerificationHandler(commands.Cog):
                 n_base + random.SystemRandom().randint(-20, 20),
                 n_base + random.SystemRandom().randint(-20, 20),
                 n_base + random.SystemRandom().randint(-20, 20),
-                random.SystemRandom().randint(160, 220)
+                random.SystemRandom().randint(160, 220),
             )
             fake_img: Image.Image = Image.new("RGBA", (50, 50), (255, 255, 255, 0))
             fake_draw: ImageDraw.ImageDraw = ImageDraw.Draw(fake_img)
@@ -433,7 +418,7 @@ class VerificationHandler(commands.Cog):
             await interaction.followup.send(
                 f"**{CONTESTED_EMOJI_ID} Failed to open verification session!**\n"
                 "You are already verified!",
-                ephemeral = True
+                ephemeral = True,
             )
             return
 
@@ -442,7 +427,7 @@ class VerificationHandler(commands.Cog):
         self.active_captchas[user.id] = {
             "code": code,
             "expires_at": datetime.now() + timedelta(minutes=5),
-            "attempts": 0
+            "attempts": 0,
         }
 
         verification_cog = self
@@ -451,7 +436,7 @@ class VerificationHandler(commands.Cog):
             def __init__(self) -> None:
                 super().__init__(
                     label="Submit Code",
-                    style=discord.ButtonStyle.green
+                    style=discord.ButtonStyle.green,
                 )
 
             @override
@@ -462,12 +447,12 @@ class VerificationHandler(commands.Cog):
                     _ = await interaction.response.send_message(
                         f"{DENIED_EMOJI_ID} **Verification expired!**\n"
                         "Verification session expired. Please restart.",
-                        ephemeral = True
+                        ephemeral = True,
                     )
                     return
 
                 _ = await interaction.response.send_modal(
-                    CaptchaModal(session["code"], verification_cog)
+                    CaptchaModal(session["code"], verification_cog),
                 )
 
         file = discord.File(image_buffer, filename = "captcha.png")
@@ -481,20 +466,20 @@ class VerificationHandler(commands.Cog):
                     "Enter the code shown in the image below.\n"
                     "- Code is **case-insensitive.**\n"
                     "- You have **5 minutes**."
-                )
-            ),
-            discord.ui.Separator( # type: ignore
-                visible = True,
-                spacing = discord.SeparatorSpacing.large
-            ),
-            discord.ui.MediaGallery( # type: ignore
-                discord.MediaGalleryItem(
-                    media="attachment://captcha.png"
                 ),
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.large
+                spacing = discord.SeparatorSpacing.large,
+            ),
+            discord.ui.MediaGallery( # type: ignore
+                discord.MediaGalleryItem(
+                    media="attachment://captcha.png",
+                ),
+            ),
+            discord.ui.Separator( # type: ignore
+                visible = True,
+                spacing = discord.SeparatorSpacing.large,
             ),
             discord.ui.ActionRow(SubmitButton()), # type: ignore
             accent_color = COLOR_BLURPLE,
@@ -520,7 +505,7 @@ class VerificationHandler(commands.Cog):
             await send_major_error(
                 interaction,
                 "Verification role not found.",
-                subtitle = f"Invalid configuration. Contact <@{BOT_OWNER_ID}>."
+                subtitle = f"Invalid configuration. Contact <@{BOT_OWNER_ID}>.",
             )
             return
 
@@ -541,14 +526,14 @@ class VerificationHandler(commands.Cog):
             _ = await interaction.response.send_message(
                 f"{ACCEPTED_EMOJI_ID} **Successfully verified!\n**"
                 "Welcome to the server!",
-                ephemeral = True
+                ephemeral = True,
             )
 
         except discord.Forbidden:
             await send_major_error(
                 interaction,
                 "I lack the necessary permissions to assign roles.",
-                subtitle = "Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner.",
             )
 
     async def _send_mod_notification(self, guild: discord.Guild, lines: list[str]) -> None:
@@ -608,8 +593,8 @@ class VerificationHandler(commands.Cog):
                 with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                     _ = await member.send(
                         f"{DENIED_EMOJI_ID} **Guild removal!**\n"
-                        "You joined \"The Goobers\" recently and did not complete verification in time. You were automatically removed from the guild.\n"
-                        "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
+                        'You joined "The Goobers" recently and did not complete verification in time. You were automatically removed from the guild.\n'
+                        "-# **Note:** This is __not__ a ban and you can rejoin and start the process again.",
                     )
 
                 try:
@@ -617,7 +602,7 @@ class VerificationHandler(commands.Cog):
                     to_remove.append(user_id)
                     kicked_log.append(
                         f"{DENIED_EMOJI_ID} **Member Kicked**\n"
-                        f"{member.mention} was kicked for failing to verify within 72 hours."
+                        f"{member.mention} was kicked for failing to verify within 72 hours.",
                     )
                 except discord.Forbidden:
                     pass
@@ -630,8 +615,8 @@ class VerificationHandler(commands.Cog):
                 try:
                     _ = await member.send(
                         f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
-                        "You joined \"The Goobers\" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n"
-                        "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
+                        'You joined "The Goobers" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n'
+                        "-# **Note:** This is __not__ a ban and you can rejoin and start the process again.",
                     )
                     warned = True
                     where  = "DM"
@@ -642,8 +627,8 @@ class VerificationHandler(commands.Cog):
                             warn_msg: discord.Message = await warn_channel.send(
                                 f"{member.mention}\n\n"
                                 f"{CONTESTED_EMOJI_ID} **Verification required!**\n"
-                                "You joined \"The Goobers\" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n"
-                                "-# **Note:** This is __not__ a ban and you can rejoin and start the process again."
+                                'You joined "The Goobers" recently but have not completed verification! In 24 hours you will automatically be removed from the guild.\n'
+                                "-# **Note:** This is __not__ a ban and you can rejoin and start the process again.",
                             )
                             warning_message_id = warn_msg.id
                             warned             = True
@@ -657,7 +642,7 @@ class VerificationHandler(commands.Cog):
                     self.save_data()
                     warned_log.append(
                         f"{CONTESTED_EMOJI_ID} **Member Warned**\n"
-                        f"{member.mention} was warned via {where}."
+                        f"{member.mention} was warned via {where}.",
                     )
 
         for user_id_to_del in to_remove:

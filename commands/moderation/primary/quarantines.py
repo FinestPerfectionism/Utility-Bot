@@ -1,26 +1,24 @@
 from __future__ import annotations
 
-import discord
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from ._base import ModerationListPaginator
+from constants import COLOR_GREEN, COLOR_ORANGE
 from core.utils import send_major_error
 
-from constants import (
-    COLOR_GREEN,
-    COLOR_ORANGE
-)
+from ._base import ModerationListPaginator
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation quarantines Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_quarantines(
-    base        : "ModerationBase",
+    base        : ModerationBase,
     interaction : discord.Interaction,
 ) -> None:
     actor = interaction.user
@@ -32,14 +30,14 @@ async def run_quarantines(
             interaction,
             title    = "Unauthorized!",
             texts    = "You lack the necessary permissions to view quarantined members.",
-            subtitle = "No permissions."
+            subtitle = "No permissions.",
         )
         return
 
     if not base.data.get("quarantined"):
         embed = discord.Embed(
             description = "No members are currently quarantined.",
-            color       = COLOR_GREEN
+            color       = COLOR_GREEN,
         )
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
         return
@@ -58,7 +56,7 @@ async def run_quarantines(
         fields.append((
             member_name,
             f"Quarantined: {discord.utils.format_dt(quarantined_at, 'R')}\n"
-            f"Saved roles: {len(entry['roles'])}"
+            f"Saved roles: {len(entry['roles'])}",
         ))
 
     view = ModerationListPaginator(interaction, "Quarantined Members", COLOR_ORANGE, fields)

@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import time
 import logging
+import time
 from typing import Any
 
 import discord
 
-from constants import (
-    PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
-    TICKET_CHANNEL_ID
-)
+from constants import PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, TICKET_CHANNEL_ID
 from core.partnership_state import (
     IMAGE_DIR,
     PartnershipData,
@@ -35,7 +32,7 @@ class PartnershipComponents1(discord.ui.LayoutView):
                 f" then open a __director__ ticket in <#{TICKET_CHANNEL_ID}>.\n"
                 "-# **Note:** It is within Directors' discretion as to whether we choose to partner with your server. "
                 "Directors are not required to provide a reason when denying a partnership."
-            )
+            ),
         ),
     )
 
@@ -51,7 +48,7 @@ class PartnershipComponents2(discord.ui.LayoutView):
                     f"Partnerships last updated <t:{timestamp}:D>.\n"
                     "-# All partnerships below are subject to removal or update at any time based on Directorate decision. Partnerships are not influenced by the public or other staff.\n"
                     "-# Partnerships assembled by the Directorate team."
-                )
+                ),
             ),
             discord.ui.Separator(visible = False, spacing = discord.SeparatorSpacing.small),
             discord.ui.Separator(visible = True,  spacing = discord.SeparatorSpacing.small),
@@ -61,8 +58,8 @@ class PartnershipComponents2(discord.ui.LayoutView):
         if not partnerships:
             children.append(
                 discord.ui.TextDisplay(
-                    content="Looks like this server has no partnerships! :["
-                )
+                    content="Looks like this server has no partnerships! :[",
+                ),
             )
         else:
             for i, p in enumerate(partnerships):
@@ -76,19 +73,19 @@ class PartnershipComponents2(discord.ui.LayoutView):
                                 "**Server Owner**\n"
                                 f"> <@{p['server_owner_id']}>\n"
                                 f"[Join Here!]({p['server_link']})"
-                            )
+                            ),
                         ),
                         accessory=discord.ui.Thumbnail(
-                            media=f"attachment://{p['image_filename']}"
+                            media=f"attachment://{p['image_filename']}",
                         ),
-                    )
+                    ),
                 )
                 if i < len(partnerships) - 1:
                     children.append(
                         discord.ui.Separator(
                             visible = True,
                             spacing = discord.SeparatorSpacing.large,
-                        )
+                        ),
                     )
 
         self.container = discord.ui.Container(*children)
@@ -105,7 +102,7 @@ def _estimate_chars(p: PartnershipEntry) -> int:
         f"> {p['server_description']}\n"
         "**Server Owner**\n"
         f"> <@{p['server_owner_id']}>\n"
-        f"[Join Here!]({p['server_link']})"
+        f"[Join Here!]({p['server_link']})",
     )
 
 

@@ -1,31 +1,30 @@
-import discord
-from discord.ext import commands
-
 import asyncio
 import time as time_mod
+
+import discord
+from discord.ext import commands
 from typing_extensions import override
 
-from core.ticket_state import (
-    ACTIVE_TICKETS,
-    THREAD_OPENERS,
-    TICKET_CLAIMS,
-    RESOLUTION_STOPPED,
-    RESOLUTION_STATE,
-    register_ticket,
-    unregister_ticket,
-    save_ticket_state,
-    load_ticket_state,
-)
-from core.state import BLACKLIST
-
 from constants import (
-    MODERATORS_ROLE_ID,
-    DIRECTORS_ROLE_ID,
-    STAFF_ROLE_ID,
-    COLOR_GREEN,
     ACCEPTED_EMOJI_ID,
+    COLOR_GREEN,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
+    DIRECTORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+    STAFF_ROLE_ID,
+)
+from core.state import BLACKLIST
+from core.ticket_state import (
+    ACTIVE_TICKETS,
+    RESOLUTION_STATE,
+    RESOLUTION_STOPPED,
+    THREAD_OPENERS,
+    TICKET_CLAIMS,
+    load_ticket_state,
+    register_ticket,
+    save_ticket_state,
+    unregister_ticket,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -110,7 +109,7 @@ def start_resolution_task(
             bot=bot,
             interval_minutes=interval_minutes,
             delay=delay,
-        )
+        ),
     )
     RESOLUTION_TASKS[thread_id] = task
 
@@ -153,7 +152,7 @@ class ResolutionView(discord.ui.View):
         unregister_ticket(channel.id)
         _ = await interaction.response.send_message(
            f"{ACCEPTED_EMOJI_ID} **Understood.**"
-            "Glad your issue was resolved! This ticket will now be archived."
+            "Glad your issue was resolved! This ticket will now be archived.",
         )
         _ = await channel.edit(locked=True, archived=True)
 
@@ -398,7 +397,7 @@ class TicketControlPanel(discord.ui.LayoutView):
         save_ticket_state()
         _ = await interaction.response.send_message(
             f"{ACCEPTED_EMOJI_ID} **Successfully claimed ticket.**"
-            f"Ticket claimed by {interaction.user.mention}."
+            f"Ticket claimed by {interaction.user.mention}.",
         )
 
 
@@ -423,14 +422,14 @@ class TicketComponents(discord.ui.LayoutView):
                 "- **Respect Moderators:** Remain calm and respectful at all times.\n\n"
                 "Tickets are handled in the order they are received, and response times may vary.\n\n"
                 "**Note:** You may run `.archive` to close your ticket."
-            )
+            ),
         ),
         discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=(
                 "We look forward to assisting you! Sincerely,\n"
                 "-# The Goobers Moderator team."
-            )
+            ),
         ),
         discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.ActionRow( # type: ignore
@@ -451,7 +450,7 @@ class TicketComponents(discord.ui.LayoutView):
                 ],
             ),
         ),
-        accent_color = COLOR_GREEN
+        accent_color = COLOR_GREEN,
     )
 
     async def open_ticket(self, interaction: discord.Interaction) -> None:

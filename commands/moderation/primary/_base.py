@@ -1,47 +1,40 @@
-import discord
-from discord.ext import commands
-
 import asyncio
 import contextlib
 import json
 import os
-from datetime import (
-    datetime,
-    timedelta
-)
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, Any
+
+import discord
+from discord.ext import commands
 from typing_extensions import override
-from typing import (
-    TYPE_CHECKING,
-    Any
-)
 
 from core.cases import (
-    CaseType,
     CasesManager,
+    CaseType,
 )
 
 if TYPE_CHECKING:
     from bot import UtilityBot
 
+from constants import (
+    ADMINISTRATORS_ROLE_ID,
+    DIRECTORS_ROLE_ID,
+    JUNIOR_ADMINISTRATORS_ROLE_ID,
+    JUNIOR_MODERATORS_ROLE_ID,
+    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+    QUARANTINE_ROLE_ID,
+    SENIOR_ADMINISTRATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
+    STAFF_ROLE_ID,
+)
 from core.permissions import (
     has_role,
-    is_director,
     is_administrator,
+    is_director,
     is_moderator,
     is_senior_moderator,
-)
-
-from constants import (
-    QUARANTINE_ROLE_ID,
-    DIRECTORS_ROLE_ID,
-    MODERATORS_ROLE_ID,
-    ADMINISTRATORS_ROLE_ID,
-    STAFF_ROLE_ID,
-    JUNIOR_ADMINISTRATORS_ROLE_ID,
-    SENIOR_ADMINISTRATORS_ROLE_ID,
-    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
-    JUNIOR_MODERATORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -113,7 +106,7 @@ class ModerationListPaginator(discord.ui.View):
             _ = embed.add_field(name = name, value = value, inline = False)
 
         _ = embed.set_footer(
-            text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.fields)} total"
+            text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.fields)} total",
         )
 
         return embed
@@ -232,7 +225,7 @@ class ModerationBase(commands.Cog):
             "timeouts":    {},
             "kicks":       {},
             "rate_limits": {},
-            "quarantined": {}
+            "quarantined": {},
         }
 
     def save_data(self) -> None:
@@ -429,7 +422,7 @@ class ModerationBase(commands.Cog):
             "roles":          saved_roles,
             "quarantined_at": datetime.now().isoformat(),
             "quarantined_by": self.bot.user.id,
-            "reason":         "UB Anti-Nuke: exceeded moderation rate limits"
+            "reason":         "UB Anti-Nuke: exceeded moderation rate limits",
         }
         self.save_data()
 
@@ -446,7 +439,7 @@ class ModerationBase(commands.Cog):
                     moderator   = bot_member,
                     reason      = "Exceeded moderation rate limits (auto-quarantine)",
                     target_user = moderator,
-                    metadata    = {"roles_saved": len(saved_roles), "auto_quarantine": True}
+                    metadata    = {"roles_saved": len(saved_roles), "auto_quarantine": True},
                 )
         except discord.Forbidden:
             pass

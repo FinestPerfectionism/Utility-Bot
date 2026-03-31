@@ -2,11 +2,11 @@ import discord
 from discord.ext import commands
 
 from constants import (
+    ACCEPTED_EMOJI_ID,
+    COLOR_GREEN,
+    CONTESTED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     STAFF_ROLE_ID,
-    COLOR_GREEN,
-    ACCEPTED_EMOJI_ID,
-    CONTESTED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -26,7 +26,7 @@ class LeaveFormatView(discord.ui.LayoutView):
                 "Type:           Standard / Clean\n"
                 "```\n"
                 "Leave requests created not following the format above will be ignored."
-            )
+            ),
         ),
         accent_color = COLOR_GREEN,
     )
@@ -57,12 +57,12 @@ class LeaveComponents(discord.ui.LayoutView):
                 "- **Standard:** Places you on personal leave while retaining your staff roles. This is used when you are temporarily unavailable but will resume normal duties after your leave ends.\n"
                 "- **Clean:** Temporarily removes all staff roles while you are on leave. Your roles will automatically be restored when your leave ends.\n\n"
                 "**Note:** If you do not have the personal leave role, you are expected to be online and active."
-            )
+            ),
 
         ),
         discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.TextDisplay( # type: ignore
-            content="Sincerely,\n-# The Goobers Directorate team."
+            content="Sincerely,\n-# The Goobers Directorate team.",
         ),
         discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
         discord.ui.ActionRow( # type: ignore
@@ -75,7 +75,7 @@ class LeaveComponents(discord.ui.LayoutView):
                 style=discord.ButtonStyle.primary,
                 label="Leave Request Format",
                 custom_id="leave:format",
-            )
+            ),
         ),
         accent_color = COLOR_GREEN,
     )

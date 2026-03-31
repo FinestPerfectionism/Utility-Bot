@@ -1,59 +1,74 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 import discord
 from discord.ext import commands
 
-from typing import (
-    TYPE_CHECKING,
-    Any
-)
 if TYPE_CHECKING:
-    from collections.abc import (
-        Callable, Coroutine
-    )
+    from collections.abc import Callable, Coroutine
+import asyncio
 import json
 import logging
-from pathlib import Path
-from typing_extensions import override
-from typing import cast
-import asyncio
 import time
+from pathlib import Path
+from typing import cast
 
-from events.systems.applications import ApplicationComponents
-from events.systems.tickets import TicketComponents
-from events.systems.leave import LeaveComponents
-from events.member.verification import (
-    VerificationHandler,
-    VerificationComponents
-)
+from typing_extensions import override
 
-from core.state import (
-    load_layout_message_ids,
-    save_layout_message_ids
+from constants import (
+    ADMINISTRATORS_GUIDELINES_CHANNEL_ID,
+    APPLICATION_CHANNEL_ID,
+    DIRECTORATE_GUIDELINES_CHANNEL_ID,
+    HIERARCHY_CHANNEL_ID,
+    MODERATORS_GUIDELINES_CHANNEL_ID,
+    PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
+    PARTNERSHIPS_CHANNEL_ID,
+    RULES_CHANNEL_ID,
+    STAFF_GUIDELINES_CHANNEL_ID,
+    STAFF_LEAVE_CHANNEL_ID,
+    STAFF_PROPOSALS_INFO_CHANNEL_ID,
+    TICKET_CHANNEL_ID,
+    VERIFICATION_CHANNEL_ID,
 )
 from core.partnership_state import (
     PartnershipData,
     load_partnership_data,
 )
-
-from guild_info.staff_proposal_info import (
-    StaffProposalComponents1,
-    StaffProposalComponents2a,
-    StaffProposalComponents2b,
-    StaffProposalComponents3,
-    StaffProposalComponents4
+from core.state import (
+    load_layout_message_ids,
+    save_layout_message_ids,
 )
-from guild_info.rules import (
-    RuleComponents1,
-    RuleComponents2
+from events.member.verification import (
+    VerificationComponents,
+    VerificationHandler,
 )
-from guild_info.partnership_requirements import (
-    RequirementComponents1,
-    RequirementComponents2
+from events.systems.applications import ApplicationComponents
+from events.systems.leave import LeaveComponents
+from events.systems.tickets import TicketComponents
+from guild_info.guidelines.administrator_guidelines import (
+    AdministratorComponents1,
+    AdministratorComponents2,
+    AdministratorComponents3,
+    AdministratorComponents4,
 )
-from guild_info.partnerships import (
-    split_partnerships,
-    rebuild_partnership_layout,
+from guild_info.guidelines.director_guidelines import (
+    DirectorateComponents1,
+    DirectorateComponents2,
+    DirectorateComponents3,
+    DirectorateComponents4,
+    DirectorateComponents5,
+)
+from guild_info.guidelines.moderator_guidelines import (
+    ModerationComponents1,
+    ModerationComponents2,
+    ModerationComponents3,
+)
+from guild_info.guidelines.staff_guidelines import (
+    StaffComponents1,
+    StaffComponents2,
+    StaffComponents3,
+    StaffComponents4,
 )
 from guild_info.hierarchy import (
     HierarchyComponents1,
@@ -64,45 +79,24 @@ from guild_info.hierarchy import (
     HierarchyComponents6,
     HierarchyComponents7,
 )
-from guild_info.guidelines.moderator_guidelines import (
-    ModerationComponents1,
-    ModerationComponents2,
-    ModerationComponents3,
+from guild_info.partnership_requirements import (
+    RequirementComponents1,
+    RequirementComponents2,
 )
-from guild_info.guidelines.administrator_guidelines import (
-    AdministratorComponents1,
-    AdministratorComponents2,
-    AdministratorComponents3,
-    AdministratorComponents4,
+from guild_info.partnerships import (
+    rebuild_partnership_layout,
+    split_partnerships,
 )
-from guild_info.guidelines.staff_guidelines import (
-    StaffComponents1,
-    StaffComponents2,
-    StaffComponents3,
-    StaffComponents4,
+from guild_info.rules import (
+    RuleComponents1,
+    RuleComponents2,
 )
-from guild_info.guidelines.director_guidelines import (
-    DirectorateComponents1,
-    DirectorateComponents2,
-    DirectorateComponents3,
-    DirectorateComponents4,
-    DirectorateComponents5,
-)
-
-from constants import (
-    TICKET_CHANNEL_ID,
-    APPLICATION_CHANNEL_ID,
-    STAFF_LEAVE_CHANNEL_ID,
-    STAFF_PROPOSALS_INFO_CHANNEL_ID,
-    RULES_CHANNEL_ID,
-    VERIFICATION_CHANNEL_ID,
-    PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
-    PARTNERSHIPS_CHANNEL_ID,
-    HIERARCHY_CHANNEL_ID,
-    MODERATORS_GUIDELINES_CHANNEL_ID,
-    ADMINISTRATORS_GUIDELINES_CHANNEL_ID,
-    STAFF_GUIDELINES_CHANNEL_ID,
-    DIRECTORATE_GUIDELINES_CHANNEL_ID,
+from guild_info.staff_proposal_info import (
+    StaffProposalComponents1,
+    StaffProposalComponents2a,
+    StaffProposalComponents2b,
+    StaffProposalComponents3,
+    StaffProposalComponents4,
 )
 
 log = logging.getLogger("Utility Bot")
@@ -231,7 +225,7 @@ class Startup(commands.Cog):
     async def _handle_verification_layout(self, channel: discord.TextChannel) -> None:
         verification_cog = cast(
             "VerificationHandler",
-            self.bot.get_cog("VerificationHandler")
+            self.bot.get_cog("VerificationHandler"),
         )
 
         if not verification_cog:

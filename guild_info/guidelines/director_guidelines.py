@@ -1,12 +1,13 @@
 import discord
 
+
 class DirectorateComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=
                 "# Welcome to Directorate Guidelines!\n"
                 "Internal guidelines for the Goobers Directorate.\n"
-                "-# **Note:** These guidelines are Directorate-only and may be revised at any time by Directorate decision. They apply to all Directors regardless of rank. Sharing internal Directorate policy outside authorized spaces is prohibited."
+                "-# **Note:** These guidelines are Directorate-only and may be revised at any time by Directorate decision. They apply to all Directors regardless of rank. Sharing internal Directorate policy outside authorized spaces is prohibited.",
         ),
     )
 
@@ -19,19 +20,19 @@ class DirectorateComponents2(discord.ui.LayoutView):
                     "# Directorate Guidelines\n"
                    f"Directorate guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -54,7 +55,7 @@ class DirectorateComponents2(discord.ui.LayoutView):
                     "### §2.3 Directorate-Review Proposals\n"
                     "Certain proposals bypass the standard Staff Committee process and are routed directly to the Directorate for internal review. This applies to matters where the nature of the proposal falls outside the scope of staff advisory voting — most notably, the addition or removal of bots. When a proposal enters Directorate review, the Directorate deliberates internally and issues a decision at their discretion. Normal veto, revision, and standstill mechanics still apply.\n\n"
                     "### §2.4 Review Timeline\n"
-                    "The Staff Committee must issue a final decision within 5 days of the advisory poll concluding. If no decision is reached, the proposal automatically enters Contested status. Directors are responsible for ensuring this window is respected — delays without cause reflect on the Directorate."
+                    "The Staff Committee must issue a final decision within 5 days of the advisory poll concluding. If no decision is reached, the proposal automatically enters Contested status. Directors are responsible for ensuring this window is respected — delays without cause reflect on the Directorate.",
             ),
         )
         self.add_item(self.container) # type: ignore
@@ -82,7 +83,7 @@ class DirectorateComponents3(discord.ui.LayoutView):
                 "### §4.2 Director Accountability\n"
                 "Directors are accountable for their vetoes. While justification is not formally required, Directors are strongly expected to provide brief reasoning when vetoing — particularly when acting contrary to a strong staff consensus. Vetoes issued without explanation against overwhelming staff support should be rare and reserved for serious concerns. A pattern of unexplained vetoes contrary to staff consensus reflects poorly on the Directorate as a body.\n\n"
                 "### §4.3 Post-Veto Options\n"
-                "After a veto is issued, the Director may either request revision from the proposer — in which case the proposal enters NEEDS REVISION — or end the proposal outright. The Director must communicate which outcome applies."
+                "After a veto is issued, the Director may either request revision from the proposer — in which case the proposal enters NEEDS REVISION — or end the proposal outright. The Director must communicate which outcome applies.",
         ),
     )
 
@@ -117,7 +118,7 @@ class DirectorateComponents4(discord.ui.LayoutView):
                 "- Reach a decision collectively where the situation is serious. Minor issues may be resolved at a single Director's discretion.\n"
                 "- Communicate the outcome clearly within the ticket where appropriate, without disclosing internal deliberations.\n"
                 "- Document all findings and outcomes internally.\n\n"
-                "If a staff issue ticket reveals potential misconduct, it must be escalated to full internal review under §6."
+                "If a staff issue ticket reveals potential misconduct, it must be escalated to full internal review under §6.",
         ),
     )
 
@@ -150,6 +151,6 @@ class DirectorateComponents5(discord.ui.LayoutView):
                 "### §9.2 Transparency to Staff\n"
                 "Directors are not required to disclose internal deliberations, but should communicate decisions clearly and promptly to staff where the decision affects them. Staff should not learn of significant governance changes through inference.\n\n"
                 "### §9.3 Activity and Availability\n"
-                "Directors are expected to remain active and responsive, particularly to escalated tickets, contested proposals, and staff misconduct reports. Prolonged unavailability without notice is not acceptable at the Directorate level. If a Director anticipates extended absence, the wider Directorate must be informed in advance."
+                "Directors are expected to remain active and responsive, particularly to escalated tickets, contested proposals, and staff misconduct reports. Prolonged unavailability without notice is not acceptable at the Directorate level. If a Director anticipates extended absence, the wider Directorate must be informed in advance.",
         ),
     )

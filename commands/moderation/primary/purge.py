@@ -1,28 +1,18 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
+
 import discord
-from datetime import (
-    datetime,
-    timezone
-)
-from typing import (
-    TYPE_CHECKING,
-    Any
-)
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-
-from core.utils import (
-    send_major_error,
-    send_minor_error
-)
-
 from constants import (
     COLOR_BLURPLE,
 )
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Purge Helpers
@@ -35,7 +25,7 @@ PurgeableChannel = (
 )
 
 def _get_purgeable_channel(
-    channel: Any 
+    channel: Any,
 ) -> PurgeableChannel | None:
     if isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.Thread):
         return channel
@@ -50,7 +40,7 @@ def _build_purge_embed(
     embed = discord.Embed(
         title = "Messages Purged",
         color = COLOR_BLURPLE,
-        timestamp = datetime.now(tz=timezone.utc)
+        timestamp = datetime.now(tz=UTC),
     )
     _ = embed.add_field(name = "Deleted",   value = str(deleted_count), inline = True)
     _ = embed.add_field(name = "Moderator", value = moderator.mention,  inline = True)
@@ -65,7 +55,7 @@ def _build_purge_embed(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_purge(
-    base:        "ModerationBase",
+    base:        ModerationBase,
     interaction: discord.Interaction,
     amount:      int,
     reason:      str,
@@ -81,7 +71,7 @@ async def run_purge(
             interaction,
             title = "Unauthorized!",
             texts="You lack the necessary permissions to purge messages.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -89,7 +79,7 @@ async def run_purge(
         await send_minor_error(interaction, "Amount must be between 1 and 100.")
         return
 
-    channel = _get_purgeable_channel(interaction.channel) 
+    channel = _get_purgeable_channel(interaction.channel)
 
     if channel is None:
         await send_minor_error(interaction, "This command cannot be used in this channel type.", subtitle = "Bad command environment.")
@@ -104,7 +94,7 @@ async def run_purge(
     try:
         if member:
             target_id = member.id
-            cutoff    = datetime.now(tz=timezone.utc)
+            cutoff    = datetime.now(tz=UTC)
             deleted   = await channel.purge(
                 limit=amount,
                 check=lambda m: (
@@ -112,18 +102,18 @@ async def run_purge(
                     and (cutoff - m.created_at).days < 14
                 ),
                 before=interaction.created_at,
-                bulk=True
+                bulk=True,
             )
         else:
             deleted = await channel.purge(
                 limit=amount,
                 before=interaction.created_at,
-                bulk=True
+                bulk=True,
             )
 
         metadata: dict[str, Any] = {
             "deleted_messages": len(deleted),
-            "channel_id":       channel.id
+            "channel_id":       channel.id,
         }
         if proof:
             metadata["proof_url"] = proof.url
@@ -134,7 +124,7 @@ async def run_purge(
             moderator   = actor,
             reason      = reason,
             target_user = member if member else None,
-            metadata    = metadata
+            metadata    = metadata,
         )
 
         embed = _build_purge_embed(len(deleted), actor, member, proof)
@@ -144,5 +134,5 @@ async def run_purge(
         await send_major_error(
             interaction,
             texts    = "I lack the necessary permissions to purge messages.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )

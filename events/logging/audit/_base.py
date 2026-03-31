@@ -1,15 +1,10 @@
-import discord
-from discord.ext import (
-    commands,
-    tasks
-)
 import asyncio
+
+import discord
+from discord.ext import commands, tasks
 from typing_extensions import override
 
-from constants import (
-    DIRECTORSHIP_CATEGORY_ID,
-    CHANGE_LOG_CHANNEL_ID
-)
+from constants import CHANGE_LOG_CHANNEL_ID, DIRECTORSHIP_CATEGORY_ID
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Queue
@@ -73,15 +68,15 @@ class AuditCog(commands.Cog):
 
     def is_directorship_channel(self, channel: discord.abc.GuildChannel) -> bool:
         return (
-            (hasattr(channel, 'category_id') and channel.category_id == DIRECTORSHIP_CATEGORY_ID) or
-            (hasattr(channel, 'category') and channel.category is not None and channel.category.id == DIRECTORSHIP_CATEGORY_ID)
+            (hasattr(channel, "category_id") and channel.category_id == DIRECTORSHIP_CATEGORY_ID) or
+            (hasattr(channel, "category") and channel.category is not None and channel.category.id == DIRECTORSHIP_CATEGORY_ID)
         )
 
     async def get_executor(
         self,
         guild: discord.Guild,
         action_type: discord.AuditLogAction,
-        target_id: int | None = None
+        target_id: int | None = None,
     ) -> discord.Member | None:
         try:
             await asyncio.sleep(0.5)
@@ -101,15 +96,15 @@ class AuditCog(commands.Cog):
         for perm, value in permissions:
             if value is not None:
                 status = "Allow" if value else "Deny"
-                perm_name = perm.replace('_', ' ').title()
+                perm_name = perm.replace("_", " ").title()
                 perms.append(f"{perm_name}: {status}")
 
         return "\n".join(perms) if perms else "None"
 
     def get_overwrite_changes(
-        self, 
-        before_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite], 
-        after_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite]
+        self,
+        before_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite],
+        after_overwrites: dict[discord.Role | discord.Member | discord.Object, discord.PermissionOverwrite],
     ) -> list[str]:
         changes: list[str] = []
         all_targets = set(before_overwrites.keys()) | set(after_overwrites.keys())
@@ -119,8 +114,8 @@ class AuditCog(commands.Cog):
             after_ow = after_overwrites.get(target)
 
             target_type = "Role" if isinstance(target, discord.Role) else "Member"
-            target_name = getattr(target, 'name', str(target))
-            target_id = target.id if hasattr(target, 'id') else "Unknown"
+            target_name = getattr(target, "name", str(target))
+            target_id = target.id if hasattr(target, "id") else "Unknown"
 
             if before_ow is None and after_ow is not None:
                 perms: list[str] = []
@@ -130,7 +125,7 @@ class AuditCog(commands.Cog):
                         perms.append(f"{perm.replace('_', ' ').title()}: {status}")
                 if perms:
                     changes.append(
-                        f"**Added {target_type}** `{target_name}`\n`{target_id}`\n" + "\n".join(perms)
+                        f"**Added {target_type}** `{target_name}`\n`{target_id}`\n" + "\n".join(perms),
                     )
 
             elif after_ow is None:
@@ -146,14 +141,14 @@ class AuditCog(commands.Cog):
                     after_val = after_perms.get(perm)
 
                     if before_val != after_val:
-                        perm_name = perm.replace('_', ' ').title()
+                        perm_name = perm.replace("_", " ").title()
                         before_status = "Allow" if before_val else ("Deny" if before_val is False else "Neutral")
                         after_status = "Allow" if after_val else ("Deny" if after_val is False else "Neutral")
                         modified_perms.append(f"{perm_name}: {before_status} → {after_status}")
 
                 if modified_perms:
                     changes.append(
-                        f"**Modified {target_type}** `{target_name}`\n`{target_id}`\n" + "\n".join(modified_perms)
+                        f"**Modified {target_type}** `{target_name}`\n`{target_id}`\n" + "\n".join(modified_perms),
                     )
 
         return changes

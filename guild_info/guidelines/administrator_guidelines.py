@@ -1,12 +1,13 @@
 import discord
 
+
 class AdministratorComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=
                 "# Welcome to Administrator Guidelines!\n"
                 "Internal guidelines for the Goobers Administration Team.\n"
-                "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. Sharing internal administration policy outside staff spaces is prohibited."
+                "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. Sharing internal administration policy outside staff spaces is prohibited.",
         ),
     )
 
@@ -19,19 +20,19 @@ class AdministratorComponents2(discord.ui.LayoutView):
                     "# Administrator Guidelines\n"
                    f"Administrator guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -50,7 +51,7 @@ class AdministratorComponents2(discord.ui.LayoutView):
                     "### §2.2 Feasibility and NEEDS REVISION\n"
                     "If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, an Administrator must flag this immediately. The proposal may be placed into NEEDS REVISION, Standstill, or otherwise delayed. Do not silently leave an accepted proposal unimplemented.\n\n"
                     "### §2.3 Owner and Director Action Tags\n"
-                    "Some proposals carry OWNER ACTION or S. DIRECTOR ACTION tags, indicating that only the Owner or a Supporting Director can carry out implementation. Do not attempt to implement these independently — flag them to the appropriate party."
+                    "Some proposals carry OWNER ACTION or S. DIRECTOR ACTION tags, indicating that only the Owner or a Supporting Director can carry out implementation. Do not attempt to implement these independently — flag them to the appropriate party.",
             ),
         )
         self.add_item(self.container) # type: ignore
@@ -70,7 +71,7 @@ class AdministratorComponents3(discord.ui.LayoutView):
                 "### §3.4 Events\n"
                 "Junior Administrators may create events. Senior Administrators may additionally manage or edit existing events. All events must be sanctioned by the Directorate or correspond to an accepted proposal.\n\n"
                 "### §3.5 Nicknames\n"
-                "Junior Administrators may manage member nicknames where necessary for structural or organizational purposes. Nickname changes must not be used as an enforcement action — defer to the Moderation Team for anything conduct-related."
+                "Junior Administrators may manage member nicknames where necessary for structural or organizational purposes. Nickname changes must not be used as an enforcement action — defer to the Moderation Team for anything conduct-related.",
         ),
     )
 
@@ -109,6 +110,6 @@ class AdministratorComponents4(discord.ui.LayoutView):
                 "### §7.4 Coordination with the Moderation Team\n"
                 "When an infrastructure change may affect moderation workflows — such as modifying ticket channels, alert channels, or bot command access — notify the Moderation Team in advance where practical. Changes that disrupt active moderation operations without prior notice are disruptive and should be avoided.\n\n"
                 "### §7.5 Rollback and Errors\n"
-                "If a change produces an unintended result, report it to the Directorate immediately and document what changed and what went wrong. Do not silently correct mistakes through further undocumented changes. Transparency in errors is expected and will not be penalized unless the error resulted from negligence or acting outside authorized scope."
+                "If a change produces an unintended result, report it to the Directorate immediately and document what changed and what went wrong. Do not silently correct mistakes through further undocumented changes. Transparency in errors is expected and will not be penalized unless the error resulted from negligence or acting outside authorized scope.",
         ),
     )

@@ -1,21 +1,21 @@
-import discord
-from discord.ext import commands
-
-from typing import Any
 import contextlib
 import json
 import os
 from datetime import datetime
 from enum import Enum
+from typing import Any
+
+import discord
+from discord.ext import commands
 
 from constants import (
+    COLOR_BLACK,
+    COLOR_BLURPLE,
     COLOR_GREEN,
-    COLOR_YELLOW,
+    COLOR_GREY,
     COLOR_ORANGE,
     COLOR_RED,
-    COLOR_BLURPLE,
-    COLOR_GREY,
-    COLOR_BLACK,
+    COLOR_YELLOW,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -258,7 +258,7 @@ class CasesManager:
         embed = discord.Embed(
             title     = f"Case #{case_data['case_id']} — {title_map.get(case_type, 'Moderation Action')}",
             color     = color_map.get(case_type, COLOR_BLURPLE),
-            timestamp = datetime.fromisoformat(case_data["created_at"])
+            timestamp = datetime.fromisoformat(case_data["created_at"]),
         )
 
         mod_added = False
@@ -279,7 +279,7 @@ class CasesManager:
                 _ = embed.add_field(
                     name   = "User",
                     value  = f"{case_data['target_user_name']} ({case_data['target_user_id']})",
-                    inline = True
+                    inline = True,
                 )
 
         if case_data.get("duration"):

@@ -1,6 +1,6 @@
 import discord
-
 from typing_extensions import override
+
 
 class AdministratorsRolesComponents(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
@@ -10,17 +10,17 @@ class AdministratorsRolesComponents(discord.ui.LayoutView):
                 "The Goobers Administration Team is responsible for overseeing server management and ensuring that all approved structural or operational changes are properly carried out.\n\n"
                 "**Tasks**\n"
                 "> *To implement proposals raised by Staff that have reached Accepted status.*\n\n"
-                " When a proposal is accepted, an Administrator(s) is expected to implement its proposand. If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, Administrators may place the proposal into Needs Revision, Standstill, or otherwise delay implementation until it becomes feasible."
+                " When a proposal is accepted, an Administrator(s) is expected to implement its proposand. If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, Administrators may place the proposal into Needs Revision, Standstill, or otherwise delay implementation until it becomes feasible.",
         ),
         discord.ui.Separator( # type: ignore
             visible = True,
-            spacing = discord.SeparatorSpacing.large
+            spacing = discord.SeparatorSpacing.large,
         ),
         discord.ui.TextDisplay( # type: ignore
             content=
-                "-# **Note:** Administrators are held under the same rules and are expected to also do the same jobs as guild Trustees *and* Moderators. No exceptions."
+                "-# **Note:** Administrators are held under the same rules and are expected to also do the same jobs as guild Trustees *and* Moderators. No exceptions.",
         ),
-        accent_color = 0xff8cd5
+        accent_color = 0xff8cd5,
     )
 
 class ModeratorsRolesComponents(discord.ui.LayoutView):
@@ -31,17 +31,17 @@ class ModeratorsRolesComponents(discord.ui.LayoutView):
                 "The Goobers Moderation Team is responsible for overseeing rule enforcement, maintaining community safety, and supporting the server's overall stability.\n\n"
                 "**Tasks**\n"
                 "> *To vote on and raise proposals that improve The Goobers server and its community.*\n\n"
-                "All Moderators may raise Staff Proposals and vote on them. Senior Moderators+ may assist in directing or reviewing proposands for clarity or practicality. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
+                "All Moderators may raise Staff Proposals and vote on them. Senior Moderators+ may assist in directing or reviewing proposands for clarity or practicality. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.",
         ),
         discord.ui.Separator( # type: ignore
             visible = True,
-            spacing = discord.SeparatorSpacing.large
+            spacing = discord.SeparatorSpacing.large,
         ),
         discord.ui.TextDisplay( # type: ignore
             content=
-                "-# **Note:** Moderators are held under the same rules and are expected to also do the same jobs as guild Trustees. No exceptions."
+                "-# **Note:** Moderators are held under the same rules and are expected to also do the same jobs as guild Trustees. No exceptions.",
         ),
-        accent_color = 0x87e9ff
+        accent_color = 0x87e9ff,
     )
 
 class TrusteeRolesComponents(discord.ui.LayoutView):
@@ -52,9 +52,9 @@ class TrusteeRolesComponents(discord.ui.LayoutView):
                 "Guild Trustees are members of the community who contribute to the server's improvement through proposals and suggestions.\n\n"
                 "**Tasks**\n"
                 "> *To raise proposals that improve The Goobers server and its community.*\n\n"
-                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
+                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.",
         ),
-        accent_color = 0xfacd6c
+        accent_color = 0xfacd6c,
     )
 
 class CommitteeRolesComponents(discord.ui.LayoutView):
@@ -65,9 +65,9 @@ class CommitteeRolesComponents(discord.ui.LayoutView):
                 "The Staff Committee is the final decision-making body for Staff Proposals. After the advisory poll period concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
                 "**Tasks**\n"
                 "> *To review advisory poll results and issue final decisions on Staff Proposals.*\n\n"
-                "The Staff Committee may Accept, Accept with minor revisions, Request revision, Deny, or place a proposal into Standstill. When acting contrary to strong staff consensus, the committee is expected to provide brief reasoning for their decision."
+                "The Staff Committee may Accept, Accept with minor revisions, Request revision, Deny, or place a proposal into Standstill. When acting contrary to strong staff consensus, the committee is expected to provide brief reasoning for their decision.",
         ),
-        accent_color = 0xf9a56b
+        accent_color = 0xf9a56b,
     )
 
 class AdministratorsRoles(discord.ui.Button[discord.ui.View]):
@@ -75,14 +75,14 @@ class AdministratorsRoles(discord.ui.Button[discord.ui.View]):
         super().__init__(
             style     = discord.ButtonStyle.success,
             label     = "Administrator's Roles",
-            custom_id = "persistent_administrator_button"
+            custom_id = "persistent_administrator_button",
         )
 
     @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = AdministratorsRolesComponents(),
-            ephemeral = True
+            ephemeral = True,
         )
 
 class ModeratorsRoles(discord.ui.Button[discord.ui.View]):
@@ -90,14 +90,14 @@ class ModeratorsRoles(discord.ui.Button[discord.ui.View]):
         super().__init__(
             style = discord.ButtonStyle.success,
             label="Moderator's Roles",
-            custom_id="persistent_moderator_button"
+            custom_id="persistent_moderator_button",
         )
 
     @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = ModeratorsRolesComponents(),
-            ephemeral = True
+            ephemeral = True,
         )
 
 class TrusteeRoles(discord.ui.Button[discord.ui.View]):
@@ -105,14 +105,14 @@ class TrusteeRoles(discord.ui.Button[discord.ui.View]):
         super().__init__(
             style = discord.ButtonStyle.primary,
             label="Trustee's Roles",
-            custom_id="persistent_trustee_button"
+            custom_id="persistent_trustee_button",
         )
 
     @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = TrusteeRolesComponents(),
-            ephemeral = True
+            ephemeral = True,
         )
 
 class CommitteeRoles(discord.ui.Button[discord.ui.View]):
@@ -120,14 +120,14 @@ class CommitteeRoles(discord.ui.Button[discord.ui.View]):
         super().__init__(
             style = discord.ButtonStyle.danger,
             label="Committee's Roles",
-            custom_id="persistent_committee_button"
+            custom_id="persistent_committee_button",
         )
 
     @override
     async def callback(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view      = CommitteeRolesComponents(),
-            ephemeral = True
+            ephemeral = True,
         )
 
 class StaffProposalComponents1(discord.ui.LayoutView):
@@ -135,7 +135,7 @@ class StaffProposalComponents1(discord.ui.LayoutView):
         discord.ui.TextDisplay( # type: ignore
             content=
                 "# Welcome to Staff Proposals!\n"
-                "A branch of the server dedicated to making improvements to the server that will benefit the community and its members."
+                "A branch of the server dedicated to making improvements to the server that will benefit the community and its members.",
         ),
     )
 
@@ -148,19 +148,19 @@ class StaffProposalComponents2a(discord.ui.LayoutView):
                     "# Staff Proposal Information\n"
                     f"Staff proposals last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>."
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -179,7 +179,7 @@ class StaffProposalComponents2a(discord.ui.LayoutView):
                     "If a proposal's poll expires with missing Staff votes, it proceeds to the Staff Committee as-is with whatever vote data was collected.\n"
                     "### Vote Changes\n"
                     "- Staff may change their votes at any time before the poll ends.\n"
-                    "- Once the poll expires, votes are locked for the record."
+                    "- Once the poll expires, votes are locked for the record.",
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -212,11 +212,11 @@ class StaffProposalComponents2a(discord.ui.LayoutView):
                     "Staff may make suggestions to the items listed above __in the appropriate channel__, such as <#1444452435006590996>, <#1386133249373376665>, or <#1436345318554996976>.\n"
                     "Guild Trustees may *not* suggest the items listed above anywhere in the server. \n\n"
                     "-# **Proposand:** the core idea of a raised proposal.\n"
-                    "-# **Guild Trustees:** those with the <@&1463694813525180477> role."
+                    "-# **Guild Trustees:** those with the <@&1463694813525180477> role.",
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.large
+                spacing = discord.SeparatorSpacing.large,
             ),
             discord.ui.ActionRow( # type: ignore
                 AdministratorsRoles(),
@@ -227,7 +227,7 @@ class StaffProposalComponents2a(discord.ui.LayoutView):
         )
         self.add_item(self.container) # type: ignore
 
-class StaffProposalComponents2b(discord.ui.LayoutView): 
+class StaffProposalComponents2b(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=
@@ -271,7 +271,7 @@ class StaffProposalComponents2b(discord.ui.LayoutView):
                 "> Why the proposand should be accepted.\n"
                 "### Additional Notes\n"
                 "> Any additional notes.\n"
-                "```"
+                "```",
         ),
     )
 
@@ -322,7 +322,7 @@ class StaffProposalComponents3(discord.ui.LayoutView):
                 "- The proposal becomes halted for administrative, technical, or logistical reasons.\n"
                 "- The situation is too mixed to evaluate.\n"
                 "- The Staff Committee explicitly determines that normal evaluation cannot proceed.\n"
-                "A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied."
+                "A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied.",
         ),
     )
 
@@ -353,6 +353,6 @@ class StaffProposalComponents4(discord.ui.LayoutView):
                 "## LOCKED\nA proposal is **Locked** when:\n"
                 "- Its result is final **and**\n"
                 "- The proposand has been implemented.\n"
-                "Staff may still send messages, but a Locked proposal shouldn't be changed or reopened unless more discussion on the topic is necessary or new issues have arisen."
+                "Staff may still send messages, but a Locked proposal shouldn't be changed or reopened unless more discussion on the topic is necessary or new issues have arisen.",
         ),
     )

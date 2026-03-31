@@ -1,26 +1,27 @@
-import discord
-
 from typing import Any
 
-from ._base import (
-    LeaveType,
-    save_data,
-    extract_name,
-    can_manage_leave,
-    normalize_entry,
-    entry_has_automation,
-    describe_automation,
-    InterferenceConfirmView,
-)
-from core.utils import (
-    send_minor_error,
-    send_major_error,
-)
-from core.permissions import is_staff
+import discord
+
 from constants import (
     BOT_OWNER_ID,
     DENIED_EMOJI_ID,
     PERSONAL_LEAVE_ROLE_ID,
+)
+from core.permissions import is_staff
+from core.utils import (
+    send_major_error,
+    send_minor_error,
+)
+
+from ._base import (
+    InterferenceConfirmView,
+    LeaveType,
+    can_manage_leave,
+    describe_automation,
+    entry_has_automation,
+    extract_name,
+    normalize_entry,
+    save_data,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -36,7 +37,7 @@ async def run_leave_remove(
         await send_minor_error(
             interaction,
             texts    = "This command can only be used in a server.",
-            subtitle = "Bad command environment."
+            subtitle = "Bad command environment.",
         )
         return
 
@@ -61,7 +62,7 @@ async def run_leave_remove(
                 interaction,
                 title    = "Unauthorized!",
                 texts    = "You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -74,7 +75,7 @@ async def run_leave_remove(
                 interaction,
                 title    = "Unauthorized!",
                 texts    = "You lack the necessary permissions to remove personal leave from other Staff Members.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -91,7 +92,7 @@ async def run_leave_remove(
             interaction,
             title = "Error!",
             texts="I could not fetch the Personal Leave role.",
-            subtitle = f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>.",
         )
         return
 
@@ -186,7 +187,7 @@ async def run_leave_remove(
             interaction,
             title = "Error!",
             texts="I lack the necessary permissions to remove the Personal Leave role.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )
         return
 
@@ -195,7 +196,7 @@ async def run_leave_remove(
             interaction,
             title = "Error!",
             texts="A Discord API error occurred while removing the role. Please try again later.",
-            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
         )
         return
 
@@ -210,32 +211,31 @@ async def run_leave_remove(
                 interaction,
                 title = "Error!",
                 texts="The role was removed, but I lack the necessary permissions to restore the nickname. Please change it back manually.",
-                subtitle = "Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner.",
             )
     elif nickname_error == "http":
         await send_minor_error(
             interaction,
             "The role was removed, but a Discord API error prevented the nickname from being restored.",
-            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
         )
     elif roles_restore_error == "forbidden":
         await send_major_error(
             interaction,
             title = "Error!",
             texts="Personal leave was removed and the nickname restored, but I lack the permissions to re-add the original staff roles. Please restore them manually.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )
     elif roles_restore_error == "http":
         await send_minor_error(
             interaction,
             "Personal leave was removed and the nickname restored, but a Discord API error prevented the original staff roles from being re-added.",
-            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
         )
+    elif target_member.id == interaction.user.id:
+        await interaction.followup.send("You have been removed from personal leave.", ephemeral = True)
     else:
-        if target_member.id == interaction.user.id:
-            await interaction.followup.send("You have been removed from personal leave.", ephemeral = True)
-        else:
-            await interaction.followup.send(
-                f"{target_member.mention} has been removed from personal leave.",
-                ephemeral = True
-            )
+        await interaction.followup.send(
+            f"{target_member.mention} has been removed from personal leave.",
+            ephemeral = True,
+        )

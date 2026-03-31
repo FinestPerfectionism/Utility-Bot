@@ -1,10 +1,5 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
 import contextlib
 from datetime import datetime
-from typing_extensions import override
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -12,17 +7,38 @@ from typing import (
     cast,
 )
 
+import discord
+from discord import app_commands
+from discord.ext import commands
+from typing_extensions import override
+
 if TYPE_CHECKING:
     from bot import UtilityBot
 
-from core.help import (
-    help_description,
-    ArgumentInfo,
-    RoleConfig,
+from constants import (
+    ACCEPTED_EMOJI_ID,
+    ADMINISTRATORS_ROLE_ID,
+    COLOR_BLACK,
+    COLOR_BLURPLE,
+    COLOR_GREEN,
+    COLOR_GREY,
+    COLOR_ORANGE,
+    COLOR_RED,
+    COLOR_YELLOW,
+    DENIED_EMOJI_ID,
+    DIRECTOR_TASKS_CHANNEL_ID,
+    DIRECTORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
 )
 from core.cases import (
-    CaseType,
     CasesManager,
+    CaseType,
+)
+from core.help import (
+    ArgumentInfo,
+    RoleConfig,
+    help_description,
 )
 from core.permissions import (
     is_administrator,
@@ -33,22 +49,6 @@ from core.permissions import (
 from core.utils import (
     send_major_error,
     send_minor_error,
-)
-from constants import (
-    COLOR_GREEN,
-    COLOR_YELLOW,
-    COLOR_ORANGE,
-    COLOR_RED,
-    COLOR_BLURPLE,
-    COLOR_GREY,
-    COLOR_BLACK,
-    DIRECTORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
-    MODERATORS_ROLE_ID,
-    ADMINISTRATORS_ROLE_ID,
-    DIRECTOR_TASKS_CHANNEL_ID,
-    ACCEPTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -101,7 +101,7 @@ class ClassificationView(discord.ui.View):
         thread = interaction.channel
         if isinstance(thread, discord.Thread):
             _ = await interaction.response.send_message(
-                f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**"
+                f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**",
             )
             with contextlib.suppress(discord.HTTPException):
                 _ = await thread.edit(locked=True, archived=True)
@@ -154,7 +154,7 @@ class ClassificationView(discord.ui.View):
         thread = interaction.channel
         if isinstance(thread, discord.Thread):
             _ = await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**"
+                f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**",
             )
             with contextlib.suppress(discord.HTTPException):
                 _ = await thread.edit(locked=True, archived=True)
@@ -252,7 +252,7 @@ class CaseQueryPaginator(discord.ui.View):
             _ = embed.add_field(name = name, value = value, inline = False)
 
         _ = embed.set_footer(
-            text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.cases)} cases total"
+            text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.cases)} cases total",
         )
 
         return embed
@@ -263,7 +263,7 @@ class CaseQueryPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = "<<",
-        style = discord.ButtonStyle.secondary
+        style = discord.ButtonStyle.secondary,
     )
     async def first_page(
         self,
@@ -276,7 +276,7 @@ class CaseQueryPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = "<",
-        style = discord.ButtonStyle.secondary
+        style = discord.ButtonStyle.secondary,
     )
     async def previous_page(
         self,
@@ -301,7 +301,7 @@ class CaseQueryPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = ">>",
-        style = discord.ButtonStyle.secondary
+        style = discord.ButtonStyle.secondary,
     )
     async def last_page(
         self,
@@ -365,7 +365,7 @@ class CaseViewPaginator(discord.ui.View):
             )
 
         _ = embed.set_footer(
-            text=f"Notes page {self.page + 1}/{self.max_page + 1} · {len(self.notes)} notes total"
+            text=f"Notes page {self.page + 1}/{self.max_page + 1} · {len(self.notes)} notes total",
         )
 
         return embed
@@ -376,7 +376,7 @@ class CaseViewPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = "<<",
-        style = discord.ButtonStyle.secondary
+        style = discord.ButtonStyle.secondary,
     )
     async def first_page(
         self,
@@ -389,7 +389,7 @@ class CaseViewPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = "<",
-        style = discord.ButtonStyle.secondary
+        style = discord.ButtonStyle.secondary,
     )
     async def previous_page(
         self,
@@ -403,7 +403,7 @@ class CaseViewPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = ">",
-        style = discord.ButtonStyle.secondary
+        style = discord.ButtonStyle.secondary,
     )
     async def next_page(
         self,
@@ -417,7 +417,7 @@ class CaseViewPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = ">>",
-        style = discord.ButtonStyle.secondary
+        style = discord.ButtonStyle.secondary,
     )
     async def last_page(
         self,
@@ -600,7 +600,7 @@ class CasesCommands(commands.Cog):
 
     cases_group = app_commands.Group(
         name        = "cases",
-        description = "Moderators only —— Cases management."
+        description = "Moderators only —— Cases management.",
     )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -780,7 +780,7 @@ class CasesCommands(commands.Cog):
         if not case or case["guild_id"] != guild.id:
             await send_minor_error(
                 interaction,
-                texts = f"Case **#{case_id}** was not found."
+                texts = f"Case **#{case_id}** was not found.",
             )
             return
 
@@ -789,7 +789,7 @@ class CasesCommands(commands.Cog):
                 interaction,
                 title    =  "Unauthorized!",
                 texts    = f"You lack the necessary permissions to view Case **#{case_id}**.",
-                subtitle =  "Invalid permissions."
+                subtitle =  "Invalid permissions.",
             )
             return
 
@@ -836,7 +836,7 @@ class CasesCommands(commands.Cog):
         user:        discord.User | None = None,
         case_id:     int          | None = None,
         visibility:  Literal[
-            "moderators", "senior_moderators", "directors"
+            "moderators", "senior_moderators", "directors",
         ] = "moderators",
     ) -> None:
         actor = interaction.user
@@ -1082,8 +1082,8 @@ class CasesCommands(commands.Cog):
             await send_minor_error(
                 interaction,
                 texts = (
-                    f"Case **#{case_id}** already has a pending classification request. "
-                    f"It must be resolved before a new one can be submitted."
+                   f"Case **#{case_id}** already has a pending classification request. "
+                    "It must be resolved before a new one can be submitted."
                 ),
             )
             return

@@ -1,26 +1,21 @@
+import contextlib
+import json
+import os
+from typing import TypedDict, cast
+
 import discord
 from discord.ext import commands
 
-import contextlib
-from typing import (
-    TypedDict,
-    cast
-)
-import json
-import os
-
-from core.help import (
-    help_description,
-    ArgumentInfo,
-    RoleConfig,
-)
-
 from constants import (
-    SUPPORTING_DIRECTORS_ROLE_ID,
-    DIRECTORS_ROLE_ID,
-
     ACCEPTED_EMOJI_ID,
     DENIED_EMOJI_ID,
+    DIRECTORS_ROLE_ID,
+    SUPPORTING_DIRECTORS_ROLE_ID,
+)
+from core.help import (
+    ArgumentInfo,
+    RoleConfig,
+    help_description,
 )
 
 NOMINATION_DATA_FILE = "nomination_data.json"
@@ -150,7 +145,7 @@ class NominationCommands(commands.Cog):
 
         _ = await ctx.send(
             f"{ACCEPTED_EMOJI_ID} **Successfully started Director Nomination!**\n"
-            f"ID: `{case_id}`"
+            f"ID: `{case_id}`",
         )
 
     async def _handle_accept(
@@ -179,7 +174,7 @@ class NominationCommands(commands.Cog):
 
         _ = await ctx.send(
             f"{ACCEPTED_EMOJI_ID} **Successfully added Director Nomination to nomination case `{case_id}`!**\n"
-            f"{n}/{m} Directors for."
+            f"{n}/{m} Directors for.",
         )
 
         if m > 0 and n >= m:
@@ -228,7 +223,7 @@ class NominationCommands(commands.Cog):
 
         _ = await ctx.send(
             f"{DENIED_EMOJI_ID} **Ended nomination case `{case_id}`.**\n"
-            f"Director {ctx.author.mention} has denied the nomination."
+            f"Director {ctx.author.mention} has denied the nomination.",
         )
 
 

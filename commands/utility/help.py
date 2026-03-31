@@ -1,15 +1,17 @@
+from typing import cast
+
 import discord
 from discord.ext import commands
-from typing import cast
+
+from constants import (
+    BOT_OWNER_ID,
+    COLOR_BLURPLE,
+    CONTESTED_EMOJI_ID,
+)
 from core.help import (
     HelpedCallable,
-    find_nested_command,
     build_help_view,
-)
-from constants import (
-    COLOR_BLURPLE,
-    BOT_OWNER_ID,
-    CONTESTED_EMOJI_ID,
+    find_nested_command,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -17,19 +19,19 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 _BOT_INFO_TEXT = (
-    f"# Bot Information\n"
-    f"Various moderative, administrative, and directive utilities for the staff team. "
-    f"This bot is unusable outside of The Goobers guild. Do __not__ expect to receive support with usage.\n"
-    f"## Modules\n"
-    f"- **Moderation** — Warnings, mutes, bans, and other punitive actions.\n"
-    f"- **Utility** — General-purpose staff tools.\n"
-    f"- **Proposal Manager** — Create and manage proposals.\n"
-    f"- **Applications & Tickets Manager** — Handle applications and support tickets.\n"
-    f"- **Verification Manager** — Manage member verification.\n"
-    f"## Developer\n"
+     "# Bot Information\n"
+     "Various moderative, administrative, and directive utilities for the staff team. "
+     "This bot is unusable outside of The Goobers guild. Do __not__ expect to receive support with usage.\n"
+     "## Modules\n"
+     "- **Moderation** — Warnings, mutes, bans, and other punitive actions.\n"
+     "- **Utility** — General-purpose staff tools.\n"
+     "- **Proposal Manager** — Create and manage proposals.\n"
+     "- **Applications & Tickets Manager** — Handle applications and support tickets.\n"
+     "- **Verification Manager** — Manage member verification.\n"
+     "## Developer\n"
     f"<:developer:1480043201581551676> My developer is this bitch: <@{BOT_OWNER_ID}>\n"
-    f"## Usage\n"
-    f"Run `.help <cmd>` for detailed information on a specific command."
+     "## Usage\n"
+     "Run `.help <cmd>` for detailed information on a specific command."
 )
 
 _NO_PING = discord.AllowedMentions(users=False)
@@ -117,7 +119,7 @@ class HelpCommands(commands.Cog):
                      "-# Genuinely wondering how one makes it this far without realizing something as simple as this. 🥀",
             "super_secret_command": "There is no super secret command in ba sing se.",
             "help": "Help²",
-            "me": "No. <:laugh5:1481288430150484111>"
+            "me": "No. <:laugh5:1481288430150484111>",
         }
 
         if query in responses:

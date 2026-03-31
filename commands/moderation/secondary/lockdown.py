@@ -1,46 +1,32 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
-from typing import Any
 import contextlib
 import json
 import os
 from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    cast
-)
+from typing import TYPE_CHECKING, Any, cast
+
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 if TYPE_CHECKING:
     from bot import UtilityBot
 
-from core.help import (
-    help_description,
-    ArgumentInfo,
-    RoleConfig,
-)
-from core.utils import (
-    send_major_error, send_minor_error
-)
-from core.permissions import is_director
-
-from constants import(
+from commands.moderation.cases import CasesManager, CaseType
+from constants import (
     BOT_OWNER_ID,
-
     COLOR_GREEN,
     COLOR_RED,
-
     CONTESTED_EMOJI_ID,
-
-    STAFF_ROLE_ID,
     DIRECTORS_ROLE_ID,
+    STAFF_ROLE_ID,
 )
-
-from commands.moderation.cases import (
-    CaseType,
-    CasesManager
+from core.help import (
+    ArgumentInfo,
+    RoleConfig,
+    help_description,
 )
+from core.permissions import is_director
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Lockdown Commands
@@ -80,18 +66,18 @@ class LockdownCommands(commands.Cog):
             with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
                 return json.load(f)
         return self.get_default_data()
-        
+
     def get_default_data(self) -> dict[str, Any]:
         return {
             "active": False,
             "activated_at": None,
             "activated_by": None,
             "reason": None,
-            "channel_permissions": {}
+            "channel_permissions": {},
         }
 
     def save_data(self) -> None:
-        with open(self.data_file, 'w') as f:
+        with open(self.data_file, "w") as f:
             json.dump(self.data, f, indent=4)
 
 
@@ -100,18 +86,18 @@ class LockdownCommands(commands.Cog):
 
     def is_channel_exempt(self, channel: discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel) -> bool:
         return (
-            channel.id in self.EXEMPT_CHANNELS 
+            channel.id in self.EXEMPT_CHANNELS
             or (channel.category_id is not None and channel.category_id in self.EXEMPT_CATEGORIES)
         )
 
     lockdown_group = app_commands.Group(
         name = "lockdown",
-        description="Directors only —— Server lockdown management."
+        description="Directors only —— Server lockdown management.",
     )
 
     @lockdown_group.command(
         name = "status",
-        description="View the current lockdown status."
+        description="View the current lockdown status.",
     )
     @help_description(
         desc="Directors only —— Views the current lockdown state and summary.",
@@ -129,7 +115,7 @@ class LockdownCommands(commands.Cog):
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -138,7 +124,7 @@ class LockdownCommands(commands.Cog):
                 title       = "Lockdown Status",
                 description = "The server is **not** currently in lockdown.",
                 color       = COLOR_GREEN,
-                timestamp   = datetime.now()
+                timestamp   = datetime.now(),
             )
             _ = await interaction.response.send_message(embed=embed, ephemeral = True)
             return
@@ -153,34 +139,34 @@ class LockdownCommands(commands.Cog):
         embed = discord.Embed(
             title     = "Lockdown Active",
             color     = COLOR_RED,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(
             name   = "Activated By",
             value  = activated_by_mention,
-            inline = True
+            inline = True,
         )
         _ = embed.add_field(
             name   = "Activated",
-            value  = discord.utils.format_dt(activated_at, 'R'),
-            inline = True
+            value  = discord.utils.format_dt(activated_at, "R"),
+            inline = True,
         )
         _ = embed.add_field(
             name   = "Channels Locked",
             value  = str(len(self.data["channel_permissions"])),
-            inline = True
+            inline = True,
         )
         _ = embed.add_field(
             name   = "Reason",
             value  = self.data["reason"],
-            inline = False
+            inline = False,
         )
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     @lockdown_group.command(
         name        = "activate",
-        description = "Activate server lockdown."
+        description = "Activate server lockdown.",
     )
     @app_commands.describe(reason="Reason for lockdown.")
     @help_description(
@@ -193,7 +179,7 @@ class LockdownCommands(commands.Cog):
     async def lockdown_activate(
         self,
         interaction : discord.Interaction,
-        reason      : str
+        reason      : str,
     ) -> None:
         reason = reason
 
@@ -206,7 +192,7 @@ class LockdownCommands(commands.Cog):
                 interaction,
                 title    ="Unauthorized!",
                 texts    = "You lack the necessary permissions to activate lockdown.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -228,7 +214,7 @@ class LockdownCommands(commands.Cog):
             await send_major_error(
                 interaction,
                 texts    = "Staff role not found.",
-                subtitle = f"Invalid IDs. Contact <@{BOT_OWNER_ID}>."
+                subtitle = f"Invalid IDs. Contact <@{BOT_OWNER_ID}>.",
             )
             return
 
@@ -261,7 +247,7 @@ class LockdownCommands(commands.Cog):
                         create_private_threads   = False,
                         connect                  = False,
                         speak                    = False,
-                        reason                   = f"UB Lockdown: Lockdown engaged by {actor}"
+                        reason                   = f"UB Lockdown: Lockdown engaged by {actor}",
                     )
 
                     if isinstance(channel, discord.TextChannel):
@@ -269,7 +255,7 @@ class LockdownCommands(commands.Cog):
                             staff_role,
                             send_messages            = True,
                             send_messages_in_threads = True,
-                            reason                   = f"UB Lockdown: lockdown engaged by {actor} —— Adding staff overrides"
+                            reason                   = f"UB Lockdown: lockdown engaged by {actor} —— Adding staff overrides",
                         )
 
                     channels_locked += 1
@@ -287,13 +273,13 @@ class LockdownCommands(commands.Cog):
             moderator   = actor,
             reason      = reason,
             target_user = None,
-            metadata    = {"channels_locked": channels_locked}
+            metadata    = {"channels_locked": channels_locked},
         )
 
         embed = discord.Embed(
             title     = "Lockdown Engaged",
             color     = COLOR_RED,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "Director", value = actor.mention, inline = True)
         _ = embed.add_field(name = "Channels Locked", value = str(channels_locked), inline = True)
@@ -302,14 +288,14 @@ class LockdownCommands(commands.Cog):
             name   = "Note",
             value  = f"Staff members ({staff_role.mention}) can still send messages.\n"
                      f"New members joining will be automatically kicked.",
-            inline = False
+            inline = False,
         )
 
         await interaction.followup.send(embed=embed, ephemeral = True)
 
     @lockdown_group.command(
         name = "lift",
-        description="Lift server lockdown."
+        description="Lift server lockdown.",
     )
     @help_description(
         desc="Directors only —— Lifs an active server lockdown and restores saved permissions.",
@@ -327,7 +313,7 @@ class LockdownCommands(commands.Cog):
                 interaction,
                 title    = "Unauthorized!",
                 texts    = "You lack the necessary permissions to lift lockdown.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -364,7 +350,7 @@ class LockdownCommands(commands.Cog):
                     create_private_threads=perms["create_private_threads"],
                     connect=perms["connect"],
                     speak=perms["speak"],
-                    reason=f"Lockdown lifted by {actor}"
+                    reason=f"Lockdown lifted by {actor}",
                 )
 
                 staff_role: discord.Role | None = guild.get_role(self.STAFF_ROLE_ID)
@@ -374,7 +360,7 @@ class LockdownCommands(commands.Cog):
                         await channel.set_permissions(
                             staff_role,
                             overwrite=None,
-                            reason=f"Lockdown lifted by {actor} —— Removing staff overrides"
+                            reason=f"Lockdown lifted by {actor} —— Removing staff overrides",
                         )
 
                 channels_restored += 1
@@ -392,13 +378,13 @@ class LockdownCommands(commands.Cog):
             moderator   = actor,
             reason      = "UB Lockdown: lockdown lifted by ",
             target_user = None,
-            metadata    = {"channels_restored": channels_restored}
+            metadata    = {"channels_restored": channels_restored},
         )
 
         embed = discord.Embed(
             title = "Lockdown Lifted",
             color = COLOR_GREEN,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "Director", value = actor.mention, inline = True)
         _ = embed.add_field(name = "Channels Restored", value = str(channels_restored), inline = True)
@@ -407,7 +393,7 @@ class LockdownCommands(commands.Cog):
             _ = embed.add_field(
                 name = f"{CONTESTED_EMOJI_ID} Channels Not Found",
                 value = f"{channels_not_found} channel(s) no longer exist and could not be restored.",
-                inline = False
+                inline = False,
             )
 
         await interaction.followup.send(embed=embed, ephemeral = True)
@@ -431,7 +417,7 @@ class LockdownCommands(commands.Cog):
                     moderator   = bot_member,
                     reason      = "*Server is in lockdown —— automatic kick*",
                     target_user = member,
-                    metadata    = {"auto_kick": True, "lockdown": True}
+                    metadata    = {"auto_kick": True, "lockdown": True},
                 )
 
             await member.kick(reason="UB Lockdown: server is in lockdown")

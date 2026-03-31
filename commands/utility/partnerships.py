@@ -1,18 +1,19 @@
 from __future__ import annotations
 
+import logging
 import re
 import uuid
-import logging
 from pathlib import Path
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+from constants import BOT_OWNER_ID, DIRECTORS_ROLE_ID, PARTNERSHIPS_CHANNEL_ID
 from core.help import (
-    help_description,
     ArgumentInfo,
     RoleConfig,
+    help_description,
 )
 from core.partnership_state import (
     IMAGE_DIR,
@@ -21,22 +22,13 @@ from core.partnership_state import (
     save_partnership_data,
 )
 from core.permissions import directors_only
-from core.utils import (
-    send_major_error,
-    send_minor_error
-)
+from core.utils import send_major_error, send_minor_error
 from guild_info.partnerships import rebuild_partnership_layout
-from constants import (
-    PARTNERSHIPS_CHANNEL_ID,
-    DIRECTORS_ROLE_ID,
-
-    BOT_OWNER_ID
-)
 
 log = logging.getLogger("Utility Bot")
 
 _INVITE_RE = re.compile(
-    r"^(https?://)?(www\.)?(discord\.gg|discord\.com/invite)/[A-Za-z0-9-]+$"
+    r"^(https?://)?(www\.)?(discord\.gg|discord\.com/invite)/[A-Za-z0-9-]+$",
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -88,7 +80,7 @@ class PartnershipCommands(commands.Cog):
         server_name        = "The server's name.",
         server_description = "The server's description.",
         server_owner       = "The server's owner.",
-        server_link        = "The server's invite link. Must be a valid Discord invite of the form `https://discord.gg/example`."
+        server_link        = "The server's invite link. Must be a valid Discord invite of the form `https://discord.gg/example`.",
     )
     @help_description(
         desc="Directors only —— Adds a partnership entry and rebuilds the partnerships channel layout.",
@@ -251,7 +243,7 @@ class PartnershipCommands(commands.Cog):
         new_server_name    = "The server's new name.",
         server_description = "The server's new description.",
         server_owner       = "The server's new owner.",
-        server_link        = "The server's new invite link. Must be a valid Discord invite of the form `https://discord.gg/example`."
+        server_link        = "The server's new invite link. Must be a valid Discord invite of the form `https://discord.gg/example`.",
     )
     @app_commands.autocomplete(server_name = _server_name_autocomplete)
     @help_description(

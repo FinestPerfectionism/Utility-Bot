@@ -1,7 +1,7 @@
+import contextlib
+
 import discord
 from discord.ext import commands
-
-import contextlib
 
 from constants import (
     BOT_OWNER_ID,

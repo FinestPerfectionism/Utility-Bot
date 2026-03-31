@@ -1,29 +1,25 @@
 from __future__ import annotations
 
-import discord
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-
-from core.utils import (
-    send_major_error,
-    send_minor_error
-)
-
 from constants import (
     COLOR_GREEN,
 )
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation un-timeout Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_untimeout(
-    base        : "ModerationBase",
+    base        : ModerationBase,
     interaction : discord.Interaction,
     member      : discord.Member,
     reason      : str,
@@ -37,7 +33,7 @@ async def run_untimeout(
             interaction,
             title    = "Unauthorized!",
             texts    = "You lack the necessary permissions to remove timeouts.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -63,13 +59,13 @@ async def run_untimeout(
             case_type   = CaseType.UNTIMEOUT,
             moderator   = actor,
             reason      = reason,
-            target_user = member
+            target_user = member,
         )
 
         embed = discord.Embed(
             title     = "Timeout Removed",
             color     = COLOR_GREEN,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "Member", value = member.mention, inline = True)
         _ = embed.add_field(name = "Senior Moderator", value = actor.mention, inline = True)
@@ -80,5 +76,5 @@ async def run_untimeout(
         await send_major_error(
             interaction,
             texts    = "I lack the necessary permissions to un-timeout this member.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )

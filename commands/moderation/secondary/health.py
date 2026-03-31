@@ -1,43 +1,37 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
 import contextlib
 import json
 import os
 from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    cast,
-    Any
-)
+from typing import TYPE_CHECKING, Any, cast
+
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 from constants import (
     ACCEPTED_EMOJI_ID,
-    STANDSTILL_EMOJI_ID,
-
+    COLOR_BLACK,
     COLOR_GREEN,
-    COLOR_YELLOW,
     COLOR_ORANGE,
     COLOR_RED,
-    COLOR_BLACK,
+    COLOR_YELLOW,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
-
-    SUPPORTING_DIRECTORS_ROLE_ID,
-    QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
+    QUARANTINE_ROLE_ID,
+    STANDSTILL_EMOJI_ID,
+    SUPPORTING_DIRECTORS_ROLE_ID,
 )
 
 if TYPE_CHECKING:
     from bot import UtilityBot
 
 from core.help import (
-    help_description,
     RoleConfig,
+    help_description,
 )
-from core.utils import send_major_error
 from core.permissions import is_director
+from core.utils import send_major_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Health Check
@@ -101,12 +95,12 @@ class HealthFixView(discord.ui.View):
         self.guild = guild
         self.fixable = fixable
         self.cog = cog
-        
+
         if not fixable:
             for child in self.children:
                 if isinstance(child, discord.ui.Button | discord.ui.Select):
                     child.disabled = True
-                
+
     @discord.ui.button(label="Fix Issues", style=discord.ButtonStyle.danger, emoji=f"{STANDSTILL_EMOJI_ID}")
     async def fix_button(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
         if not isinstance(interaction.user, discord.Member):
@@ -127,7 +121,7 @@ class HealthFixView(discord.ui.View):
                         setattr(new_perms, perm, False)
                 _ = await everyone.edit(
                     permissions = new_perms,
-                    reason      = f"Health fix by {interaction.user}: removing dangerous @everyone permissions"
+                    reason      = f"Health fix by {interaction.user}: removing dangerous @everyone permissions",
                 )
                 fixed.append("Removed dangerous permissions from @everyone role")
             except discord.Forbidden:
@@ -150,7 +144,7 @@ class HealthFixView(discord.ui.View):
                         await channel.set_permissions(
                             everyone,
                             overwrite=overwrite,
-                            reason=f"Health fix by {interaction.user}: clearing dangerous @everyone overrides"
+                            reason=f"Health fix by {interaction.user}: clearing dangerous @everyone overrides",
                         )
                     except discord.Forbidden:
                         channel_errors += 1
@@ -173,7 +167,7 @@ class HealthFixView(discord.ui.View):
                             setattr(new_perms, perm, False)
                         _ = await role.edit(
                             permissions=new_perms,
-                            reason=f"Health fix by {interaction.user}: removing native mod permissions"
+                            reason=f"Health fix by {interaction.user}: removing native mod permissions",
                         )
                     except discord.Forbidden:
                         role_errors.append(role.name)
@@ -186,7 +180,7 @@ class HealthFixView(discord.ui.View):
             try:
                 _ = await guild.edit(
                     verification_level=discord.VerificationLevel.medium,
-                    reason=f"Health fix by {interaction.user}: setting verification level to Medium"
+                    reason=f"Health fix by {interaction.user}: setting verification level to Medium",
                 )
                 fixed.append("Set server verification level to Medium")
             except discord.Forbidden:
@@ -196,7 +190,7 @@ class HealthFixView(discord.ui.View):
             try:
                 _ = await guild.edit(
                     explicit_content_filter=discord.ContentFilter.all_members,
-                    reason=f"Health fix by {interaction.user}: enabling content filter for all members"
+                    reason=f"Health fix by {interaction.user}: enabling content filter for all members",
                 )
                 fixed.append("Enabled explicit content filter for all members")
             except discord.Forbidden:
@@ -208,7 +202,7 @@ class HealthFixView(discord.ui.View):
                 try:
                     _ = await quarantine_role.edit(
                         permissions = discord.Permissions.none(),
-                        reason      = f"Health fix by {interaction.user}: clearing quarantine role permissions"
+                        reason      = f"Health fix by {interaction.user}: clearing quarantine role permissions",
                     )
                     fixed.append("Cleared all permissions from the quarantine role")
                 except discord.Forbidden:
@@ -228,7 +222,7 @@ class HealthFixView(discord.ui.View):
                         await channel.set_permissions(
                             quarantine_role,
                             overwrite=overwrite,
-                            reason=f"Health fix by {interaction.user}: setting quarantine deny overrides"
+                            reason=f"Health fix by {interaction.user}: setting quarantine deny overrides",
                         )
                     except discord.Forbidden:
                         channel_errors += 1
@@ -254,21 +248,21 @@ class HealthFixView(discord.ui.View):
         embed = discord.Embed(
             title = "Health Fix Results",
             color = COLOR_GREEN if not failed else (COLOR_ORANGE if fixed else COLOR_RED),
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
 
         if fixed:
             _ = embed.add_field(
                 name = "Fixed",
                 value = "\n".join(f"{ACCEPTED_EMOJI_ID} {item}" for item in fixed),
-                inline = False
+                inline = False,
             )
 
         if failed:
             _ = embed.add_field(
                 name = "Could Not Fix",
                 value = "\n".join(f"{DENIED_EMOJI_ID} {item}" for item in failed),
-                inline = False
+                inline = False,
             )
 
         if not fixed and not failed:
@@ -292,7 +286,7 @@ class HealthFixView(discord.ui.View):
         updated_embed = discord.Embed(
             title = f"Server Health — {score:.0f}%",
             color = color,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
 
         categories = [
@@ -329,7 +323,7 @@ class HealthFixView(discord.ui.View):
             _ = updated_embed.add_field(
                 name = category_name,
                 value = "\n".join(lines),
-                inline = False
+                inline = False,
             )
 
         _ = updated_embed.set_footer(text=f"{passed_count}/{total} checks passed")
@@ -437,7 +431,7 @@ class HealthCommands(commands.Cog):
             "label"       : "Quarantine role exists",
             "passed"      : quarantine_role is not None,
             "fixable"     : False,
-            "manual_note" : "Create a quarantine role."
+            "manual_note" : "Create a quarantine role.",
         })
 
         qr_has_perms = quarantine_role is not None and quarantine_role.permissions.value != 0
@@ -537,7 +531,7 @@ class HealthCommands(commands.Cog):
 
     @app_commands.command(
         name = "health",
-        description="View server health and run automated fixes."
+        description="View server health and run automated fixes.",
     )
     @help_description(
         desc="Directors only —— Views a server health report and runs automated fixes if any issues are found.",
@@ -555,7 +549,7 @@ class HealthCommands(commands.Cog):
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to run a health check.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -575,7 +569,7 @@ class HealthCommands(commands.Cog):
         embed = discord.Embed(
             title = f"Server Health — {score:.0f}%",
             color = color,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
 
         categories = [
@@ -603,7 +597,7 @@ class HealthCommands(commands.Cog):
             _ = embed.add_field(
                 name = category_name,
                 value = "\n".join(lines),
-                inline = False
+                inline = False,
             )
 
         manual_fixes = [
@@ -617,7 +611,7 @@ class HealthCommands(commands.Cog):
                     f"**{c['label']}**\n-# ↳ {c['manual_note']}"
                     for c in manual_fixes
                 ),
-                inline = False
+                inline = False,
             )
 
         _ = embed.set_footer(text=f"{passed}/{total} checks passed")

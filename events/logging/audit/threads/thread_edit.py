@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_BLURPLE
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -26,7 +28,7 @@ class ThreadEditCog(AuditCog):
             tuple[
                 str,
                 str | int | None,
-                str | int | None
+                str | int | None,
             ]
         ] = []
 
@@ -43,7 +45,7 @@ class ThreadEditCog(AuditCog):
             changes.append((
                 "Auto Archive Duration",
                 f"{before.auto_archive_duration} min",
-                f"{after.auto_archive_duration} min"
+                f"{after.auto_archive_duration} min",
             ))
 
         if not changes:
@@ -51,14 +53,14 @@ class ThreadEditCog(AuditCog):
 
         embed = discord.Embed(
             title = "Thread Updated",
-            color = COLOR_BLURPLE,
-            timestamp = datetime.now(UTC)
+            color=COLOR_BLURPLE,
+            timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
             name = "Thread",
             value = f"`{after.name}`\n`{after.id}`",
-            inline = False
+            inline = False,
         )
 
         change_name: str
@@ -68,7 +70,7 @@ class ThreadEditCog(AuditCog):
             _ = embed.add_field(
                 name = f"{change_name} Changed",
                 value = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

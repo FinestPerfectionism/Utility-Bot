@@ -1,25 +1,21 @@
 from __future__ import annotations
 
-import discord
 from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    Any
-)
+from typing import TYPE_CHECKING, Any
+
+import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
-
 from constants import (
     COLOR_GREEN,
     CONTESTED_EMOJI_ID,
+)
+from core.utils import (
+    send_major_error,
+    send_minor_error,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -27,7 +23,7 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_unquarantine(
-    base        : "ModerationBase",
+    base        : ModerationBase,
     interaction : discord.Interaction,
     member      : discord.Member,
     reason      : str,
@@ -42,7 +38,7 @@ async def run_unquarantine(
             interaction,
             title    = "Unauthorized!",
             texts    = "You lack the necessary permissions to remove members from quarantine.",
-            subtitle = "No permissions."
+            subtitle = "No permissions.",
         )
         return
 
@@ -51,7 +47,7 @@ async def run_unquarantine(
         await send_minor_error(
             interaction,
             texts    = "This command can only be used in a server.",
-            subtitle = "Bad command environment."
+            subtitle = "Bad command environment.",
         )
         return
 
@@ -102,13 +98,13 @@ async def run_unquarantine(
             moderator   = actor,
             reason      = reason,
             target_user = member,
-            metadata    = metadata
+            metadata    = metadata,
         )
 
         embed = discord.Embed(
             title = "Member Unquarantined",
             color = COLOR_GREEN,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "Member",        value = member.mention,         inline = True)
         _ = embed.add_field(name = "Director",      value = actor.mention,          inline = True)
@@ -119,7 +115,7 @@ async def run_unquarantine(
             _ = embed.add_field(
                 name   = f"{CONTESTED_EMOJI_ID} Roles Not Found",
                 value  = f"{len(roles_not_found)} role(s) no longer exist and could not be restored.",
-                inline = False
+                inline = False,
             )
 
         if proof:
@@ -131,5 +127,5 @@ async def run_unquarantine(
         await send_major_error(
             interaction,
             texts    = "I lack the necessary permissions to unquarantine this member.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )

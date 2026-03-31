@@ -1,18 +1,16 @@
 import discord
 from discord.ext import commands
 
-from core.permissions import (
-    is_director,
-    is_moderator,
-    is_staff_committee,
-)
-
 from constants import (
     DIRECTOR_TASKS_CHANNEL_ID,
     STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
     TICKET_CHANNEL_ID,
 )
-
+from core.permissions import (
+    is_director,
+    is_moderator,
+    is_staff_committee,
+)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Thread Commands
@@ -50,7 +48,7 @@ class ThreadCommands(commands.Cog):
 
     @commands.command(
         name = "lock",
-        aliases=["l"]
+        aliases=["l"],
     )
     async def lock(self, ctx: commands.Context[commands.Bot]) -> None:
         if not self.allowed_in_thread(ctx):
@@ -67,7 +65,7 @@ class ThreadCommands(commands.Cog):
 
     @commands.command(
         name = "close",
-        aliases=["c"]
+        aliases=["c"],
     )
     async def close(self, ctx: commands.Context[commands.Bot]) -> None:
         if not self.allowed_in_thread(ctx):

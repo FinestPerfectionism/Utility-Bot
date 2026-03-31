@@ -1,30 +1,26 @@
 from __future__ import annotations
 
-import discord
 import contextlib
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-
-from core.utils import (
-    send_major_error,
-    send_minor_error
-)
-
 from constants import (
     COLOR_GREEN,
 )
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation un-ban Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_unban(
-    base        : "ModerationBase",
+    base        : ModerationBase,
     interaction : discord.Interaction,
     user        : str,
     reason      : str,
@@ -38,7 +34,7 @@ async def run_unban(
             interaction,
             title    = "Unauthorized!",
             texts    = "You lack the necessary permissions to unban members.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -69,7 +65,7 @@ async def run_unban(
             await send_major_error(
                 interaction,
                 texts    = "I lack the necessary permissions to view bans.",
-                subtitle = "Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner.",
             )
             return
 
@@ -89,13 +85,13 @@ async def run_unban(
             case_type   = CaseType.UNBAN,
             moderator   = actor,
             reason      = reason,
-            target_user = user_to_unban
+            target_user = user_to_unban,
         )
 
         embed = discord.Embed(
             title = "User Unbanned",
             color = COLOR_GREEN,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "User",     value = f"{user_to_unban.mention} ({user_to_unban.id})", inline = True)
         _ = embed.add_field(name = "Director", value = actor.mention,                                   inline = True)
@@ -109,5 +105,5 @@ async def run_unban(
         await send_major_error(
             interaction,
             texts    = "I lack the necessary permissions to unban this member.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )

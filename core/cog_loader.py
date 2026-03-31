@@ -1,7 +1,7 @@
 import importlib
 import importlib.util
-import pkgutil
 import logging
+import pkgutil
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cog Management
@@ -26,10 +26,10 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
 
         for module_info in pkgutil.walk_packages(
             package.__path__,
-            prefix=f"{package.__name__}."
+            prefix=f"{package.__name__}.",
         ):
             name = module_info.name
-            short_name = name.split('.')[-1]
+            short_name = name.split(".")[-1]
 
             if name in seen:
                 continue

@@ -1,39 +1,34 @@
-import discord
-from discord.ext import (
-    commands,
-    tasks
-)
-from discord import app_commands
-
-from typing_extensions import override
+from datetime import UTC, datetime
 from typing import Any
-from datetime import (
-    datetime,
-    UTC
+
+import discord
+from discord import app_commands
+from discord.ext import commands, tasks
+from typing_extensions import override
+
+from constants import (
+    DIRECTORS_ROLE_ID,
+    PERSONAL_LEAVE_ROLE_ID,
+    STAFF_ROLE_ID,
+)
+from core.help import (
+    ArgumentInfo,
+    RoleConfig,
+    help_description,
 )
 
 from ._base import (
-    LeaveType,
     ALL_STAFF_ROLE_IDS,
-    load_data,
-    save_data,
+    LeaveType,
+    build_leave_nick,
     extract_name,
+    load_data,
     normalize_entry,
     parse_date,
-    build_leave_nick,
-)
-from core.help import (
-    help_description,
-    ArgumentInfo,
-    RoleConfig,
+    save_data,
 )
 from .add import run_leave_add
 from .remove import run_leave_remove
-from constants import (
-    PERSONAL_LEAVE_ROLE_ID,
-    STAFF_ROLE_ID,
-    DIRECTORS_ROLE_ID,
-)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Leave Commands
@@ -47,7 +42,7 @@ class LeaveCommands(commands.Cog):
 
     leave_group = app_commands.Group(
         name = "leave",
-        description="Staff only —— Leave commands."
+        description="Staff only —— Leave commands.",
     )
 
     @override
@@ -217,7 +212,7 @@ class LeaveCommands(commands.Cog):
             app_commands.Choice(name = "None",       value = "none"),
             app_commands.Choice(name = "Soft Clean", value = "soft_clean"),
             app_commands.Choice(name = "Hard Clean", value = "hard_clean"),
-        ]
+        ],
     )
     @app_commands.rename(leave_type="type", begin_date="begin-date", end_date="end-date")
     @help_description(
@@ -258,8 +253,8 @@ class LeaveCommands(commands.Cog):
         arguments={"target": ArgumentInfo(
                 required=False,
                 description="Staff member whose leave should be removed; defaults to yourself.",
-                roles=[DIRECTORS_ROLE_ID]
-            )
+                roles=[DIRECTORS_ROLE_ID],
+            ),
         },
     )
     async def leave_remove(

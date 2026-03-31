@@ -1,12 +1,11 @@
-import discord
-from discord.ext import commands
-
-from typing_extensions import override
+import logging
 from typing import Any
 
-from core.cases import CasesManager
+import discord
+from discord.ext import commands
+from typing_extensions import override
 
-import logging
+from core.cases import CasesManager
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Bot Management
@@ -26,7 +25,7 @@ class UtilityBot(commands.Bot):
         super().__init__(
             command_prefix   = ".",
             intents          = intents,
-            case_insensitive = True
+            case_insensitive = True,
         )
         self.cases_manager: CasesManager = CasesManager(self)
         self.mod_data: dict[str, Any] = {}
@@ -36,21 +35,21 @@ class UtilityBot(commands.Bot):
     async def setup_hook(self) -> None:
         from core.cog_loader import discover_cogs
 
-        _ = self.remove_command('help')
+        _ = self.remove_command("help")
 
         log: logging.Logger = logging.getLogger("Utility Bot")
 
         priority_load: list[str] = [
             "events.systems.antinuke",
             "events.member.verification",
-            "core.startup"
+            "core.startup",
         ]
 
         COGS: list[str] = discover_cogs(
             "commands",
             "events",
             "core",
-            priority = priority_load
+            priority = priority_load,
         )
 
         for cog in COGS:

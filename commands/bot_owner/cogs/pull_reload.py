@@ -1,15 +1,15 @@
-import discord
-from discord.ext import commands
-
 import asyncio
 import logging
 
-from events.logging.errors import PermissionError
-from core.utils import (
-    send_minor_error,
-    send_major_error,
-)
+import discord
+from discord.ext import commands
+
 from constants import BOT_OWNER_ID
+from core.utils import (
+    send_major_error,
+    send_minor_error,
+)
+from events.logging.errors import PermissionError
 
 log = logging.getLogger("Utility Bot")
 
@@ -25,7 +25,7 @@ async def run_pull_reload(
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
             view      = PermissionError(),
-            ephemeral = True
+            ephemeral = True,
         )
         return
 
@@ -43,11 +43,11 @@ async def run_pull_reload(
     if proc.returncode != 0:
         await send_major_error(
             interaction,
-            texts    = f"Pull failed. All cogs failed to reload.\n"
+            texts    =  "Pull failed. All cogs failed to reload.\n"
                         "```py\n"
                        f"{pull_output[:1800]}\n"
                         "```",
-            subtitle = "Invalid operation."
+            subtitle = "Invalid operation.",
         )
         log.error("git pull failed (exit %s):\n%s", proc.returncode, pull_output)
         return
@@ -66,7 +66,7 @@ async def run_pull_reload(
         await send_minor_error(
             interaction,
             texts    = f"Pull succeeded. Some cogs failed to reload.\n{msg}",
-            subtitle = "Invalid operation."
+            subtitle = "Invalid operation.",
         )
     else:
         await interaction.followup.send(

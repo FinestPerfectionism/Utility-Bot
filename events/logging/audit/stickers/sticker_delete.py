@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_RED
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -30,21 +32,21 @@ class StickerDeleteCog(AuditCog):
         embed = discord.Embed(
             title = "Sticker Deleted",
             color = COLOR_RED,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         for sticker in removed:
             _ = embed.add_field(
                 name = "Sticker",
                 value = f"`{sticker.name}`\n`{sticker.id}`",
-                inline = True
+                inline = True,
             )
 
         if executor:
             _ = embed.add_field(
                 name = "Deleted By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

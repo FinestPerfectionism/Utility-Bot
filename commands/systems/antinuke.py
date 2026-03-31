@@ -1,28 +1,23 @@
+from datetime import datetime
+from typing import TYPE_CHECKING, cast
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    cast
+from constants import (
+    ACCEPTED_EMOJI_ID,
+    COLOR_GREEN,
+    COLOR_ORANGE,
+    COLOR_RED,
+    DIRECTORS_ROLE_ID,
 )
-
 from core.help import (
-    help_description,
     ArgumentInfo,
     RoleConfig,
+    help_description,
 )
 from core.utils import send_major_error, send_minor_error
-
-from constants import(
-    DIRECTORS_ROLE_ID,
-    ACCEPTED_EMOJI_ID,
-
-    COLOR_RED,
-    COLOR_ORANGE,
-    COLOR_GREEN,
-)
 
 if TYPE_CHECKING:
     from events.systems.antinuke import AntiNukeSystem
@@ -40,12 +35,12 @@ class AntiNukeCommands(commands.Cog):
 
     antinuke_group = app_commands.Group(
         name = "anti-nuke",
-        description="Directors only —— Anti-nuke management."
+        description="Directors only —— Anti-nuke management.",
     )
 
     @antinuke_group.command(
         name = "status",
-        description="Status of the anti-nuke system."
+        description="Status of the anti-nuke system.",
     )
     @help_description(
         desc="Directors only —— Views the anti-nuke system configuration and per-action limits.",
@@ -63,7 +58,7 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to view anti-nuke settings.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -73,14 +68,14 @@ class AntiNukeCommands(commands.Cog):
         embed = discord.Embed(
             title = "Anti-Nuke Configuration",
             color = COLOR_GREEN if enabled else COLOR_RED,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
 
         status_text = "Enabled" if enabled else "Disabled"
         _ = embed.add_field(
             name = "Status",
             value = status_text,
-            inline = True
+            inline = True,
         )
 
         if log_channel_id:
@@ -88,7 +83,7 @@ class AntiNukeCommands(commands.Cog):
             _ = embed.add_field(
                 name = "Log Channel",
                 value = log_channel.mention if log_channel else f"<#{log_channel_id}> (deleted)",
-                inline = True
+                inline = True,
             )
         else:
             _ = embed.add_field(name = "Log Channel", value = "Not configured", inline = True)
@@ -124,7 +119,7 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -137,7 +132,7 @@ class AntiNukeCommands(commands.Cog):
             title = f"{ACCEPTED_EMOJI_ID} Anti-Nuke {status.title()}",
             description=f"Anti-nuke protection has been {status}.",
             color = COLOR_GREEN if self.config["enabled"] else COLOR_ORANGE,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
@@ -157,14 +152,14 @@ class AntiNukeCommands(commands.Cog):
     @app_commands.describe(
         action="The action type to configure.",
         hourly="Maximum number of actions allowed per hour.",
-        daily="Maximum number of actions allowed per day."
+        daily="Maximum number of actions allowed per day.",
     )
     async def antinuke_setlimit(
         self,
         interaction: discord.Interaction,
         action: str,
         hourly: int,
-        daily: int
+        daily: int,
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -175,14 +170,14 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
         if action not in self.config["limits"]:
             await send_minor_error(
                 interaction,
-                f"Invalid action type. Valid types: {', '.join(self.config['limits'].keys())}"
+                f"Invalid action type. Valid types: {', '.join(self.config['limits'].keys())}",
             )
             return
 
@@ -196,7 +191,7 @@ class AntiNukeCommands(commands.Cog):
 
         self.config["limits"][action] = {
             "hourly": hourly,
-            "daily": daily
+            "daily": daily,
         }
         self.save_config()
 
@@ -204,7 +199,7 @@ class AntiNukeCommands(commands.Cog):
             title = f"{ACCEPTED_EMOJI_ID} Limit Updated",
             description=f"Updated limits for {action.replace('_', ' ')}.",
             color = COLOR_GREEN,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "Action", value = action.replace("_", " ").title(), inline = True)
         _ = embed.add_field(name = "Hourly Limit", value = str(hourly), inline = True)
@@ -212,7 +207,7 @@ class AntiNukeCommands(commands.Cog):
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
-    @antinuke_setlimit.autocomplete('action')
+    @antinuke_setlimit.autocomplete("action")
     async def antinuke_setlimit_autocomplete(
         self,
         interaction: discord.Interaction,
@@ -234,12 +229,12 @@ class AntiNukeCommands(commands.Cog):
         arguments={"channel": ArgumentInfo(description="Text channel that should receive anti-nuke alerts.")},
     )
     @app_commands.describe(
-        channel="The channel where anti-nuke alerts will be sent."
+        channel="The channel where anti-nuke alerts will be sent.",
     )
     async def antinuke_config(
         self,
         interaction: discord.Interaction,
-        channel: discord.TextChannel
+        channel: discord.TextChannel,
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -250,7 +245,7 @@ class AntiNukeCommands(commands.Cog):
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
             return
 
@@ -261,7 +256,7 @@ class AntiNukeCommands(commands.Cog):
             title = f"{ACCEPTED_EMOJI_ID} Log Channel Configured",
             description=f"Anti-nuke alerts will now be sent to {channel.mention}.",
             color = COLOR_GREEN,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
@@ -272,5 +267,5 @@ async def setup(bot: commands.Bot) -> None:
         raise RuntimeError("AntiNukeSystem cog must be loaded before AntiNukeCommands")
 
     await bot.add_cog(AntiNukeCommands(
-        cast("AntiNukeSystem", antinuke_system)
+        cast("AntiNukeSystem", antinuke_system),
     ))

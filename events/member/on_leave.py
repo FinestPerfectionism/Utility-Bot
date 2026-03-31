@@ -1,23 +1,14 @@
+from typing import TYPE_CHECKING, cast
+
 import discord
 from discord.ext import commands
 
-from typing import (
-    TYPE_CHECKING,
-    cast
-)
-
-from core.state import (
-    ACTIVE_APPLICATIONS,
-    save_active_applications
-)
+from core.state import ACTIVE_APPLICATIONS, save_active_applications
 
 if TYPE_CHECKING:
     from events.member.verification import VerificationHandler
 
-from constants import (
-    APPLICATION_LOG_CHANNEL_ID,
-    COLOR_RED
-)
+from constants import APPLICATION_LOG_CHANNEL_ID, COLOR_RED
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Leave Event
@@ -70,6 +61,6 @@ class MemberLeaveHandler(commands.Cog):
                 pass
         _ = ACTIVE_APPLICATIONS.pop(member.id, None)
         save_active_applications()
-        
+
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MemberLeaveHandler(bot))

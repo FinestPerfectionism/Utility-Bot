@@ -1,36 +1,26 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, Any
+
 import discord
-from datetime import (
-    datetime,
-    timedelta
-)
-from typing import (
-    TYPE_CHECKING,
-    Any
-)
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-
-from core.utils import (
-    send_major_error,
-    send_minor_error
-)
-from core.permissions import is_director
-
 from constants import (
     COLOR_ORANGE,
 )
+from core.permissions import is_director
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation timeout Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_timeout(
-    base:        "ModerationBase",
+    base:        ModerationBase,
     interaction: discord.Interaction,
     member:      discord.Member,
     duration:    str,
@@ -46,7 +36,7 @@ async def run_timeout(
             interaction,
             title = "Unauthorized!",
             texts="You lack the necessary permissions to timeout members.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -80,7 +70,7 @@ async def run_timeout(
                 interaction,
                 f"Rate limit exceeded. {error_msg}.\n"
                 f"Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle = "Rate limit exceeded."
+                subtitle = "Rate limit exceeded.",
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -99,7 +89,7 @@ async def run_timeout(
             "timed_out_by": actor.id,
             "reason":       reason,
             "duration":     duration_seconds,
-            "until":        until.isoformat()
+            "until":        until.isoformat(),
         }
         base.save_data()
 
@@ -115,13 +105,13 @@ async def run_timeout(
             reason      = reason,
             target_user = member,
             duration    = duration,
-            metadata    = metadata
+            metadata    = metadata,
         )
 
         embed = discord.Embed(
             title = "Member Timed Out",
             color = COLOR_ORANGE,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "Member",    value = member.mention,                      inline = True)
         _ = embed.add_field(name = "Moderator", value = actor.mention,                       inline = True)
@@ -137,5 +127,5 @@ async def run_timeout(
         await send_major_error(
             interaction,
             texts    = "I lack the necessary permissions to timeout this member.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )

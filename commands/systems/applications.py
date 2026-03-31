@@ -1,38 +1,24 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
 import contextlib
 
-from core.help import (
-    help_description,
-    ArgumentInfo,
-    RoleConfig,
-)
-from core.permissions import (
-    directors_only,
-    main_guild_only
-)
-from core.state import BLACKLIST
-from core.state import (
-    APPLICATIONS_OPEN,
-    save_application_state,
-    save_blacklist
-)
-from core.utils import send_minor_error
-
-from events.systems.applications import (
-    delete_application_messages,
-    ACTIVE_APPLICATIONS
-)
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 from constants import (
     ACCEPTED_EMOJI_ID,
     CONTESTED_EMOJI_ID,
-
-    STAFF_ROLE_ID,
     DIRECTORS_ROLE_ID,
+    STAFF_ROLE_ID,
 )
+from core.help import (
+    ArgumentInfo,
+    RoleConfig,
+    help_description,
+)
+from core.permissions import directors_only, main_guild_only
+from core.state import APPLICATIONS_OPEN, BLACKLIST, save_application_state, save_blacklist
+from core.utils import send_minor_error
+from events.systems.applications import ACTIVE_APPLICATIONS, delete_application_messages
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Applications Commands
@@ -41,7 +27,7 @@ from constants import (
 class ApplicationsCommands(
     commands.GroupCog,
     name = "applications",
-    description="Moderators only —— Applications commands."
+    description="Moderators only —— Applications commands.",
 ):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -53,23 +39,23 @@ class ApplicationsCommands(
 
     @app_commands.command(
         name = "blacklist",
-        description="Blacklist or un-blacklist a user from applications."
+        description="Blacklist or un-blacklist a user from applications.",
     )
     @app_commands.describe(
         action="Add or remove a blacklist.",
-        user="User to modify."
+        user="User to modify.",
     )
     @app_commands.choices(
         action=[
             app_commands.Choice(
                 name = "Add",
-                value = "add"
+                value = "add",
             ),
             app_commands.Choice(
                 name = "Remove",
-                value = "remove"
-            )
-        ]
+                value = "remove",
+            ),
+        ],
     )
     @help_description(
         desc="Directors only —— Add or remove a user from the applications blacklist.",
@@ -87,7 +73,7 @@ class ApplicationsCommands(
         self,
         interaction: discord.Interaction,
         action: app_commands.Choice[str],
-        user: discord.User
+        user: discord.User,
     ) -> None:
         user_id     = user.id
         target_list = BLACKLIST["applications"]
@@ -122,7 +108,7 @@ class ApplicationsCommands(
 
             _ = await interaction.response.send_message(
                 f"{user.mention} has been blacklisted from Applications.",
-                ephemeral = True
+                ephemeral = True,
             )
 
         else:
@@ -138,7 +124,7 @@ class ApplicationsCommands(
 
             _ = await interaction.response.send_message(
                 f"{user.mention} has been removed from the Applications blacklist.",
-                ephemeral = True
+                ephemeral = True,
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -147,31 +133,31 @@ class ApplicationsCommands(
 
     @app_commands.command(
         name = "state-modify",
-        description="Open or close staff applications."
+        description="Open or close staff applications.",
     )
     @app_commands.describe(
         application="Which application to modify.",
-        state="Application state."
+        state="Application state.",
     )
     @app_commands.choices(
         application=[
             app_commands.Choice(
                 name = "Moderators",
-                value = "mod"
+                value = "mod",
             ),
             app_commands.Choice(
                 name = "Administrators",
-                value = "admin"
+                value = "admin",
             ),
         ],
         state=[
             app_commands.Choice(
                 name = "Open",
-                value = "open"
+                value = "open",
             ),
             app_commands.Choice(
                 name = "Closed",
-                value = "closed"
+                value = "closed",
             ),
         ],
     )
@@ -224,14 +210,14 @@ class ApplicationsCommands(
         if ctx.guild is not None:
             _ = await ctx.send(
               f"{CONTESTED_EMOJI_ID} **Failed to cancel application!**"
-                "This command can only be used in DMs."
+                "This command can only be used in DMs.",
             )
             return
 
         if ctx.author.id not in ACTIVE_APPLICATIONS:
             _ = await ctx.send(
                f"{CONTESTED_EMOJI_ID} **Failed to cancel application!**"
-                "This command can only be used with an active application to cancel."
+                "This command can only be used with an active application to cancel.",
             )
             return
 
@@ -242,7 +228,7 @@ class ApplicationsCommands(
 
         confirm = await ctx.send(
            f"{ACCEPTED_EMOJI_ID} **Successfully cancelled application.**\n"
-            "Your application has been cancelled and deleted."
+            "Your application has been cancelled and deleted.",
         )
         await confirm.delete(delay=300)
 

@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_BLURPLE
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -43,7 +45,7 @@ class RoleEditCog(AuditCog):
             perm_changes: list[str] = []
             for perm in set(before_perms.keys()) | set(after_perms.keys()):
                 if before_perms.get(perm) != after_perms.get(perm):
-                    perm_name = perm.replace('_', ' ').title()
+                    perm_name = perm.replace("_", " ").title()
                     before_status = "Enabled" if before_perms.get(perm) else "Disabled"
                     after_status = "Enabled" if after_perms.get(perm) else "Disabled"
                     perm_changes.append(f"{perm_name}: {before_status} → {after_status}")
@@ -62,13 +64,13 @@ class RoleEditCog(AuditCog):
         embed = discord.Embed(
             title = "Role Updated",
             color = COLOR_BLURPLE,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
             name = "Role",
             value = f"`{after.name}`\n`{after.id}`",
-            inline = False
+            inline = False,
         )
 
         change_name: str
@@ -79,20 +81,20 @@ class RoleEditCog(AuditCog):
                 _ = embed.add_field(
                     name = f"{change_name} Changed",
                     value = before_val,
-                    inline = False
+                    inline = False,
                 )
             else:
                 _ = embed.add_field(
                     name = f"{change_name} Changed",
                     value = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
-                    inline = False
+                    inline = False,
                 )
 
         if executor:
             _ = embed.add_field(
                 name = "Changed By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

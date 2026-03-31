@@ -1,7 +1,3 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
 import contextlib
 import io
 import textwrap
@@ -11,17 +7,22 @@ from typing import (
     Any,
     cast,
 )
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+
 if TYPE_CHECKING:
     from collections.abc import (
-        Callable,
         Awaitable,
+        Callable,
     )
 
 from constants import (
-    BOT_OWNER_ID,
-    DENIED_EMOJI_ID,
-    CONTESTED_EMOJI_ID,
     ACCEPTED_EMOJI_ID,
+    BOT_OWNER_ID,
+    CONTESTED_EMOJI_ID,
+    DENIED_EMOJI_ID,
 )
 from events.logging.errors import PermissionError
 
@@ -40,7 +41,7 @@ async def run_status(
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
             view      = PermissionError(),
-            ephemeral = True
+            ephemeral = True,
         )
         return
 
@@ -116,14 +117,14 @@ async def run_eval(
         return
 
     env: dict[str, Any] = {
-        'bot'      : bot,
-        'ctx'      : ctx,
-        'channel'  : ctx.channel,
-        'author'   : ctx.author,
-        'guild'    : ctx.guild,
-        'message'  : ctx.message,
-        'discord'  : discord,
-        'commands' : commands,
+        "bot"      : bot,
+        "ctx"      : ctx,
+        "channel"  : ctx.channel,
+        "author"   : ctx.author,
+        "guild"    : ctx.guild,
+        "message"  : ctx.message,
+        "discord"  : discord,
+        "commands" : commands,
     }
 
     body = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
@@ -136,7 +137,7 @@ async def run_eval(
         builtins.exec(to_compile, env)
     except Exception as e:
         _ = await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
-        _ = await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+        _ = await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
         return
 
     func = cast("Callable[[], Awaitable[Any]]", env["func"])
@@ -147,16 +148,16 @@ async def run_eval(
     except Exception:
         value = stdout.getvalue()
         _ = await ctx.message.add_reaction(f"{CONTESTED_EMOJI_ID}")
-        _ = await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
+        _ = await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
     else:
         value = stdout.getvalue()
         _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
 
         if ret is None:
             if value:
-                _ = await ctx.send(f'```py\n{value}\n```')
+                _ = await ctx.send(f"```py\n{value}\n```")
         else:
-            _ = await ctx.send(f'```py\n{value}{ret}\n```')
+            _ = await ctx.send(f"```py\n{value}{ret}\n```")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # .say Logic

@@ -1,28 +1,24 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
 from collections.abc import (
     Callable,
 )
-
 from typing import Any
 
-from core import state
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 from constants import (
-    DIRECTORS_ROLE_ID,
-    STAFF_COMMITTEE_ROLE_ID,
-    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
+    BOT_OWNER_ID,
+    DIRECTORS_ROLE_ID,
+    GUILD_ID,
+    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
+    STAFF_COMMITTEE_ROLE_ID,
     STAFF_ROLE_ID,
-
-    GUILD_ID,
-
-    BOT_OWNER_ID
 )
+from core import state
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Permissions Management
@@ -49,7 +45,7 @@ class PermissionDenied(app_commands.CheckFailure):
 def main_guild_only() -> Callable[[Any], Any]:
     async def predicate(interaction: discord.Interaction) -> bool:
         if interaction.guild is None or interaction.guild.id != GUILD_ID:
-            raise WrongGuild()
+            raise WrongGuild
         return True
 
     return app_commands.check(predicate)
@@ -64,10 +60,10 @@ def require_role(role_id: int) -> Callable[[Any], Any]:
             return True
 
         if not isinstance(interaction.user, discord.Member):
-            raise PermissionDenied()
+            raise PermissionDenied
 
         if not any(role.id == role_id for role in interaction.user.roles):
-            raise PermissionDenied()
+            raise PermissionDenied
 
         return True
 

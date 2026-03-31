@@ -1,23 +1,14 @@
-import discord
-from discord.ext import commands
-
-from typing_extensions import override
-from typing import (
-    cast,
-    Any
-)
-from datetime import (
-    datetime,
-    timedelta
-)
 import json
 import os
-import pytz
+from datetime import datetime, timedelta
+from typing import Any, cast
 
-from core.help import (
-    help_description,
-    ArgumentInfo
-)
+import discord
+import pytz
+from discord.ext import commands
+from typing_extensions import override
+
+from core.help import ArgumentInfo, help_description
 
 TIMEZONE_FILE = "user_timezones.json"
 
@@ -233,7 +224,7 @@ class UserCommands(commands.Cog):
         return sorted(matches)
 
     async def parse_user(
-        self, ctx: commands.Context[commands.Bot], value: str | list[str]
+        self, ctx: commands.Context[commands.Bot], value: str | list[str],
     ) -> discord.Member | None:
         if isinstance(value, list):
             value = " ".join(value)
@@ -246,7 +237,7 @@ class UserCommands(commands.Cog):
             return None
 
     def format_offset(
-        self, invoker: discord.Member, target: discord.Member, timezones: dict[str, Any]
+        self, invoker: discord.Member, target: discord.Member, timezones: dict[str, Any],
     ) -> str | None:
         invoker_tz_name = timezones.get(str(invoker.id))
         if not invoker_tz_name:
@@ -329,7 +320,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content = self.get_page_content(),
-                view    = self
+                view    = self,
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
@@ -339,7 +330,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
@@ -349,7 +340,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
@@ -358,7 +349,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
         @override
@@ -409,7 +400,7 @@ class UserCommands(commands.Cog):
                 description="The timezone to view or set to.",
                 is_flag=True,
             ),
-        }
+        },
     )
     async def timezone(self, ctx: commands.Context[commands.Bot], user: discord.User | None = None, *, flags: TimezoneFlags) -> None:
         timezones = self.load_timezones()
@@ -425,7 +416,7 @@ class UserCommands(commands.Cog):
 
             if not flags.tz:
                 _ = await ctx.send(
-                    "You must provide a timezone with `/tz`. Example: `.ti /s @user /tz EST`"
+                    "You must provide a timezone with `/tz`. Example: `.ti /s @user /tz EST`",
                 )
                 return
 
@@ -434,7 +425,7 @@ class UserCommands(commands.Cog):
 
             if result is None:
                 _ = await ctx.send(
-                    f"Unknown timezone `{tz_str}`."
+                    f"Unknown timezone `{tz_str}`.",
                 )
                 return
 
@@ -442,7 +433,7 @@ class UserCommands(commands.Cog):
                 view = self.TimezoneMatchPaginator(ctx, result)
                 _ = await ctx.send(
                     content = view.get_page_content(),
-                    view    = view
+                    view    = view,
                 )
                 return
 
@@ -454,7 +445,7 @@ class UserCommands(commands.Cog):
 
             if target.bot:
                 _ = await ctx.send(
-                    f"**{target.display_name}** is a bot and cannot have a timezone."
+                    f"**{target.display_name}** is a bot and cannot have a timezone.",
                 )
                 return
 
@@ -465,12 +456,12 @@ class UserCommands(commands.Cog):
 
             if target.id == ctx.author.id:
                 _ = await ctx.send(
-                    f"Your timezone has been set to **{abbr}**."
+                    f"Your timezone has been set to **{abbr}**.",
                 )
                 return
 
             _ = await ctx.send(
-                f"Timezone for **{target.display_name}** has been set to **{abbr}**."
+                f"Timezone for **{target.display_name}** has been set to **{abbr}**.",
             )
             return
 
@@ -486,7 +477,7 @@ class UserCommands(commands.Cog):
 
             if user.bot:
                 _ = await ctx.send(
-                    f"**{user.display_name}** is a bot and doesn't have a timezone."
+                    f"**{user.display_name}** is a bot and doesn't have a timezone.",
                 )
                 return
 
@@ -510,7 +501,7 @@ class UserCommands(commands.Cog):
                     view = self.UserMatchPaginator(ctx, matches)
                     _ = await ctx.send(
                         content=view.get_page_content(),
-                        view = view
+                        view = view,
                     )
                     return
                 else:
@@ -521,7 +512,7 @@ class UserCommands(commands.Cog):
 
             if uid not in timezones:
                 _ = await ctx.send(
-                    f"**{target_user.display_name}** hasn't set a timezone yet."
+                    f"**{target_user.display_name}** hasn't set a timezone yet.",
                 )
                 return
 
@@ -531,7 +522,7 @@ class UserCommands(commands.Cog):
             offset = self.format_offset(
                 cast("discord.Member", ctx.author),
                 target_user,
-                timezones
+                timezones,
             )
 
             abbr = now.strftime("%Z")
@@ -539,20 +530,20 @@ class UserCommands(commands.Cog):
             if offset is None:
                 _ = await ctx.send(
                     f"It is **{time_str}** for **{target_user.display_name}**. "
-                    f"Their timezone is **{abbr}**."
+                    f"Their timezone is **{abbr}**.",
                 )
                 return
 
             if offset == "the same timezone as you!":
                 _ = await ctx.send(
                     f"It is **{time_str}** for **{target_user.display_name}**. "
-                    f"Their timezone is **{abbr}**, the same timezone as you!"
+                    f"Their timezone is **{abbr}**, the same timezone as you!",
                 )
                 return
 
             _ = await ctx.send(
                 f"It is **{time_str}** for **{target_user.display_name}**. "
-                f"Their timezone is **{abbr}**, {offset}"
+                f"Their timezone is **{abbr}**, {offset}",
             )
             return
 
@@ -560,7 +551,7 @@ class UserCommands(commands.Cog):
             tz_str = flags.at.strip()
             if not tz_str:
                 _ = await ctx.send(
-                    "You must provide a timezone. Example: `.ti /@ PDT`"
+                    "You must provide a timezone. Example: `.ti /@ PDT`",
                 )
                 return
 
@@ -568,7 +559,7 @@ class UserCommands(commands.Cog):
 
             if result is None:
                 _ = await ctx.send(
-                    f"Unknown timezone `{tz_str}`."
+                    f"Unknown timezone `{tz_str}`.",
                 )
                 return
 
@@ -576,7 +567,7 @@ class UserCommands(commands.Cog):
                 view = self.TimezoneMatchPaginator(ctx, result)
                 _ = await ctx.send(
                     content=view.get_page_content(),
-                    view = view
+                    view = view,
                 )
 
                 def check(m: discord.Message) -> bool:
@@ -598,7 +589,7 @@ class UserCommands(commands.Cog):
                     formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
                     abbr = now.strftime("%Z")
                     _ = await ctx.send(
-                        f"Current time in **{abbr}**: `{formatted}`"
+                        f"Current time in **{abbr}**: `{formatted}`",
                     )
                 return
 
@@ -607,7 +598,7 @@ class UserCommands(commands.Cog):
             formatted = now.strftime("%A, %B %d %Y — %I:%M %p")
             abbr = now.strftime("%Z")
             _ = await ctx.send(
-                f"Current time in **{abbr}**: `{formatted}`"
+                f"Current time in **{abbr}**: `{formatted}`",
             )
             return
 
@@ -617,7 +608,7 @@ class UserCommands(commands.Cog):
             ".ti @user                      —— View a user's current time\n"
             ".ti /s [user] /tz {timezone}   —— Set a timezone\n"
             ".ti /@ {timezone}              —— View current time in a timezone\n"
-            "```"
+            "```",
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -662,7 +653,7 @@ class UserCommands(commands.Cog):
         async def update_message(self, interaction: discord.Interaction) -> None:
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
@@ -671,7 +662,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
@@ -681,7 +672,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
@@ -691,7 +682,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
@@ -700,7 +691,7 @@ class UserCommands(commands.Cog):
             self.update_buttons()
             _ = await interaction.response.edit_message(
                 content=self.get_page_content(),
-                view = self
+                view = self,
             )
 
     @commands.command(name = "userinfo", aliases=["ui"])
@@ -742,7 +733,7 @@ class UserCommands(commands.Cog):
                     view = self.UserMatchPaginator(ctx, matches)
                     _ = await ctx.send(
                         content=view.get_page_content(),
-                        view = view
+                        view = view,
                     )
                     return
                 else:
@@ -766,7 +757,7 @@ class UserCommands(commands.Cog):
 
         sorted_members = sorted(
             guild.members,
-            key=lambda m: m.joined_at or datetime.min
+            key=lambda m: m.joined_at or datetime.min,
         )
 
         user_index = sorted_members.index(target_user)
@@ -784,7 +775,7 @@ class UserCommands(commands.Cog):
 
         embed = discord.Embed(
             title = f"{target_user} —— {target_user.id}",
-            color = target_user.color
+            color = target_user.color,
         )
 
         timezones = self.load_timezones()

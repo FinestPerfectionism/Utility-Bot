@@ -1,40 +1,40 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
+import re
+import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import ClassVar
-import re
-import time
 
+import discord
+from discord import app_commands
+from discord.ext import commands
+
+from constants import (
+    DIRECTORS_ROLE_ID,
+    EMOJI_FORUM_ID,
+    EMOJI_FORUM_LOCK_ID,
+    EMOJI_STATUS,
+    STAFF_COMMITTEE_ROLE_ID,
+    STAFF_PROPOSALS_CHANNEL_ID,
+    TAG_ACTION,
+    TAG_SPECIAL,
+    TAG_STATUS,
+)
 from core.help import (
-    help_description,
     ArgumentInfo,
     RoleConfig,
+    help_description,
 )
-
 from core.permissions import (
     has_director_role,
     main_guild_only,
 )
 from core.utils import (
-    resolve_forum_tags,
-    resolve_single_tag,
     assert_forum_thread,
     format_body,
-    send_minor_error,
+    resolve_forum_tags,
+    resolve_single_tag,
     send_major_error,
-)
-
-from constants import (
-    EMOJI_FORUM_LOCK_ID,
-    EMOJI_FORUM_ID,
-    TAG_STATUS, TAG_SPECIAL, TAG_ACTION,
-    EMOJI_STATUS,
-    STAFF_PROPOSALS_CHANNEL_ID,
-    STAFF_COMMITTEE_ROLE_ID,
-    DIRECTORS_ROLE_ID,
+    send_minor_error,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -234,12 +234,12 @@ class ProposalCommands(
 
     @app_commands.command(
         name = "status",
-        description="Set the official Staff Committee decision for this proposal."
+        description="Set the official Staff Committee decision for this proposal.",
     )
     @app_commands.describe(
         status="The formal decision to apply.",
         reason="Reason for this decision.",
-        notes="Additional notes."
+        notes="Additional notes.",
     )
     @app_commands.choices(
         status=[
@@ -256,7 +256,7 @@ class ProposalCommands(
             app_commands.Choice(name = "Proposand unimplementable.", value = "Proposand unimplementable."),
             app_commands.Choice(name = "Unique circumstances.",      value = "Unique circumstances."),
             app_commands.Choice(name = "Veto.",                      value = "Veto."),
-        ]
+        ],
     )
     @help_description(
         desc="Staff Committee only —— Sets the official proposal decision for the current proposal thread.",
@@ -283,7 +283,7 @@ class ProposalCommands(
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
 
         errors: list[str] = []
@@ -301,7 +301,7 @@ class ProposalCommands(
 
         if reason_value not in self.REASON_WHITELISTS[status_value]:
             errors.append(
-                f"{status.name} proposals cannot use the reason \"{reason_value}\"."
+                f'{status.name} proposals cannot use the reason "{reason_value}".',
             )
 
         errors.extend(_validate_transition(current, target, is_locked))
@@ -319,8 +319,8 @@ class ProposalCommands(
                 resolve_single_tag(
                     forum,
                     TAG_STATUS[status_value],
-                    f"Status tag '{status.name}' not found."
-                )
+                    f"Status tag '{status.name}' not found.",
+                ),
             )
         except ValueError as e:
             return await send_major_error(interaction, str(e))
@@ -333,8 +333,8 @@ class ProposalCommands(
                         resolve_single_tag(
                             forum,
                             impl_id,
-                            "Process tag 'Needs Implementation' not found."
-                        )
+                            "Process tag 'Needs Implementation' not found.",
+                        ),
                     )
                 except ValueError as e:
                     return await send_major_error(interaction, str(e))
@@ -343,7 +343,7 @@ class ProposalCommands(
 
         _ = await interaction.followup.send(
             f"{EMOJI_STATUS[status_value]} **Proposal {status.name}**\n"
-            f"{format_body(reason_value, notes)}"
+            f"{format_body(reason_value, notes)}",
         )
 
         await _update_control_message(
@@ -366,12 +366,12 @@ class ProposalCommands(
 
     @app_commands.command(
         name = "tag",
-        description="Apply or remove a process-related tag from this proposal."
+        description="Apply or remove a process-related tag from this proposal.",
     )
     @app_commands.describe(
         tag="The process tag to apply or remove.",
         enabled="True to apply the tag, False to remove it.",
-        notes="Additional notes."
+        notes="Additional notes.",
     )
     @app_commands.choices(
         tag=[
@@ -379,7 +379,7 @@ class ProposalCommands(
             app_commands.Choice(name = "Needs Implementation", value = "needs_implementation"),
             app_commands.Choice(name = "Owner Action",         value = "owner_action"),
             app_commands.Choice(name = "S. Director Action",   value = "sdirector_action"),
-        ]
+        ],
     )
     @help_description(
         desc="Staff Committee only —— Applies or removes a process tag on the current proposal thread.",
@@ -406,7 +406,7 @@ class ProposalCommands(
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
 
         errors: list[str] = []
@@ -424,22 +424,22 @@ class ProposalCommands(
         if enabled:
             if is_locked:
                 errors.append(
-                    "Process tags cannot be applied while this proposal is Locked."
+                    "Process tags cannot be applied while this proposal is Locked.",
                 )
 
             if current_status == ProposalStatus.STANDSTILL:
                 errors.append(
-                    "Process tags cannot be applied while this proposal is in Standstill."
+                    "Process tags cannot be applied while this proposal is in Standstill.",
                 )
 
             if tag_key == "needs_revision" and current_status == ProposalStatus.ACCEPTED:
                 errors.append(
-                    "Needs Revision cannot be applied to an Accepted proposal."
+                    "Needs Revision cannot be applied to an Accepted proposal.",
                 )
 
             if tag_key == "needs_implementation" and current_status != ProposalStatus.ACCEPTED:
                 errors.append(
-                    "Needs Implementation can only be applied to Accepted proposals."
+                    "Needs Implementation can only be applied to Accepted proposals.",
                 )
 
         if errors:
@@ -455,13 +455,13 @@ class ProposalCommands(
             else:
                 return await send_major_error(
                     interaction,
-                    f"Tag key '{tag_key}' is not registered."
+                    f"Tag key '{tag_key}' is not registered.",
                 )
 
             target_tag = resolve_single_tag(
                 forum,
                 tag_id,
-                f"Process tag '{tag_label}' not found."
+                f"Process tag '{tag_label}' not found.",
             )
         except ValueError as e:
             return await send_major_error(interaction, str(e))
@@ -494,17 +494,17 @@ class ProposalCommands(
 
     @app_commands.command(
         name = "finalize",
-        description="Lock this proposal after final resolution and implementation."
+        description="Lock this proposal after final resolution and implementation.",
     )
     @app_commands.describe(
         reason="Reason for finalization.",
-        notes="Additional notes."
+        notes="Additional notes.",
     )
     @app_commands.choices(
         reason=[
             app_commands.Choice(name = "Proposand implemented.", value = "Proposand implemented."),
             app_commands.Choice(name = "Issue resolved.",        value = "Issue resolved."),
-        ]
+        ],
     )
     @help_description(
         desc="Staff Committee only —— Finalizes and locks the current proposal thread after final resolution.",
@@ -529,7 +529,7 @@ class ProposalCommands(
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
 
         errors: list[str] = []
@@ -546,19 +546,19 @@ class ProposalCommands(
 
         if current_status not in (ProposalStatus.ACCEPTED, ProposalStatus.DENIED):
             errors.append(
-                "A proposal can only be finalized when its status is Accepted or Denied."
+                "A proposal can only be finalized when its status is Accepted or Denied.",
             )
 
         if _has_tag(thread, TAG_SPECIAL["needs_revision"]):
             errors.append(
-                "This proposal cannot be finalized while Needs Revision is present."
+                "This proposal cannot be finalized while Needs Revision is present.",
             )
 
         implementing = reason.value == "Proposand implemented."
 
         if not implementing and _has_tag(thread, TAG_SPECIAL["needs_implementation"]):
             errors.append(
-                "This proposal cannot be finalized while Needs Implementation is present."
+                "This proposal cannot be finalized while Needs Implementation is present.",
             )
 
         if errors:
@@ -576,8 +576,8 @@ class ProposalCommands(
                 resolve_single_tag(
                     forum,
                     TAG_SPECIAL["locked"],
-                    "Special tag 'Locked' not found."
-                )
+                    "Special tag 'Locked' not found.",
+                ),
             )
         except ValueError as e:
             return await send_major_error(interaction, str(e))
@@ -586,7 +586,7 @@ class ProposalCommands(
 
         _ = await interaction.followup.send(
             f"**{EMOJI_FORUM_LOCK_ID} Proposal Finalized —— Locking Thread**\n"
-            f"{format_body(reason.value, notes)}"
+            f"{format_body(reason.value, notes)}",
         )
 
         await _update_control_message(
@@ -602,17 +602,17 @@ class ProposalCommands(
 
     @app_commands.command(
         name = "un-lock",
-        description="Unlock a previously finalized proposal."
+        description="Unlock a previously finalized proposal.",
     )
     @app_commands.describe(
         reason="Reason for unlocking.",
-        notes="Additional notes."
+        notes="Additional notes.",
     )
     @app_commands.choices(
         reason=[
             app_commands.Choice(name = "New issue.",                 value = "New issue."),
             app_commands.Choice(name = "Further discussion needed.", value = "Further discussion needed."),
-        ]
+        ],
     )
     @help_description(
         desc="Staff Committee only —— Unlocks a finalized proposal thread.",
@@ -637,7 +637,7 @@ class ProposalCommands(
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
 
         try:
@@ -648,7 +648,7 @@ class ProposalCommands(
         if not _has_tag(thread, TAG_SPECIAL["locked"]):
             return await send_minor_error(
                 interaction,
-                "This proposal is not currently Locked."
+                "This proposal is not currently Locked.",
             )
 
         _ = await interaction.response.defer()
@@ -659,7 +659,7 @@ class ProposalCommands(
 
         _ = await interaction.followup.send(
             f"**{EMOJI_FORUM_ID} Proposal Unlocked**\n"
-            f"{format_body(reason.value, notes)}"
+            f"{format_body(reason.value, notes)}",
         )
 
         await _update_control_message(
@@ -675,18 +675,18 @@ class ProposalCommands(
 
     @app_commands.command(
         name = "unstandstill",
-        description="Remove the Standstill status so evaluation may resume."
+        description="Remove the Standstill status so evaluation may resume.",
     )
     @app_commands.describe(
         reason="Reason for removing Standstill.",
-        notes="Additional notes."
+        notes="Additional notes.",
     )
     @app_commands.choices(
         reason=[
             app_commands.Choice(name = "Circumstances resolved.",          value = "Circumstances resolved."),
             app_commands.Choice(name = "Evaluation resuming.",             value = "Evaluation resuming."),
             app_commands.Choice(name = "Committee direction established.", value = "Committee direction established."),
-        ]
+        ],
     )
     @help_description(
         desc="Staff Committee only —— Removes the standstill status from the current proposal thread.",
@@ -711,7 +711,7 @@ class ProposalCommands(
                 interaction,
                 title = "Unauthorized!",
                 texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions."
+                subtitle = "Invalid permissions.",
             )
 
         try:
@@ -724,13 +724,13 @@ class ProposalCommands(
         except ValueError:
             return await send_major_error(
                 interaction,
-                "Standstill tag not found in this forum."
+                "Standstill tag not found in this forum.",
             )
 
         if standstill_tag.id not in {t.id for t in thread.applied_tags}:
             return await send_minor_error(
                 interaction,
-                "This proposal is not currently in Standstill."
+                "This proposal is not currently in Standstill.",
             )
 
         _ = await interaction.response.defer()
@@ -740,8 +740,8 @@ class ProposalCommands(
         _ = await thread.edit(applied_tags=tags)
 
         _ = await interaction.followup.send(
-            f"**Proposal Unstandstilled**\n"
-            f"{format_body(reason.value, notes)}"
+            "**Proposal Unstandstilled**\n"
+           f"{format_body(reason.value, notes)}",
         )
 
         await _update_control_message(
@@ -756,7 +756,7 @@ class ProposalCommands(
 
     @commands.command(
         name    = "delete",
-        aliases = ["d", "del"]
+        aliases = ["d", "del"],
     )
     @help_description(
         desc="Directors only —— Ddeletes the current staff proposal thread.",

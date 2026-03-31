@@ -1,39 +1,26 @@
-import discord
-from discord.ext import commands
-
 import contextlib
 import json
 import os
-from datetime import (
-    datetime,
-timedelta
-)
-from typing import (
-    TYPE_CHECKING,
-    cast,
-    Any
-)
 from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, Any, cast
 
-from constants import(
+import discord
+from discord.ext import commands
+
+from constants import (
     BOT_OWNER_ID,
-
     COLOR_ORANGE,
     COLOR_RED,
-
     DENIED_EMOJI_ID,
-
-    QUARANTINE_ROLE_ID,
     DIRECTORS_ROLE_ID,
+    QUARANTINE_ROLE_ID,
 )
 
 if TYPE_CHECKING:
     from bot import UtilityBot
 
-from commands.moderation.cases import (
-    CaseType,
-    CasesManager
-)
+from commands.moderation.cases import CasesManager, CaseType
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Anti-Nuke System
@@ -56,7 +43,7 @@ class AntiNukeSystem(commands.Cog):
         self.QUARANTINE_ROLE_ID = QUARANTINE_ROLE_ID
 
         self.action_tracker: dict[int, dict[str, dict[str, list[datetime]]]] = defaultdict(
-            lambda: defaultdict(lambda: {"hourly": [], "daily": []})
+            lambda: defaultdict(lambda: {"hourly": [], "daily": []}),
         )
 
     @property
@@ -83,11 +70,11 @@ class AntiNukeSystem(commands.Cog):
                 ActionType.ROLE_CREATE: {"hourly": 5, "daily": 15},
                 ActionType.ROLE_UPDATE: {"hourly": 10, "daily": 30},
             },
-            "log_channel_id": None
+            "log_channel_id": None,
         }
 
     def save_config(self) -> None:
-        with open(self.config_file, 'w') as f:
+        with open(self.config_file, "w") as f:
             json.dump(self.config, f, indent=4)
 
     def is_director(self, member: discord.Member) -> bool:
@@ -111,11 +98,11 @@ class AntiNukeSystem(commands.Cog):
         ]
 
     async def track_action(
-        self, 
-        guild: discord.Guild, 
+        self,
+        guild: discord.Guild,
         user: discord.User | discord.Member,
         action_type: str,
-        details: str = ""
+        details: str = "",
     ) -> bool:
         if not self.config.get("enabled", True):
             return True
@@ -165,7 +152,7 @@ class AntiNukeSystem(commands.Cog):
         hourly_count: int,
         daily_count: int,
         limit_type: str,
-        details: str
+        details: str,
     ) -> None:
         member = guild.get_member(user.id)
         if not member:
@@ -202,8 +189,8 @@ class AntiNukeSystem(commands.Cog):
                         "action_type"      : action_type,
                         "hourly_count"     : hourly_count,
                         "daily_count"      : daily_count,
-                        "limit_type"       : limit_type
-                    }
+                        "limit_type"       : limit_type,
+                    },
                 )
 
             await self.send_quarantine_alert(guild, member, action_type, hourly_count, daily_count, limit_type, details)
@@ -219,7 +206,7 @@ class AntiNukeSystem(commands.Cog):
         hourly_count: int,
         daily_count: int,
         hourly_limit: int,
-        daily_limit: int
+        daily_limit: int,
     ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:
@@ -233,7 +220,7 @@ class AntiNukeSystem(commands.Cog):
             title = "Anti-Nuke Warning",
             description=f"{user.mention} is approaching rate limits",
             color = COLOR_ORANGE,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "User", value = f"{user.mention} ({user.id})", inline = True)
         _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
@@ -251,7 +238,7 @@ class AntiNukeSystem(commands.Cog):
         hourly_count: int,
         daily_count: int,
         limit_type: str,
-        details: str
+        details: str,
     ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:
@@ -265,7 +252,7 @@ class AntiNukeSystem(commands.Cog):
             title = "Anti-Nuke: User Quarantined",
             description=f"{member.mention} has been automatically quarantined for exceeding action limits.",
             color = COLOR_RED,
-            timestamp = datetime.now()
+            timestamp = datetime.now(),
         )
         _ = embed.add_field(name = "User", value = f"{member.mention} ({member.id})", inline = True)
         _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
@@ -284,7 +271,7 @@ class AntiNukeSystem(commands.Cog):
         self,
         guild: discord.Guild,
         member: discord.Member,
-        action_type: str
+        action_type: str,
     ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:
@@ -298,7 +285,7 @@ class AntiNukeSystem(commands.Cog):
             _ = await log_channel.send(
                 f"{DENIED_EMOJI_ID} **Failed to quarantine {member.mention}!**\n"
                 "I lack the necessary permissions to quarantine members."
-                "-# Contact the owner."
+                "-# Contact the owner.",
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -319,7 +306,7 @@ class AntiNukeSystem(commands.Cog):
                     guild,
                     entry.user,
                     ActionType.CHANNEL_DELETE,
-                    f"Deleted channel: {channel.name}"
+                    f"Deleted channel: {channel.name}",
                 )
                 break
 
@@ -337,7 +324,7 @@ class AntiNukeSystem(commands.Cog):
                     guild,
                     entry.user,
                     ActionType.CHANNEL_CREATE,
-                    f"Created channel: {channel.name}"
+                    f"Created channel: {channel.name}",
                 )
                 break
 
@@ -358,7 +345,7 @@ class AntiNukeSystem(commands.Cog):
                     guild,
                     entry.user,
                     ActionType.CHANNEL_UPDATE,
-                    f"Renamed channel: {before.name} → {after.name}"
+                    f"Renamed channel: {before.name} → {after.name}",
                 )
                 break
 
@@ -376,7 +363,7 @@ class AntiNukeSystem(commands.Cog):
                     guild,
                     entry.user,
                     ActionType.ROLE_DELETE,
-                    f"Deleted role: {role.name}"
+                    f"Deleted role: {role.name}",
                 )
                 break
 
@@ -394,7 +381,7 @@ class AntiNukeSystem(commands.Cog):
                     guild,
                     entry.user,
                     ActionType.ROLE_CREATE,
-                    f"Created role: {role.name}"
+                    f"Created role: {role.name}",
                 )
                 break
 
@@ -415,7 +402,7 @@ class AntiNukeSystem(commands.Cog):
                     guild,
                     entry.user,
                     ActionType.ROLE_UPDATE,
-                    f"Renamed role: {before.name} → {after.name}"
+                    f"Renamed role: {before.name} → {after.name}",
                 )
                 break
 

@@ -1,8 +1,8 @@
 import json
-from pathlib import Path
-from typing import Any
 from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 OWNER_PRIVILEGE_ENABLED: bool = True
 
@@ -65,14 +65,14 @@ BLACKLIST_FILE = Path("blacklist.json")
 
 APPLICATIONS_OPEN: dict[str, bool] = {
     "mod": True,
-    "admin": True
+    "admin": True,
 }
 
 ACTIVE_APPLICATIONS: dict[int, dict[str, Any]] = {}
 
 BLACKLIST: dict[str, list[int]] = {
     "applications": [],
-    "tickets": []
+    "tickets": [],
 }
 
 def load_application_state() -> None:
@@ -90,7 +90,7 @@ def load_application_state() -> None:
 
 def save_application_state() -> None:
     _ = APPLICATION_STATE_FILE.write_text(
-        json.dumps(APPLICATIONS_OPEN, indent=4)
+        json.dumps(APPLICATIONS_OPEN, indent=4),
     )
 
 def load_active_applications() -> None:
@@ -115,7 +115,7 @@ def load_active_applications() -> None:
             "channel_id": data.get("channel_id"),
             "messages": data.get("messages", []),
             "review_message_id": data.get("review_message_id"),
-            "log_message_id": data.get("log_message_id")
+            "log_message_id": data.get("log_message_id"),
         }
 
 def save_active_applications() -> None:
@@ -132,11 +132,11 @@ def save_active_applications() -> None:
             "channel_id": data.get("channel_id"),
             "messages": data.get("messages", []),
             "review_message_id": data.get("review_message_id"),
-            "log_message_id": data.get("log_message_id")
+            "log_message_id": data.get("log_message_id"),
         }
 
     _ = ACTIVE_APPLICATIONS_FILE.write_text(
-        json.dumps(serializable, indent=4)
+        json.dumps(serializable, indent=4),
     )
 
 def load_blacklist() -> None:
@@ -154,5 +154,5 @@ def load_blacklist() -> None:
 
 def save_blacklist() -> None:
     _ = BLACKLIST_FILE.write_text(
-        json.dumps(BLACKLIST, indent=4)
+        json.dumps(BLACKLIST, indent=4),
     )

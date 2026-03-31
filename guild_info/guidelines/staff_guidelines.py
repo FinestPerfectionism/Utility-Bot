@@ -1,12 +1,13 @@
 import discord
 
+
 class StaffComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=
                 "# Welcome to Staff Guidelines!\n"
                 "Shared guidelines for all members of the Goobers Staff Team.\n"
-                "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. They apply to all staff regardless of team or seniority. Sharing internal staff policy outside staff spaces is prohibited."
+                "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. They apply to all staff regardless of team or seniority. Sharing internal staff policy outside staff spaces is prohibited.",
         ),
     )
 
@@ -19,19 +20,19 @@ class StaffComponents2(discord.ui.LayoutView):
                     "# Staff Guidelines\n"
                    f"Staff guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -50,7 +51,7 @@ class StaffComponents2(discord.ui.LayoutView):
                     "### §2.1 Directors as Senior Staff\n"
                     "Directors hold Senior Staff status in both teams and may exercise Senior Moderator and Senior Administrator authority when necessary. This exists to allow intervention in escalated situations — not as an invitation to routinely handle frontline moderation or administration.\n\n"
                     "### §2.2 Dual-Role Expectations\n"
-                    "Holding a role in both teams does not exempt a staff member from either team's standards. When acting as a Moderator, Moderation guidelines govern; when acting as an Administrator, Administration guidelines govern."
+                    "Holding a role in both teams does not exempt a staff member from either team's standards. When acting as a Moderator, Moderation guidelines govern; when acting as an Administrator, Administration guidelines govern.",
             ),
         )
         self.add_item(self.container) # type: ignore
@@ -76,7 +77,7 @@ class StaffComponents3(discord.ui.LayoutView):
                 "### §4.2 Referring Across Teams\n"
                 "If a staff member encounters an issue outside their team's scope, they must refer it promptly rather than ignoring it or attempting to handle it independently. Use the appropriate staff channel and tag the relevant team or a Director.\n\n"
                 "### §4.3 Avoiding Conflicting Actions\n"
-                "When both teams are simultaneously involved in a situation — such as a raid requiring both moderation action and potential lockdown — actions must be coordinated through Directors. Do not carry out structural or enforcement changes in parallel without a shared understanding of who is doing what."
+                "When both teams are simultaneously involved in a situation — such as a raid requiring both moderation action and potential lockdown — actions must be coordinated through Directors. Do not carry out structural or enforcement changes in parallel without a shared understanding of who is doing what.",
         ),
     )
 
@@ -102,6 +103,6 @@ class StaffComponents4(discord.ui.LayoutView):
                 "### §6.2 Good Faith\n"
                 "Staff are expected to act in good faith at all times — toward members, toward colleagues, and toward the server. Decisions made in genuine good faith that turn out to be wrong will be handled with appropriate feedback. Decisions made in bad faith will be handled as misconduct.\n\n"
                 "### §6.3 Escalation is Not Failure\n"
-                "Escalating a situation to a Senior staff member or Director is always appropriate when a situation exceeds your scope, authority, or confidence. Attempting to handle something independently when escalation is warranted — and getting it wrong — is exponentially worse than escalating. No staff member will be penalized for escalating appropriately."
+                "Escalating a situation to a Senior staff member or Director is always appropriate when a situation exceeds your scope, authority, or confidence. Attempting to handle something independently when escalation is warranted — and getting it wrong — is exponentially worse than escalating. No staff member will be penalized for escalating appropriately.",
         ),
     )

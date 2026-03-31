@@ -1,9 +1,6 @@
 import discord
-from constants import (
-    STANDSTILL_EMOJI_ID,
 
-    TICKET_CHANNEL_ID
-)
+from constants import STANDSTILL_EMOJI_ID, TICKET_CHANNEL_ID
 
 class RequirementComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
@@ -11,7 +8,7 @@ class RequirementComponents1(discord.ui.LayoutView):
             content=
                 "# Welcome to our Partnership Requirements!\n"
                 "Our requirements for server partnerships.\n"
-                "-# **Note:** It is within Directors' discretion as to whether we choose to partner wtih your server regardless of if the rules they find you to be not qualifying for are listed here. Directors are not required to provide a reason, if any, when denying a partnerhsip."
+                "-# **Note:** It is within Directors' discretion as to whether we choose to partner wtih your server regardless of if the rules they find you to be not qualifying for are listed here. Directors are not required to provide a reason, if any, when denying a partnerhsip.",
         ),
     )
 
@@ -22,7 +19,7 @@ class RequirementComponents2(discord.ui.LayoutView):
             discord.ui.Section( # type: ignore
                 discord.ui.TextDisplay(
                     content=
-                        "# Partnership Requirements"
+                        "# Partnership Requirements",
                 ),
                 accessory=discord.ui.Button(
                     url   =  "https://discord.com/terms",
@@ -35,19 +32,19 @@ class RequirementComponents2(discord.ui.LayoutView):
                 content=
                    f"Partnership Requirements last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -91,7 +88,7 @@ class RequirementComponents2(discord.ui.LayoutView):
                     "Revocation does not require public justification.\n\n"
                     "## §5 Authority\n"
                     "All partnership decisions are made solely by the Directorate.\n"
-                    "No other staff member or role may independently approve, promise, or negotiate a partnership.\n"
+                    "No other staff member or role may independently approve, promise, or negotiate a partnership.\n",
             ),
         )
         self.add_item(self.container) # type: ignore

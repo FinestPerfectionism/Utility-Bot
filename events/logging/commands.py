@@ -1,14 +1,10 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
 from typing import Any
 
-from constants import (
-    COLOR_BLURPLE,
+import discord
+from discord import app_commands
+from discord.ext import commands
 
-    BOT_LOG_CHANNEL_ID
-)
+from constants import BOT_LOG_CHANNEL_ID, COLOR_BLURPLE
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Command Handling

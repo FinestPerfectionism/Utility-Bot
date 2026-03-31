@@ -1,21 +1,16 @@
 import discord
-from discord.ext import commands
 from discord import app_commands
-
-from core.help import (
-    help_description,
-    ArgumentInfo,
-    RoleConfig
-)
-from core.permissions import directors_only
-from core.utils import send_minor_error
+from discord.ext import commands
 
 from constants import (
-    COLOR_BLURPLE,
     ACCEPTED_EMOJI_ID,
+    COLOR_BLURPLE,
     DENIED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
 )
+from core.help import ArgumentInfo, RoleConfig, help_description
+from core.permissions import directors_only
+from core.utils import send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role Commands
@@ -24,7 +19,7 @@ from constants import (
 class RoleCommands(
     commands.GroupCog,
     name        = "role",
-    description = "Directors only —— Role commands."
+    description = "Directors only —— Role commands.",
 ):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -36,19 +31,19 @@ class RoleCommands(
 
     @app_commands.command(
         name        = "permissions",
-        description = "List all permissions for a selected role."
+        description = "List all permissions for a selected role.",
     )
     @app_commands.rename(perm_filter = "filter")
     @app_commands.describe(
         role        = "The role to list permissions for.",
-        perm_filter = "Whether to show enabled, disabled, or all permissions."
+        perm_filter = "Whether to show enabled, disabled, or all permissions.",
     )
     @app_commands.choices(
         perm_filter = [
             app_commands.Choice(name = "All",      value = "all"),
             app_commands.Choice(name = "Enabled",  value = "enabled"),
             app_commands.Choice(name = "Disabled", value = "disabled"),
-        ]
+        ],
     )
     @help_description(
         desc        = "Directors only —— Lists all permissions for a selected role.",
@@ -60,13 +55,13 @@ class RoleCommands(
             "role": ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 required    = True,
-                description = "The role to list permissions for."
+                description = "The role to list permissions for.",
             ),
             "filter": ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 required    = False,
                 description = "Whether to show enabled, disabled, or all permissions.",
-                choices     = ["All", "Enabled", "Disabled"]
+                choices     = ["All", "Enabled", "Disabled"],
             ),
         },
     )
@@ -92,7 +87,7 @@ class RoleCommands(
         embed: discord.Embed = discord.Embed(
             title       = f"Permissions for {role.name}",
             description = f"**{role.name}:**\n" + "\n".join(lines) if lines else "No permissions match this filter.",
-            color       = COLOR_BLURPLE
+            color       = COLOR_BLURPLE,
         )
 
         await interaction.followup.send(embed = embed)
@@ -103,11 +98,11 @@ class RoleCommands(
 
     @app_commands.command(
         name        = "permissions-compare",
-        description = "List all differing permissions for two selected roles."
+        description = "List all differing permissions for two selected roles.",
     )
     @app_commands.rename(
         role1 = "role-1",
-        role2 = "role-2"
+        role2 = "role-2",
     )
     @app_commands.describe(
         role1 = "The first role to compare.",
@@ -123,12 +118,12 @@ class RoleCommands(
             "role-1": ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 required    = True,
-                description = "The first role to compare."
+                description = "The first role to compare.",
             ),
             "role-2": ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 required    = True,
-                description = "The second role to compare."
+                description = "The second role to compare.",
             ),
         },
     )
@@ -137,7 +132,7 @@ class RoleCommands(
         self,
         interaction : discord.Interaction,
         role1       : discord.Role,
-        role2       : discord.Role
+        role2       : discord.Role,
     ) -> None:
         _ = await interaction.response.defer(ephemeral = False)
 
@@ -156,7 +151,7 @@ class RoleCommands(
 
         embed: discord.Embed = discord.Embed(
             title = f"Permission Differences for {role1.name} and {role2.name}",
-            color = COLOR_BLURPLE
+            color = COLOR_BLURPLE,
         )
 
         if not diffs_role1:
@@ -165,12 +160,12 @@ class RoleCommands(
             _ = embed.add_field(
                 name   = role1.name,
                 value  = "\n".join(diffs_role1),
-                inline = True
+                inline = True,
             )
             _ = embed.add_field(
                 name   = role2.name,
                 value  = "\n".join(diffs_role2),
-                inline = True
+                inline = True,
             )
 
         await interaction.followup.send(embed = embed)
@@ -181,40 +176,40 @@ class RoleCommands(
 
     @app_commands.command(
         name        = "members",
-        description = "List members based on role possession and human/bot filtering."
+        description = "List members based on role possession and human/bot filtering.",
     )
     @app_commands.describe(
         role          = "Select a role.",
         role_filter   = "Select whether to check who has or who doesn't have the role.",
-        person_filter = "Select whether to list humans, bots, or both."
+        person_filter = "Select whether to list humans, bots, or both.",
     )
     @app_commands.rename(
         role_filter   = "role-filter",
-        person_filter = "person-filter"
+        person_filter = "person-filter",
     )
     @app_commands.choices(
         role_filter = [
             app_commands.Choice(
                 name  = "Member of",
-                value = "whohas"
+                value = "whohas",
             ),
             app_commands.Choice(
                 name  = "Not a Member of",
-                value = "whodoesnthave"
+                value = "whodoesnthave",
             ),
         ],
         person_filter = [
             app_commands.Choice(
                 name  = "Humans",
-                value = "humans"
+                value = "humans",
             ),
             app_commands.Choice(
                 name  = "Bots",
-                value = "bots"
+                value = "bots",
             ),
             app_commands.Choice(
                 name  = "Both",
-                value = "both"
+                value = "both",
             ),
         ],
     )
@@ -228,12 +223,12 @@ class RoleCommands(
             "role-filter": ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 description = "Whether to list members who have or do not have the role.",
-                choices     = ["Who has", "Who doesnt have"]
+                choices     = ["Who has", "Who doesnt have"],
             ),
             "person-filter": ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 description = "Whether to list humans, bots, or both.",
-                choices     = ["Humans", "Bots", "Both"]
+                choices     = ["Humans", "Bots", "Both"],
             ),
         },
     )
@@ -252,7 +247,7 @@ class RoleCommands(
             await send_minor_error(
                 interaction,
                 texts    = "This command can only be used in a server.",
-                subtitle = "Bad command environment."
+                subtitle = "Bad command environment.",
             )
             return
 
@@ -271,7 +266,7 @@ class RoleCommands(
         embed: discord.Embed = discord.Embed(
             title       = f"Members for {role.name}",
             description = formatted,
-            color       = COLOR_BLURPLE
+            color       = COLOR_BLURPLE,
         )
         _ = embed.add_field(name = "Role Filter",   value = role_filter.name,   inline = True)
         _ = embed.add_field(name = "Person Filter", value = person_filter.name, inline = True)

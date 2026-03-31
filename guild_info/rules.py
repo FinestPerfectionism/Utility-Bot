@@ -1,5 +1,7 @@
 import discord
+
 from constants import STANDSTILL_EMOJI_ID
+
 
 class RuleComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
@@ -7,7 +9,7 @@ class RuleComponents1(discord.ui.LayoutView):
             content=
                 "# Welcome to The Goobers!\n"
                 "A server for dumbassery and gaming.\n"
-                "-# **Note:** It is within moderators' discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here."
+                "-# **Note:** It is within moderators' discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here.",
         ),
     )
 
@@ -18,7 +20,7 @@ class RuleComponents2(discord.ui.LayoutView):
             discord.ui.Section( # type: ignore
                 discord.ui.TextDisplay(
                     content=
-                        "# Rules"
+                        "# Rules",
                 ),
                 accessory=discord.ui.Button(
                     url   =  "https://discord.com/terms",
@@ -31,19 +33,19 @@ class RuleComponents2(discord.ui.LayoutView):
                 content=
                    f"Rules last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -64,25 +66,25 @@ class RuleComponents2(discord.ui.LayoutView):
                     "### §2.1 No Loophole Language\n"
                     "Attempting to bypass rules through euphemisms, coded language, or indirect references is forbidden.\n"
                     "**Example:**\n"
-                    "> \"-.-- --- ..- .----. .-. . / ... ..- -.-. .... / .- / ... .. .-.. .-.. -.-- / .-.. .. - - .-.. . / -... .-.. ..- -.. / ..-. --- .-. / - .-. .- -. ... .-.. .- - .. -. --. / - .... .. ...\"\n\n"
+                    '> "-.-- --- ..- .----. .-. . / ... ..- -.-. .... / .- / ... .. .-.. .-.. -.-- / .-.. .. - - .-.. . / -... .-.. ..- -.. / ..-. --- .-. / - .-. .- -. ... .-.. .- - .. -. --. / - .... .. ..."\n\n'
                     "### §2.2 Spam\n"
                     "Repetitive messages, excessive emojis, pinging, or automated scripts are prohibited.\n"
                     "**Example:**\n"
-                    "> \"hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello\"\n\n"
+                    '> "hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello"\n\n'
                     "## §3 Privacy and Safety\n"
                     "### §3.1 Doxxing\n"
                     "Sharing personal information without explicit consent is banned.\n"
                     "**Example:**\n"
-                    "> \"his name is walter hartwell white he lives at 308 negra arroyo lane, albuquerque, new mexico, 87104.\"\n\n"
+                    '> "his name is walter hartwell white he lives at 308 negra arroyo lane, albuquerque, new mexico, 87104."\n\n'
                     "### §3.2 Impersonation\n"
                     "Pretending to be staff, members, or external figures is not allowed.\n"
                     "**Example:**\n"
-                    "> \"im totally S. Director | 𝙸𝚗𝚏𝚒𝚗𝚒𝚞𝚖³\"\n\n"
+                    '> "im totally S. Director | 𝙸𝚗𝚏𝚒𝚗𝚒𝚞𝚖³"\n\n'
                     "## §4 Channel Use\n"
                     "### §4.1 Channel Specific Rules\n"
                     "All content must follow the designated purpose of each channel. Off-topic content is prohibited.\n"
                     "**Example:**\n"
-                    "> *Ear-rape*"
+                    "> *Ear-rape*",
             ),
         )
         self.add_item(self.container) # type: ignore

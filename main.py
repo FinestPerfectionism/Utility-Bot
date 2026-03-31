@@ -2,14 +2,11 @@ import asyncio
 import logging
 import os
 import sys
+
 from dotenv import load_dotenv
 
-from core.state import (
-    load_application_state,
-    load_blacklist
-)
-
 from bot import bot
+from core.state import load_application_state, load_blacklist
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Main Script
@@ -33,7 +30,7 @@ async def main() -> None:
         raise RuntimeError("TOKEN environment variable not set.")
 
     log.info("Starting Discord connection")
-    try:    
+    try:
         await bot.start(TOKEN.strip())
     except Exception as e:
         log.exception(f"Bot crashed during runtime {e}")

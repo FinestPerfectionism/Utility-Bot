@@ -1,16 +1,15 @@
+from datetime import datetime
+from typing import TYPE_CHECKING, cast
+
 import discord
 from discord.ext import commands
-from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    cast
-)
+
+from constants import GOOBERS_ROLE_ID, STAFF_ROLE_ID
 from core.help import (
-    help_description,
     ArgumentInfo,
     RoleConfig,
+    help_description,
 )
-from constants import GOOBERS_ROLE_ID, STAFF_ROLE_ID
 
 if TYPE_CHECKING:
     from events.member.verification import VerificationHandler
@@ -53,7 +52,7 @@ class VerificationCommands(commands.Cog):
         try:
             await member.add_roles(
                 goobers_role,
-                reason=f"Manual verification by {ctx.author}"
+                reason=f"Manual verification by {ctx.author}",
             )
             verification_cog = self._get_verification_cog()
             if verification_cog and str(member.id) in verification_cog.data["unverified"]:
@@ -74,7 +73,7 @@ class VerificationCommands(commands.Cog):
     @commands.guild_only()
     @commands.command(
         name = "unverify",
-        aliases=["un-verify", "uv", "deverify", "de-verify", "dv"]
+        aliases=["un-verify", "uv", "deverify", "de-verify", "dv"],
     )
     @help_description(
         desc="Staff only —— Manually unverifies a member inside the server.",
@@ -97,14 +96,14 @@ class VerificationCommands(commands.Cog):
         try:
             await member.remove_roles(
                 goobers_role,
-                reason=f"Manual de-verification by {ctx.author}"
+                reason=f"Manual de-verification by {ctx.author}",
             )
             verification_cog = self._get_verification_cog()
             if verification_cog:
                 verification_cog.data["unverified"][str(member.id)] = {
                     "joined_at": datetime.now().isoformat(),
                     "warned": False,
-                    "warning_message_id": None
+                    "warning_message_id": None,
                 }
                 verification_cog.save_data()
         except discord.Forbidden:

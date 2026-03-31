@@ -1,14 +1,14 @@
+import logging
+
 import discord
 from discord.ext import commands
 
-import logging
-
-from events.logging.errors import PermissionError
-from core.utils import (
-    send_minor_error,
-    send_major_error,
-)
 from constants import BOT_OWNER_ID
+from core.utils import (
+    send_major_error,
+    send_minor_error,
+)
+from events.logging.errors import PermissionError
 
 log = logging.getLogger("Utility Bot")
 
@@ -25,7 +25,7 @@ async def run_reload(
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
             view      = PermissionError(),
-            ephemeral = True
+            ephemeral = True,
         )
         return
 
@@ -37,14 +37,14 @@ async def run_reload(
             await bot.reload_extension(cog)
             _ = await interaction.response.send_message(
                 f"Reloaded cog `{cog}` successfully.",
-                ephemeral = True
+                ephemeral = True,
             )
             log.info("Reloaded cog %s", cog)
         except Exception as e:
             await send_major_error(
                 interaction,
                 texts    = f"Failed to reload cog `{cog}`: {e}",
-                subtitle = "Invalid operation."
+                subtitle = "Invalid operation.",
             )
             log.error("Failed to reload cog %s: %s", cog, e)
     else:
@@ -62,10 +62,10 @@ async def run_reload(
             await send_minor_error(
                 interaction,
                 texts    = f"Reload completed, but some cogs failed:\n{msg}",
-                subtitle = "Invalid operation."
+                subtitle = "Invalid operation.",
             )
         else:
             _ = await interaction.response.send_message(
                 "All cogs reloaded successfully.",
-                ephemeral = True
+                ephemeral = True,
             )

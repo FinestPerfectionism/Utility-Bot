@@ -1,10 +1,11 @@
+from collections.abc import Sequence
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
 
-from datetime import datetime, UTC
-from collections.abc import Sequence
-
 from constants import COLOR_BLURPLE
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -38,26 +39,26 @@ class EmojiEditCog(AuditCog):
         embed = discord.Embed(
             title = "Emoji Edited",
             color = COLOR_BLURPLE,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         for before_emoji, after_emoji in edited:
             _ = embed.add_field(
                 name = "Emoji",
                 value = f"`{after_emoji.id}`\n{after_emoji}",
-                inline = False
+                inline = False,
             )
             _ = embed.add_field(
                 name = "Name Changed",
                 value = f"**Before:** `{before_emoji.name}`\n**After:** `{after_emoji.name}`",
-                inline = False
+                inline = False,
             )
 
         if executor:
             _ = embed.add_field(
                 name = "Edited By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

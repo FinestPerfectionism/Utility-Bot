@@ -136,21 +136,21 @@ STANDSTILL_EMOJI_ID = "<:standstill:1442307018647142582>"
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 TAG_STATUS = {
-    "accepted": 1433586899296981126, 
-    "contested": 1434860598793076847, 
-    "denied": 1433586850337132574, 
-    "standstill": 1444408668542996500 
+    "accepted": 1433586899296981126,
+    "contested": 1434860598793076847,
+    "denied": 1433586850337132574,
+    "standstill": 1444408668542996500,
 }
 
 TAG_ACTION = {
     "owner_action": 1433819235120976023,
-    "sdirector_action": 1433819201759481978
+    "sdirector_action": 1433819201759481978,
 }
 
 TAG_SPECIAL = {
     "needs_implementation": 1438525819533263058,
     "needs_revision": 1433587078008012932,
-    "locked": 1433819271716147391
+    "locked": 1433819271716147391,
 }
 
 EMOJI_STATUS = {

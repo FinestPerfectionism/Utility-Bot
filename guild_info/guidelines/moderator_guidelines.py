@@ -1,12 +1,13 @@
 import discord
 
+
 class ModerationComponents1(discord.ui.LayoutView):
     container = discord.ui.Container( # type: ignore
         discord.ui.TextDisplay( # type: ignore
             content=
                 "# Welcome to Moderation Guidelines!\n"
                 "Internal guidelines for the Goobers Moderation Team.\n"
-                "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. Sharing internal moderation policy outside staff spaces is prohibited."
+                "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. Sharing internal moderation policy outside staff spaces is prohibited.",
         ),
     )
 
@@ -19,19 +20,19 @@ class ModerationComponents2(discord.ui.LayoutView):
                     "# Moderation Guidelines\n"
                    f"Moderation guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -67,7 +68,7 @@ class ModerationComponents2(discord.ui.LayoutView):
                     "### §3.4 Quarantine\n"
                     "Quarantine is used to isolate high-risk members — including in staff-context conflicts — while preserving auditability. Because unquarantine restores saved roles, apply quarantine deliberately and with clear reasoning. Quarantine add is Senior Moderator+; quarantine remove is Director-only.\n\n"
                     "### §3.5 Purge\n"
-                    "Purge is Senior Moderator+ and should only be used when cleanup serves moderation, safety, or evidence control needs. Keep reasons specific (spam wave, raid cleanup, slur flood, etc.)."
+                    "Purge is Senior Moderator+ and should only be used when cleanup serves moderation, safety, or evidence control needs. Keep reasons specific (spam wave, raid cleanup, slur flood, etc.).",
             ),
         )
         self.add_item(self.container) # type: ignore
@@ -114,6 +115,6 @@ class ModerationComponents3(discord.ui.LayoutView):
                 "### §7.2 Communication\n"
                 "Communicate openly with the team when handling ongoing situations. Note it in the appropriate staff channel to avoid duplicate handling or conflicting actions.\n\n"
                 "### §7.3 Handling Raids\n"
-                "In the event of a raid or coordinated disruption, prioritize muting or removing active disruptors immediately, alert Senior Moderators and Directors without delay, and do not engage with raiders in public channels. Document all actions once the situation is resolved. Senior Moderators and Directors will coordinate the broader response."
+                "In the event of a raid or coordinated disruption, prioritize muting or removing active disruptors immediately, alert Senior Moderators and Directors without delay, and do not engage with raiders in public channels. Document all actions once the situation is resolved. Senior Moderators and Directors will coordinate the broader response.",
         ),
     )

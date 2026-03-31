@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_GREEN
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -24,13 +26,13 @@ class RoleCreateCog(AuditCog):
         embed = discord.Embed(
             title     = "Role Created",
             color     = COLOR_GREEN,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
             name = "Role",
             value = f"`{role.name}`\n`{role.id}`",
-            inline = True
+            inline = True,
         )
         _ = embed.add_field(name = "Color", value = str(role.color), inline = True)
         _ = embed.add_field(name = "Position", value = str(role.position), inline = True)
@@ -41,7 +43,7 @@ class RoleCreateCog(AuditCog):
             _ = embed.add_field(
                 name = "Created By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         permissions_text = self.format_permissions(role.permissions)

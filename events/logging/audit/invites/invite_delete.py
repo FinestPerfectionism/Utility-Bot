@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_RED
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -25,18 +27,18 @@ class InviteDeleteCog(AuditCog):
         embed: discord.Embed = discord.Embed(
             title = "Invite Deleted",
             color = COLOR_RED,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(name = "Code", value = f"`{invite.code}`", inline = True)
 
-        channel_name: str = getattr(invite.channel, 'name', 'Unknown Channel')
-        channel_id: str = str(getattr(invite.channel, 'id', 'Unknown ID'))
+        channel_name: str = getattr(invite.channel, "name", "Unknown Channel")
+        channel_id: str = str(getattr(invite.channel, "id", "Unknown ID"))
 
         _ = embed.add_field(
             name = "Channel",
             value = f"`{channel_name}`\n`{channel_id}`",
-            inline = True
+            inline = True,
         )
 
         if invite.uses is not None:

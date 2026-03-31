@@ -1,16 +1,13 @@
+import contextlib
+from datetime import datetime
+from typing import TYPE_CHECKING, cast
+
 import discord
 from discord.ext import commands
 
-import contextlib
-from datetime import datetime
-from typing import (
-    TYPE_CHECKING,
-    cast
-)
-
 if TYPE_CHECKING:
-    from events.member.verification import VerificationHandler
     from commands.moderation.primary._group_cog import ModerationCommands
+    from events.member.verification import VerificationHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
@@ -33,24 +30,24 @@ class MemberJoinHandler(commands.Cog):
         verification_cog.data["unverified"][str(member.id)] = {
             "joined_at": datetime.now().isoformat(),
             "warned": False,
-            "warning_message_id": None
+            "warning_message_id": None,
         }
         verification_cog.save_data()
 
         quarantine_cog = cast(
             "ModerationCommands",
-            self.bot.get_cog("QuarantineCommands")
+            self.bot.get_cog("QuarantineCommands"),
         )
 
         if quarantine_cog and str(member.id) in quarantine_cog.data["quarantined"]:
             quarantine_role = member.guild.get_role(
-                quarantine_cog.QUARANTINE_ROLE_ID
+                quarantine_cog.QUARANTINE_ROLE_ID,
             )
             if quarantine_role:
                 with contextlib.suppress(discord.Forbidden):
                     await member.add_roles(
                         quarantine_role,
-                        reason="UB Quarantine: rejoined while quarantined"
+                        reason="UB Quarantine: rejoined while quarantined",
                     )
 
 async def setup(bot: commands.Bot) -> None:

@@ -1,36 +1,29 @@
+import asyncio
+import sys
+import traceback
+from collections.abc import Coroutine
+from typing import Any
+
+import aiohttp
 import discord
-from discord.ext import commands
 from discord import app_commands
 from discord.app_commands import CommandOnCooldown
 from discord.app_commands.errors import CommandNotFound
-
-from collections.abc import Coroutine
+from discord.ext import commands
 from typing_extensions import override
-from typing import Any
-import traceback
-import sys
-import asyncio
-import aiohttp
-
-from core.permissions import (
-    PermissionDenied,
-    WrongGuild
-)
-from core.utils import send_minor_error
 
 from constants import (
-    BOT_LOG_CHANNEL_ID,
     BOT_ERRORS_LOG_CHANNEL_ID,
-
+    BOT_LOG_CHANNEL_ID,
     BOT_OWNER_ID,
-
+    COLOR_BLURPLE,
     COLOR_RED,
     COLOR_YELLOW,
-    COLOR_BLURPLE,
-
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 )
+from core.permissions import PermissionDenied, WrongGuild
+from core.utils import send_minor_error
 
 MAX_429S = 5
 
@@ -236,7 +229,7 @@ class ErrorLogger(commands.Cog):
             return
 
         tb_text: str = "".join(
-            traceback.format_exception(type(actual_error), actual_error, actual_error.__traceback__)
+            traceback.format_exception(type(actual_error), actual_error, actual_error.__traceback__),
         )
 
         await self.send_error(
@@ -261,7 +254,7 @@ class ErrorLogger(commands.Cog):
             await send_minor_error(
                 interaction,
                 f"Cooldown active. Try again in {error.retry_after:.1f}s.",
-                subtitle = "Cooldown active."
+                subtitle = "Cooldown active.",
             )
             return
 
@@ -290,7 +283,7 @@ class ErrorLogger(commands.Cog):
             return
 
         tb_text = "".join(
-            traceback.format_exception(type(error), error, error.__traceback__)
+            traceback.format_exception(type(error), error, error.__traceback__),
         )
 
         cmd      = interaction.command
@@ -312,7 +305,7 @@ class ErrorLogger(commands.Cog):
     @commands.Cog.listener()
     async def on_extension_error(self, extension: str, error: commands.ExtensionError) -> None:
         tb_text = "".join(
-            traceback.format_exception(type(error), error, error.__traceback__)
+            traceback.format_exception(type(error), error, error.__traceback__),
         )
 
         await self.send_error(
@@ -344,7 +337,7 @@ class ErrorLogger(commands.Cog):
                 raise
 
             tb_text = "".join(
-                traceback.format_exception(type(exc), exc, exc.__traceback__)
+                traceback.format_exception(type(exc), exc, exc.__traceback__),
             )
 
             await self.send_error(
@@ -380,12 +373,12 @@ class ErrorLogger(commands.Cog):
         if isinstance(exc, discord.HTTPException) and exc.status == 429:
             _ = self.create_task(
                 self.handle_rate_limit(f"task: {task.get_name()}"),
-                name = "task_ratelimit_reporter"
+                name = "task_ratelimit_reporter",
             )
             return
 
         tb_text = "".join(
-            traceback.format_exception(type(exc), exc, exc.__traceback__)
+            traceback.format_exception(type(exc), exc, exc.__traceback__),
         )
 
         _ = self.create_task(
@@ -394,7 +387,7 @@ class ErrorLogger(commands.Cog):
                 error_text     = str(exc),
                 traceback_text = tb_text,
             ),
-            name = "task_error_reporter"
+            name = "task_error_reporter",
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -413,28 +406,28 @@ class ErrorLogger(commands.Cog):
     async def on_shard_disconnect(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Disconnected",
-            description=f"Shard {shard_id}"
+            description=f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_connect(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Connected",
-            description=f"Shard {shard_id}"
+            description=f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_ready(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Ready",
-            description=f"Shard {shard_id}"
+            description=f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_resumed(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Resumed",
-            description=f"Shard {shard_id}"
+            description=f"Shard {shard_id}",
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -457,7 +450,7 @@ class ErrorLogger(commands.Cog):
                 title          = "Asyncio Event Loop Error",
                 error_text     = str(msg),
                 traceback_text = tb_text,
-            )
+            ),
         )
 
     @override

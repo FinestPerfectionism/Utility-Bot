@@ -1,29 +1,25 @@
+import asyncio
+import contextlib
+import logging
+from typing import Any
+
 import discord
 from discord.ext import commands
-
-import contextlib
 from typing_extensions import override
-from typing import Any
-import asyncio
-import logging
 
 from bot import bot
-
-from events.systems.applications import DecisionView
-
-from core.state import (
-    load_active_applications,
-    ACTIVE_APPLICATIONS,
-    load_automod_strikes,
-    save_automod_strikes,
-)
-
 from constants import (
     ACCEPTED_EMOJI_ID,
-
     APPLICATION_LOG_CHANNEL_ID,
     BOT_CONSOLE_CHANNEL_ID,
 )
+from core.state import (
+    ACTIVE_APPLICATIONS,
+    load_active_applications,
+    load_automod_strikes,
+    save_automod_strikes,
+)
+from events.systems.applications import DecisionView
 
 log = logging.getLogger("Utility Bot")
 
@@ -68,7 +64,7 @@ class Ready(commands.Cog):
                     break
                 try:
                     extra: str = await asyncio.wait_for(
-                        self._console_queue.get(), timeout = remaining
+                        self._console_queue.get(), timeout = remaining,
                     )
                     buffer.append(extra)
                 except TimeoutError:
@@ -109,7 +105,7 @@ class Ready(commands.Cog):
             question = data["questions"][data["index"]]
             _ = await dm.send(
                 f"**{ACCEPTED_EMOJI_ID} Successfully resumed application after restart.**\n"
-                f"{question}"
+                f"{question}",
             )
 
     async def restore_application_views(self) -> None:
@@ -133,10 +129,10 @@ class Ready(commands.Cog):
             return
         self._ran = True
         _ = await bot.tree.sync()
-        
+
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(
-            lambda loop, context: self.bot.dispatch("asyncio_error", context)
+            lambda loop, context: self.bot.dispatch("asyncio_error", context),
         )
         handler = DiscordLogHandler(self._console_queue)
         handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s"))

@@ -1,45 +1,46 @@
-import discord
-
 import contextlib
-from typing import Any
 from datetime import (
-    datetime,
     UTC,
+    datetime,
     timedelta,
+)
+from datetime import (
     date as date_type,
 )
+from typing import Any
 
-from ._base import (
-    LeaveType,
-    ALL_STAFF_ROLE_IDS,
-    DATE_FMT,
-    save_data,
-    extract_name,
-    can_manage_leave,
-    normalize_entry,
-    parse_timer,
-    parse_date,
-    entry_has_automation,
-    describe_automation,
-    build_leave_nick,
-    HardCleanConfirmView,
-    InterferenceConfirmView,
-)
+import discord
 
-from core.utils import (
-    send_minor_error,
-    send_major_error,
+from constants import (
+    BOT_OWNER_ID,
+    DENIED_EMOJI_ID,
+    LEADING_DIRECTOR_ROLE_ID,
+    PERSONAL_LEAVE_ROLE_ID,
 )
 from core.permissions import (
     is_director,
     is_staff,
 )
+from core.utils import (
+    send_major_error,
+    send_minor_error,
+)
 
-from constants import (
-    BOT_OWNER_ID,
-    DENIED_EMOJI_ID,
-    PERSONAL_LEAVE_ROLE_ID,
-    LEADING_DIRECTOR_ROLE_ID,
+from ._base import (
+    ALL_STAFF_ROLE_IDS,
+    DATE_FMT,
+    HardCleanConfirmView,
+    InterferenceConfirmView,
+    LeaveType,
+    build_leave_nick,
+    can_manage_leave,
+    describe_automation,
+    entry_has_automation,
+    extract_name,
+    normalize_entry,
+    parse_date,
+    parse_timer,
+    save_data,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -61,7 +62,7 @@ async def run_leave_add(
         await send_minor_error(
             interaction,
             "This command can only be used in a server.",
-            subtitle = "Bad command environment."
+            subtitle = "Bad command environment.",
         )
         return
 
@@ -160,7 +161,7 @@ async def run_leave_add(
             interaction,
             title = "Unauthorized!",
             texts="You lack the necessary permissions to run this command.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -173,7 +174,7 @@ async def run_leave_add(
             interaction,
             title = "Unauthorized!",
             texts="You lack the necessary permissions to add personal leave to other Staff Members.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -232,7 +233,7 @@ async def run_leave_add(
             interaction,
             title = "Error!",
             texts="I could not fetch the Personal Leave role.",
-            subtitle = f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>.",
         )
         return
 
@@ -244,7 +245,7 @@ async def run_leave_add(
         await send_minor_error(
             interaction,
             "The resulting nickname, as well as `PL | nickname`, exceed Discord's 32 character limit.",
-            subtitle = "Invalid operation."
+            subtitle = "Invalid operation.",
         )
         return
 
@@ -267,14 +268,14 @@ async def run_leave_add(
 
         begin_stamp = discord.utils.format_dt(
             datetime(parsed_begin.year, parsed_begin.month, parsed_begin.day, tzinfo=UTC),
-            style="D"
+            style="D",
         )
 
         end_note = ""
         if parsed_end is not None:
             end_stamp = discord.utils.format_dt(
                 datetime(parsed_end.year, parsed_end.month, parsed_end.day, tzinfo=UTC),
-                style="D"
+                style="D",
             )
             end_note = f" and scheduled to end on {end_stamp}"
         elif timer_seconds is not None:
@@ -287,7 +288,7 @@ async def run_leave_add(
         who = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
         await interaction.followup.send(
             f"{who} been scheduled for personal leave starting {begin_stamp}{end_note}.",
-            ephemeral = True
+            ephemeral = True,
         )
         return
 
@@ -330,20 +331,20 @@ async def run_leave_add(
         if parsed_end is not None:
             end_stamp = discord.utils.format_dt(
                 datetime(parsed_end.year, parsed_end.month, parsed_end.day, tzinfo=UTC),
-                style="D"
+                style="D",
             )
             end_note = f" Leave is scheduled to end on {end_stamp}."
         elif timer_end_ts is not None:
             end_stamp = discord.utils.format_dt(
                 datetime.fromtimestamp(timer_end_ts, tz=UTC),
-                style="f"
+                style="f",
             )
             end_note = f" Leave will automatically end at {end_stamp}."
 
         who = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
         await interaction.followup.send(
             f"{who} been placed on personal leave.{end_note}",
-            ephemeral = True
+            ephemeral = True,
         )
 
     except discord.Forbidden:
@@ -361,13 +362,13 @@ async def run_leave_add(
             await send_major_error(
                 interaction,
                 texts    = "I lack the necessary permissions to modify this user's roles.",
-                subtitle = "Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner.",
             )
         elif not role_added:
             await send_major_error(
                 interaction,
                 texts    = "I lack the necessary permissions to assign the Personal Leave role.",
-                subtitle = "Invalid configuration. Contact the owner."
+                subtitle = "Invalid configuration. Contact the owner.",
             )
         elif not nick_changed:
             if target_member.id == interaction.guild.owner_id:
@@ -385,7 +386,7 @@ async def run_leave_add(
                 await send_major_error(
                     interaction,
                     texts    = "I lack the necessary permissions to change this user's nickname.",
-                    subtitle = "Invalid configuration. Contact the owner."
+                    subtitle = "Invalid configuration. Contact the owner.",
                 )
 
     except discord.HTTPException:
@@ -402,5 +403,5 @@ async def run_leave_add(
         await send_major_error(
             interaction,
             texts    =  "A Discord API error occurred. Please try again later.",
-            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>."
+            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
         )

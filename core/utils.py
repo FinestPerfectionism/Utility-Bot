@@ -1,26 +1,19 @@
-import discord
-from discord import (
-    Thread,
-    TextChannel,
-    ForumChannel
-)
-from discord.abc import (
-    GuildChannel,
-    Messageable
-)
-
-from asyncio import Queue
 import re
+from asyncio import Queue
 from datetime import timedelta
 from typing import cast
 
+import discord
+from discord import ForumChannel, TextChannel, Thread
+from discord.abc import GuildChannel, Messageable
+
 from constants import (
+    BOT_OWNER_ID,
+    COLOR_RED,
+    COLOR_YELLOW,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
-    BOT_OWNER_ID,
     STAFF_PROPOSALS_CHANNEL_ID,
-    COLOR_YELLOW,
-    COLOR_RED
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -29,7 +22,7 @@ from constants import (
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Queue Helper
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻ 
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 MESSAGE_LOG_QUEUE: Queue[discord.Embed] = Queue()
 
@@ -128,7 +121,7 @@ class MinorError(discord.ui.LayoutView):
         self,
         texts:    list[str],
         subtitle: str = "Invalid argument.",
-        title:    str = "Error!"
+        title:    str = "Error!",
     ) -> None:
         super().__init__()
 
@@ -137,8 +130,8 @@ class MinorError(discord.ui.LayoutView):
         _ = container.add_item(
             discord.ui.TextDisplay(
                 content=f"### {CONTESTED_EMOJI_ID} {title}\n"
-                        f"-# {subtitle}"
-            )
+                        f"-# {subtitle}",
+            ),
         )
 
         for i, text in enumerate(texts):
@@ -146,8 +139,8 @@ class MinorError(discord.ui.LayoutView):
                 _ = container.add_item(
                     discord.ui.Separator(
                         visible = True,
-                        spacing = discord.SeparatorSpacing.small
-                    )
+                        spacing = discord.SeparatorSpacing.small,
+                    ),
                 )
             _ = container.add_item(discord.ui.TextDisplay(content=text))
 
@@ -158,7 +151,7 @@ class MajorError(discord.ui.LayoutView):
         self,
         texts:    list[str],
         subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-        title:    str =  "Error!"
+        title:    str =  "Error!",
     ) -> None:
         super().__init__()
 
@@ -167,8 +160,8 @@ class MajorError(discord.ui.LayoutView):
         _ = container.add_item(
             discord.ui.TextDisplay(
                 content=f"### {DENIED_EMOJI_ID} {title}\n"
-                        f"-# {subtitle}"
-            )
+                        f"-# {subtitle}",
+            ),
         )
 
         for i, text in enumerate(texts):
@@ -176,8 +169,8 @@ class MajorError(discord.ui.LayoutView):
                 _ = container.add_item(
                     discord.ui.Separator(
                         visible = True,
-                        spacing = discord.SeparatorSpacing.small
-                    )
+                        spacing = discord.SeparatorSpacing.small,
+                    ),
                 )
             _ = container.add_item(discord.ui.TextDisplay(content=text))
 
@@ -187,7 +180,7 @@ async def send_minor_error(
     interaction: discord.Interaction,
     texts:       list[str] | str,
     subtitle:    str = "Invalid argument.",
-    title:       str = "Error!"
+    title:       str = "Error!",
 ) -> None:
     if isinstance(texts, str):
         texts = [texts]
@@ -211,7 +204,7 @@ async def send_major_error(
     interaction: discord.Interaction,
     texts:       list[str] | str,
     subtitle:    str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-    title:       str = "Error!"
+    title:       str = "Error!",
 ) -> None:
     if isinstance(texts, str):
         texts = [texts]
@@ -236,23 +229,23 @@ async def send_major_error(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def assert_forum_thread(
-    interaction: discord.Interaction
+    interaction: discord.Interaction,
 ) -> tuple[discord.Thread, discord.ForumChannel]:
     if not isinstance(interaction.channel, discord.Thread):
         raise ValueError(
-            "This command must be used inside a staff proposal thread."
+            "This command must be used inside a staff proposal thread.",
         )
 
     thread: discord.Thread = interaction.channel
 
     if thread.parent_id != STAFF_PROPOSALS_CHANNEL_ID:
         raise ValueError(
-            "This command must be used inside #staff-proposals."
+            "This command must be used inside #staff-proposals.",
         )
 
     if not isinstance(thread.parent, discord.ForumChannel):
         raise ValueError(
-            "This thread is not attached to a forum."
+            "This thread is not attached to a forum.",
         )
 
     return thread, thread.parent

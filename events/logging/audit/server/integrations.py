@@ -1,9 +1,11 @@
+import asyncio
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-import asyncio
-from datetime import datetime, UTC
 
-from constants import COLOR_GREEN, COLOR_RED, COLOR_BLURPLE
+from constants import COLOR_BLURPLE, COLOR_GREEN, COLOR_RED
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -30,7 +32,7 @@ class IntegrationsCog(AuditCog):
                 if entry.action in [
                     discord.AuditLogAction.integration_create,
                     discord.AuditLogAction.integration_update,
-                    discord.AuditLogAction.integration_delete
+                    discord.AuditLogAction.integration_delete,
                 ]:
                     executor = entry.user
                     action_type = entry.action
@@ -57,13 +59,13 @@ class IntegrationsCog(AuditCog):
         embed = discord.Embed(
             title = title,
             color = color,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
             name = "Server",
             value = f"`{guild.name}`\n`{guild.id}`",
-            inline = False
+            inline = False,
         )
 
         if target_name:
@@ -73,7 +75,7 @@ class IntegrationsCog(AuditCog):
             _ = embed.add_field(
                 name = "Action By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

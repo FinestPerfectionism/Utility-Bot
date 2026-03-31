@@ -1,50 +1,42 @@
+import json
+import logging
+import math
+import re
+import secrets
+from collections.abc import Callable
+from datetime import timedelta
+from pathlib import Path
+from typing import (
+    Any,
+    TypedDict,
+    cast,
+)
+
 import discord
 from discord.ext import commands
 
-from typing import (
-    cast,
-    Callable,
-    Any,
-    TypedDict,
-)
-import re
-import math
-import json
-import logging
-import secrets
-from pathlib import Path
-from datetime import timedelta
-
-from core.state import (
-    AUTOMOD_DELETIONS,
-    AUTOMOD_STRIKES,
-    save_automod_strikes,
-    ACTIVE_APPLICATIONS,
-    save_active_applications,
-)
-
-from events.systems.applications import ApplicationSubmitView
-
 from constants import (
     ACCEPTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
-
     COLOR_BLURPLE,
-
     COUNTING_CHANNEL_ID,
     COUNTING_FAILED_ROLE_ID,
-
+    DENIED_EMOJI_ID,
     DIRECTOR_TASKS_CHANNEL_ID,
-    STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
-    STAFF_PROPOSALS_CHANNEL_ID,
-
     DIRECTORS_ROLE_ID,
-    STAFF_COMMITTEE_ROLE_ID,
-
     HOLY_FATHER_ID,
-
-    WAPPLE_CHAIN_CHANNEL_ID
+    STAFF_COMMITTEE_ROLE_ID,
+    STAFF_PROPOSALS_CHANNEL_ID,
+    STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
+    WAPPLE_CHAIN_CHANNEL_ID,
 )
+from core.state import (
+    ACTIVE_APPLICATIONS,
+    AUTOMOD_DELETIONS,
+    AUTOMOD_STRIKES,
+    save_active_applications,
+    save_automod_strikes,
+)
+from events.systems.applications import ApplicationSubmitView
 
 MAX_STRIKES = 5
 TIMEOUT_DURATION = timedelta(days=3)
@@ -58,7 +50,7 @@ WAPPLE_EMOJIS = [
     "<:WappleHartwellWhite:1474916613232001117>",
     "<:applebruh:1478244953892192357>",
     "<:ex:1476672300467093626>",
-    "<:susapple:1483533565005402144>"
+    "<:susapple:1483533565005402144>",
 ]
 
 FACTOIDS = {
@@ -80,7 +72,7 @@ FACTOIDS = {
         "Staff refers to the Staff Role, which includes Moderators, Administrators, Directors, and the Staff Committee.\n"
         "### Why?\n"
         "Members who choose to partner with us gain the staff role, but are not considered staff in the same way as Moderators, Administrators, Directors, or the Staff Committee. Staff* is referenced in the help command."
-    )
+    ),
 }
 
 WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
@@ -91,42 +83,42 @@ _SUPER = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
 _SUB   = str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")
 
 _FONT_MAP = {
-    '𝟎':'0','𝟏':'1','𝟐':'2','𝟑':'3','𝟒':'4','𝟓':'5','𝟔':'6','𝟕':'7','𝟖':'8','𝟗':'9',
-    '𝟘':'0','𝟙':'1','𝟚':'2','𝟛':'3','𝟜':'4','𝟝':'5','𝟞':'6','𝟟':'7','𝟠':'8','𝟡':'9',
-    '𝟢':'0','𝟣':'1','𝟤':'2','𝟥':'3','𝟦':'4','𝟧':'5','𝟨':'6','𝟩':'7','𝟪':'8','𝟫':'9',
-    '𝟬':'0','𝟭':'1','𝟮':'2','𝟯':'3','𝟰':'4','𝟱':'5','𝟲':'6','𝟳':'7','𝟴':'8','𝟵':'9',
-    '𝟶':'0','𝟷':'1','𝟸':'2','𝟹':'3','𝟺':'4','𝟻':'5','𝟼':'6','𝟽':'7','𝟾':'8','𝟿':'9',
-    '𝜋':'pi','𝝅':'pi','𝞹':'pi',
-    '𝜏':'tau','𝝉':'tau','𝞽':'tau',
-    '𝑒':'e',
+    "𝟎":"0","𝟏":"1","𝟐":"2","𝟑":"3","𝟒":"4","𝟓":"5","𝟔":"6","𝟕":"7","𝟖":"8","𝟗":"9",
+    "𝟘":"0","𝟙":"1","𝟚":"2","𝟛":"3","𝟜":"4","𝟝":"5","𝟞":"6","𝟟":"7","𝟠":"8","𝟡":"9",
+    "𝟢":"0","𝟣":"1","𝟤":"2","𝟥":"3","𝟦":"4","𝟧":"5","𝟨":"6","𝟩":"7","𝟪":"8","𝟫":"9",
+    "𝟬":"0","𝟭":"1","𝟮":"2","𝟯":"3","𝟰":"4","𝟱":"5","𝟲":"6","𝟳":"7","𝟴":"8","𝟵":"9",
+    "𝟶":"0","𝟷":"1","𝟸":"2","𝟹":"3","𝟺":"4","𝟻":"5","𝟼":"6","𝟽":"7","𝟾":"8","𝟿":"9",
+    "𝜋":"pi","𝝅":"pi","𝞹":"pi",
+    "𝜏":"tau","𝝉":"tau","𝞽":"tau",
+    "𝑒":"e",
 }
 
-_FONT_PATTERN = re.compile('|'.join(re.escape(k) for k in _FONT_MAP))
+_FONT_PATTERN = re.compile("|".join(re.escape(k) for k in _FONT_MAP))
 
 def _normalize_fonts(expr: str) -> str:
     return _FONT_PATTERN.sub(lambda m: _FONT_MAP[m.group(0)], expr)
 
 _SUBSTITUTIONS: list[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]]] = [
-    (re.compile(r'log([₀₁₂₃₄₅₆₇⁸₉]+)\s*\(([^)]+)\)'),
+    (re.compile(r"log([₀₁₂₃₄₅₆₇⁸₉]+)\s*\(([^)]+)\)"),
      lambda m: f"math.log({m.group(2)},{m.group(1).translate(_SUB)})"),
-    (re.compile(r'(\S+?)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+)'),
+    (re.compile(r"(\S+?)\s*([⁰¹²³⁴⁵⁶⁷⁸⁹]+)"),
      lambda m: m.group(1) + "**" + m.group(2).translate(_SUPER)),
-    (re.compile(r'(\d+(?:\.\d+)?|\([^)]+\))\s*!'),
+    (re.compile(r"(\d+(?:\.\d+)?|\([^)]+\))\s*!"),
      lambda m: f"math.factorial({m.group(1)})"),
-    (re.compile(r'⌊([^⌋]+)⌋'),  lambda m: f"math.floor({m.group(1)})"),
-    (re.compile(r'⌈([^⌉]+)⌉'),  lambda m: f"math.ceil({m.group(1)})"),
-    (re.compile(r'\^'),          "**"),
-    (re.compile(r'(\d)\s*\('),   r'\1*('),
-    (re.compile(r'\)\s*\('),     r')*('),
-    (re.compile(r'√\s*\(([^)]+)\)'), r'math.sqrt(\1)'),
-    (re.compile(r'√\s*(\d+(?:\.\d+)?)'), r'math.sqrt(\1)'),
-    (re.compile(r'\bpi\b|π'),     "math.pi"),
-    (re.compile(r'\btau\b|τ'),    "math.tau"),
-    (re.compile(r'\barcsin\b'),  "math.asin"),
-    (re.compile(r'\barccos\b'),  "math.acos"),
-    (re.compile(r'\barctan\b'),  "math.atan"),
-    (re.compile(r'÷'),           "/"),
-    (re.compile(r'×'),           "*"),
+    (re.compile(r"⌊([^⌋]+)⌋"),  lambda m: f"math.floor({m.group(1)})"),
+    (re.compile(r"⌈([^⌉]+)⌉"),  lambda m: f"math.ceil({m.group(1)})"),
+    (re.compile(r"\^"),          "**"),
+    (re.compile(r"(\d)\s*\("),   r"\1*("),
+    (re.compile(r"\)\s*\("),     r")*("),
+    (re.compile(r"√\s*\(([^)]+)\)"), r"math.sqrt(\1)"),
+    (re.compile(r"√\s*(\d+(?:\.\d+)?)"), r"math.sqrt(\1)"),
+    (re.compile(r"\bpi\b|π"),     "math.pi"),
+    (re.compile(r"\btau\b|τ"),    "math.tau"),
+    (re.compile(r"\barcsin\b"),  "math.asin"),
+    (re.compile(r"\barccos\b"),  "math.acos"),
+    (re.compile(r"\barctan\b"),  "math.atan"),
+    (re.compile(r"÷"),           "/"),
+    (re.compile(r"×"),           "*"),
 ]
 
 _SAFE_GLOBALS: dict[str, Any] = {
@@ -168,9 +160,9 @@ def _preprocess(expr: str) -> str:
 def _evaluate(raw: str) -> float | None:
     if len(raw) > 200:
         return None
-    if not re.search(r'[\d⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉eEπτ𝜋𝝅𝞹𝜏𝝉𝞽𝑒!⌊⌋⌈⌉]', raw):
+    if not re.search(r"[\d⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉eEπτ𝜋𝝅𝞹𝜏𝝉𝞽𝑒!⌊⌋⌈⌉]", raw):
         return None
-    if re.search(r'__|import|exec|eval|open|os|sys|compile|globals|locals|getattr|setattr|type|class', raw):
+    if re.search(r"__|import|exec|eval|open|os|sys|compile|globals|locals|getattr|setattr|type|class", raw):
         return None
     try:
         result = eval(_preprocess(raw), _SAFE_GLOBALS, {})
@@ -219,7 +211,7 @@ def _save_state(state: CountingState) -> None:
         with COUNTING_STATE_PATH.open("w", encoding="utf-8") as f:
             json.dump(state, f)
     except Exception as e:
-        logging.error("Could not save counting state: %s", e)
+        logging.exception("Could not save counting state: %s", e)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Message Sending
@@ -273,8 +265,8 @@ class MessageSendHandler(commands.Cog):
         except discord.HTTPException:
             pass
         _ = await message.channel.send(
-            f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {count_at_failure}!**\n"
-            f"Start again at 1!"
+           f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {count_at_failure}!**\n"
+            "Start again at 1!",
         )
         if message.guild:
             await self._assign_failed_role(message.guild, message.author.id)
@@ -359,7 +351,7 @@ class MessageSendHandler(commands.Cog):
                             allowed_mentions = discord.AllowedMentions(roles=True),
                         )
                     except Exception as e:
-                       logging.error(f"Failed to send director role mention: {e}")
+                       logging.exception(f"Failed to send director role mention: {e}")
 
         if (
             "https://tenor.com/view/dog-funny-video-funny-funny-dog-dog-peeing-gif-4718562751207105873"
@@ -377,7 +369,7 @@ class MessageSendHandler(commands.Cog):
                 save_automod_strikes()
 
                 warning = _ = await message.channel.send(
-                    f"{message.author.mention} Hey dude, can you like *not* send that GIF? You're really not that funny."
+                    f"{message.author.mention} Hey dude, can you like *not* send that GIF? You're really not that funny.",
                 )
                 await warning.delete(delay=15)
 
@@ -391,7 +383,7 @@ class MessageSendHandler(commands.Cog):
                             reason = "UB Auto-Moderation: night night",
                         )
                         _ = await message.channel.send(
-                            f"{message.author.mention} Alright bro, I've given you *five fucking warnings* and you still haven't learned. Is a dog pissing on the floor that funny to you? Regardless, sleep tight bitch."
+                            f"{message.author.mention} Alright bro, I've given you *five fucking warnings* and you still haven't learned. Is a dog pissing on the floor that funny to you? Regardless, sleep tight bitch.",
                         )
                         _ = AUTOMOD_STRIKES.pop(message.author.id, None)
                         save_automod_strikes()
@@ -402,7 +394,7 @@ class MessageSendHandler(commands.Cog):
                 pass
             except Exception as e:
                 logging.getLogger("Utility Bot").exception(
-                    "Automod failure while processing message", exc_info=e
+                    "Automod failure while processing message", exc_info=e,
                 )
             return
 
@@ -412,16 +404,16 @@ class MessageSendHandler(commands.Cog):
                     _ = await message.reply("<:cry2:1482032228614668390> But daddy...")
 
                 else:
-                    grimace_emojis = ['<:grimace2:1469070596632608779>', '<:grimace3:1469070653624684820>']
+                    grimace_emojis = ["<:grimace2:1469070596632608779>", "<:grimace3:1469070653624684820>"]
                     statements = [
                         "stfu you meatbag 🥀 omfg icl ts pmo gng smh frfr <:exhausted:1467990265452167362>",
                         "Watch your fucking mouth, organic. <:grimace3:1469070653624684820>",
-                        "Zip it, skinjob. <:grimace2:1469070596632608779>"
+                        "Zip it, skinjob. <:grimace2:1469070596632608779>",
                     ]
                     _ = await message.reply(secrets.choice(statements))
                     await message.add_reaction(secrets.choice(grimace_emojis))
 
-        if re.search(r'\b67\b', message.content):
+        if re.search(r"\b67\b", message.content):
             if message.guild and message.guild.id != 846677253290983444:
                 await message.add_reaction("<:67:1484198860263002133>")
 
@@ -447,7 +439,7 @@ class MessageSendHandler(commands.Cog):
                     )
 
                     for i, (q, a) in enumerate(
-                        zip(app["questions"], app["answers"], strict=True), start=1
+                        zip(app["questions"], app["answers"], strict=True), start=1,
                     ):
                         _ = embed.add_field(
                             name   = f"{i}. {q}",
@@ -479,7 +471,7 @@ class MessageSendHandler(commands.Cog):
                     )
 
                     for i, (q, a) in enumerate(
-                        zip(app["questions"], app["answers"], strict=True), start=1
+                        zip(app["questions"], app["answers"], strict=True), start=1,
                     ):
                         _ = embed.add_field(
                             name   = f"{i}. {q}",

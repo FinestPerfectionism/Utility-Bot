@@ -1,10 +1,11 @@
+from collections.abc import Sequence
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
 
-from datetime import datetime, UTC
-from collections.abc import Sequence
-
 from constants import COLOR_GREEN
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -32,21 +33,21 @@ class EmojiAddCog(AuditCog):
         embed = discord.Embed(
             title = "Emoji Added",
             color = COLOR_GREEN,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         for emoji in added:
             _ = embed.add_field(
                 name = "Emoji",
                 value = f"`{emoji.name}`\n`{emoji.id}`\n{emoji}",
-                inline = True
+                inline = True,
             )
 
         if executor:
             _ = embed.add_field(
                 name = "Added By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

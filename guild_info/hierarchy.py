@@ -6,7 +6,7 @@ class HierarchyComponents1(discord.ui.LayoutView):
             content=
                 "# Welcome to the Hierarchy!\n"
                 "The hierarchy of the server.\n"
-                "-# **Note:** Roles and their responsibilities are subject to change at any time based on Directorate decision or structural updates. Sensitive information such as internal policy and nomination details has not been shared here."
+                "-# **Note:** Roles and their responsibilities are subject to change at any time based on Directorate decision or structural updates. Sensitive information such as internal policy and nomination details has not been shared here.",
         ),
     )
 
@@ -19,19 +19,19 @@ class HierarchyComponents2(discord.ui.LayoutView):
                     "# Hierarchy\n"
                    f"Hierarchy last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>; assisted by <@1167207694424350740>, <@1135600413954019339>, and <@1333839098485542949>.\n"
+                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>; assisted by <@1167207694424350740>, <@1135600413954019339>, and <@1333839098485542949>.\n",
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = True,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.Separator( # type: ignore
                 visible = False,
-                spacing = discord.SeparatorSpacing.small
+                spacing = discord.SeparatorSpacing.small,
             ),
             discord.ui.TextDisplay( # type: ignore
                 content=
@@ -56,7 +56,7 @@ class HierarchyComponents2(discord.ui.LayoutView):
                     "**Requirements**\n"
                     "- Must hold **Senior Staff status** within both the Moderation Team and the Administration Team.\n"
                     "- Must be an active member of the **Staff Committee**.\n\n"
-                    "> This position is obtainable only through **appointment by the existing Directorate**."
+                    "> This position is obtainable only through **appointment by the existing Directorate**.",
             ),
         )
         self.add_item(self.container) # type: ignore
@@ -68,7 +68,7 @@ class HierarchyComponents3(discord.ui.LayoutView):
                 "## Staff Committee\n"
                 "The **Staff Committee** is the final decision-making body for Staff Proposals. It is composed of all active Directors and the Owner. After an advisory poll concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
                 "For full details on the Staff Committee's composition, procedures, voting thresholds, and review timelines, refer to the staff proposal information.\n\n"
-                "> This position is obtainable through **appointment by the Directorate**."
+                "> This position is obtainable through **appointment by the Directorate**.",
         ),
     )
 
@@ -120,7 +120,7 @@ class HierarchyComponents4(discord.ui.LayoutView):
                 "- Create moderation notes.\n"
                 "- View moderation notes.\n"
                 "- Mute members.\n\n"
-                "> This position is obtained through a **successful application**. Applications are not always open."
+                "> This position is obtained through a **successful application**. Applications are not always open.",
         ),
     )
 
@@ -133,7 +133,7 @@ class HierarchyComponents5(discord.ui.LayoutView):
                 "Staff membership may be obtained through:\n"
                 "- Partnerships.\n"
                 "- Appointment to the **Staff Committee**.\n"
-                "- Joining the **Moderation Team** or **Administration Team**."
+                "- Joining the **Moderation Team** or **Administration Team**.",
         ),
     )
 
@@ -145,7 +145,7 @@ class HierarchyComponents6(discord.ui.LayoutView):
                 "**Guild Trustees** are community members who have demonstrated a level of trust and engagement within the server. They may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.\n\n"
                 "Guild Trustees are not Staff, but are a recognized contributor group within the community. Members holding this role are more likely to be considered for nomination to the Moderation Team, Administration Team, or Staff Committee.\n\n"
                 "For full details on what Guild Trustees may and may not propose, refer to the staff proposal information.\n\n"
-                "> This role is obtainable through **nomination**."
+                "> This role is obtainable through **nomination**.",
         ),
     )
 
@@ -155,6 +155,6 @@ class HierarchyComponents7(discord.ui.LayoutView):
             content=
                 "## Verified\n"
                 "The **Verified** role is granted upon passing the server's entry verification. It serves as an anti-raid gate and is required to gain access to the server's channels.\n\n"
-                "> This role is obtained automatically upon **completing server verification**."
+                "> This role is obtained automatically upon **completing server verification**.",
         ),
     )

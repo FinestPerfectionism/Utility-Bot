@@ -1,26 +1,27 @@
 from __future__ import annotations
 
-import discord
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from ._base import ModerationListPaginator
+from constants import (
+    COLOR_BLACK,
+    COLOR_GREEN,
+)
 from core.utils import send_major_error
 
-from constants import (
-    COLOR_GREEN,
-    COLOR_BLACK,
-)
+from ._base import ModerationListPaginator
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation bans Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_bans(
-    base        : "ModerationBase",
+    base        : ModerationBase,
     interaction : discord.Interaction,
 ) -> None:
     actor = interaction.user
@@ -32,7 +33,7 @@ async def run_bans(
             interaction,
             title    = "Unauthorized!",
             texts    = "You lack the necessary permissions to view bans.",
-            subtitle = "Invalid permissions."
+            subtitle = "Invalid permissions.",
         )
         return
 
@@ -48,7 +49,7 @@ async def run_bans(
         if not bans:
             embed = discord.Embed(
                 description = "No members are currently banned.",
-                color       = COLOR_GREEN
+                color       = COLOR_GREEN,
             )
             await interaction.followup.send(embed=embed, ephemeral = True)
             return
@@ -74,5 +75,5 @@ async def run_bans(
         await send_major_error(
             interaction,
             texts    = "I lack the necessary permissions to view banned members.",
-            subtitle = "Invalid configuration. Contact the owner."
+            subtitle = "Invalid configuration. Contact the owner.",
         )

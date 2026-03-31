@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_RED
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -24,13 +26,13 @@ class RoleDeleteCog(AuditCog):
         embed = discord.Embed(
             title = "Role Deleted",
             color = COLOR_RED,
-            timestamp = datetime.now(UTC)
+            timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
             name = "Role",
             value = f"`{role.name}`\n`{role.id}`",
-            inline = True
+            inline = True,
         )
         _ = embed.add_field(name = "Color", value = str(role.color), inline = True)
         _ = embed.add_field(name = "Position", value = str(role.position), inline = True)
@@ -39,7 +41,7 @@ class RoleDeleteCog(AuditCog):
             _ = embed.add_field(
                 name = "Deleted By",
                 value = f"`{executor}`\n`{executor.id}`",
-                inline = False
+                inline = False,
             )
 
         await self._enqueue(log_channel, embed)

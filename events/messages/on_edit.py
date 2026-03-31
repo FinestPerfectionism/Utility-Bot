@@ -1,19 +1,17 @@
+import re
+
 import discord
 from discord.ext import commands
-import re
-from core.utils import (
-    channel_display,
-    format_attachments,
-    Messageable
-)
+
 from constants import (
+    COLOR_GREY,
     CONTESTED_EMOJI_ID,
     COUNTING_CHANNEL_ID,
     DIRECTORSHIP_CATEGORY_ID,
     MESSAGE_EDIT_LOG_CHANNEL_ID,
-    COLOR_GREY,
-    WAPPLE_CHAIN_CHANNEL_ID
+    WAPPLE_CHAIN_CHANNEL_ID,
 )
+from core.utils import Messageable, channel_display, format_attachments
 
 WAPPLE_EMOJIS = [
     "<:Wapple:1474915842071335098>",
@@ -23,7 +21,7 @@ WAPPLE_EMOJIS = [
     "<:WappleHartwellWhite:1474916613232001117>",
     "<:applebruh:1478244953892192357>",
     "<:ex:1476672300467093626>",
-    "<:susapple:1483533565005402144>"
+    "<:susapple:1483533565005402144>",
 ]
 
 WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$")
@@ -67,7 +65,7 @@ class MessageEditHandler(commands.Cog):
                 ):
                     _ = await after.channel.send(
                         f"{CONTESTED_EMOJI_ID} **Warning!**\n"
-                        f"{before.author.name} has edited their message. The next number is {counting_cog.state['count'] + 1}."
+                        f"{before.author.name} has edited their message. The next number is {counting_cog.state['count'] + 1}.",
                     )
             return
 

@@ -1,40 +1,33 @@
 from __future__ import annotations
 
+import functools
+from dataclasses import dataclass, field
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ParamSpec,
+    Protocol,
+    TypeVar,
+    cast,
+    runtime_checkable,
+)
+
 import discord
 from discord.ext import commands
 
-import functools
-from dataclasses import (
-    dataclass,
-    field
-)
-from typing import (
-    TYPE_CHECKING,
-    Protocol,
-    Any,
-    runtime_checkable,
-    cast,
-    TypeVar,
-    ParamSpec,
-)
 if TYPE_CHECKING:
-    from discord.app_commands import Group as AppGroup
+    from collections.abc import Awaitable, Callable, Coroutine
 
-    from collections.abc import (
-        Callable,
-        Awaitable,
-        Coroutine
-    )
+    from discord.app_commands import Group as AppGroup
 
 from constants import (
     ACCEPTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
-    CONTESTED_EMOJI_ID,
-
     COLOR_BLURPLE,
     COLOR_GREEN,
-    COLOR_YELLOW,
     COLOR_RED,
+    COLOR_YELLOW,
+    CONTESTED_EMOJI_ID,
+    DENIED_EMOJI_ID,
 )
 
 P = ParamSpec("P")
@@ -259,15 +252,15 @@ def build_help_view(
         roles_block = "- No role restriction."
 
     main_text = (
-        f"# \"{command_name}\" Command\n"
+        f'# "{command_name}" Command\n'
         f"## Description:\n{data.desc}\n"
         f"## Required Roles:\n{roles_block}\n"
-        f"## Arguments:\n"
+         "## Arguments:\n"
         f"```python\n{usage_block}\n```\n"
-        f"-# {{…}} denotes a required argument\n"
-        f"-# […] denotes an optional argument\n\n"
+         "-# {{…}} denotes a required argument\n"
+         "-# […] denotes an optional argument\n\n"
         f"{arg_details}"
-        f"## Variants:\n"
+         "## Variants:\n"
         f"- {prefix_emoji} **Prefix**\n"
         f"- {slash_emoji} **Slash**"
         f"{aliases_line}"
@@ -280,16 +273,16 @@ def build_help_view(
         perm_colour = COLOR_GREEN
         perm_text = (
             f"### {ACCEPTED_EMOJI_ID} Authorized.\n"
-            f"-# Valid permissions.\n"
-            f"You have the necessary permissions to run this command."
+             "-# Valid permissions.\n"
+             "You have the necessary permissions to run this command."
         )
 
     elif status == "none":
         perm_colour = COLOR_RED
         perm_text = (
             f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-            f"-# Invalid permissions.\n"
-            f"You lack the necessary permissions to run this command."
+             "-# Invalid permissions.\n"
+             "You lack the necessary permissions to run this command."
         )
 
     else:
@@ -307,9 +300,9 @@ def build_help_view(
 
         perm_text = (
             f"### {CONTESTED_EMOJI_ID} Partially Authorized.\n"
-            f"-# Partially valid permissions.\n"
-            f"You have the necessary permissions to run this command, "
-            f"but not all of its arguments. Specifically, you have access "
+             "-# Partially valid permissions.\n"
+             "You have the necessary permissions to run this command, "
+             "but not all of its arguments. Specifically, you have access "
             f"to these arguments:\n- {args_detail}"
             f"{channel_detail}"
         )
@@ -420,7 +413,7 @@ async def run_help(
                     title = "Available Commands",
                     description="\n".join(lines),
                     color = COLOR_BLURPLE,
-                )
+                ),
             )
         else:
             _ = await respond("No documented commands found.", ephemeral = True)

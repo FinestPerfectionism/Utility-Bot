@@ -1,31 +1,31 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
-
 import logging
 
-from constants import BOT_OWNER_ID
+import discord
+from discord import app_commands
+from discord.ext import commands
 
+from constants import BOT_OWNER_ID
 from core.help import (
-    help_description,
     ArgumentInfo,
     UserConfig,
+    help_description,
 )
+
 from ._base import (
-    get_cogs,
     cog_autocomplete,
+    get_cogs,
 )
-from .cogs.reload import run_reload
 from .cogs.load import run_load
-from .cogs.unload import run_unload
 from .cogs.pull_reload import run_pull_reload
-from .state.shutdown import run_shutdown
-from .state.restart import run_restart
+from .cogs.reload import run_reload
+from .cogs.unload import run_unload
 from .misc import (
-    run_status,
     run_eval,
     run_say,
+    run_status,
 )
+from .state.restart import run_restart
+from .state.shutdown import run_shutdown
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Owner Commands
@@ -34,7 +34,7 @@ from .misc import (
 class BotOwnerCommands(
     commands.GroupCog,
     name        = "bot-owner",
-    description = "Bot Owner only —— Bot owner commands."
+    description = "Bot Owner only —— Bot owner commands.",
 ):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot            = bot
@@ -52,10 +52,10 @@ class BotOwnerCommands(
 
     @app_commands.command(
         name        = "reload",
-        description = "Reload a cog or all cogs."
+        description = "Reload a cog or all cogs.",
     )
     @app_commands.describe(
-        cog = "The cog to reload. Leave empty to reload all cogs."
+        cog = "The cog to reload. Leave empty to reload all cogs.",
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
     @help_description(
@@ -74,10 +74,10 @@ class BotOwnerCommands(
 
     @app_commands.command(
         name        = "load",
-        description = "Load a cog."
+        description = "Load a cog.",
     )
     @app_commands.describe(
-        cog = "The cog to load."
+        cog = "The cog to load.",
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
     @help_description(
@@ -96,10 +96,10 @@ class BotOwnerCommands(
 
     @app_commands.command(
         name        = "unload",
-        description = "Unload a cog."
+        description = "Unload a cog.",
     )
     @app_commands.describe(
-        cog = "The cog to unload."
+        cog = "The cog to unload.",
     )
     @app_commands.autocomplete(cog=cog_autocomplete)
     @help_description(
@@ -148,7 +148,7 @@ class BotOwnerCommands(
 
     @app_commands.command(
         name        = "status",
-        description = "Sets the bot's presence status."
+        description = "Sets the bot's presence status.",
     )
     @app_commands.describe(
         type  = "Activity type.",
@@ -229,7 +229,7 @@ class BotOwnerCommands(
 
     @app_commands.command(
         name        = "pull-reload",
-        description = "Pull from main, then reload all cogs."
+        description = "Pull from main, then reload all cogs.",
     )
     @help_description(
         desc      = "Bot Owner only —— Pulls the latest code from github and reloads all cogs.",

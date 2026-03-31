@@ -1,21 +1,21 @@
+import logging
+
 import discord
 from discord.ext import commands
 
-import logging
-
-from core.help import (
-    help_description,
-    RoleConfig,
-)
 from constants import (
-    STAFF_PROPOSALS_CHANNEL_ID,
-    DIRECTORS_ROLE_ID,
-    STAFF_COMMITTEE_ROLE_ID,
-    STAFF_ROLE_ID,
-    SENIOR_ADMINISTRATORS_ROLE_ID,
     ADMINISTRATORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
+    DIRECTORS_ROLE_ID,
     MODERATORS_ROLE_ID,
+    SENIOR_ADMINISTRATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
+    STAFF_COMMITTEE_ROLE_ID,
+    STAFF_PROPOSALS_CHANNEL_ID,
+    STAFF_ROLE_ID,
+)
+from core.help import (
+    RoleConfig,
+    help_description,
 )
 
 log = logging.getLogger("Utility Bot")
@@ -53,8 +53,8 @@ class PingCommands(commands.Cog, name = "ping"):
         name = "staff",
         aliases=[
             "s",
-            "stf"
-        ]
+            "stf",
+        ],
     )
     @help_description(
         desc="Staff only —— Pings the Staff role.",
@@ -75,8 +75,8 @@ class PingCommands(commands.Cog, name = "ping"):
         aliases=[
                                  "senior-mods", "senior-mod", "s-mods", "s-mod", "s-m",
             "senior_moderators", "senior_mods", "senior_mod", "s_mods", "s_mod", "s_m",
-            "seniormoderators" , "seniormods" , "seniormod" , "smods" , "smod" , "sm"
-        ]
+            "seniormoderators" , "seniormods" , "seniormod" , "smods" , "smod" , "sm",
+        ],
     )
     @help_description(
         desc="Moderators only —— Pings the Senior Moderators role.",
@@ -97,8 +97,8 @@ class PingCommands(commands.Cog, name = "ping"):
         aliases=[
                                      "senior-admins", "senior-admin", "s-admins", "s-admin", "s-a",
             "senior_administrators", "senior_admins", "senior_admin", "s_admins", "s_admin", "s_a",
-            "senioradministrators" , "senioradmins" , "senioradmin" , "sadmins" , "sadmin" , "sa"
-        ]
+            "senioradministrators" , "senioradmins" , "senioradmin" , "sadmins" , "sadmin" , "sa",
+        ],
     )
     @help_description(
         desc="Administrators only —— Pings the Senior Administrators role.",
@@ -119,8 +119,8 @@ class PingCommands(commands.Cog, name = "ping"):
         aliases=[
             "director",
             "dir",
-            "d"
-        ]
+            "d",
+        ],
     )
     @help_description(
         desc="Senior Moderators or Senior Administrators only —— Pings the Directors role.",
@@ -150,8 +150,8 @@ class PingCommands(commands.Cog, name = "ping"):
                                "s-committee", "s-c",
             "staff_committee", "s_committee", "s_c",
             "staffcommittee" , "scommittee" , "sc" ,
-            "committee"      , "com"
-        ]
+            "committee"      , "com",
+        ],
     )
     @help_description(
         desc="Staff Committee only or Staff (staff-proposals thread) only —— Pings the Staff Committee role.",
@@ -171,7 +171,7 @@ class PingCommands(commands.Cog, name = "ping"):
             return
 
         is_in_valid_thread = (
-            isinstance(ctx.channel, discord.Thread) and 
+            isinstance(ctx.channel, discord.Thread) and
             ctx.channel.parent_id == STAFF_PROPOSALS_CHANNEL_ID
         )
 

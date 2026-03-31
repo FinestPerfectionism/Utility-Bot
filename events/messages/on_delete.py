@@ -1,17 +1,19 @@
+from typing import Any
+
 import discord
 from discord.ext import commands
-from typing import Any
-from core.utils import (
-    channel_display,
-    format_attachments,
-)
-from core.state import AUTOMOD_DELETIONS
+
 from constants import (
+    COLOR_RED,
     CONTESTED_EMOJI_ID,
     COUNTING_CHANNEL_ID,
     DIRECTORSHIP_CATEGORY_ID,
     MESSAGE_DELETE_LOG_CHANNEL_ID,
-    COLOR_RED,
+)
+from core.state import AUTOMOD_DELETIONS
+from core.utils import (
+    channel_display,
+    format_attachments,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -44,7 +46,7 @@ class MessageDeleteHandler(commands.Cog):
                 if last_id is not None and message.id == last_id:
                     _ = await message.channel.send(
                         f"{CONTESTED_EMOJI_ID} **Warning!**\n"
-                        f"{message.author.name} has deleted their message. The next number is {counting_cog.state['count'] + 1}."
+                        f"{message.author.name} has deleted their message. The next number is {counting_cog.state['count'] + 1}.",
                     )
             return
 
@@ -117,7 +119,7 @@ class MessageDeleteHandler(commands.Cog):
             value  = format_attachments(message.attachments),
             inline = True,
         )
-        _ = embed.set_footer(text="Please note that the \"Deleted By\" section guesses by checking the audit log, and may not always be accurate")
+        _ = embed.set_footer(text='Please note that the "Deleted By" section guesses by checking the audit log, and may not always be accurate')
         _ = await log_channel.send(embed=embed)
 
 async def setup(bot: commands.Bot) -> None:

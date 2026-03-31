@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 import discord
 from discord.ext import commands
-from datetime import datetime, UTC
 
 from constants import COLOR_BLURPLE
+
 from .._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -25,25 +27,25 @@ class MemberEditCog(AuditCog):
             embed = discord.Embed(
                 title = "Nickname Changed",
                 color = COLOR_BLURPLE,
-                timestamp = datetime.now(UTC)
+                timestamp = datetime.now(UTC),
             )
 
             _ = embed.add_field(
                 name = "Member",
                 value = f"`{after}`\n`{after.id}`",
-                inline = False
+                inline = False,
             )
             _ = embed.add_field(
                 name = "Nickname Changed",
                 value = f"**Before:** `{before.nick or 'None'}`\n**After:** `{after.nick or 'None'}`",
-                inline = False
+                inline = False,
             )
 
             if executor:
                 _ = embed.add_field(
                     name = "Changed By",
                     value = f"`{executor}`\n`{executor.id}`",
-                    inline = False
+                    inline = False,
                 )
 
             await self._enqueue(log_channel, embed)
@@ -67,13 +69,13 @@ class MemberEditCog(AuditCog):
             embed = discord.Embed(
                 title = "Member Roles Changed",
                 color = COLOR_BLURPLE,
-                timestamp = datetime.now(UTC)
+                timestamp = datetime.now(UTC),
             )
 
             _ = embed.add_field(
                 name = "Member",
                 value = f"`{after}`\n`{after.id}`",
-                inline = False
+                inline = False,
             )
 
             if added_roles:
@@ -88,7 +90,7 @@ class MemberEditCog(AuditCog):
                 _ = embed.add_field(
                     name = "Changed By",
                     value = f"`{executor}`\n`{executor.id}`",
-                    inline = False
+                    inline = False,
                 )
 
             await self._enqueue(log_channel, embed)
