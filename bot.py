@@ -17,19 +17,19 @@ class UtilityBot(commands.Bot):
     notes_manager : Any
 
     def __init__(self) -> None:
-        intents: discord.Intents = discord.Intents.default()
-        intents.guilds           = True
-        intents.members          = True
-        intents.message_content  = True
+        intents : discord.Intents = discord.Intents.default()
+        intents.guilds            = True
+        intents.members           = True
+        intents.message_content   = True
 
         super().__init__(
             command_prefix   = ".",
             intents          = intents,
             case_insensitive = True,
         )
-        self.cases_manager: CasesManager = CasesManager(self)
-        self.mod_data: dict[str, Any] = {}
-        self.notes_manager: Any = None
+        self.cases_manager : CasesManager = CasesManager(self)
+        self.mod_data      : dict[str, Any] = {}
+        self.notes_manager : Any = None
 
     @override
     async def setup_hook(self) -> None:
@@ -39,13 +39,13 @@ class UtilityBot(commands.Bot):
 
         log: logging.Logger = logging.getLogger("Utility Bot")
 
-        priority_load: list[str] = [
+        priority_load : list[str] = [
             "events.systems.antinuke",
             "events.member.verification",
             "core.startup",
         ]
 
-        cogs: list[str] = discover_cogs(
+        cogs : list[str] = discover_cogs(
             "commands",
             "events",
             "core",

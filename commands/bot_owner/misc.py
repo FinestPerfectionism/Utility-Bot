@@ -2,6 +2,7 @@ import contextlib
 import io
 import textwrap
 import traceback
+from asyncio import sleep
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -107,11 +108,23 @@ async def run_status(
 # .eval Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+class EvalFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+    s: str | None = commands.flag(
+        name        = "s",
+        aliases     = ["silent", "supress", "shush"],
+        default     = None,
+        max_args    = -1,
+    )
+
 async def run_eval(
-    bot  : commands.Bot,
-    ctx  : commands.Context[commands.Bot],
-    body : str,
+    bot   : commands.Bot,
+    ctx   : commands.Context[commands.Bot],
+    body  : str,
+    *,
+    flags : EvalFlags | None = None,
 ) -> None:
+    silent = flags and flags.s is not None
+
     if ctx.author.id != BOT_OWNER_ID:
         _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
         return
@@ -135,7 +148,17 @@ async def run_eval(
     try:
         import builtins
         builtins.exec(to_compile, env)
-    except BaseException as e: # noqa: BLE001
+    except BaseException as e:
+        if silent:
+            _   = await ctx.message.delete()
+            msg = await ctx.send(
+                "```py\n"
+               f"{e.__class__.__name__}: {e}\n"
+                "```"
+            )
+            await sleep(5)
+            await msg.delete()
+            return
         _ = await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
         _ = await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
         return
@@ -145,12 +168,21 @@ async def run_eval(
     try:
         with contextlib.redirect_stdout(stdout):
             ret = await func()
-    except BaseException: # noqa: BLE001
+    except BaseException:
         value = stdout.getvalue()
+        if silent:
+            _   = await ctx.message.delete()
+            msg = await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
+            await sleep(5)
+            await msg.delete()
+            return
         _ = await ctx.message.add_reaction(f"{CONTESTED_EMOJI_ID}")
         _ = await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
     else:
         value = stdout.getvalue()
+        if silent:
+            _ = await ctx.message.delete()
+            return
         _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
 
         if ret is None:
@@ -182,6 +214,6 @@ async def run_say(
         ref_channel = ctx.bot.get_channel(ref_channel_id) or await ctx.bot.fetch_channel(ref_channel_id)
         if isinstance(ref_channel, discord.abc.Messageable):
             original_message = await ref_channel.fetch_message(ctx.message.reference.message_id)
-            _ =await original_message.reply(formatted_message)
+            _ = await original_message.reply(formatted_message)
     else:
-        _ =await channel.send(formatted_message)
+        _ = await channel.send(formatted_message)
