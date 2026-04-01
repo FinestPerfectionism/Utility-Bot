@@ -21,6 +21,7 @@ from .cogs.reload import run_reload
 from .cogs.unload import run_unload
 from .misc import (
     run_eval,
+        EvalFlags,
     run_say,
     run_status,
 )
@@ -209,8 +210,14 @@ class BotOwnerCommands(
         run_users = [UserConfig(user_id = BOT_OWNER_ID)],
         arguments = {"body": ArgumentInfo(description = "Python code to evaluate.")},
     )
-    async def _eval(self, ctx: commands.Context[commands.Bot], *, body: str) -> None:
-        await run_eval(self.bot, ctx, body)
+    async def _eval(
+        self,
+        ctx   : commands.Context[commands.Bot],
+        *,
+        flags : EvalFlags,
+        body  : str,
+    ) -> None:
+        await run_eval(self.bot, ctx, body, flags = flags)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .say Command
