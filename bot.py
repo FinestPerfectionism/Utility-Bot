@@ -41,7 +41,7 @@ class UtilityBot(commands.Bot):
 
         priority_load : list[str] = [
             "events.systems.antinuke",
-            "events.member.verification",
+            "events.systems.verification",
             "core.startup",
         ]
 

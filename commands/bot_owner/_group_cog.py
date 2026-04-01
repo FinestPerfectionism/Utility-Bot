@@ -48,7 +48,24 @@ class BotOwnerCommands(
         return get_cogs()
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /reload Command
+    # /bot-owner pull-reload Command
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+    @app_commands.command(
+        name        = "pull-reload",
+        description = "Pull from main, then reload all cogs.",
+    )
+    @help_description(
+        desc      = "Bot Owner only —— Pulls the latest code from github and reloads all cogs.",
+        prefix    = False,
+        slash     = True,
+        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
+    )
+    async def pull_reload(self, interaction: discord.Interaction) -> None:
+        await run_pull_reload(self.bot, interaction, get_cogs())
+
+    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+    # /bot-owner reload Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
@@ -144,7 +161,7 @@ class BotOwnerCommands(
         await run_restart(self.bot, ctx, self.restarting_ref, self.logger)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /status Command
+    # /bot-owner status Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
@@ -214,10 +231,14 @@ class BotOwnerCommands(
         self,
         ctx   : commands.Context[commands.Bot],
         *,
-        flags : EvalFlags,
         body  : str,
+        flags : EvalFlags | None = None
     ) -> None:
-        await run_eval(self.bot, ctx, body, flags = flags)
+        
+        if flags is None:
+            flags = EvalFlags()
+            
+        await run_eval(self.bot, ctx, body, flags=flags)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .say Command
@@ -232,23 +253,6 @@ class BotOwnerCommands(
         message: str,
     ) -> None:
         await run_say(ctx, target_channel, message)
-
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # /pull-reload Command
-    # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-    @app_commands.command(
-        name        = "pull-reload",
-        description = "Pull from main, then reload all cogs.",
-    )
-    @help_description(
-        desc      = "Bot Owner only —— Pulls the latest code from github and reloads all cogs.",
-        prefix    = False,
-        slash     = True,
-        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
-    )
-    async def pull_reload(self, interaction: discord.Interaction) -> None:
-        await run_pull_reload(self.bot, interaction, get_cogs())
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(BotOwnerCommands(bot))

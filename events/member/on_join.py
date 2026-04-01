@@ -1,5 +1,5 @@
 import contextlib
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
 import discord
@@ -7,7 +7,7 @@ from discord.ext import commands
 
 if TYPE_CHECKING:
     from commands.moderation.primary._group_cog import ModerationCommands
-    from events.member.verification import VerificationHandler
+    from events.systems.verification import VerificationHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
@@ -28,9 +28,9 @@ class MemberJoinHandler(commands.Cog):
             return
 
         verification_cog.data["unverified"][str(member.id)] = {
-            "joined_at": datetime.now().isoformat(),
-            "warned": False,
-            "warning_message_id": None,
+            "joined_at"          : datetime.now(UTC).isoformat(),
+            "warned"             : False,
+            "warning_message_id" : None,
         }
         verification_cog.save_data()
 

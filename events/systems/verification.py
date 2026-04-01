@@ -38,11 +38,11 @@ log = logging.getLogger("Utility Bot")
 
 class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
     code_input: discord.ui.TextInput[discord.ui.Modal] = discord.ui.TextInput(
-        label="CAPTCHA Code",
-        placeholder="Enter the code from the image.",
-        required=True,
-        max_length=6,
-        min_length=6,
+        label       = "CAPTCHA Code",
+        placeholder = "Enter the code from the image.",
+        required    = True,
+        max_length  = 6,
+        min_length  = 6,
     )
 
     def __init__(self, correct_code: str, cog: "VerificationHandler") -> None:
@@ -101,9 +101,9 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
 class VerificationButton(discord.ui.Button[discord.ui.LayoutView]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
-            style=discord.ButtonStyle.primary,
-            label="Verify",
-            custom_id="persistent_verification_button",
+            style     = discord.ButtonStyle.primary,
+            label     = "Verify",
+            custom_id = "persistent_verification_button",
         )
         self.cog = cog
 
@@ -122,9 +122,9 @@ class VerificationButton(discord.ui.Button[discord.ui.LayoutView]):
 class HelpButton(discord.ui.Button[discord.ui.LayoutView]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
-            style=discord.ButtonStyle.red,
-            label="Help!",
-            custom_id="persistent_help_button",
+            style     = discord.ButtonStyle.red,
+            label     = "Help!",
+            custom_id = "persistent_help_button",
         )
         self.cog = cog
 
@@ -176,15 +176,15 @@ class VerificationComponents(discord.ui.LayoutView):
 
 class VerificationHandler(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+        self.bot       = bot
         self.data_file = "verification_data.json"
-        self.data = self.load_data()
+        self.data      = self.load_data()
 
         self.VERIFICATION_CHANNEL_ID = VERIFICATION_CHANNEL_ID
-        self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
+        self.GOOBERS_ROLE_ID         = GOOBERS_ROLE_ID
 
         self.verification_message_id = None
-        self.active_captchas: dict[int, dict[str, Any]] = {}
+        self.active_captchas : dict[int, dict[str, Any]] = {}
 
     @override
     async def cog_load(self) -> None:
@@ -205,8 +205,8 @@ class VerificationHandler(commands.Cog):
 
     def get_default_data(self) -> dict[str, Any]:
         return {
-            "unverified": {},
-            "verification_message_id": None,
+            "unverified"              : {},
+            "verification_message_id" : None,
         }
 
     def save_data(self) -> None:
@@ -254,14 +254,14 @@ class VerificationHandler(commands.Cog):
 
         background = background.filter(ImageFilter.GaussianBlur(1))
 
-        noise_layer: Image.Image = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-        noise_draw: ImageDraw.ImageDraw = ImageDraw.Draw(noise_layer)
+        noise_layer : Image.Image = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        noise_draw  : ImageDraw.ImageDraw = ImageDraw.Draw(noise_layer)
 
-        text_layer: Image.Image = Image.new("RGBA", (width, height), (255, 255, 255, 0))
-        text_draw: ImageDraw.ImageDraw = ImageDraw.Draw(text_layer)
+        text_layer  : Image.Image = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+        text_draw   : ImageDraw.ImageDraw = ImageDraw.Draw(text_layer)
 
-        font: Any
-        small_font: Any
+        font        : Any
+        small_font  : Any
 
         try:
             font = ImageFont.truetype(
@@ -276,28 +276,28 @@ class VerificationHandler(commands.Cog):
 
         char_images: list[Image.Image] = []
         for char in code:
-            char_img: Image.Image = Image.new("RGBA", (70, 80), (255, 255, 255, 0))
-            char_draw: ImageDraw.ImageDraw = ImageDraw.Draw(char_img)
-            c_base: int = random.SystemRandom().randint(70, 120)
-            color: tuple[int, int, int, int] = (
+            char_img  : Image.Image = Image.new("RGBA", (70, 80), (255, 255, 255, 0))
+            char_draw : ImageDraw.ImageDraw = ImageDraw.Draw(char_img)
+            c_base    : int = random.SystemRandom().randint(70, 120)
+            color     : tuple[int, int, int, int] = (
                 c_base + random.SystemRandom().randint(-20, 20),
                 c_base + random.SystemRandom().randint(-20, 20),
                 c_base + random.SystemRandom().randint(-20, 20),
                 random.SystemRandom().randint(160, 210),
             )
             char_draw.text((10, 10), char, fill=color, font=font)
-            angle: int = random.SystemRandom().randint(-30, 30)
-            char_img = char_img.rotate(angle, expand=True)
-            char_img = sine_distort(char_img)
+            angle : int = random.SystemRandom().randint(-30, 30)
+            char_img    = char_img.rotate(angle, expand = True)
+            char_img    = sine_distort(char_img)
             char_images.append(char_img)
 
         section_width: int = width // len(code)
         baseline_points: list[tuple[int, int]] = []
         for i, char_img in enumerate(char_images):
             section_center: int = (i * section_width) + (section_width // 2)
-            x_pos: int = section_center - (char_img.size[0] // 2) + random.SystemRandom().randint(-5, 5)
-            y_offset: int = random.SystemRandom().randint(25, 45)
-            x_pos = max(5, min(x_pos, width - char_img.size[0] - 5))
+            x_pos    : int = section_center - (char_img.size[0] // 2) + random.SystemRandom().randint(-5, 5)
+            y_offset : int = random.SystemRandom().randint(25, 45)
+            x_pos          = max(5, min(x_pos, width - char_img.size[0] - 5))
             text_layer.paste(char_img, (x_pos, y_offset), char_img)
             baseline_points.append(
                 (
@@ -310,24 +310,24 @@ class VerificationHandler(commands.Cog):
         if len(baseline_points) >= n_2:
             text_draw.line(
                 baseline_points,
-                fill=(40, 40, 40, 180),
-                width=3,
-                joint="curve",
+                fill  = (40, 40, 40, 180),
+                width = 3,
+                joint = "curve",
             )
 
         for _ in range(25):
-            fake_char: str = secrets.choice(string.ascii_uppercase + string.digits)
-            fx: int = random.SystemRandom().randint(0, width - 40)
-            fy: int = random.SystemRandom().randint(0, height - 40)
-            n_base: int = random.SystemRandom().randint(80, 150)
-            fake_color: tuple[int, int, int, int] = (
+            fake_char  : str = secrets.choice(string.ascii_uppercase + string.digits)
+            fx         : int = random.SystemRandom().randint(0, width - 40)
+            fy         : int = random.SystemRandom().randint(0, height - 40)
+            n_base     : int = random.SystemRandom().randint(80, 150)
+            fake_color : tuple[int, int, int, int] = (
                 n_base + random.SystemRandom().randint(-20, 20),
                 n_base + random.SystemRandom().randint(-20, 20),
                 n_base + random.SystemRandom().randint(-20, 20),
                 random.SystemRandom().randint(160, 220),
             )
-            fake_img: Image.Image = Image.new("RGBA", (50, 50), (255, 255, 255, 0))
-            fake_draw: ImageDraw.ImageDraw = ImageDraw.Draw(fake_img)
+            fake_img  : Image.Image = Image.new("RGBA", (50, 50), (255, 255, 255, 0))
+            fake_draw : ImageDraw.ImageDraw = ImageDraw.Draw(fake_img)
             fake_draw.text((10, 5), fake_char, font=small_font, fill=fake_color)
             fake_img = fake_img.rotate(random.SystemRandom().randint(-45, 45), expand=True)
             fake_img = sine_distort(fake_img)
@@ -368,9 +368,9 @@ class VerificationHandler(commands.Cog):
                 ),
             )
 
-        rng = np.random.default_rng()
-        grain: np.ndarray[Any, Any] = rng.integers(0, 10, (height, width, 3)).astype(np.int16)
-        img_np: np.ndarray[Any, Any] = np.array(final_image.convert("RGB")).astype(np.int16)
+        rng    = np.random.default_rng()
+        grain  : np.ndarray[Any, Any] = rng.integers(0, 10, (height, width, 3)).astype(np.int16)
+        img_np : np.ndarray[Any, Any] = np.array(final_image.convert("RGB")).astype(np.int16)
         img_np = np.clip(img_np + grain, 0, 255).astype(np.uint8)
         final_image = Image.fromarray(img_np, "RGB")
 
@@ -403,14 +403,14 @@ class VerificationHandler(commands.Cog):
 
     async def start_help(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
-            view = self.HelpComponents(self),
+            view     = self.HelpComponents(self),
             ephemeral = True,
         )
 
     async def start_verification(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.defer(ephemeral = True)
 
-        user = interaction.user
+        user  = interaction.user
         guild = interaction.guild
 
         if not guild or not isinstance(user, discord.Member):
@@ -428,9 +428,9 @@ class VerificationHandler(commands.Cog):
         code, image_buffer = await asyncio.to_thread(self.generate_captcha)
 
         self.active_captchas[user.id] = {
-            "code": code,
-            "expires_at": datetime.now(UTC) + timedelta(minutes=5),
-            "attempts": 0,
+            "code"       : code,
+            "expires_at" : datetime.now(UTC) + timedelta(minutes=5),
+            "attempts"   : 0,
         }
 
         verification_cog = self
@@ -438,8 +438,8 @@ class VerificationHandler(commands.Cog):
         class SubmitButton(discord.ui.Button[discord.ui.LayoutView]):
             def __init__(self) -> None:
                 super().__init__(
-                    label="Submit Code",
-                    style=discord.ButtonStyle.green,
+                    label = "Submit Code",
+                    style = discord.ButtonStyle.green,
                 )
 
             @override
@@ -458,8 +458,7 @@ class VerificationHandler(commands.Cog):
                     CaptchaModal(session["code"], verification_cog),
                 )
 
-        file = discord.File(image_buffer, filename = "captcha.png")
-
+        file   = discord.File(image_buffer, filename = "captcha.png")
         layout = discord.ui.LayoutView()
 
         container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
@@ -491,13 +490,13 @@ class VerificationHandler(commands.Cog):
         _ = layout.add_item(container)
 
         await interaction.followup.send(
-            view = layout,
-            files=[file],
+            view      = layout,
+            files     = [file],
             ephemeral = True,
         )
 
     async def verify_user(self, interaction: discord.Interaction) -> None:
-        user = interaction.user
+        user  = interaction.user
         guild = interaction.guild
 
         if not guild or not isinstance(user, discord.Member):
@@ -507,7 +506,7 @@ class VerificationHandler(commands.Cog):
         if not goobers_role:
             await send_major_error(
                 interaction,
-                "Verification role not found.",
+                texts    = "Verification role not found.",
                 subtitle = f"Invalid configuration. Contact <@{BOT_OWNER_ID}>.",
             )
             return
@@ -535,7 +534,7 @@ class VerificationHandler(commands.Cog):
         except discord.Forbidden:
             await send_major_error(
                 interaction,
-                "I lack the necessary permissions to assign roles.",
+                texts    = "I lack the necessary permissions to assign roles.",
                 subtitle = "Invalid configuration. Contact the owner.",
             )
 
@@ -551,17 +550,19 @@ class VerificationHandler(commands.Cog):
     @tasks.loop(minutes=30)
     async def check_unverified_users(self) -> None:
         now: datetime = datetime.now(UTC)
-        to_remove: list[str] = []
+        to_remove : list[str] = []
 
-        kicked_log: list[str] = []
-        warned_log: list[str] = []
+        kicked_log : list[str] = []
+        warned_log : list[str] = []
 
         for user_id_raw, data in list(self.data["unverified"].items()):
-            user_id: str = str(user_id_raw)
-            joined_at: datetime = datetime.fromisoformat(data["joined_at"])
-            time_since_join: timedelta = now - joined_at
-            member: discord.Member | None = None
-            user_id_int: int = int(user_id)
+            user_id         : str = str(user_id_raw)
+            joined_at       : datetime = datetime.fromisoformat(data["joined_at"])
+            if joined_at.tzinfo is None:
+                joined_at = joined_at.replace(tzinfo=UTC)
+            time_since_join : timedelta = now - joined_at
+            member          : discord.Member | None = None
+            user_id_int     : int = int(user_id)
 
             for guild in self.bot.guilds:
                 member = guild.get_member(user_id_int)
@@ -585,7 +586,7 @@ class VerificationHandler(commands.Cog):
             is_overdue: bool = time_since_join >= timedelta(days=3)
 
             if is_overdue:
-                msg_id: int | None = data.get("warning_message_id")
+                msg_id : int | None = data.get("warning_message_id")
                 if msg_id:
                     with contextlib.suppress(discord.NotFound, discord.Forbidden, discord.HTTPException):
                         channel: discord.abc.GuildChannel | discord.Thread | None = member.guild.get_channel(self.VERIFICATION_CHANNEL_ID)
@@ -611,9 +612,9 @@ class VerificationHandler(commands.Cog):
                     pass
 
             elif time_since_join >= timedelta(days=2) and not data.get("warned"):
-                warned: bool = False
-                warning_message_id: int | None = None
-                where: str = ""
+                warned             : bool = False
+                warning_message_id : int | None = None
+                where              : str = ""
 
                 try:
                     _ = await member.send(

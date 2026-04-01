@@ -39,7 +39,7 @@ from core.state.layout_state import (
     load_layout_message_ids,
     save_layout_message_ids,
 )
-from events.member.verification import (
+from events.systems.verification import (
     VerificationComponents,
     VerificationHandler,
 )

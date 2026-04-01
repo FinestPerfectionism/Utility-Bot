@@ -12,7 +12,7 @@ from core.help import (
 )
 
 if TYPE_CHECKING:
-    from events.member.verification import VerificationHandler
+    from events.systems.verification import VerificationHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Verification Commands

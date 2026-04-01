@@ -49,11 +49,11 @@ class ProposalStatus(Enum):
     STANDSTILL = "standstill"
 
 _VALID_TRANSITIONS: dict[ProposalStatus, set[ProposalStatus]] = {
-    ProposalStatus.NONE:       {ProposalStatus.ACCEPTED, ProposalStatus.CONTESTED, ProposalStatus.DENIED, ProposalStatus.STANDSTILL},
-    ProposalStatus.ACCEPTED:   {ProposalStatus.CONTESTED, ProposalStatus.DENIED,    ProposalStatus.STANDSTILL},
-    ProposalStatus.CONTESTED:  {ProposalStatus.ACCEPTED,  ProposalStatus.DENIED,    ProposalStatus.STANDSTILL},
-    ProposalStatus.DENIED:     {ProposalStatus.ACCEPTED,  ProposalStatus.CONTESTED, ProposalStatus.STANDSTILL},
-    ProposalStatus.STANDSTILL: set(),
+    ProposalStatus.NONE       : {ProposalStatus.ACCEPTED, ProposalStatus.CONTESTED, ProposalStatus.DENIED, ProposalStatus.STANDSTILL},
+    ProposalStatus.ACCEPTED   : {ProposalStatus.CONTESTED, ProposalStatus.DENIED,    ProposalStatus.STANDSTILL},
+    ProposalStatus.CONTESTED  : {ProposalStatus.ACCEPTED,  ProposalStatus.DENIED,    ProposalStatus.STANDSTILL},
+    ProposalStatus.DENIED     : {ProposalStatus.ACCEPTED,  ProposalStatus.CONTESTED, ProposalStatus.STANDSTILL},
+    ProposalStatus.STANDSTILL : set(),
 }
 
 def _resolve_status(thread: discord.Thread) -> ProposalStatus:
@@ -386,7 +386,7 @@ class ProposalCommands(
         desc="Staff Committee only —— Applies or removes a process tag on the current proposal thread.",
         prefix=False,
         slash=True,
-        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        run_roles=[RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments={
             "tag": ArgumentInfo(description="Process tag to modify.", choices=["needs_revision", "needs_implementation", "owner_action", "sdirector_action"]),
             "enabled": ArgumentInfo(description="Whether the tag should be present after running the command."),
@@ -398,7 +398,6 @@ class ProposalCommands(
         self,
         interaction : discord.Interaction,
         tag         : app_commands.Choice[str],
-        *
         enabled     : bool,
         notes       : str | None = None,
     ) -> None:

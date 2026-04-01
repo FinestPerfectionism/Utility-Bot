@@ -6,7 +6,7 @@ from discord.ext import commands
 from core.state.application_state import ACTIVE_APPLICATIONS, save_active_applications
 
 if TYPE_CHECKING:
-    from events.member.verification import VerificationHandler
+    from events.systems.verification import VerificationHandler
 
 from constants import APPLICATION_LOG_CHANNEL_ID, COLOR_RED
 
