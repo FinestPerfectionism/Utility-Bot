@@ -2,8 +2,8 @@ import discord
 
 
 class ModerationComponents1(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "# Welcome to Moderation Guidelines!\n"
                 "Internal guidelines for the Goobers Moderation Team.\n"
@@ -14,27 +14,27 @@ class ModerationComponents1(discord.ui.LayoutView):
 class ModerationComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout = None)
-        self.container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay( # type: ignore
+        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(
                 content=
                     "# Moderation Guidelines\n"
                    f"Moderation guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay( # type: ignore
+            discord.ui.TextDisplay(
                 content=
                     "## §1 Scope and Permissions\n"
                     "Moderators must act within command permissions as implemented by the bot. If a command denies your action, escalate instead of attempting workarounds.\n\n"
@@ -71,11 +71,11 @@ class ModerationComponents2(discord.ui.LayoutView):
                     "Purge is Senior Moderator+ and should only be used when cleanup serves moderation, safety, or evidence control needs. Keep reasons specific (spam wave, raid cleanup, slur flood, etc.).",
             ),
         )
-        self.add_item(self.container) # type: ignore
+        _ = self.add_item(self.container)
 
 class ModerationComponents3(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## §4 Abuse Prevention and Escalation\n"
                 "### §4.1 Rate Limits and Auto-Quarantine\n"

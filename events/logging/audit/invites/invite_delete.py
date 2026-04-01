@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_RED
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Invite Delete Audit
@@ -25,8 +24,8 @@ class InviteDeleteCog(AuditCog):
             return
 
         embed: discord.Embed = discord.Embed(
-            title = "Invite Deleted",
-            color = COLOR_RED,
+            title     = "Invite Deleted",
+            color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
 
@@ -36,8 +35,8 @@ class InviteDeleteCog(AuditCog):
         channel_id: str = str(getattr(invite.channel, "id", "Unknown ID"))
 
         _ = embed.add_field(
-            name = "Channel",
-            value = f"`{channel_name}`\n`{channel_id}`",
+            name   = "Channel",
+            value  = f"`{channel_name}`\n`{channel_id}`",
             inline = True,
         )
 

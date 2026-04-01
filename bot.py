@@ -45,14 +45,14 @@ class UtilityBot(commands.Bot):
             "core.startup",
         ]
 
-        COGS: list[str] = discover_cogs(
+        cogs: list[str] = discover_cogs(
             "commands",
             "events",
             "core",
             priority = priority_load,
         )
 
-        for cog in COGS:
+        for cog in cogs:
             try:
                 await self.load_extension(cog)
                 log.info("Loaded cog: %s", cog)

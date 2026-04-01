@@ -2,8 +2,8 @@ import discord
 
 
 class StaffComponents1(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "# Welcome to Staff Guidelines!\n"
                 "Shared guidelines for all members of the Goobers Staff Team.\n"
@@ -14,27 +14,27 @@ class StaffComponents1(discord.ui.LayoutView):
 class StaffComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout = None)
-        self.container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay( # type: ignore
+        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(
                 content=
                     "# Staff Guidelines\n"
                    f"Staff guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay( # type: ignore
+            discord.ui.TextDisplay(
                 content=
                     "## §1 The Staff Structure\n"
                     "The Goobers Staff Team is composed of three distinct bodies: the **Directorate**, the **Moderation Team**, and the **Administration Team**. Each serves a different function, and their separation is intentional. Staff members must understand not only their own team's responsibilities but how all three relate to each other.\n\n"
@@ -54,11 +54,11 @@ class StaffComponents2(discord.ui.LayoutView):
                     "Holding a role in both teams does not exempt a staff member from either team's standards. When acting as a Moderator, Moderation guidelines govern; when acting as an Administrator, Administration guidelines govern.",
             ),
         )
-        self.add_item(self.container) # type: ignore
+        _ = self.add_item(self.container)
 
 class StaffComponents3(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## §3 Proposals as a Shared System\n"
                 "The Staff Proposal system is the primary formal mechanism through which all staff teams interact.\n\n"
@@ -82,8 +82,8 @@ class StaffComponents3(discord.ui.LayoutView):
     )
 
 class StaffComponents4(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## §5 Shared Conduct Standards\n"
                 "The following standards apply to all staff regardless of team or seniority.\n\n"

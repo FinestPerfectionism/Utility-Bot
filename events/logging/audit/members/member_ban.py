@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_RED
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Member Ban Audit
@@ -24,21 +23,21 @@ class MemberBanCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.ban, user.id)
 
         embed = discord.Embed(
-            title = "Member Banned",
-            color = COLOR_RED,
+            title     = "Member Banned",
+            color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
-            name = "User",
-            value = f"`{user}`\n`{user.id}`",
+            name   = "User",
+            value  = f"`{user}`\n`{user.id}`",
             inline = True,
         )
 
         if executor:
             _ = embed.add_field(
-                name = "Banned By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Banned By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 

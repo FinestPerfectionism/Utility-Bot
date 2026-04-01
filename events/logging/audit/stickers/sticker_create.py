@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_GREEN
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Sticker Create Audit
@@ -30,22 +29,22 @@ class StickerAddCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.sticker_create)
 
         embed = discord.Embed(
-            title = "Sticker Added",
-            color = COLOR_GREEN,
+            title     = "Sticker Added",
+            color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
 
         for sticker in added:
             _ = embed.add_field(
-                name = "Sticker",
-                value = f"`{sticker.name}`\n`{sticker.id}`",
+                name   = "Sticker",
+                value  = f"`{sticker.name}`\n`{sticker.id}`",
                 inline = True,
             )
 
         if executor:
             _ = embed.add_field(
-                name = "Added By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Added By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 

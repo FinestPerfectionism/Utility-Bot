@@ -13,9 +13,11 @@ from constants import (
     APPLICATION_LOG_CHANNEL_ID,
     BOT_CONSOLE_CHANNEL_ID,
 )
-from core.state import (
+from core.state.application_state import (
     ACTIVE_APPLICATIONS,
     load_active_applications,
+)
+from core.state.automod_state import (
     load_automod_strikes,
     save_automod_strikes,
 )
@@ -73,7 +75,8 @@ class Ready(commands.Cog):
             text = "\n".join(buffer)
             chunks: list[str] = []
             while text:
-                if len(text) <= 1900:
+                n_1900 = 1900
+                if len(text) <= n_1900:
                     chunks.append(text)
                     break
                 split_at = text.rfind("\n", 0, 1900)
@@ -132,7 +135,7 @@ class Ready(commands.Cog):
 
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(
-            lambda loop, context: self.bot.dispatch("asyncio_error", context),
+            lambda _loop, context: self.bot.dispatch("asyncio_error", context),
         )
         handler = DiscordLogHandler(self._console_queue)
         handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s"))

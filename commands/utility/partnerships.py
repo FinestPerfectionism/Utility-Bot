@@ -15,7 +15,7 @@ from core.help import (
     RoleConfig,
     help_description,
 )
-from core.partnership_state import (
+from core.state.partnership_state import (
     IMAGE_DIR,
     PartnershipEntry,
     load_partnership_data,
@@ -40,13 +40,13 @@ class PartnershipCommands(commands.Cog):
         self.bot = bot
 
     partnership = app_commands.Group(
-        name = "partnership",
-        description="Directors only —— Manage server partnerships.",
+        name        = "partnership",
+        description = "Directors only —— Manage server partnerships.",
     )
 
     async def _get_channel(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
     ) -> discord.TextChannel | None:
         channel = self.bot.get_channel(PARTNERSHIPS_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
@@ -60,8 +60,8 @@ class PartnershipCommands(commands.Cog):
 
     async def _server_name_autocomplete(
         self,
-        interaction: discord.Interaction,
-        current: str,
+        _interaction : discord.Interaction,
+        current      : str,
     ) -> list[app_commands.Choice[str]]:
         data = load_partnership_data()
         return [
@@ -83,11 +83,11 @@ class PartnershipCommands(commands.Cog):
         server_link        = "The server's invite link. Must be a valid Discord invite of the form `https://discord.gg/example`.",
     )
     @help_description(
-        desc="Directors only —— Adds a partnership entry and rebuilds the partnerships channel layout.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
+        desc      = "Directors only —— Adds a partnership entry and rebuilds the partnerships channel layout.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments = {
             "server_picture": ArgumentInfo(description="Image attachment shown for the partner server."),
             "server_name": ArgumentInfo(description="Partner server name."),
             "server_description": ArgumentInfo(description="Partner server description."),
@@ -98,17 +98,17 @@ class PartnershipCommands(commands.Cog):
     @directors_only()
     async def partnership_add(
         self,
-        interaction:        discord.Interaction,
-        server_picture:     discord.Attachment,
-        server_name:        str,
-        server_description: str,
-        server_owner:       discord.User,
-        server_link:        str,
+        interaction        : discord.Interaction,
+        server_picture     : discord.Attachment,
+        server_name        : str,
+        server_description : str,
+        server_owner       : discord.User,
+        server_link        : str,
     ) -> None:
         if not _INVITE_RE.match(server_link):
             await send_minor_error(
                 interaction,
-                texts="The server link must be a valid Discord invite (e.g. `https://discord.gg/example`).",
+                "The server link must be a valid Discord invite (e.g. `https://discord.gg/example`).",
             )
             return
 
@@ -127,16 +127,16 @@ class PartnershipCommands(commands.Cog):
         try:
             image_bytes = await server_picture.read()
             _ = image_path.write_bytes(image_bytes)
-        except discord.HTTPException as e:
-            log.exception("Failed to download partnership attachment: %s", e)
+        except discord.HTTPException:
+            log.exception("Failed to download partnership attachment")
             await send_major_error(
                 interaction,
                 texts    =  "Failed to process the server picture.",
                 subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>",
             )
             return
-        except OSError as e:
-            log.exception("Failed to save partnership image to disk: %s", e)
+        except OSError:
+            log.exception("Failed to save partnership image to disk")
             await send_major_error(
                 interaction,
                 texts    =  "Failed to save the server picture.",
@@ -163,8 +163,8 @@ class PartnershipCommands(commands.Cog):
 
         try:
             await rebuild_partnership_layout(channel, data)
-        except discord.HTTPException as e:
-            log.exception("Failed to rebuild partnership layout after add: %s", e)
+        except discord.HTTPException:
+            log.exception("Failed to rebuild partnership layout after add")
             _ = data["partnerships"].pop()
             image_path.unlink(missing_ok=True)
             await send_major_error(
@@ -192,7 +192,7 @@ class PartnershipCommands(commands.Cog):
         interaction: discord.Interaction,
         server_name: str,
     ) -> None:
-        _ = _ = await interaction.response.defer(ephemeral = True)
+        _ = await interaction.response.defer(ephemeral = True)
 
         channel = await self._get_channel(interaction)
         if channel is None:
@@ -219,8 +219,8 @@ class PartnershipCommands(commands.Cog):
 
         try:
             await rebuild_partnership_layout(channel, data)
-        except discord.HTTPException as e:
-            log.exception("Failed to rebuild partnership layout after remove: %s", e)
+        except discord.HTTPException:
+            log.exception("Failed to rebuild partnership layout after remove")
             data["partnerships"] = original
             save_partnership_data(data)
             await send_major_error(
@@ -247,7 +247,7 @@ class PartnershipCommands(commands.Cog):
     )
     @app_commands.autocomplete(server_name = _server_name_autocomplete)
     @help_description(
-        desc="Directors only —— Updates an existing partnership entry and rebuilds the partnerships channel layout.",
+        desc="Directors only —— Updates an existing partnership entry and rebuilds the partnerships channel layout.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
@@ -263,18 +263,18 @@ class PartnershipCommands(commands.Cog):
     @directors_only()
     async def partnership_update(
         self,
-        interaction:        discord.Interaction,
-        server_name:        str,
-        server_picture:     discord.Attachment | None = None,
-        new_server_name:    str                | None = None,
-        server_description: str                | None = None,
-        server_owner:       discord.User       | None = None,
-        server_link:        str                | None = None,
+        interaction        : discord.Interaction,
+        server_name        : str,
+        server_picture     : discord.Attachment | None = None,
+        new_server_name    : str                | None = None,
+        server_description : str                | None = None,
+        server_owner       : discord.User       | None = None,
+        server_link        : str                | None = None,
     ) -> None:
         if server_link is not None and not _INVITE_RE.match(server_link):
             await send_minor_error(
                 interaction,
-                texts="The server link must be a valid Discord invite (e.g. `https://discord.gg/example`).",
+                "The server link must be a valid Discord invite (e.g. `https://discord.gg/example`).",
             )
             return
 
@@ -290,7 +290,7 @@ class PartnershipCommands(commands.Cog):
         if not matches:
             await send_minor_error(
                 interaction,
-                texts=f"No partnership found with the name **{server_name}**.",
+                f"No partnership found with the name **{server_name}**.",
             )
             return
 
@@ -307,16 +307,16 @@ class PartnershipCommands(commands.Cog):
                 _ = new_image_path.write_bytes(image_bytes)
                 old_image_filename = entry["image_filename"]
                 entry["image_filename"] = new_filename
-            except discord.HTTPException as e:
-                log.exception("Failed to download updated partnership attachment: %s", e)
+            except discord.HTTPException:
+                log.exception("Failed to download updated partnership attachment")
                 await send_major_error(
                     interaction,
                     texts    =  "Failed to process the new server picture.",
                     subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>",
                 )
                 return
-            except OSError as e:
-                log.exception("Failed to save updated partnership image to disk: %s", e)
+            except OSError:
+                log.exception("Failed to save updated partnership image to disk")
                 await send_major_error(
                     interaction,
                     texts    =  "Failed to save the new server picture.",
@@ -342,8 +342,8 @@ class PartnershipCommands(commands.Cog):
 
         try:
             await rebuild_partnership_layout(channel, data)
-        except discord.HTTPException as e:
-            log.exception("Failed to rebuild partnership layout after update: %s", e)
+        except discord.HTTPException:
+            log.exception("Failed to rebuild partnership layout after update")
             await send_major_error(
                 interaction,
                 texts    =  "Failed to update the channel after editing the partnership.",

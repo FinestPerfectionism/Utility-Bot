@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_GREEN
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Invite Create Audit
@@ -25,8 +24,8 @@ class InviteCreateCog(AuditCog):
             return
 
         embed: discord.Embed = discord.Embed(
-            title = "Invite Created",
-            color = COLOR_GREEN,
+            title     = "Invite Created",
+            color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
 
@@ -36,25 +35,25 @@ class InviteCreateCog(AuditCog):
         channel_id: str = str(getattr(invite.channel, "id", "Unknown ID"))
 
         _ = embed.add_field(
-            name = "Channel",
-            value = f"`{channel_name}`\n`{channel_id}`",
+            name   = "Channel",
+            value  = f"`{channel_name}`\n`{channel_id}`",
             inline = True,
         )
 
         if invite.inviter:
             _ = embed.add_field(
-                name = "Created By",
-                value = f"`{invite.inviter}`\n`{invite.inviter.id}`",
+                name   = "Created By",
+                value  = f"`{invite.inviter}`\n`{invite.inviter.id}`",
                 inline = False,
             )
 
         _ = embed.add_field(
-            name = "Expires In",
-            value = f"{invite.max_age}s" if invite.max_age else "Never",
+            name   = "Expires In",
+            value  = f"{invite.max_age}s" if invite.max_age else "Never",
             inline = True,
         )
         _ = embed.add_field(
-            name = "Max Uses",
+            name  = "Max Uses",
             value = str(invite.max_uses) if invite.max_uses else "Unlimited",
             inline = True,
         )

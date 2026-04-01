@@ -2,12 +2,12 @@ import asyncio
 import contextlib
 import json
 import logging
-import os
 import random
 import secrets
 import string
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from io import BytesIO
+from pathlib import Path
 from typing import Any
 
 import discord
@@ -30,7 +30,7 @@ from constants import (
 )
 from core.utils import send_major_error
 
-logger = logging.getLogger("Utility Bot")
+log = logging.getLogger("Utility Bot")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Verification System
@@ -62,7 +62,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
             )
             return
 
-        if datetime.now() > session["expires_at"]:
+        if datetime.now(UTC) > session["expires_at"]:
             del self.cog.active_captchas[interaction.user.id]
             _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
@@ -80,7 +80,8 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
             await self.cog.verify_user(interaction)
             return
 
-        if session["attempts"] >= 3:
+        n_3 = 3
+        if session["attempts"] >= n_3:
             del self.cog.active_captchas[interaction.user.id]
             _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Verification expired!**\n"
@@ -97,7 +98,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
             ephemeral = True,
         )
 
-class VerificationButton(discord.ui.Button[discord.ui.View]):
+class VerificationButton(discord.ui.Button[discord.ui.LayoutView]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
             style=discord.ButtonStyle.primary,
@@ -110,15 +111,15 @@ class VerificationButton(discord.ui.Button[discord.ui.View]):
     async def callback(self, interaction: discord.Interaction) -> None:
         try:
             await self.cog.start_verification(interaction)
-        except Exception as e:
+        except Exception:
             await send_major_error(
                 interaction,
-                texts="An error occurred while starting verification.",
+                texts    = "An error occurred while starting verification.",
                 subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
             )
-            logger.exception(f"Error in verification: {e}")
+            log.exception("Error in verification")
 
-class HelpButton(discord.ui.Button[discord.ui.View]):
+class HelpButton(discord.ui.Button[discord.ui.LayoutView]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
             style=discord.ButtonStyle.red,
@@ -136,8 +137,8 @@ class VerificationComponents(discord.ui.LayoutView):
         super().__init__(timeout = None)
         self.cog = cog
 
-        container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay( # type: ignore
+        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(
                 content=(
                     "# Verification\n"
                     "This verification system ensures that spammers get harshly limited and bots get completely blocked. "
@@ -150,28 +151,28 @@ class VerificationComponents(discord.ui.LayoutView):
                     "You will be warned at 48 hours. This is __not__ a ban and you can rejoin and start the process again!"
                 ),
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.large,
             ),
-            discord.ui.TextDisplay( # type: ignore
+            discord.ui.TextDisplay(
                 content=(
                     "Welcome to the server! We look forward to meeting you,\n"
                     "-# The Goobers community."
                 ),
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.large,
             ),
-            discord.ui.ActionRow( # type: ignore
+            discord.ui.ActionRow(
                 VerificationButton(cog),
                 HelpButton(cog),
             ),
             accent_color = COLOR_GREEN,
         )
 
-        self.add_item(container) # type: ignore
+        _ = self.add_item(container)
 
 class VerificationHandler(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -194,9 +195,9 @@ class VerificationHandler(commands.Cog):
         self.check_unverified_users.cancel()
 
     def load_data(self) -> dict[str, Any]:
-        if os.path.exists(self.data_file):
+        if Path(self.data_file).exists():
             try:
-                with open(self.data_file) as f:
+                with Path(self.data_file).open() as f:
                     return json.load(f)
             except json.JSONDecodeError:
                 return self.get_default_data()
@@ -209,7 +210,7 @@ class VerificationHandler(commands.Cog):
         }
 
     def save_data(self) -> None:
-        with open(self.data_file, "w") as f:
+        with Path(self.data_file).open("w") as f:
             json.dump(self.data, f, indent=4)
 
     @staticmethod
@@ -269,8 +270,8 @@ class VerificationHandler(commands.Cog):
             small_font = ImageFont.truetype(
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18,
             )
-        except Exception:
-            font = ImageFont.load_default()
+        except discord.HTTPException:
+            font       = ImageFont.load_default()
             small_font = ImageFont.load_default()
 
         char_images: list[Image.Image] = []
@@ -305,7 +306,8 @@ class VerificationHandler(commands.Cog):
                 ),
             )
 
-        if len(baseline_points) >= 2:
+        n_2 = 2
+        if len(baseline_points) >= n_2:
             text_draw.line(
                 baseline_points,
                 fill=(40, 40, 40, 180),
@@ -366,7 +368,8 @@ class VerificationHandler(commands.Cog):
                 ),
             )
 
-        grain: np.ndarray[Any, Any] = np.random.normal(0, 10, (height, width, 3)).astype(np.int16)
+        rng = np.random.default_rng()
+        grain: np.ndarray[Any, Any] = rng.integers(0, 10, (height, width, 3)).astype(np.int16)
         img_np: np.ndarray[Any, Any] = np.array(final_image.convert("RGB")).astype(np.int16)
         img_np = np.clip(img_np + grain, 0, 255).astype(np.uint8)
         final_image = Image.fromarray(img_np, "RGB")
@@ -382,9 +385,9 @@ class VerificationHandler(commands.Cog):
             super().__init__(timeout = None)
             self.cog = cog
 
-            container = discord.ui.Container( # type: ignore
-                discord.ui.TextDisplay( # type: ignore
-                    content=(
+            container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+                discord.ui.TextDisplay(
+                    content = (
                         "# Stuck?\n"
                         "Ocasionally, the CAPTCHA system may be difficult to pass. Here are some tips:\n\n"
                         "- **Swap out letters:** For example, try switching out `0` and `O`, or `2` and `Z`.\n"
@@ -396,7 +399,7 @@ class VerificationHandler(commands.Cog):
                 accent_color = COLOR_RED,
             )
 
-            self.add_item(container) # type: ignore
+            _ = self.add_item(container)
 
     async def start_help(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.send_message(
@@ -426,13 +429,13 @@ class VerificationHandler(commands.Cog):
 
         self.active_captchas[user.id] = {
             "code": code,
-            "expires_at": datetime.now() + timedelta(minutes=5),
+            "expires_at": datetime.now(UTC) + timedelta(minutes=5),
             "attempts": 0,
         }
 
         verification_cog = self
 
-        class SubmitButton(discord.ui.Button[discord.ui.View]):
+        class SubmitButton(discord.ui.Button[discord.ui.LayoutView]):
             def __init__(self) -> None:
                 super().__init__(
                     label="Submit Code",
@@ -459,8 +462,8 @@ class VerificationHandler(commands.Cog):
 
         layout = discord.ui.LayoutView()
 
-        container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay( # type: ignore
+        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(
                 content=(
                     "## CAPTCHA Verification\n"
                     "Enter the code shown in the image below.\n"
@@ -468,24 +471,24 @@ class VerificationHandler(commands.Cog):
                     "- You have **5 minutes**."
                 ),
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.large,
             ),
-            discord.ui.MediaGallery( # type: ignore
+            discord.ui.MediaGallery(
                 discord.MediaGalleryItem(
                     media="attachment://captcha.png",
                 ),
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.large,
             ),
-            discord.ui.ActionRow(SubmitButton()), # type: ignore
+            discord.ui.ActionRow(SubmitButton()),
             accent_color = COLOR_BLURPLE,
         )
 
-        layout.add_item(container) # type: ignore
+        _ = layout.add_item(container)
 
         await interaction.followup.send(
             view = layout,
@@ -547,7 +550,7 @@ class VerificationHandler(commands.Cog):
 
     @tasks.loop(minutes=30)
     async def check_unverified_users(self) -> None:
-        now: datetime = datetime.now()
+        now: datetime = datetime.now(UTC)
         to_remove: list[str] = []
 
         kicked_log: list[str] = []

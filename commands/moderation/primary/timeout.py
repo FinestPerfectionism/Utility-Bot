@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 from commands.moderation.cases import CaseType
 from constants import (
-    COLOR_ORANGE,
+    COLOR_YELLOW,
 )
 from core.permissions import is_director
 from core.utils import send_major_error, send_minor_error
@@ -20,12 +20,12 @@ from core.utils import send_major_error, send_minor_error
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_timeout(
-    base:        ModerationBase,
-    interaction: discord.Interaction,
-    member:      discord.Member,
-    duration:    str,
-    reason:      str,
-    proof:       discord.Attachment | None = None,
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    member      : discord.Member,
+    duration    : str,
+    reason      : str,
+    proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -34,8 +34,8 @@ async def run_timeout(
     if not base.can_apply_standard_actions(actor):
         await send_major_error(
             interaction,
-            title = "Unauthorized!",
-            texts="You lack the necessary permissions to timeout members.",
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to timeout members.",
             subtitle = "Invalid permissions.",
         )
         return
@@ -56,7 +56,7 @@ async def run_timeout(
 
     max_duration = 28 * 86400
     if duration_seconds > max_duration:
-        await send_minor_error(interaction, f"Timeout duration cannot exceed 28 days. You provided: {duration}")
+        await send_minor_error(interaction, "Timeout duration cannot exceed 28 days.")
         return
 
     guild = interaction.guild
@@ -68,9 +68,9 @@ async def run_timeout(
         if not can_proceed:
             await send_major_error(
                 interaction,
-                f"Rate limit exceeded. {error_msg}.\n"
-                f"Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle = "Rate limit exceeded.",
+                texts    = f"Rate limit exceeded. {error_msg}.\n"
+                           f"Continuing to exceed rate limits will result in your own quarantine.",
+                subtitle =  "Rate limit exceeded.",
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -85,11 +85,11 @@ async def run_timeout(
 
         timeouts = base.ensure_data_section("timeouts")
         timeouts[str(member.id)] = {
-            "timed_out_at": datetime.now().isoformat(),
-            "timed_out_by": actor.id,
-            "reason":       reason,
-            "duration":     duration_seconds,
-            "until":        until.isoformat(),
+            "timed_out_at" : datetime.now(UTC).isoformat(),
+            "timed_out_by" : actor.id,
+            "reason"       : reason,
+            "duration"     : duration_seconds,
+            "until"        : until.isoformat(),
         }
         base.save_data()
 
@@ -110,8 +110,8 @@ async def run_timeout(
 
         embed = discord.Embed(
             title = "Member Timed Out",
-            color = COLOR_ORANGE,
-            timestamp = datetime.now(),
+            color = COLOR_YELLOW,
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member",    value = member.mention,                      inline = True)
         _ = embed.add_field(name = "Moderator", value = actor.mention,                       inline = True)

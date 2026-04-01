@@ -6,7 +6,8 @@ import sys
 from dotenv import load_dotenv
 
 from bot import bot
-from core.state import load_application_state, load_blacklist
+from core.state.application_state import load_application_state
+from core.state.blacklist_state import load_blacklist
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Main Script
@@ -27,19 +28,20 @@ TOKEN = os.getenv("TOKEN")
 
 async def main() -> None:
     if not TOKEN:
-        raise RuntimeError("TOKEN environment variable not set.")
+        string = "TOKEN environment variable not set."
+        raise RuntimeError(string)
 
     log.info("Starting Discord connection")
     try:
         await bot.start(TOKEN.strip())
-    except Exception as e:
-        log.exception(f"Bot crashed during runtime {e}")
+    except Exception:
+        log.exception("Bot crashed during runtime")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         log.info("Received shutdown signal —— KeyboardInterrupt")
-    except Exception as e:
-        log.exception(f"Fatal error during startup: {e}")
+    except Exception:
+        log.exception("Fatal error during startup")
         sys.exit(1)

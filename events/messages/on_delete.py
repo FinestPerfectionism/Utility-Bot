@@ -10,7 +10,7 @@ from constants import (
     DIRECTORSHIP_CATEGORY_ID,
     MESSAGE_DELETE_LOG_CHANNEL_ID,
 )
-from core.state import AUTOMOD_DELETIONS
+from core.state.automod_state import AUTOMOD_DELETIONS
 from core.utils import (
     channel_display,
     format_attachments,

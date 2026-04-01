@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from commands.moderation.cases import CaseType
 from constants import (
     BOT_OWNER_ID,
-    COLOR_RED,
+    COLOR_ORANGE,
 )
 from core.permissions import is_director
 from core.utils import (
@@ -24,11 +24,11 @@ from core.utils import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_quarantine(
-    base:        ModerationBase,
-    interaction: discord.Interaction,
-    member:      discord.Member,
-    reason:      str,
-    proof:       discord.Attachment | None = None,
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -37,8 +37,8 @@ async def run_quarantine(
     if not base.can_quarantine(actor):
         await send_major_error(
             interaction,
-            title = "Unauthorized!",
-            texts="You lack the necessary permissions to add members to quarantine.",
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to add members to quarantine.",
             subtitle = "No permissions.",
         )
         return
@@ -92,10 +92,10 @@ async def run_quarantine(
     ]
 
     quarantined[str(member.id)] = {
-        "roles":          saved_roles,
-        "quarantined_at": datetime.now().isoformat(),
-        "quarantined_by": actor.id,
-        "reason":         reason,
+        "roles"          : saved_roles,
+        "quarantined_at" : datetime.now(UTC).isoformat(),
+        "quarantined_by" : actor.id,
+        "reason"         : reason,
     }
     base.save_data()
 
@@ -119,8 +119,8 @@ async def run_quarantine(
 
         embed = discord.Embed(
             title     = "Member Quarantined",
-            color     = COLOR_RED,
-            timestamp = datetime.now(),
+            color     = COLOR_ORANGE,
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member",      value = member.mention,        inline = True)
         _ = embed.add_field(name = "Moderator",   value = actor.mention,         inline = True)

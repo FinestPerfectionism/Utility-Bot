@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
 import discord
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 class VerificationCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+        self.bot             = bot
         self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
 
     def _get_verification_cog(self) -> "VerificationHandler | None":
@@ -32,12 +32,12 @@ class VerificationCommands(commands.Cog):
 
     @commands.command(name = "verify", aliases=["v"])
     @help_description(
-        desc="Staff only —— Manually verifies a member inside the server.",
-        prefix=True,
-        slash=False,
-        run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
-        aliases=["v"],
-        arguments={"member": ArgumentInfo(description="Member to verify.")},
+        desc      = "Staff only —— Manually verifies a member inside the server.",
+        prefix    = True,
+        slash     = False,
+        run_roles = [RoleConfig(role_id=STAFF_ROLE_ID)],
+        aliases   = ["v"],
+        arguments = {"member": ArgumentInfo(description="Member to verify.")},
     )
     async def manual_verify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
@@ -52,7 +52,7 @@ class VerificationCommands(commands.Cog):
         try:
             await member.add_roles(
                 goobers_role,
-                reason=f"Manual verification by {ctx.author}",
+                reason = f"Manual verification by {ctx.author}",
             )
             verification_cog = self._get_verification_cog()
             if verification_cog and str(member.id) in verification_cog.data["unverified"]:
@@ -72,16 +72,16 @@ class VerificationCommands(commands.Cog):
 
     @commands.guild_only()
     @commands.command(
-        name = "unverify",
-        aliases=["un-verify", "uv", "deverify", "de-verify", "dv"],
+        name    = "unverify",
+        aliases = ["un-verify", "uv", "deverify", "de-verify", "dv"],
     )
     @help_description(
-        desc="Staff only —— Manually unverifies a member inside the server.",
-        prefix=True,
-        slash=False,
-        run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
-        aliases=["un-verify", "uv", "deverify", "de-verify", "dv"],
-        arguments={"member": ArgumentInfo(description="Member to unverify.")},
+        desc="Staff only —— Manually unverifies a member inside the server.",
+        prefix    = True,
+        slash     = False,
+        run_roles = [RoleConfig(role_id = STAFF_ROLE_ID)],
+        aliases   = ["un-verify", "uv", "deverify", "de-verify", "dv"],
+        arguments = {"member": ArgumentInfo(description="Member to unverify.")},
     )
     async def unverify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
@@ -96,14 +96,14 @@ class VerificationCommands(commands.Cog):
         try:
             await member.remove_roles(
                 goobers_role,
-                reason=f"Manual de-verification by {ctx.author}",
+                reason = f"Manual de-verification by {ctx.author}",
             )
             verification_cog = self._get_verification_cog()
             if verification_cog:
                 verification_cog.data["unverified"][str(member.id)] = {
-                    "joined_at": datetime.now().isoformat(),
-                    "warned": False,
-                    "warning_message_id": None,
+                    "joined_at"          : datetime.now(UTC).isoformat(),
+                    "warned"             : False,
+                    "warning_message_id" : None,
                 }
                 verification_cog.save_data()
         except discord.Forbidden:

@@ -67,9 +67,10 @@ def _has_tag(thread: discord.Thread, tag_id: int) -> bool:
     return any(t.id == tag_id for t in thread.applied_tags)
 
 def _validate_transition(
-    current:   ProposalStatus,
-    target:    ProposalStatus,
-    is_locked: bool,
+    current   : ProposalStatus,
+    target    : ProposalStatus,
+    *,
+    is_locked : bool,
 ) -> list[str]:
     errors: list[str] = []
     if is_locked:
@@ -201,7 +202,7 @@ async def _update_control_message(
 
     try:
         if existing:
-            _ = await existing.edit(content=content)
+            _ = await existing.edit(content = content)
         else:
             msg = await thread.send(content)
             await msg.pin()
@@ -304,7 +305,7 @@ class ProposalCommands(
                 f'{status.name} proposals cannot use the reason "{reason_value}".',
             )
 
-        errors.extend(_validate_transition(current, target, is_locked))
+        errors.extend(_validate_transition(current, target, is_locked=is_locked))
 
         if errors:
             return await send_minor_error(interaction, errors)
@@ -395,17 +396,18 @@ class ProposalCommands(
     @main_guild_only()
     async def tag(
         self,
-        interaction: discord.Interaction,
-        tag:         app_commands.Choice[str],
-        enabled:     bool,
-        notes:       str | None = None,
+        interaction : discord.Interaction,
+        tag         : app_commands.Choice[str],
+        *
+        enabled     : bool,
+        notes       : str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title = "Unauthorized!",
-                texts="You lack the necessary permissions to run this command.",
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to run this command.",
                 subtitle = "Invalid permissions.",
             )
 
@@ -493,12 +495,12 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "finalize",
-        description="Lock this proposal after final resolution and implementation.",
+        name        = "finalize",
+        description = "Lock this proposal after final resolution and implementation.",
     )
     @app_commands.describe(
-        reason="Reason for finalization.",
-        notes="Additional notes.",
+        reason = "Reason for finalization.",
+        notes  = "Additional notes.",
     )
     @app_commands.choices(
         reason=[
@@ -601,12 +603,12 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "un-lock",
-        description="Unlock a previously finalized proposal.",
+        name        = "un-lock",
+        description = "Unlock a previously finalized proposal.",
     )
     @app_commands.describe(
-        reason="Reason for unlocking.",
-        notes="Additional notes.",
+        reason = "Reason for unlocking.",
+        notes  = "Additional notes.",
     )
     @app_commands.choices(
         reason=[
@@ -615,11 +617,11 @@ class ProposalCommands(
         ],
     )
     @help_description(
-        desc="Staff Committee only —— Unlocks a finalized proposal thread.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
-        arguments={
+        desc      = "Staff Committee only —— Unlocks a finalized proposal thread.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        arguments = {
             "reason": ArgumentInfo(description="Reason for unlocking."),
             "notes": ArgumentInfo(required=False, description="Optional additional notes."),
         },
@@ -627,16 +629,16 @@ class ProposalCommands(
     @main_guild_only()
     async def unlock_thread(
         self,
-        interaction: discord.Interaction,
-        reason:      app_commands.Choice[str],
-        notes:       str | None = None,
+        interaction : discord.Interaction,
+        reason      : app_commands.Choice[str],
+        notes       : str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title = "Unauthorized!",
-                texts="You lack the necessary permissions to run this command.",
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to run this command.",
                 subtitle = "Invalid permissions.",
             )
 
@@ -674,26 +676,26 @@ class ProposalCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "unstandstill",
-        description="Remove the Standstill status so evaluation may resume.",
+        name        = "unstandstill",
+        description = "Remove the Standstill status so evaluation may resume.",
     )
     @app_commands.describe(
-        reason="Reason for removing Standstill.",
-        notes="Additional notes.",
+        reason = "Reason for removing Standstill.",
+        notes  = "Additional notes.",
     )
     @app_commands.choices(
-        reason=[
+        reason = [
             app_commands.Choice(name = "Circumstances resolved.",          value = "Circumstances resolved."),
             app_commands.Choice(name = "Evaluation resuming.",             value = "Evaluation resuming."),
             app_commands.Choice(name = "Committee direction established.", value = "Committee direction established."),
         ],
     )
     @help_description(
-        desc="Staff Committee only —— Removes the standstill status from the current proposal thread.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
-        arguments={
+        desc      = "Staff Committee only —— Removes the standstill status from the current proposal thread.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        arguments = {
             "reason": ArgumentInfo(description="Reason for removing standstill."),
             "notes": ArgumentInfo(required=False, description="Optional additional notes."),
         },
@@ -701,16 +703,16 @@ class ProposalCommands(
     @main_guild_only()
     async def unstandstill(
         self,
-        interaction: discord.Interaction,
-        reason:      app_commands.Choice[str],
-        notes:       str | None = None,
+        interaction : discord.Interaction,
+        reason      : app_commands.Choice[str],
+        notes       : str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
             return await send_major_error(
                 interaction,
-                title = "Unauthorized!",
-                texts="You lack the necessary permissions to run this command.",
+                title    = "Unauthorized!",
+                texts    = "You lack the necessary permissions to run this command.",
                 subtitle = "Invalid permissions.",
             )
 
@@ -759,11 +761,11 @@ class ProposalCommands(
         aliases = ["d", "del"],
     )
     @help_description(
-        desc="Directors only —— Ddeletes the current staff proposal thread.",
-        prefix=True,
-        slash=False,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        aliases=["d", "del"],
+        desc      = "Directors only —— Ddeletes the current staff proposal thread.",
+        prefix    = True,
+        slash     = False,
+        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases   = ["d", "del"],
     )
     @has_director_role()
     async def delete_thread(self, ctx: commands.Context[commands.Bot]) -> None:

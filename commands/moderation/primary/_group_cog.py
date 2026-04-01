@@ -19,42 +19,18 @@ from core.help import (
     help_description,
 )
 
-from ._base import (
-    ModerationBase,
-)
-from .ban import (
-    run_ban,
-)
-from .bans import (
-    run_bans,
-)
-from .kick import (
-    run_kick,
-)
-from .purge import (
-    run_purge,
-)
-from .quarantine import (
-    run_quarantine,
-)
-from .quarantines import (
-    run_quarantines,
-)
-from .timeout import (
-    run_timeout,
-)
-from .timeouts import (
-    run_timeouts,
-)
-from .unban import (
-    run_unban,
-)
-from .unquarantine import (
-    run_unquarantine,
-)
-from .untimeout import (
-    run_untimeout,
-)
+from ._base import ModerationBase
+from .ban import run_ban
+from .bans import run_bans
+from .kick import run_kick
+from .purge import run_purge
+from .quarantine import run_quarantine
+from .quarantines import run_quarantines
+from .timeout import run_timeout
+from .timeouts import run_timeouts
+from .unban import run_unban
+from .unquarantine import run_unquarantine
+from .untimeout import run_untimeout
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Commmands

@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_BLURPLE
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Member Edit Audit
@@ -25,14 +24,14 @@ class MemberEditCog(AuditCog):
             executor = await self.get_executor(after.guild, discord.AuditLogAction.member_update, after.id)
 
             embed = discord.Embed(
-                title = "Nickname Changed",
-                color = COLOR_BLURPLE,
+                title     = "Nickname Changed",
+                color     = COLOR_BLURPLE,
                 timestamp = datetime.now(UTC),
             )
 
             _ = embed.add_field(
-                name = "Member",
-                value = f"`{after}`\n`{after.id}`",
+                name   = "Member",
+                value  = f"`{after}`\n`{after.id}`",
                 inline = False,
             )
             _ = embed.add_field(
@@ -67,14 +66,14 @@ class MemberEditCog(AuditCog):
                 return
 
             embed = discord.Embed(
-                title = "Member Roles Changed",
-                color = COLOR_BLURPLE,
+                title     = "Member Roles Changed",
+                color     = COLOR_BLURPLE,
                 timestamp = datetime.now(UTC),
             )
 
             _ = embed.add_field(
-                name = "Member",
-                value = f"`{after}`\n`{after.id}`",
+                name   = "Member",
+                value  = f"`{after}`\n`{after.id}`",
                 inline = False,
             )
 
@@ -88,8 +87,8 @@ class MemberEditCog(AuditCog):
 
             if executor:
                 _ = embed.add_field(
-                    name = "Changed By",
-                    value = f"`{executor}`\n`{executor.id}`",
+                    name   = "Changed By",
+                    value  = f"`{executor}`\n`{executor.id}`",
                     inline = False,
                 )
 

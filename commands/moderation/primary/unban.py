@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import discord
@@ -91,7 +91,7 @@ async def run_unban(
         embed = discord.Embed(
             title = "User Unbanned",
             color = COLOR_GREEN,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "User",     value = f"{user_to_unban.mention} ({user_to_unban.id})", inline = True)
         _ = embed.add_field(name = "Director", value = actor.mention,                                   inline = True)

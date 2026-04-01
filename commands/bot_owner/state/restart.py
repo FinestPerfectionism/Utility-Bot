@@ -8,6 +8,7 @@ from datetime import (
     UTC,
     datetime,
 )
+from pathlib import Path
 
 import discord
 from discord.ext import commands
@@ -22,10 +23,10 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_restart(
-    bot:            commands.Bot,
-    ctx:            commands.Context[commands.Bot],
-    restarting_ref: list[bool],
-    logger:         logging.Logger,
+    bot            : commands.Bot,
+    ctx            : commands.Context[commands.Bot],
+    restarting_ref : list[bool],
+    log            : logging.Logger,
 ) -> None:
     if ctx.author.id != BOT_OWNER_ID:
         await ctx.message.add_reaction(DENIED_EMOJI_ID)
@@ -43,11 +44,12 @@ async def run_restart(
         await ctx.message.delete()
 
     loop = asyncio.get_running_loop()
-    _ = loop.create_task(restart_bot(bot, logger, restarting_ref, confirm_msg))
+    restart_task = loop.create_task(restart_bot(bot, log, restarting_ref, confirm_msg))
+    restart_task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
 
 async def restart_bot(
     bot            : commands.Bot,
-    logger         : logging.Logger,
+    log            : logging.Logger,
     restarting_ref : list[bool],
     confirm_msg    : discord.Message | None = None,
 ) -> None:
@@ -59,14 +61,14 @@ async def restart_bot(
 
         if confirm_msg:
             try:
-                with open("restart_info.json", "w") as f:
+                with Path("restart_info.json").open("w") as f:
                     json.dump({
                         "channel_id": confirm_msg.channel.id,
                         "message_id": confirm_msg.id,
                         "timestamp":  datetime.now(UTC).isoformat(),
                     }, f)
-            except Exception as e:
-                logger.error("Failed to save restart info: %s", e)
+            except Exception:
+                log.exception("Failed to save restart info")
 
         await asyncio.sleep(1)
         await bot.close()
@@ -85,21 +87,24 @@ async def restart_bot(
                     timeout = 5.0,
                 )
             except TimeoutError:
-                logger.warning("Some tasks did not cancel in time")
+                log.exception("Some tasks did not cancel in time")
 
-        for handler in logger.handlers:
+        for handler in log.handlers:
             if hasattr(handler, "flush"):
                 handler.flush()
 
+        sys.stdout.flush()
+        sys.stderr.flush()
+
         os.execv(sys.executable, [sys.executable, *sys.argv])
 
-    except Exception as e:
-        logger.critical("Fatal error during restart: %s", e, exc_info=True)
+    except (OSError, discord.DiscordException) as e:
+        log.critical("Fatal error during restart: %s", e, exc_info=True)
         restarting_ref[0] = False
 
         if confirm_msg:
             with contextlib.suppress(Exception):
-                _ = await confirm_msg.edit(content=f"Restart failed: {str(e)[:100]}")
+                _ = await confirm_msg.edit(content = f"Restart failed: {str(e)[:100]}")
 
         with contextlib.suppress(Exception):
             await bot.change_presence(status=discord.Status.online)

@@ -31,54 +31,55 @@ from constants import (
 )
 
 P = ParamSpec("P")
-T = TypeVar("T")
+T = TypeVar("T", covariant=True)
 
 @runtime_checkable
-class HelpCallback(Protocol):
+class HelpCallback(Protocol[P, T]):
     __help_data__: CommandHelpData
-    def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[Any]: ...
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Awaitable[T]: ...
 
 @dataclass
 class RoleConfig:
-    role_id:  int
-    channels: list[int] = field(default_factory=list)
+    role_id  : int
+    channels : list[int] = field(default_factory=list)
 
 @dataclass
 class UserConfig:
-    user_id:  int
-    channels: list[int] = field(default_factory=list)
+    user_id  : int
+    channels : list[int] = field(default_factory=list)
 
 @dataclass
 class ArgumentInfo:
-    roles:       list[int]  = field(default_factory=list)
-    required:    bool       = True
-    description: str | None = None
-    is_flag:     bool       = False
-    choices:     list[str]  = field(default_factory=list)
+    roles       : list[int]  = field(default_factory=list)
+    required    : bool       = True
+    description : str | None = None
+    is_flag     : bool       = False
+    choices     : list[str]  = field(default_factory=list)
 
 @dataclass
 class CommandHelpData:
-    desc:        str
-    prefix:      bool
-    slash:       bool
-    run_roles:   list[RoleConfig]
-    run_users:   list[UserConfig]
-    has_inverse: bool | str
-    arguments:   dict[str, ArgumentInfo] = field(default_factory=dict)
-    aliases:     list[str]               = field(default_factory=list)
+    desc        : str
+    prefix      : bool
+    slash       : bool
+    run_roles   : list[RoleConfig]
+    run_users   : list[UserConfig]
+    has_inverse : bool | str
+    arguments   : dict[str, ArgumentInfo] = field(default_factory=dict)
+    aliases     : list[str]               = field(default_factory=list)
 
 class HelpedCallable:
     __help_data__: CommandHelpData = field(init=False)
 
 def help_description(
-    desc:                                  str,
-    prefix:                                bool = False,
-    slash:                                 bool = True,
-    run_roles:          list[RoleConfig] | None = None,
-    run_users:          list[UserConfig] | None = None,
-    has_inverse:                    bool | str  = False,
-    arguments:   dict[str, ArgumentInfo] | None = None,
-    aliases:                   list[str] | None = None,
+    desc        :                           str,
+    *,
+    prefix      :                           bool = False,
+    slash       :                           bool = True,
+    run_roles   :        list[RoleConfig] | None = None,
+    run_users   :        list[UserConfig] | None = None,
+    has_inverse :                    bool | str  = False,
+    arguments   : dict[str, ArgumentInfo] | None = None,
+    aliases     :               list[str] | None = None,
 ) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
     run_roles = run_roles or []
     run_users = run_users or []
@@ -110,13 +111,12 @@ def member_has_role(member: discord.Member, role_id: int) -> bool:
     return any(r.id == role_id for r in member.roles)
 
 def check_access(
-    member:     discord.Member,
-    data:       CommandHelpData,
-    channel_id: int | None = None,
+    member      : discord.Member,
+    data        : CommandHelpData,
+    _channel_id : int | None = None,
 ) -> tuple[str, list[str], list[str], list[int]]:
     member_role_ids = {r.id for r in member.roles}
 
-    # ── User-level override ──────────────────────────────────────────────────
     user_match = next((uc for uc in data.run_users if uc.user_id == member.id), None)
     if user_match is not None:
         allowed_channels: list[int] = [] if not user_match.channels else sorted(user_match.channels)
@@ -132,7 +132,6 @@ def check_access(
         if inaccessible or allowed_channels:
             return "partial", accessible, inaccessible, allowed_channels
         return "full", accessible, inaccessible, allowed_channels
-    # ────────────────────────────────────────────────────────────────────────
 
     if data.run_roles:
         matching = [rc for rc in data.run_roles if rc.role_id in member_role_ids]
@@ -246,10 +245,7 @@ def build_help_view(
             else:
                 roles_lines.append(f"- {user_mention}")
 
-    if roles_lines:
-        roles_block = "\n".join(roles_lines)
-    else:
-        roles_block = "- No role restriction."
+    roles_block = "\n".join(roles_lines) if roles_lines else "- No role restriction."
 
     main_text = (
         f'# "{command_name}" Command\n'
@@ -308,12 +304,12 @@ def build_help_view(
         )
 
     class HelpView(discord.ui.LayoutView):
-        container1 = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay(content=main_text), # type: ignore
+        container1: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(content = main_text),
             accent_color = COLOR_BLURPLE,
         )
-        container2 = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay(content=perm_text), # type: ignore
+        container2: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(content = perm_text),
             accent_color = perm_colour,
         )
 
@@ -355,13 +351,13 @@ def find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
     return getattr(node, "callback", None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Listing helpers
+# Help Management
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def collect_slash_commands(
-    app_commands_list: list[Any],
-    seen_callbacks:    set[int],
-    lines:             list[str],
+    app_commands_list : list[Any],
+    seen_callbacks    : set[int],
+    lines             : list[str],
 ) -> None:
     for app_cmd in app_commands_list:
         cb = getattr(app_cmd, "callback", None)
@@ -375,9 +371,9 @@ def collect_slash_commands(
             collect_slash_commands(sub_commands, seen_callbacks, lines)
 
 async def run_help(
-    bot:          commands.Bot,
-    ctx_or_inter: commands.Context[commands.Bot] | discord.Interaction,
-    command_name: str | None,
+    bot          : commands.Bot,
+    ctx_or_inter : commands.Context[commands.Bot] | discord.Interaction,
+    command_name :                            str | None,
 ) -> None:
     if isinstance(ctx_or_inter, commands.Context):
         if not isinstance(ctx_or_inter.author, discord.Member):
@@ -410,9 +406,9 @@ async def run_help(
         if lines:
             _ = await respond(
                 embed=discord.Embed(
-                    title = "Available Commands",
-                    description="\n".join(lines),
-                    color = COLOR_BLURPLE,
+                    title       = "Available Commands",
+                    description = "\n".join(lines),
+                    color       = COLOR_BLURPLE,
                 ),
             )
         else:
@@ -433,7 +429,7 @@ async def run_help(
 
     view = build_help_view(
         command_name = " ".join(parts),
-        data=data,
-        member=member,
+        data         = data,
+        member       = member,
     )
     _ = await respond(view = view)

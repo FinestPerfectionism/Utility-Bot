@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_GREEN
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role Create Audit
@@ -30,8 +29,8 @@ class RoleCreateCog(AuditCog):
         )
 
         _ = embed.add_field(
-            name = "Role",
-            value = f"`{role.name}`\n`{role.id}`",
+            name   = "Role",
+            value  = f"`{role.name}`\n`{role.id}`",
             inline = True,
         )
         _ = embed.add_field(name = "Color", value = str(role.color), inline = True)
@@ -41,13 +40,14 @@ class RoleCreateCog(AuditCog):
 
         if executor:
             _ = embed.add_field(
-                name = "Created By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Created By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 
         permissions_text = self.format_permissions(role.permissions)
-        if len(permissions_text) > 1024:
+        n_1024 = 1024
+        if len(permissions_text) > n_1024:
             permissions_text = permissions_text[:1021] + "..."
         _ = embed.add_field(name = "Permissions", value = permissions_text, inline = False)
 

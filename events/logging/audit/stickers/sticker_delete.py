@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_RED
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Sticker Delete Audit
@@ -30,22 +29,22 @@ class StickerDeleteCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.sticker_delete)
 
         embed = discord.Embed(
-            title = "Sticker Deleted",
-            color = COLOR_RED,
+            title     = "Sticker Deleted",
+            color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
 
         for sticker in removed:
             _ = embed.add_field(
-                name = "Sticker",
-                value = f"`{sticker.name}`\n`{sticker.id}`",
+                name   = "Sticker",
+                value  = f"`{sticker.name}`\n`{sticker.id}`",
                 inline = True,
             )
 
         if executor:
             _ = embed.add_field(
-                name = "Deleted By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Deleted By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 

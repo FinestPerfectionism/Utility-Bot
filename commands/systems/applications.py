@@ -16,7 +16,8 @@ from core.help import (
     help_description,
 )
 from core.permissions import directors_only, main_guild_only
-from core.state import APPLICATIONS_OPEN, BLACKLIST, save_application_state, save_blacklist
+from core.state.application_state import APPLICATIONS_OPEN, save_application_state
+from core.state.blacklist_state import BLACKLIST, save_blacklist
 from core.utils import send_minor_error
 from events.systems.applications import ACTIVE_APPLICATIONS, delete_application_messages
 
@@ -26,8 +27,8 @@ from events.systems.applications import ACTIVE_APPLICATIONS, delete_application_
 
 class ApplicationsCommands(
     commands.GroupCog,
-    name = "applications",
-    description="Moderators only —— Applications commands.",
+    name        = "applications",
+    description = "Moderators only —— Applications commands.",
 ):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -38,42 +39,42 @@ class ApplicationsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "blacklist",
-        description="Blacklist or un-blacklist a user from applications.",
+        name        = "blacklist",
+        description = "Blacklist or un-blacklist a user from applications.",
     )
     @app_commands.describe(
-        action="Add or remove a blacklist.",
-        user="User to modify.",
+        action = "Add or remove a blacklist.",
+        user   = "User to modify.",
     )
     @app_commands.choices(
-        action=[
+        action = [
             app_commands.Choice(
-                name = "Add",
+                name  = "Add",
                 value = "add",
             ),
             app_commands.Choice(
-                name = "Remove",
+                name  = "Remove",
                 value = "remove",
             ),
         ],
     )
     @help_description(
-        desc="Directors only —— Add or remove a user from the applications blacklist.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
-            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
-            "user": ArgumentInfo(description="User to blacklist or unblacklist from applications."),
+        desc      = "Directors only —— Add or remove a user from the applications blacklist.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments = {
+            "action" : ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
+            "user"   : ArgumentInfo(description="User to blacklist or unblacklist from applications."),
         },
     )
     @main_guild_only()
     @directors_only()
     async def blacklist(
         self,
-        interaction: discord.Interaction,
-        action: app_commands.Choice[str],
-        user: discord.User,
+        interaction : discord.Interaction,
+        action      : app_commands.Choice[str],
+        user        : discord.User,
     ) -> None:
         user_id     = user.id
         target_list = BLACKLIST["applications"]
@@ -132,17 +133,17 @@ class ApplicationsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "state-modify",
-        description="Open or close staff applications.",
+        name        = "state-modify",
+        description = "Open or close staff applications.",
     )
     @app_commands.describe(
-        application="Which application to modify.",
-        state="Application state.",
+        application = "Which application to modify.",
+        state       = "Application state.",
     )
     @app_commands.choices(
-        application=[
+        application = [
             app_commands.Choice(
-                name = "Moderators",
+                name  = "Moderators",
                 value = "mod",
             ),
             app_commands.Choice(
@@ -150,33 +151,33 @@ class ApplicationsCommands(
                 value = "admin",
             ),
         ],
-        state=[
+        state = [
             app_commands.Choice(
-                name = "Open",
+                name  = "Open",
                 value = "open",
             ),
             app_commands.Choice(
-                name = "Closed",
+                name  = "Closed",
                 value = "closed",
             ),
         ],
     )
     @help_description(
-        desc="Directors only —— Open or close moderator or administrator applications.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
-            "application": ArgumentInfo(description="Application type to modify.", choices=["Moderators", "Administrators"]),
-            "state": ArgumentInfo(description="Whether that application should be open or closed.", choices=["Open", "Closed"]),
+        desc      = "Directors only —— Open or close moderator or administrator applications.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments = {
+            "application" : ArgumentInfo(description="Application type to modify.", choices=["Moderators", "Administrators"]),
+            "state"       : ArgumentInfo(description="Whether that application should be open or closed.", choices=["Open", "Closed"]),
         },
     )
     @directors_only()
     async def appmodify(
         self,
-        interaction: discord.Interaction,
-        application: app_commands.Choice[str],
-        state: app_commands.Choice[str],
+        interaction : discord.Interaction,
+        application : app_commands.Choice[str],
+        state       : app_commands.Choice[str],
     ) -> None:
         new_state     = state.value == "open"
         current_state = APPLICATIONS_OPEN.get(application.value, False)

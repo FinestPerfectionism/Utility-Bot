@@ -7,7 +7,7 @@ from typing import Any
 import discord
 
 from constants import PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, TICKET_CHANNEL_ID
-from core.partnership_state import (
+from core.state.partnership_state import (
     IMAGE_DIR,
     PartnershipData,
     PartnershipEntry,
@@ -24,8 +24,8 @@ _NO_PINGS = discord.AllowedMentions(users=False)
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class PartnershipComponents1(discord.ui.LayoutView):
-    container = discord.ui.Container(  # type: ignore
-        discord.ui.TextDisplay(  # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=(
                 "# Welcome to our Partnerships!\n"
                 f"Our server partnerships. Looking to partner? View <#{PARTNERSHIP_REQUIREMENTS_CHANNEL_ID}>"
@@ -35,7 +35,6 @@ class PartnershipComponents1(discord.ui.LayoutView):
             ),
         ),
     )
-
 
 class PartnershipComponents2(discord.ui.LayoutView):
     def __init__(self, partnerships: list[PartnershipEntry], timestamp: int) -> None:

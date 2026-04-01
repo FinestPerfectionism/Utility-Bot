@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_BLURPLE
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Channel Edit Audit
@@ -114,7 +113,8 @@ class ChannelEditCog(AuditCog):
             )
 
         for i, change_text in enumerate(overwrite_changes):
-            field_value = change_text if len(change_text) <= 1024 else f"{change_text[:1021]}..."
+            n_1024 = 1024
+            field_value = change_text if len(change_text) <= n_1024 else f"{change_text[:1021]}..."
             _ = embed.add_field(
                 name   = "Permission Overwrite Changed" if i == 0 else "\u200b",
                 value  = field_value,

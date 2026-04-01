@@ -13,8 +13,8 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_shutdown(
-    bot: commands.Bot,
-    ctx: commands.Context[commands.Bot],
+    bot : commands.Bot,
+    ctx : commands.Context[commands.Bot],
 ) -> None:
     if ctx.author.id != BOT_OWNER_ID:
         await ctx.message.add_reaction(DENIED_EMOJI_ID)

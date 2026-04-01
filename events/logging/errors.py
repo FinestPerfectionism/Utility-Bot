@@ -25,7 +25,8 @@ from constants import (
 from core.permissions import PermissionDenied, WrongGuild
 from core.utils import send_minor_error
 
-MAX_429S = 5
+MAX_n_429S = 5
+n_429 = 429
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # User Input Errors
@@ -148,25 +149,25 @@ class ErrorLogger(commands.Cog):
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # 429 / Rate Limit Guard
+    # n_429 / Rate Limit Guard
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     async def handle_rate_limit(self, source: str) -> None:
         self._rate_limit_hits += 1
 
         await self.send_error(
-            title = "Rate Limited (429)",
+            title = "Rate Limited (n_429)",
             error_text=(
                 f"Source: {source}\n"
-                f"Hit {self._rate_limit_hits}/{MAX_429S} this session."
+                f"Hit {self._rate_limit_hits}/{MAX_n_429S} this session."
             ),
         )
 
-        if self._rate_limit_hits >= MAX_429S:
+        if self._rate_limit_hits >= MAX_n_429S:
             await self.send_error(
-                title = "Auto-Shutdown: Too Many 429s",
+                title = "Auto-Shutdown: Too Many n_429s",
                 error_text=(
-                    f"Received {MAX_429S} rate limit responses this session. "
+                    f"Received {MAX_n_429S} rate limit responses this session. "
                     "Shutting down to prevent an IP ban."
                 ),
             )
@@ -177,7 +178,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_error(self, event: str, *args: str, **kwargs: int) -> None:
+    async def on_error(self, event: str, *_args: str, **_kwargs: int) -> None:
         if event in {"on_command_error", "on_interaction"}:
             return
 
@@ -193,7 +194,7 @@ class ErrorLogger(commands.Cog):
             )
             return
 
-        if isinstance(exc, discord.HTTPException) and exc.status == 429:
+        if isinstance(exc, discord.HTTPException) and exc.status == n_429:
             await self.handle_rate_limit(f"event: {event}")
             return
 
@@ -218,7 +219,7 @@ class ErrorLogger(commands.Cog):
         if isinstance(error, commands.CommandInvokeError):
             actual_error = error.original
 
-        if isinstance(actual_error, discord.HTTPException) and actual_error.status == 429:
+        if isinstance(actual_error, discord.HTTPException) and actual_error.status == n_429:
             await self.handle_rate_limit(ctx.message.content or "prefix command")
             return
 
@@ -269,14 +270,14 @@ class ErrorLogger(commands.Cog):
         if isinstance(error, PermissionDenied):
             if not interaction.response.is_done():
                 _ = await interaction.response.send_message(
-                    view      = PermissionError(),
+                    view      = PermissionsError(),
                     ephemeral = True,
                 )
             return
 
         actual_error = error.original if isinstance(error, app_commands.CommandInvokeError) else error
 
-        if isinstance(actual_error, discord.HTTPException) and actual_error.status == 429:
+        if isinstance(actual_error, discord.HTTPException) and actual_error.status == n_429:
             cmd      = interaction.command
             cmd_name = f"/{cmd.qualified_name}" if cmd else "Unknown"
             await self.handle_rate_limit(cmd_name)
@@ -332,7 +333,7 @@ class ErrorLogger(commands.Cog):
             discord.HTTPException,
             aiohttp.ClientError,
         ) as exc:
-            if isinstance(exc, discord.HTTPException) and exc.status == 429:
+            if isinstance(exc, discord.HTTPException) and exc.status == n_429:
                 await self.handle_rate_limit("guard_http")
                 raise
 
@@ -370,7 +371,7 @@ class ErrorLogger(commands.Cog):
         if exc is None:
             return
 
-        if isinstance(exc, discord.HTTPException) and exc.status == 429:
+        if isinstance(exc, discord.HTTPException) and exc.status == n_429:
             _ = self.create_task(
                 self.handle_rate_limit(f"task: {task.get_name()}"),
                 name = "task_ratelimit_reporter",
@@ -463,21 +464,22 @@ class ErrorLogger(commands.Cog):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class WrongGuildError(discord.ui.LayoutView):
-    container1 = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay(content=( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(content =
             f"### {CONTESTED_EMOJI_ID} Error!\n"
             "-# Bad command environment.\n"
-            "Although you have the necessary permissions to run this command (Bot Owner), using it in this current Guild/DM will not work."
-        )),
+            "Although you have the necessary permissions to run this command (Bot Owner), using it in this current Guild/DM will not work.",
+        ),
         accent_color = COLOR_YELLOW,
     )
 
-class PermissionError(discord.ui.LayoutView):
-    container1 = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay(content=( # type: ignore
+class PermissionsError(discord.ui.LayoutView):
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(content =
             f"### {DENIED_EMOJI_ID} Unauthorized!\n"
             "-# Invalid permissions.\n"
-            "You lack the necessary permissions to run this command.")),
+            "You lack the necessary permissions to run this command.",
+        ),
         accent_color = COLOR_RED,
     )
 

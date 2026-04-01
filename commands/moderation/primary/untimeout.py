@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import discord
@@ -65,7 +65,7 @@ async def run_untimeout(
         embed = discord.Embed(
             title     = "Timeout Removed",
             color     = COLOR_GREEN,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member", value = member.mention, inline = True)
         _ = embed.add_field(name = "Senior Moderator", value = actor.mention, inline = True)

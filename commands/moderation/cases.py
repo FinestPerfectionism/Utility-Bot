@@ -1,8 +1,9 @@
 import contextlib
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import (
     TYPE_CHECKING,
     Any,
+    ClassVar,
     Literal,
     cast,
 )
@@ -72,8 +73,8 @@ class ClassificationView(discord.ui.View):
     )
     async def accept_button(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["ClassificationView"],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button["ClassificationView"],
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -125,8 +126,8 @@ class ClassificationView(discord.ui.View):
     )
     async def deny_button(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["ClassificationView"],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button["ClassificationView"],
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -218,13 +219,15 @@ class CaseQueryPaginator(discord.ui.View):
 
         if case.get("reason"):
             reason = str(case["reason"])
-            if len(reason) > 200:
+            n_200 = 20
+            if len(reason) > n_200:
                 reason = reason[:197] + "..."
             parts.append(f"**Reason:** {reason}")
 
         if case.get("content"):
             content = str(case["content"])
-            if len(content) > 200:
+            n_200 = 20
+            if len(content) > n_200:
                 content = content[:197] + "..."
             parts.append(f"**Content:** {content}")
 
@@ -244,7 +247,7 @@ class CaseQueryPaginator(discord.ui.View):
         embed = discord.Embed(
             title     = self.title,
             color     = COLOR_BLURPLE,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
 
         for case in page_cases:
@@ -268,7 +271,7 @@ class CaseQueryPaginator(discord.ui.View):
     async def first_page(
         self,
         interaction : discord.Interaction,
-        button      : discord.ui.Button["CaseQueryPaginator"],
+        _button     : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
@@ -281,7 +284,7 @@ class CaseQueryPaginator(discord.ui.View):
     async def previous_page(
         self,
         interaction : discord.Interaction,
-        button      : discord.ui.Button["CaseQueryPaginator"],
+        _button     : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
@@ -292,7 +295,7 @@ class CaseQueryPaginator(discord.ui.View):
     async def next_page(
         self,
         interaction : discord.Interaction,
-        button      : discord.ui.Button["CaseQueryPaginator"],
+        _button     : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
@@ -306,7 +309,7 @@ class CaseQueryPaginator(discord.ui.View):
     async def last_page(
         self,
         interaction : discord.Interaction,
-        button      : discord.ui.Button["CaseQueryPaginator"],
+        _button     : discord.ui.Button["CaseQueryPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
@@ -381,7 +384,7 @@ class CaseViewPaginator(discord.ui.View):
     async def first_page(
         self,
         interaction : discord.Interaction,
-        button      : discord.ui.Button["CaseViewPaginator"],
+        _button     : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
@@ -394,7 +397,7 @@ class CaseViewPaginator(discord.ui.View):
     async def previous_page(
         self,
         interaction: discord.Interaction,
-        button      : discord.ui.Button["CaseViewPaginator"],
+        _button     : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
@@ -408,7 +411,7 @@ class CaseViewPaginator(discord.ui.View):
     async def next_page(
         self,
         interaction : discord.Interaction,
-        button      : discord.ui.Button["CaseViewPaginator"],
+        _button     : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
@@ -422,7 +425,7 @@ class CaseViewPaginator(discord.ui.View):
     async def last_page(
         self,
         interaction : discord.Interaction,
-        button      : discord.ui.Button["CaseViewPaginator"],
+        _button     : discord.ui.Button["CaseViewPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
@@ -478,9 +481,11 @@ class CasesCommands(commands.Cog):
         vis   = case.get("visibility_level", "moderators")
         level = self._visibility_level(member)
         if vis == "directors":
-            return level >= 3
+            n_3 = 3
+            return level >= n_3
         if vis == "senior_moderators":
-            return level >= 2
+            n_2 = 2
+            return level >= n_2
         return level >= 1
 
     def _can_edit_entry(self, member: discord.Member, case: dict[str, Any]) -> bool:
@@ -495,7 +500,7 @@ class CasesCommands(commands.Cog):
             return datetime.fromisoformat(value)
         return None
 
-    COLOR_MAP: dict[str, discord.Color] = {
+    COLOR_MAP: ClassVar[dict[str, discord.Color]] = {
         CaseType.BAN.value               : COLOR_BLACK,
         CaseType.UNBAN.value             : COLOR_GREEN,
         CaseType.KICK.value              : COLOR_RED,
@@ -509,7 +514,7 @@ class CasesCommands(commands.Cog):
         CaseType.NOTE.value              : COLOR_BLURPLE,
     }
 
-    TITLE_MAP: dict[str, str] = {
+    TITLE_MAP: ClassVar[dict[str, str]] = {
         CaseType.BAN.value               : "Member Banned",
         CaseType.UNBAN.value             : "User Un-banned",
         CaseType.KICK.value              : "Member Kicked",
@@ -525,8 +530,8 @@ class CasesCommands(commands.Cog):
 
     async def _build_case_embed(
         self,
-        guild : discord.Guild,
-        case  : dict[str, Any],
+        _guild : discord.Guild,
+        case   : dict[str, Any],
     ) -> discord.Embed:
         case_type  = case["type"]
         type_label = case_type.replace("_", " ").title()
@@ -651,6 +656,7 @@ class CasesCommands(commands.Cog):
         contains:      str | None = None,
         after:         str | None = None,
         before:        str | None = None,
+        *,
         include_notes: bool       = True,
     ) -> None:
         actor = interaction.user
@@ -888,7 +894,7 @@ class CasesCommands(commands.Cog):
         embed = discord.Embed(
             description = description,
             color       = COLOR_GREEN,
-            timestamp   = datetime.now(),
+            timestamp   = datetime.now(UTC),
         )
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
@@ -953,7 +959,7 @@ class CasesCommands(commands.Cog):
         embed = discord.Embed(
             description = f"Note **#{case_id}** has been updated.",
             color       = COLOR_GREEN,
-            timestamp   = datetime.now(),
+            timestamp   = datetime.now(UTC),
         )
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
@@ -1004,7 +1010,7 @@ class CasesCommands(commands.Cog):
         embed = discord.Embed(
             description = f"Case **#{case_id}** has been deleted.",
             color       = COLOR_GREEN,
-            timestamp   = datetime.now(),
+            timestamp   = datetime.now(UTC),
         )
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
@@ -1066,7 +1072,7 @@ class CasesCommands(commands.Cog):
             embed = discord.Embed(
                 description = f"Case **#{case_id}** visibility set to **{label}**.",
                 color       = COLOR_GREEN,
-                timestamp   = datetime.now(),
+                timestamp   = datetime.now(UTC),
             )
             _ = await interaction.response.send_message(embed=embed, ephemeral = True)
             return
@@ -1121,7 +1127,7 @@ class CasesCommands(commands.Cog):
                 f"A Director must approve the **{label}** restriction."
             ),
             color     = COLOR_YELLOW,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 

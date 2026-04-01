@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -85,7 +85,7 @@ async def run_ban(
             base.data["bans"] = {}
 
         base.data["bans"][str(member.id)] = {
-            "banned_at" : datetime.now().isoformat(),
+            "banned_at" : datetime.now(UTC).isoformat(),
             "banned_by" : actor.id,
             "reason"    : reason,
         }
@@ -108,7 +108,7 @@ async def run_ban(
         embed = discord.Embed(
             title     = "Member Banned",
             color     = COLOR_RED,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)
         _ = embed.add_field(name = "Moderator", value = actor.mention,                     inline = True)

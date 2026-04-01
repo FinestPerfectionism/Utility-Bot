@@ -1,8 +1,8 @@
 import contextlib
 import json
-import os
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 import discord
@@ -30,16 +30,16 @@ class ActionType:
     CHANNEL_DELETE = "channel_delete"
     CHANNEL_CREATE = "channel_create"
     CHANNEL_UPDATE = "channel_update"
-    ROLE_DELETE = "role_delete"
-    ROLE_CREATE = "role_create"
-    ROLE_UPDATE = "role_update"
+    ROLE_DELETE    = "role_delete"
+    ROLE_CREATE    = "role_create"
+    ROLE_UPDATE    = "role_update"
 
 class AntiNukeSystem(commands.Cog):
     def __init__(self, bot: "UtilityBot") -> None:
         self.bot = bot
-        self.config_file = "antinuke_config.json"
-        self.config = self.load_config()
-        self.DIRECTORS_ROLE_ID = DIRECTORS_ROLE_ID
+        self.config_file        = "antinuke_config.json"
+        self.config             = self.load_config()
+        self.DIRECTORS_ROLE_ID  = DIRECTORS_ROLE_ID
         self.QUARANTINE_ROLE_ID = QUARANTINE_ROLE_ID
 
         self.action_tracker: dict[int, dict[str, dict[str, list[datetime]]]] = defaultdict(
@@ -51,9 +51,9 @@ class AntiNukeSystem(commands.Cog):
         return self.bot.cases_manager
 
     def load_config(self) -> dict[str, Any]:
-        if os.path.exists(self.config_file):
+        if Path(self.config_file).exists():
             try:
-                with open(self.config_file) as f:
+                with Path(self.config_file).open() as f:
                     return json.load(f)
             except json.JSONDecodeError:
                 return self.get_default_config()
@@ -74,14 +74,14 @@ class AntiNukeSystem(commands.Cog):
         }
 
     def save_config(self) -> None:
-        with open(self.config_file, "w") as f:
+        with Path(self.config_file).open("w") as f:
             json.dump(self.config, f, indent=4)
 
     def is_director(self, member: discord.Member) -> bool:
         return any(role.id == self.DIRECTORS_ROLE_ID for role in member.roles)
 
     def clean_old_actions(self, user_id: int, action_type: str) -> None:
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         bucket = self.action_tracker[user_id][action_type]
 
@@ -124,7 +124,7 @@ class AntiNukeSystem(commands.Cog):
             self.action_tracker[user.id][action_type] = {"hourly": [], "daily": []}
 
         self.clean_old_actions(user.id, action_type)
-        now = datetime.now()
+        now = datetime.now(UTC)
         self.action_tracker[user.id][action_type]["hourly"].append(now)
         self.action_tracker[user.id][action_type]["daily"].append(now)
 
@@ -220,7 +220,7 @@ class AntiNukeSystem(commands.Cog):
             title = "Anti-Nuke Warning",
             description=f"{user.mention} is approaching rate limits",
             color = COLOR_ORANGE,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "User", value = f"{user.mention} ({user.id})", inline = True)
         _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
@@ -252,7 +252,7 @@ class AntiNukeSystem(commands.Cog):
             title = "Anti-Nuke: User Quarantined",
             description=f"{member.mention} has been automatically quarantined for exceeding action limits.",
             color = COLOR_RED,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "User", value = f"{member.mention} ({member.id})", inline = True)
         _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
@@ -269,9 +269,9 @@ class AntiNukeSystem(commands.Cog):
 
     async def send_quarantine_failure(
         self,
-        guild: discord.Guild,
-        member: discord.Member,
-        action_type: str,
+        guild        : discord.Guild,
+        member       : discord.Member,
+        _action_type : str,
     ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:

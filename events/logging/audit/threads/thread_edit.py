@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_BLURPLE
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Thread Edit Audit
@@ -52,24 +51,24 @@ class ThreadEditCog(AuditCog):
             return
 
         embed = discord.Embed(
-            title = "Thread Updated",
-            color=COLOR_BLURPLE,
+            title     = "Thread Updated",
+            color     = COLOR_BLURPLE,
             timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
-            name = "Thread",
-            value = f"`{after.name}`\n`{after.id}`",
+            name   = "Thread",
+            value  = f"`{after.name}`\n`{after.id}`",
             inline = False,
         )
 
-        change_name: str
-        before_val: str | int | None
-        after_val:  str | int | None
+        change_name : str
+        before_val  : str | int | None
+        after_val   : str | int | None
         for change_name, before_val, after_val in changes:
             _ = embed.add_field(
-                name = f"{change_name} Changed",
-                value = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
+                name   = f"{change_name} Changed",
+                value  = f"**Before:** `{before_val}`\n**After:** `{after_val}`",
                 inline = False,
             )
 

@@ -8,7 +8,7 @@ from core.utils import (
     send_major_error,
     send_minor_error,
 )
-from events.logging.errors import PermissionError
+from events.logging.errors import PermissionsError
 
 log = logging.getLogger("Utility Bot")
 
@@ -24,7 +24,7 @@ async def run_load(
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
-            view      = PermissionError(),
+            view      = PermissionsError(),
             ephemeral = True,
         )
         return
@@ -47,7 +47,7 @@ async def run_load(
     except Exception as e:
         await send_major_error(
             interaction,
-            f"Failed to load `{cog}`: {e}",
+            texts    = f"Failed to load `{cog}`: {e}",
             subtitle = "Invalid operation.",
         )
-        log.error("Failed to load cog %s: %s", cog, e)
+        log.exception("Failed to load cog %s:", cog)

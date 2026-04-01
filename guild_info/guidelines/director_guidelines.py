@@ -2,8 +2,8 @@ import discord
 
 
 class DirectorateComponents1(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "# Welcome to Directorate Guidelines!\n"
                 "Internal guidelines for the Goobers Directorate.\n"
@@ -14,27 +14,27 @@ class DirectorateComponents1(discord.ui.LayoutView):
 class DirectorateComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout = None)
-        self.container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay( # type: ignore
+        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(
                 content=
                     "# Directorate Guidelines\n"
                    f"Directorate guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay( # type: ignore
+            discord.ui.TextDisplay(
                 content=
                     "## §1 Directorate Authority\n"
                     "The Directorate holds ultimate governance authority over the server. All staff teams operate under Directorate oversight. Directorate decisions are final and binding unless revisited by the Directorate itself.\n\n"
@@ -58,20 +58,20 @@ class DirectorateComponents2(discord.ui.LayoutView):
                     "The Staff Committee must issue a final decision within 5 days of the advisory poll concluding. If no decision is reached, the proposal automatically enters Contested status. Directors are responsible for ensuring this window is respected — delays without cause reflect on the Directorate.",
             ),
         )
-        self.add_item(self.container) # type: ignore
+        _ = self.add_item(self.container)
 
 class DirectorateComponents3(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## §3 Nominations and Promotions\n"
                 "All appointment and promotion decisions are made internally by the Directorate. Senior Staff members may provide information or advice regarding Junior Staff candidates, but such input is non-binding. The final decision rests entirely with the Directorate.\n\n"
                 "### §3.1 Director Nominations\n"
                 "Director nominations require **unanimous agreement** from the existing Directorate. A single objection from any Director is sufficient to prevent a nomination from proceeding. Director nominations are only made under special circumstances and must not be treated as a routine reward for strong performance.\n\n"
                 "### §3.2 Junior to Senior Promotions\n"
-                "Promoting a Junior staff member (Junior Moderator or Junior Administrator) to their Senior counterpart requires that **at least ²⁄₃ of Directors accept**, with the remaining Directors either accepting or abstaining. A Director actively opposing the promotion is sufficient to prevent it from meeting threshold.\n\n"
+                "Promoting a Junior staff member (Junior Moderator or Junior Administrator) to their Senior counterpart requires that **at least 2/3 of Directors accept**, with the remaining Directors either accepting or abstaining. A Director actively opposing the promotion is sufficient to prevent it from meeting threshold.\n\n"
                 "### §3.3 Member to Junior Staff\n"
-                "Bringing a member into the staff team as a Junior Moderator or Junior Administrator requires that **at least ¹⁄₃ of Directors accept**, with the remaining Directors either accepting or abstaining. This lower threshold reflects the trial nature of Junior positions.\n\n"
+                "Bringing a member into the staff team as a Junior Moderator or Junior Administrator requires that **at least 1/3 of Directors accept**, with the remaining Directors either accepting or abstaining. This lower threshold reflects the trial nature of Junior positions.\n\n"
                 "### §3.4 Guild Trustee Nominations\n"
                 "Nominating a member to the Guild Trustee role requires that **all Directors abstain or accept** — no Director may actively oppose the nomination for it to proceed. Because Guild Trustees are not staff, the threshold is deliberately permissive, but the role must not be awarded without consensus.\n\n"
                 "### §3.5 Removals\n"
@@ -88,8 +88,8 @@ class DirectorateComponents3(discord.ui.LayoutView):
     )
 
 class DirectorateComponents4(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## §5 Director Tickets\n"
                 "Directors are responsible for all tickets escalated to Director scope. This includes ban appeals, partnership requests, and issues involving staff members.\n\n"
@@ -123,8 +123,8 @@ class DirectorateComponents4(discord.ui.LayoutView):
     )
 
 class DirectorateComponents5(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## §6 Staff Misconduct\n"
                 "### §6.1 What Constitutes Misconduct\n"

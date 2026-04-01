@@ -15,8 +15,8 @@ from core.help import (
     help_description,
 )
 from core.permissions import directors_only, main_guild_only
-from core.state import BLACKLIST, save_blacklist
-from core.ticket_state import (
+from core.state.blacklist_state import BLACKLIST, save_blacklist
+from core.state.ticket_state import (
     THREAD_OPENERS,
     TICKET_CLAIMS,
     TICKET_TYPES,
@@ -32,8 +32,8 @@ from events.systems.tickets import stop_resolution
 
 class TicketsCommands(
     commands.GroupCog,
-    name = "tickets",
-    description="Moderators only —— Tickets commands.",
+    name        = "tickets",
+    description = "Moderators only —— Tickets commands.",
 ):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -44,15 +44,15 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "blacklist",
-        description="Blacklist or un-blacklist a user from tickets.",
+        name        = "blacklist",
+        description = "Blacklist or un-blacklist a user from tickets.",
     )
     @app_commands.describe(
-        action="Add or remove a blacklist.",
-        user="User to modify.",
+        action = "Add or remove a blacklist.",
+        user   = "User to modify.",
     )
     @app_commands.choices(
-        action=[
+        action = [
             app_commands.Choice(
                 name = "Add",
                 value = "add",
@@ -64,11 +64,11 @@ class TicketsCommands(
         ],
     )
     @help_description(
-        desc="Directors only —— Add or remove a user from the ticket blacklist.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
+        desc      = "Directors only —— Add or remove a user from the ticket blacklist.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        arguments = {
             "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
             "user": ArgumentInfo(description="User to blacklist or unblacklist from tickets."),
         },
@@ -77,9 +77,9 @@ class TicketsCommands(
     @directors_only()
     async def blacklist(
         self,
-        interaction: discord.Interaction,
-        action: app_commands.Choice[str],
-        user: discord.User,
+        interaction : discord.Interaction,
+        action      : app_commands.Choice[str],
+        user        : discord.User,
     ) -> None:
         user_id     = user.id
         target_list = BLACKLIST["tickets"]
@@ -138,14 +138,14 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name = "archive",
-        aliases=["a"],
+        name    = "archive",
+        aliases = ["a"],
     )
     @help_description(
-        desc="Moderators only —— Archives the current ticket thread. Only the ticket opener or a moderator can use it inside a ticket thread.",
-        prefix=True,
-        slash=False,
-        aliases=["a"],
+        desc    = "Moderators only —— Archives the current ticket thread. Only the ticket opener or a moderator can use it inside a ticket thread.",
+        prefix  = True,
+        slash   = False,
+        aliases = ["a"],
     )
     async def archive(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
@@ -194,9 +194,9 @@ class TicketsCommands(
 
     @commands.command(name = "claim")
     @help_description(
-        desc="Moderators only —— Claims the current ticket thread.",
-        prefix=True,
-        slash=False,
+        desc   = "Moderators only —— Claims the current ticket thread.",
+        prefix = True,
+        slash  = False,
     )
     async def claim(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
@@ -256,14 +256,14 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(
-        name = "escalate",
-        aliases=["e", "esc"],
+        name    = "escalate",
+        aliases = ["e", "esc"],
     )
     @help_description(
-        desc="Moderators only —— Escalates the current ticket thread to Directors.",
-        prefix=True,
-        slash=False,
-        aliases=["e", "esc"],
+        desc = "Moderators only —— Escalates the current ticket thread to Directors.",
+        prefix  = True,
+        slash   = False,
+        aliases = ["e", "esc"],
     )
     async def escalate(self, ctx: commands.Context[commands.Bot]) -> None:
         channel = ctx.channel

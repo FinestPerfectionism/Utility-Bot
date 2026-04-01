@@ -14,8 +14,8 @@ from constants import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class LeaveFormatView(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=(
                 "# Leave Request Format\n\n"
                 "```\n"
@@ -41,8 +41,8 @@ class LeaveComponents(discord.ui.LayoutView):
                 elif item.custom_id == "leave:format":
                     item.callback = self.format_leave
 
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=(
                 "# Staff Leave\n"
                 "When you plan to be unavailable for a period of time, you must notify directors using this channel. This system exists solely to track staff availability and ensure operational coverage. Taking leave is expected and acceptable, provided it is communicated properly.\n\n"
@@ -60,21 +60,21 @@ class LeaveComponents(discord.ui.LayoutView):
             ),
 
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
+        discord.ui.TextDisplay(
             content="Sincerely,\n-# The Goobers Directorate team.",
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
-        discord.ui.ActionRow( # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
+        discord.ui.ActionRow(
             discord.ui.Button(
-                style=discord.ButtonStyle.primary,
-                label="Open Leave Request",
-                custom_id="leave:open",
+                style     = discord.ButtonStyle.primary,
+                label     = "Open Leave Request",
+                custom_id = "leave:open",
             ),
             discord.ui.Button(
-                style=discord.ButtonStyle.primary,
-                label="Leave Request Format",
-                custom_id="leave:format",
+                style     = discord.ButtonStyle.primary,
+                label     = "Leave Request Format",
+                custom_id = "leave:format",
             ),
         ),
         accent_color = COLOR_GREEN,
@@ -137,9 +137,9 @@ class LeaveComponents(discord.ui.LayoutView):
                 return
 
         thread = await channel.create_thread(
-            name = f"Leave —— {user.id}",
-            type=discord.ChannelType.private_thread,
-            invitable=False,
+            name      = f"Leave —— {user.id}",
+            type      = discord.ChannelType.private_thread,
+            invitable = False,
         )
 
         await thread.add_user(user)

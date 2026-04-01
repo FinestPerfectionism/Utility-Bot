@@ -1,10 +1,10 @@
 import contextlib
 import enum
 import json
-import os
 import re
 from datetime import UTC, datetime
 from datetime import date as date_type
+from pathlib import Path
 from typing import Any, cast
 
 import discord
@@ -57,13 +57,13 @@ class LeaveType(enum.Enum):
     hard_clean = "hard_clean"
 
 def load_data() -> dict[str, Any]:
-    if not os.path.exists(DATA_FILE):
+    if not Path(DATA_FILE).exists():
         return {}
-    with open(DATA_FILE) as f:
+    with Path(DATA_FILE).open() as f:
         return json.load(f)
 
 def save_data(data: dict[str, Any]) -> None:
-    with open(DATA_FILE, "w") as f:
+    with Path(DATA_FILE).open("w") as f:
         json.dump(data, f, indent=2)
 
 def extract_name(nickname: str) -> str:
@@ -109,7 +109,7 @@ def parse_timer(value: str) -> int | None:
 
 def parse_date(value: str) -> date_type | None:
     with contextlib.suppress(ValueError):
-        return datetime.strptime(value.strip(), DATE_FMT).date()
+        return datetime.strptime(value.strip(), DATE_FMT).replace(tzinfo=UTC).date()
     return None
 
 def entry_has_automation(entry: dict[str, Any]) -> bool:
@@ -130,10 +130,11 @@ def describe_automation(entry: dict[str, Any]) -> str:
 
 def build_leave_nick(name: str) -> str | None:
     long_nick = f"P. Leave | {name}"
-    if len(long_nick) <= 32:
+    n_32 = 32
+    if len(long_nick) <= n_32:
         return long_nick
     short_nick = f"PL | {name}"
-    if len(short_nick) <= 32:
+    if len(short_nick) <= n_32:
         return short_nick
     return None
 
@@ -161,7 +162,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         _ = self._action_row.add_item(self._confirm_button)
         _ = self._action_row.add_item(self._cancel_button)
 
-        self._text_display: discord.ui.TextDisplay[HardCleanConfirmView] = discord.ui.TextDisplay(content=warning_text)
+        self._text_display: discord.ui.TextDisplay[HardCleanConfirmView] = discord.ui.TextDisplay(content = warning_text)
 
         container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color = COLOR_RED)
         _ = container.add_item(self._text_display)
@@ -244,7 +245,7 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         _ = self._action_row.add_item(self._confirm_button)
         _ = self._action_row.add_item(self._cancel_button)
 
-        self._text_display: discord.ui.TextDisplay[InterferenceConfirmView] = discord.ui.TextDisplay(content=warning_text)
+        self._text_display: discord.ui.TextDisplay[InterferenceConfirmView] = discord.ui.TextDisplay(content = warning_text)
 
         container: discord.ui.Container[InterferenceConfirmView] = discord.ui.Container(accent_color = COLOR_RED)
         _ = container.add_item(self._text_display)

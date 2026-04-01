@@ -31,11 +31,11 @@ from constants import (
     TICKET_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
 )
-from core.partnership_state import (
+from core.state.partnership_state import (
     PartnershipData,
     load_partnership_data,
 )
-from core.state import (
+from core.state.layout_state import (
     load_layout_message_ids,
     save_layout_message_ids,
 )
@@ -130,8 +130,8 @@ def load_layout_config() -> dict[str, bool]:
     try:
         with LAYOUT_CONFIG_PATH.open("r") as f:
             data = json.load(f)
-    except (json.JSONDecodeError, OSError) as e:
-        log.exception("Failed to read layout_config.json, enabling all layouts: %s", e)
+    except (json.JSONDecodeError, OSError):
+        log.exception("Failed to read layout_config.json, enabling all layouts")
         return DEFAULT_LAYOUT_CONFIG.copy()
 
     config = DEFAULT_LAYOUT_CONFIG.copy()
@@ -244,8 +244,8 @@ class Startup(commands.Cog):
                 return
             except discord.NotFound:
                 log.debug("Verification message_id = %s not found", msg_id)
-            except discord.HTTPException as e:
-                log.exception("Failed restoring verification layout: %s", e)
+            except discord.HTTPException:
+                log.exception("Failed restoring verification layout")
 
         try:
             message = await channel.send(view = view)
@@ -255,15 +255,16 @@ class Startup(commands.Cog):
             log.info("Verification layout created")
             log.debug("Verification message_id = %s", message.id)
 
-        except discord.HTTPException as e:
-            log.exception("Failed creating verification layout: %s", e)
+        except discord.HTTPException:
+            log.exception("Failed creating verification layout")
 
     async def _handle_rules_layout(self, channel: discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("rules")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 2:
+        n_2 = 2
+        if len(msg_ids) == n_2:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -286,8 +287,8 @@ class Startup(commands.Cog):
                 msg1 = await channel.send(view = RuleComponents1())
                 log.info("Rules: sending component 2")
                 msg2 = await channel.send(view = RuleComponents2(timestamp = current_timestamp))
-            except discord.HTTPException as e:
-                log.exception("Rules layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Rules layout failed during send")
                 return
 
             self.layout_message_ids["rules"] = [msg1.id, msg2.id]
@@ -307,7 +308,8 @@ class Startup(commands.Cog):
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 5:
+        n_5 = 5
+        if len(msg_ids) == n_5:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -336,8 +338,8 @@ class Startup(commands.Cog):
                 msg3 = await channel.send(view = StaffProposalComponents3())
                 log.info("Staff proposals: sending component 4")
                 msg4 = await channel.send(view = StaffProposalComponents4())
-            except discord.HTTPException as e:
-                log.exception("Staff proposals layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Staff proposals layout failed during send")
                 return
 
             self.layout_message_ids["staff_proposals"] = [msg1.id, msg2a.id, msg2b.id, msg3.id, msg4.id]
@@ -357,7 +359,8 @@ class Startup(commands.Cog):
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 2:
+        n_2 = 2
+        if len(msg_ids) == n_2:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -380,8 +383,8 @@ class Startup(commands.Cog):
                 msg1 = await channel.send(view = RequirementComponents1())
                 log.info("Partnership requirements: sending component 2")
                 msg2 = await channel.send(view = RequirementComponents2(timestamp = current_timestamp))
-            except discord.HTTPException as e:
-                log.exception("Partnership requirements layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Partnership requirements layout failed during send")
                 return
 
             self.layout_message_ids["partnership_requirements"] = [msg1.id, msg2.id]
@@ -423,15 +426,16 @@ class Startup(commands.Cog):
             await rebuild_partnership_layout(channel, data)
             log.info("Partnership layout created")
             log.debug("Partnership header_message_id = %s message_ids=%s", data["header_message_id"], data["message_ids"])
-        except discord.HTTPException as e:
-            log.exception("Partnership layout failed: %s", e)
+        except discord.HTTPException:
+            log.exception("Partnership layout failed")
 
     async def _handle_hierarchy_layout(self, channel: discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("hierarchy")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 7:
+        n_7 = 7
+        if len(msg_ids) == n_7:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -464,8 +468,8 @@ class Startup(commands.Cog):
                 msg6 = await channel.send(view = HierarchyComponents6())
                 log.info("Hierarchy: sending component 7")
                 msg7 = await channel.send(view = HierarchyComponents7())
-            except discord.HTTPException as e:
-                log.exception("Hierarchy layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Hierarchy layout failed during send")
                 return
 
             self.layout_message_ids["hierarchy"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id, msg6.id, msg7.id]
@@ -485,7 +489,8 @@ class Startup(commands.Cog):
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 3:
+        n_3 = 3
+        if len(msg_ids) == n_3:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -510,8 +515,8 @@ class Startup(commands.Cog):
                 msg2 = await channel.send(view = ModerationComponents2(timestamp = current_timestamp))
                 log.info("Moderation guidelines: sending component 3")
                 msg3 = await channel.send(view = ModerationComponents3())
-            except discord.HTTPException as e:
-                log.exception("Moderation guidelines layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Moderation guidelines layout failed during send")
                 return
 
             self.layout_message_ids["moderation_guidelines"] = [msg1.id, msg2.id, msg3.id]
@@ -531,7 +536,8 @@ class Startup(commands.Cog):
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 4:
+        n_4 = 4
+        if len(msg_ids) == n_4:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -558,8 +564,8 @@ class Startup(commands.Cog):
                 msg3 = await channel.send(view = AdministratorComponents3())
                 log.info("Administrator guidelines: sending component 4")
                 msg4 = await channel.send(view = AdministratorComponents4())
-            except discord.HTTPException as e:
-                log.exception("Administrator guidelines layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Administrator guidelines layout failed during send")
                 return
 
             self.layout_message_ids["administrator_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id]
@@ -579,7 +585,8 @@ class Startup(commands.Cog):
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 4:
+        n_4 = 4
+        if len(msg_ids) == n_4:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -606,8 +613,8 @@ class Startup(commands.Cog):
                 msg3 = await channel.send(view = StaffComponents3())
                 log.info("Staff guidelines: sending component 4")
                 msg4 = await channel.send(view = StaffComponents4())
-            except discord.HTTPException as e:
-                log.exception("Staff guidelines layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Staff guidelines layout failed during send")
                 return
 
             self.layout_message_ids["staff_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id]
@@ -627,7 +634,8 @@ class Startup(commands.Cog):
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
-        if len(msg_ids) == 5:
+        n_5 = 5
+        if len(msg_ids) == n_5:
             try:
                 for msg_id in msg_ids:
                     _ = await channel.fetch_message(msg_id)
@@ -656,8 +664,8 @@ class Startup(commands.Cog):
                 msg4 = await channel.send(view = DirectorateComponents4())
                 log.info("Directorate guidelines: sending component 5")
                 msg5 = await channel.send(view = DirectorateComponents5())
-            except discord.HTTPException as e:
-                log.exception("Directorate guidelines layout failed during send: %s", e)
+            except discord.HTTPException:
+                log.exception("Directorate guidelines layout failed during send")
                 return
 
             self.layout_message_ids["directorate_guidelines"] = [msg1.id, msg2.id, msg3.id, msg4.id, msg5.id]

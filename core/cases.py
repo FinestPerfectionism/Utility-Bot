@@ -1,8 +1,8 @@
 import contextlib
 import json
-import os
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import discord
@@ -45,8 +45,8 @@ class CasesManager:
         self._auto_migrate_notes()
 
     def load_data(self) -> dict[str, Any]:
-        if os.path.exists(self.data_file):
-            with contextlib.suppress(json.JSONDecodeError), open(self.data_file) as f:
+        if Path(self.data_file).exists():
+            with contextlib.suppress(json.JSONDecodeError), Path(self.data_file).open() as f:
                 data: dict[str, Any] = json.load(f)
                 self._normalize_cases(data)
                 return data
@@ -64,17 +64,17 @@ class CasesManager:
             case.setdefault("metadata", {})
 
     def _auto_migrate_notes(self) -> None:
-        notes_file = "notes_data.json"
-        if not os.path.exists(notes_file):
+        notes_file = Path("notes_data.json")
+        if not Path("notes_data.json").exists():
             return
 
         notes_data: dict[str, Any] = {}
-        with contextlib.suppress(json.JSONDecodeError), open(notes_file) as f:
+        with contextlib.suppress(json.JSONDecodeError), Path(notes_file).open() as f:
             notes_data = json.load(f)
 
         if not notes_data:
             with contextlib.suppress(OSError):
-                os.remove(notes_file)
+                Path(notes_file).unlink()
             return
 
         existing_ids: set[int] = {c["case_id"] for c in self.data["cases"]}
@@ -87,7 +87,7 @@ class CasesManager:
             self.data["next_case_id"] = nid + 1
             return nid
 
-        now_iso = datetime.now().isoformat()
+        now_iso = datetime.now(UTC).isoformat()
 
         for user_id_str, notes in notes_data.get("user_notes", {}).items():
             for note in notes:
@@ -133,20 +133,20 @@ class CasesManager:
 
         self.save_data()
         with contextlib.suppress(OSError):
-            os.remove(notes_file)
+            Path(notes_file).unlink()
 
     def load_config(self) -> dict[str, Any]:
-        if os.path.exists(self.config_file):
-            with contextlib.suppress(json.JSONDecodeError), open(self.config_file) as f:
+        if Path(self.config_file).exists():
+            with contextlib.suppress(json.JSONDecodeError), Path(self.config_file).open() as f:
                 return json.load(f)
         return {"log_channel_id": None}
 
     def save_data(self) -> None:
-        with open(self.data_file, "w") as f:
+        with Path(self.data_file).open("w") as f:
             json.dump(self.data, f, indent=4)
 
     def save_config(self) -> None:
-        with open(self.config_file, "w") as f:
+        with Path(self.config_file).open("w") as f:
             json.dump(self.config, f, indent=4)
 
     def get_next_case_id(self) -> int:
@@ -166,7 +166,7 @@ class CasesManager:
         content          : str                             | None = None,
         related_case_id  : int                             | None = None,
         visibility_level : str                                    = "moderators",
-        metadata         : dict[str, Any] | None                  = None,
+        metadata         : dict[str, Any]                  | None = None,
     ) -> int:
         case_id = self.get_next_case_id()
 
@@ -342,7 +342,7 @@ class CasesManager:
         if not case:
             return False
         case["content"]   = content
-        case["edited_at"] = datetime.now().isoformat()
+        case["edited_at"] = datetime.now(UTC).isoformat()
         self.save_data()
         return True
 
@@ -407,6 +407,7 @@ class CasesManager:
         contains      : str      | None = None,
         after         : datetime | None = None,
         before        : datetime | None = None,
+        *,
         include_notes : bool            = True,
     ) -> list[dict[str, Any]]:
         self.data = self.load_data()

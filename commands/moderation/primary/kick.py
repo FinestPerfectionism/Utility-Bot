@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -73,7 +73,7 @@ async def run_kick(
 
         kicks = base.ensure_data_section("kicks")
         kicks[str(member.id)] = {
-            "kicked_at" : datetime.now().isoformat(),
+            "kicked_at" : datetime.now(UTC).isoformat(),
             "kicked_by" : actor.id,
             "reason"    : reason,
         }
@@ -96,7 +96,7 @@ async def run_kick(
         embed = discord.Embed(
             title     = "Member Kicked",
             color     = COLOR_ORANGE,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)
         _ = embed.add_field(name = "Moderator", value = actor.mention,                     inline = True)

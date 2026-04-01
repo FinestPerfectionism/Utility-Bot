@@ -24,7 +24,7 @@ from constants import (
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 )
-from events.logging.errors import PermissionError
+from events.logging.errors import PermissionsError
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /status Logic
@@ -36,11 +36,11 @@ async def run_status(
     activity_type : app_commands.Choice[str],
     text          : str,
     state         : app_commands.Choice[str] | None,
-    url           :                      str | None,
+    url           :                     str  | None,
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
-            view      = PermissionError(),
+            view      = PermissionsError(),
             ephemeral = True,
         )
         return
@@ -135,7 +135,7 @@ async def run_eval(
     try:
         import builtins
         builtins.exec(to_compile, env)
-    except Exception as e:
+    except BaseException as e: # noqa: BLE001
         _ = await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
         _ = await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
         return
@@ -145,7 +145,7 @@ async def run_eval(
     try:
         with contextlib.redirect_stdout(stdout):
             ret = await func()
-    except Exception:
+    except BaseException: # noqa: BLE001
         value = stdout.getvalue()
         _ = await ctx.message.add_reaction(f"{CONTESTED_EMOJI_ID}")
         _ = await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")

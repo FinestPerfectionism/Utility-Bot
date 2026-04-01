@@ -9,7 +9,7 @@ from core.utils import (
     send_major_error,
     send_minor_error,
 )
-from events.logging.errors import PermissionError
+from events.logging.errors import PermissionsError
 
 log = logging.getLogger("Utility Bot")
 
@@ -24,7 +24,7 @@ async def run_pull_reload(
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
         _ = await interaction.response.send_message(
-            view      = PermissionError(),
+            view      = PermissionsError(),
             ephemeral = True,
         )
         return
@@ -59,7 +59,7 @@ async def run_pull_reload(
             log.info("Reloaded cog %s", c)
         except Exception as e:
             failed.append((c, e))
-            log.error("Failed to reload cog %s: %s", c, e)
+            log.exception("Failed to reload cog %s", c)
 
     if failed:
         msg = "\n".join(f"{c}: {e}" for c, e in failed)

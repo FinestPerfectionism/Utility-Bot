@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_GREEN
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Member Unban Audit
@@ -24,21 +23,21 @@ class MemberUnbanCog(AuditCog):
         executor = await self.get_executor(guild, discord.AuditLogAction.unban, user.id)
 
         embed = discord.Embed(
-            title = "Member Unbanned",
-            color = COLOR_GREEN,
+            title     = "Member Unbanned",
+            color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
-            name = "User",
-            value = f"`{user}`\n`{user.id}`",
+            name   = "User",
+            value  = f"`{user}`\n`{user.id}`",
             inline = True,
         )
 
         if executor:
             _ = embed.add_field(
-                name = "Unbanned By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Unbanned By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 

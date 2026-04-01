@@ -77,7 +77,8 @@ def resolve_forum_tags(
     for tag_id in tag_ids:
         tag = forum.get_tag(tag_id)
         if tag is None:
-            raise ValueError(f"Forum tag not found: {tag_id}")
+            string =  "Forum tag not found: {tag_id}"
+            raise ValueError(string)
         resolved.append(tag)
 
     return resolved
@@ -97,7 +98,7 @@ def parse_duration(input_str: str) -> timedelta | None:
 
     for value, unit in matches:
         value = int(value)
-        unit = unit.lower()
+        unit  = unit.lower()
 
         if unit == "mo":
             total_seconds += value * 28 * 24 * 60 * 60
@@ -129,7 +130,7 @@ class MinorError(discord.ui.LayoutView):
 
         _ = container.add_item(
             discord.ui.TextDisplay(
-                content=f"### {CONTESTED_EMOJI_ID} {title}\n"
+                content = f"### {CONTESTED_EMOJI_ID} {title}\n"
                         f"-# {subtitle}",
             ),
         )
@@ -142,16 +143,16 @@ class MinorError(discord.ui.LayoutView):
                         spacing = discord.SeparatorSpacing.small,
                     ),
                 )
-            _ = container.add_item(discord.ui.TextDisplay(content=text))
+            _ = container.add_item(discord.ui.TextDisplay(content = text))
 
-        self.add_item(container) # type: ignore
+        _ = self.add_item(container)
 
 class MajorError(discord.ui.LayoutView):
     def __init__(
         self,
-        texts:    list[str],
-        subtitle: str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-        title:    str =  "Error!",
+        texts    : list[str],
+        subtitle : str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
+        title    : str =  "Error!",
     ) -> None:
         super().__init__()
 
@@ -159,8 +160,8 @@ class MajorError(discord.ui.LayoutView):
 
         _ = container.add_item(
             discord.ui.TextDisplay(
-                content=f"### {DENIED_EMOJI_ID} {title}\n"
-                        f"-# {subtitle}",
+                content = f"### {DENIED_EMOJI_ID} {title}\n"
+                          f"-# {subtitle}",
             ),
         )
 
@@ -172,15 +173,15 @@ class MajorError(discord.ui.LayoutView):
                         spacing = discord.SeparatorSpacing.small,
                     ),
                 )
-            _ = container.add_item(discord.ui.TextDisplay(content=text))
+            _ = container.add_item(discord.ui.TextDisplay(content = text))
 
-        self.add_item(container) # type: ignore
+        _ = self.add_item(container)
 
 async def send_minor_error(
-    interaction: discord.Interaction,
-    texts:       list[str] | str,
-    subtitle:    str = "Invalid argument.",
-    title:       str = "Error!",
+    interaction : discord.Interaction,
+    texts       : list[str] | str,
+    subtitle    : str = "Invalid argument.",
+    title       : str = "Error!",
 ) -> None:
     if isinstance(texts, str):
         texts = [texts]
@@ -189,7 +190,7 @@ async def send_minor_error(
 
     if interaction.response.is_done():
         await interaction.followup.send(
-            content=" ",
+            content = " ",
             view = view,
             ephemeral = True,
         )
@@ -213,7 +214,7 @@ async def send_major_error(
 
     if interaction.response.is_done():
         await interaction.followup.send(
-            content=" ",
+            content = " ",
             view = view,
             ephemeral = True,
         )
@@ -232,21 +233,18 @@ def assert_forum_thread(
     interaction: discord.Interaction,
 ) -> tuple[discord.Thread, discord.ForumChannel]:
     if not isinstance(interaction.channel, discord.Thread):
-        raise ValueError(
-            "This command must be used inside a staff proposal thread.",
-        )
+        string = "This command must be used inside a staff proposal thread."
+        raise TypeError(string)
 
     thread: discord.Thread = interaction.channel
 
     if thread.parent_id != STAFF_PROPOSALS_CHANNEL_ID:
-        raise ValueError(
-            "This command must be used inside #staff-proposals.",
-        )
+        string = "This command must be used inside #staff-proposals."
+        raise ValueError(string)
 
     if not isinstance(thread.parent, discord.ForumChannel):
-        raise ValueError(
-            "This thread is not attached to a forum.",
-        )
+        string = "This thread is not attached to a forum."
+        raise TypeError(string)
 
     return thread, thread.parent
 

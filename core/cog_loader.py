@@ -16,8 +16,8 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
     for package_name in package_names:
         try:
             package = importlib.import_module(package_name)
-        except Exception as e:
-            log.error("Failed to import package %s: %s", package_name, e)
+        except Exception:
+            log.exception("Failed to import package %s", package_name)
             continue
 
         if callable(getattr(package, "setup", None)):
@@ -39,8 +39,8 @@ def discover_cogs(*package_names: str, priority: list[str] | None = None) -> lis
 
             try:
                 module = importlib.import_module(name)
-            except Exception as e:
-                log.error("Failed to import module %s: %s", name, e)
+            except Exception:
+                log.exception("Failed to import module %s", name)
                 continue
 
             if callable(getattr(module, "setup", None)):

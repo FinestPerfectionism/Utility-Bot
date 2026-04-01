@@ -4,8 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import COLOR_GREEN
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Thread Create Audit

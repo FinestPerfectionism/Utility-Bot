@@ -38,11 +38,11 @@ class PingCommands(commands.Cog, name = "ping"):
         if require_role and target_role and require_role in ctx.author.roles:
             try:
                _ =  await ctx.send(target_role.mention)
-            except Exception as e:
-                log.error(f"Failed to ping role {ping_role_id}: {e}")
+            except Exception:
+                log.exception("Failed to ping role %s", ping_role_id)
 
     @commands.group(name = "ping", invoke_without_command=True)
-    async def ping_group(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def ping_group(self, _ctx : commands.Context[commands.Bot]) -> None:
         return
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

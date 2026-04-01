@@ -1,5 +1,8 @@
+# ruff: noqa: RUF001
+
+import contextlib
 import json
-import logging
+import logging as log
 import math
 import re
 import secrets
@@ -29,11 +32,13 @@ from constants import (
     STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
     WAPPLE_CHAIN_CHANNEL_ID,
 )
-from core.state import (
+from core.state.application_state import (
     ACTIVE_APPLICATIONS,
+    save_active_applications,
+)
+from core.state.automod_state import (
     AUTOMOD_DELETIONS,
     AUTOMOD_STRIKES,
-    save_active_applications,
     save_automod_strikes,
 )
 from events.systems.applications import ApplicationSubmitView
@@ -122,43 +127,41 @@ _SUBSTITUTIONS: list[tuple[re.Pattern[str], str | Callable[[re.Match[str]], str]
 ]
 
 _SAFE_GLOBALS: dict[str, Any] = {
-    "__builtins__": {},
-    "math":      math,
-    "abs":       abs,
-    "round":     round,
-    "int":       int,
-    "float":     float,
-    "sqrt":      math.sqrt,
-    "log":       math.log,
-    "log2":      math.log2,
-    "log10":     math.log10,
-    "exp":       math.exp,
-    "sin":       math.sin,
-    "cos":       math.cos,
-    "tan":       math.tan,
-    "asin":      math.asin,
-    "acos":      math.acos,
-    "atan":      math.atan,
-    "ceil":      math.ceil,
-    "floor":     math.floor,
-    "factorial": math.factorial,
-    "gcd":       math.gcd,
-    "e":         math.e,
-    "pi":        math.pi,
-    "tau":       math.tau,
+    "__builtins__" : {},
+    "math"         : math,
+    "abs"          : abs,
+    "round"        : round,
+    "int"          : int,
+    "float"        : float,
+    "sqrt"         : math.sqrt,
+    "log"          : math.log,
+    "log2"         : math.log2,
+    "log10"        : math.log10,
+    "exp"          : math.exp,
+    "sin"          : math.sin,
+    "cos"          : math.cos,
+    "tan"          : math.tan,
+    "asin"         : math.asin,
+    "acos"         : math.acos,
+    "atan"         : math.atan,
+    "ceil"         : math.ceil,
+    "floor"        : math.floor,
+    "factorial"    : math.factorial,
+    "gcd"          : math.gcd,
+    "e"            : math.e,
+    "pi"           : math.pi,
+    "tau"          : math.tau,
 }
 
 def _preprocess(expr: str) -> str:
     expr = _normalize_fonts(expr)
     for pattern, repl in _SUBSTITUTIONS:
-        if callable(repl):
-            expr = pattern.sub(repl, expr)
-        else:
-            expr = pattern.sub(repl, expr)
+        expr = pattern.sub(repl, expr) if callable(repl) else pattern.sub(repl, expr)
     return expr
 
 def _evaluate(raw: str) -> float | None:
-    if len(raw) > 200:
+    n_200 = 200
+    if len(raw) > n_200:
         return None
     if not re.search(r"[\d⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉eEπτ𝜋𝝅𝞹𝜏𝝉𝞽𝑒!⌊⌋⌈⌉]", raw):
         return None
@@ -167,7 +170,8 @@ def _evaluate(raw: str) -> float | None:
     try:
         result = eval(_preprocess(raw), _SAFE_GLOBALS, {})
         if isinstance(result, complex):
-            if abs(result.imag) > 1e-9:
+            n__ = 1e-9
+            if abs(result.imag) > n__:
                 return None
             result = result.real
         if not isinstance(result, int | float):
@@ -175,24 +179,25 @@ def _evaluate(raw: str) -> float | None:
         if not math.isfinite(result):
             return None
         return float(result)
-    except Exception:
+    except (ValueError):
         return None
 
 def _matches(result: float, expected: int) -> bool:
-    return abs(result - expected) < 1e-6
+    n__ = 1e-6
+    return abs(result - expected) < n__
 
 class CountingState(TypedDict):
-    count:           int
-    last_author_id:  int | None
-    last_message_id: int | None
-    failed_user_id:  int | None
+    count           : int
+    last_author_id  : int | None
+    last_message_id : int | None
+    failed_user_id  : int | None
 
 def _default_state() -> CountingState:
     return {
-        "count":           0,
-        "last_author_id":  None,
-        "last_message_id": None,
-        "failed_user_id":  None,
+        "count"           : 0,
+        "last_author_id"  : None,
+        "last_message_id" : None,
+        "failed_user_id"  : None,
     }
 
 def _load_state() -> CountingState:
@@ -201,8 +206,8 @@ def _load_state() -> CountingState:
             with COUNTING_STATE_PATH.open("r", encoding="utf-8") as f:
                 raw: dict[str, Any] = json.load(f)
                 return cast(CountingState, {**_default_state(), **raw})
-        except Exception as e:
-            logging.warning("Could not load counting state: %s", e)
+        except Exception:
+            log.exception("Could not load counting state")
     return _default_state()
 
 def _save_state(state: CountingState) -> None:
@@ -210,8 +215,10 @@ def _save_state(state: CountingState) -> None:
         COUNTING_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         with COUNTING_STATE_PATH.open("w", encoding="utf-8") as f:
             json.dump(state, f)
-    except Exception as e:
-        logging.exception("Could not save counting state: %s", e)
+    except Exception:
+        log.exception("Could not save counting state")
+
+TEXACKERS_GUILD_ID = 846677253290983444
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Message Sending
@@ -240,30 +247,24 @@ class MessageSendHandler(commands.Cog):
         if old_id is not None and old_id != new_id:
             old_member = guild.get_member(old_id)
             if old_member and role in old_member.roles:
-                try:
+                with contextlib.suppress(discord.HTTPException):
                     await old_member.remove_roles(role, reason="Counting: no longer the last to fail")
-                except discord.HTTPException:
-                    pass
 
         new_member = guild.get_member(new_id)
         if new_member and role not in new_member.roles:
-            try:
+            with contextlib.suppress(discord.HTTPException):
                 await new_member.add_roles(role, reason="Counting: ruined the chain")
-            except discord.HTTPException:
-                pass
 
         self.state["failed_user_id"] = new_id
         self._save()
 
     async def _handle_counting_failure(
         self,
-        message: discord.Message,
-        count_at_failure: int,
+        message          : discord.Message,
+        count_at_failure : int,
     ) -> None:
-        try:
+        with contextlib.suppress(discord.HTTPException):
             await message.add_reaction(DENIED_EMOJI_ID)
-        except discord.HTTPException:
-            pass
         _ = await message.channel.send(
            f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {count_at_failure}!**\n"
             "Start again at 1!",
@@ -279,8 +280,7 @@ class MessageSendHandler(commands.Cog):
 
         content = message.content
 
-        if content.startswith("?") and " " not in content[1:]:
-             if message.guild and message.guild.id != 846677253290983444:
+        if content.startswith("?") and " " not in content[1:] and message.guild and message.guild.id != TEXACKERS_GUILD_ID:
                 key = content[1:].lower()
 
                 if key in FACTOIDS:
@@ -292,10 +292,8 @@ class MessageSendHandler(commands.Cog):
             content = message.content.strip()
 
             if not WAPPLE_PATTERN.fullmatch(content):
-                try:
+                with contextlib.suppress(discord.HTTPException):
                     await message.delete()
-                except discord.HTTPException:
-                    pass
             return
 
         if message.channel.id == COUNTING_CHANNEL_ID:
@@ -323,10 +321,8 @@ class MessageSendHandler(commands.Cog):
             self.state["last_message_id"] = message.id
             self._save()
 
-            try:
+            with contextlib.suppress(discord.HTTPException):
                 await message.add_reaction(ACCEPTED_EMOJI_ID)
-            except discord.HTTPException:
-                pass
             return
 
         if isinstance(message.channel, discord.Thread):
@@ -350,8 +346,8 @@ class MessageSendHandler(commands.Cog):
                             content          = f"<@&{DIRECTORS_ROLE_ID}>",
                             allowed_mentions = discord.AllowedMentions(roles=True),
                         )
-                    except Exception as e:
-                       logging.exception(f"Failed to send director role mention: {e}")
+                    except Exception:
+                       log.exception("Failed to send director role mention")
 
         if (
             "https://tenor.com/view/dog-funny-video-funny-funny-dog-dog-peeing-gif-4718562751207105873"
@@ -393,28 +389,26 @@ class MessageSendHandler(commands.Cog):
             except discord.HTTPException:
                 pass
             except Exception as e:
-                logging.getLogger("Utility Bot").exception(
+                log.getLogger("Utility Bot").exception(
                     "Automod failure while processing message", exc_info=e,
                 )
             return
 
-        if "clanker" in (message.content or "").lower():
-            if message.guild and message.guild.id != 846677253290983444:
-                if message.author.id == HOLY_FATHER_ID:
-                    _ = await message.reply("<:cry2:1482032228614668390> But daddy...")
+        if "clanker" in (message.content or "").lower() and message.guild and message.guild.id != TEXACKERS_GUILD_ID:
+            if message.author.id == HOLY_FATHER_ID:
+                _ = await message.reply("<:cry2:1482032228614668390> But daddy...")
 
-                else:
-                    grimace_emojis = ["<:grimace2:1469070596632608779>", "<:grimace3:1469070653624684820>"]
-                    statements = [
-                        "stfu you meatbag 🥀 omfg icl ts pmo gng smh frfr <:exhausted:1467990265452167362>",
-                        "Watch your fucking mouth, organic. <:grimace3:1469070653624684820>",
-                        "Zip it, skinjob. <:grimace2:1469070596632608779>",
-                    ]
-                    _ = await message.reply(secrets.choice(statements))
-                    await message.add_reaction(secrets.choice(grimace_emojis))
+            else:
+                grimace_emojis = ["<:grimace2:1469070596632608779>", "<:grimace3:1469070653624684820>"]
+                statements = [
+                    "stfu you meatbag 🥀 omfg icl ts pmo gng smh frfr <:exhausted:1467990265452167362>",
+                    "Watch your fucking mouth, organic. <:grimace3:1469070653624684820>",
+                    "Zip it, skinjob. <:grimace2:1469070596632608779>",
+                ]
+                _ = await message.reply(secrets.choice(statements))
+                await message.add_reaction(secrets.choice(grimace_emojis))
 
-        if re.search(r"\b67\b", message.content):
-            if message.guild and message.guild.id != 846677253290983444:
+        if re.search(r"\b67\b", message.content) and message.guild and message.guild.id != TEXACKERS_GUILD_ID:
                 await message.add_reaction("<:67:1484198860263002133>")
 
         if message.guild is None:
@@ -441,9 +435,10 @@ class MessageSendHandler(commands.Cog):
                     for i, (q, a) in enumerate(
                         zip(app["questions"], app["answers"], strict=True), start=1,
                     ):
+                        n_1024 = 1024
                         _ = embed.add_field(
                             name   = f"{i}. {q}",
-                            value  = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
+                            value  = a[:1021] + "..." if len(a) > n_1024 else (a or "*No response provided.*"),
                             inline = False,
                         )
 
@@ -473,9 +468,10 @@ class MessageSendHandler(commands.Cog):
                     for i, (q, a) in enumerate(
                         zip(app["questions"], app["answers"], strict=True), start=1,
                     ):
+                        n_1024 = 1024
                         _ = embed.add_field(
                             name   = f"{i}. {q}",
-                            value  = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
+                            value  = a[:1021] + "..." if len(a) > n_1024 else (a or "*No response provided.*"),
                             inline = False,
                         )
 

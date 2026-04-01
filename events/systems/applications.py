@@ -31,7 +31,8 @@ from constants import (
     STAFF_ROLE_ID,
     TRUSTED_ROLE_ID,
 )
-from core.state import ACTIVE_APPLICATIONS, APPLICATIONS_OPEN, BLACKLIST, save_active_applications
+from core.state.application_state import ACTIVE_APPLICATIONS, APPLICATIONS_OPEN, save_active_applications
+from core.state.blacklist_state import BLACKLIST
 
 ADMIN_ROLE_IDS = {
     JUNIOR_ADMINISTRATORS_ROLE_ID,
@@ -56,7 +57,7 @@ MOD_ROLE_IDS = {
 class DecisionModal(ui.Modal, title = "Decision Reason"):
     notes: ui.TextInput[ui.Modal] = ui.TextInput(label="Notes", required=True)
 
-    def __init__(self, applicant_id: int, app_type: str, accepted: bool, message_id: int) -> None:
+    def __init__(self, applicant_id: int, app_type: str, *, accepted: bool, message_id: int) -> None:
         super().__init__()
         self.message_id   = message_id
         self.applicant_id = applicant_id
@@ -471,9 +472,10 @@ class ApplicationSubmitView(ui.View):
         )
 
         for i, (q, a) in enumerate(zip(data["questions"], data["answers"], strict=True), start=1):
+            n_1024 = 1024
             __ = embed.add_field(
                 name   = f"{i}. {q}",
-                value  = a[:1021] + "..." if len(a) > 1024 else (a or "*No response provided.*"),
+                value  = a[:1021] + "..." if len(a) > n_1024 else (a or "*No response provided.*"),
                 inline = False,
             )
 
@@ -519,8 +521,8 @@ class ApplicationComponents(discord.ui.LayoutView):
                 elif item.custom_id == "application_menu:apply_admin":
                     item.callback = self.admin_btn
 
-    container1 = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content="# Staff Applications\n"
             "Staff applications are reviewed carefully to ensure we select members who are responsible, active, and aligned with the server's values. Take your time when completing the application and ensure all answers are honest and well thought out.\n\n"
             "- **How to Start:** Fully complete the application form and answer every question to the best of your ability.\n"
@@ -530,18 +532,18 @@ class ApplicationComponents(discord.ui.LayoutView):
             "After submission, applications will be reviewed by the Directorate team. Do not DM staff for updates, as this will negatively affect your application. Decisions are final (unless stated otherwise), and feedback may not always be provided.\n\n"
             "**Note:** All applications are and will be taken seriously. Be professional — take your time. You may cancel and delete your application at any point by typing `.cancel`.",
         ),
-        discord.ui.Separator( # type: ignore
+        discord.ui.Separator(
             visible = True,
             spacing = discord.SeparatorSpacing.large,
         ),
-        discord.ui.TextDisplay(  # type: ignore
+        discord.ui.TextDisplay(
             content="We look forward to reviewing any and all applications! Sincerely,\n-# The Goobers Directorate team.",
         ),
-        discord.ui.Separator( # type: ignore
+        discord.ui.Separator(
             visible = True,
             spacing = discord.SeparatorSpacing.large,
         ),
-        discord.ui.ActionRow(  # type: ignore
+        discord.ui.ActionRow(
             discord.ui.Button(
                 style     = discord.ButtonStyle.primary,
                 label     = "Open Moderators Application",
@@ -731,10 +733,11 @@ class EditQuestionSelectView(ui.View):
         if not data:
             return
 
+        n_100 = 100
         options = [
             discord.SelectOption(
                 label       = f"Question {i + 1}",
-                description = (q[:97] + "...") if len(q) > 100 else q,
+                description = (q[:97] + "...") if len(q) > n_100 else q,
                 value       = str(i),
             )
             for i, q in enumerate(data["questions"])
@@ -749,8 +752,8 @@ class EditQuestionSelectView(ui.View):
 class EditQuestionSelect(discord.ui.Select[discord.ui.View]):
     def __init__(self, options: list[discord.SelectOption], user_id: int) -> None:
         super().__init__(
-            placeholder="Select a question to edit.",
-            options=options,
+            placeholder = "Select a question to edit.",
+            options     = options,
         )
         self.user_id = user_id
 

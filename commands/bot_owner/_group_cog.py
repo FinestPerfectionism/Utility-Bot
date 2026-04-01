@@ -43,7 +43,7 @@ class BotOwnerCommands(
         super().__init__()
 
     @property
-    def COGS(self):
+    def cogs(self) -> list[str]:
         return get_cogs()
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -79,7 +79,7 @@ class BotOwnerCommands(
     @app_commands.describe(
         cog = "The cog to load.",
     )
-    @app_commands.autocomplete(cog=cog_autocomplete)
+    @app_commands.autocomplete(cog = cog_autocomplete)
     @help_description(
         desc      = "Bot Owner only —— Loads a cog",
         prefix    = False,
@@ -101,7 +101,7 @@ class BotOwnerCommands(
     @app_commands.describe(
         cog = "The cog to unload.",
     )
-    @app_commands.autocomplete(cog=cog_autocomplete)
+    @app_commands.autocomplete(cog = cog_autocomplete)
     @help_description(
         desc      = "Bot Owner only —— Unloads a cog",
         prefix    = False,
@@ -121,7 +121,7 @@ class BotOwnerCommands(
         desc      = "Bot Owner only —— Shutdown the bot.",
         prefix    = True,
         slash     = False,
-        run_users = [UserConfig(user_id=BOT_OWNER_ID)],
+        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
         aliases   = ["shut"],
     )
     async def shutdown(self, ctx: commands.Context[commands.Bot]) -> None:
@@ -151,10 +151,13 @@ class BotOwnerCommands(
         description = "Sets the bot's presence status.",
     )
     @app_commands.describe(
-        type  = "Activity type.",
-        text  = "Status text.",
-        url   = "Twitch URL.",
-        state = "Online status.",
+        activity_type  = "Activity type.",
+        text           = "Status text.",
+        url            = "Twitch URL.",
+        state          = "Online status.",
+    )
+    @app_commands.rename(
+        activity_type = "type",
     )
     @help_description(
         desc      = "Bot Owner only —— Sets the bot's presence status.",
@@ -169,7 +172,7 @@ class BotOwnerCommands(
         },
     )
     @app_commands.choices(
-        type=[
+        activity_type = [
             app_commands.Choice(name = "Playing",   value = "playing"),
             app_commands.Choice(name = "Watching",  value = "watching"),
             app_commands.Choice(name = "Listening", value = "listening"),
@@ -177,7 +180,7 @@ class BotOwnerCommands(
             app_commands.Choice(name = "Streaming", value = "streaming"),
             app_commands.Choice(name = "Custom",    value = "custom"),
         ],
-        state=[
+        state         = [
             app_commands.Choice(name = "Online",         value = "online"),
             app_commands.Choice(name = "Idle",           value = "idle"),
             app_commands.Choice(name = "Do Not Disturb", value = "dnd"),
@@ -186,13 +189,13 @@ class BotOwnerCommands(
     )
     async def status(
         self,
-        interaction : discord.Interaction,
-        type        : app_commands.Choice[str],
-        text        : str,
-        state       : app_commands.Choice[str] | None = None,
-        url         : str                      | None = None,
+        interaction   : discord.Interaction,
+        activity_type : app_commands.Choice[str],
+        text          : str,
+        state         : app_commands.Choice[str] | None = None,
+        url           : str                      | None = None,
     ) -> None:
-        await run_status(self.bot, interaction, type, text, state, url)
+        await run_status(self.bot, interaction, activity_type, text, state, url)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .eval Command
@@ -203,7 +206,7 @@ class BotOwnerCommands(
         desc      = "Bot Owner only —— Evaluate python code.",
         prefix    = True,
         slash     = False,
-        run_users = [UserConfig(user_id=BOT_OWNER_ID)],
+        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
         arguments = {"body": ArgumentInfo(description = "Python code to evaluate.")},
     )
     async def _eval(self, ctx: commands.Context[commands.Bot], *, body: str) -> None:

@@ -52,16 +52,16 @@ async def run_leave_add(
     interaction : discord.Interaction,
     leave_type  : str,
     target      : discord.Member | None,
-    begin_date  : str | None,
-    end_date    : str | None,
-    timer       : str | None,
+    begin_date  : str            | None,
+    end_date    : str            | None,
+    timer       : str            | None,
 ) -> None:
     resolved_type = LeaveType(leave_type)
 
     if not interaction.guild:
         await send_minor_error(
             interaction,
-            "This command can only be used in a server.",
+            texts    = "This command can only be used in a server.",
             subtitle = "Bad command environment.",
         )
         return
@@ -159,8 +159,8 @@ async def run_leave_add(
     if not is_staff(invocator):
         await send_major_error(
             interaction,
-            title = "Unauthorized!",
-            texts="You lack the necessary permissions to run this command.",
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to run this command.",
             subtitle = "Invalid permissions.",
         )
         return
@@ -172,8 +172,8 @@ async def run_leave_add(
     if not can_manage_leave(invocator, target_member):
         await send_major_error(
             interaction,
-            title = "Unauthorized!",
-            texts="You lack the necessary permissions to add personal leave to other Staff Members.",
+            title    = "Unauthorized!",
+            texts    = "You lack the necessary permissions to add personal leave to other Staff Members.",
             subtitle = "Invalid permissions.",
         )
         return
@@ -231,8 +231,8 @@ async def run_leave_add(
     if personal_leave_role is None:
         await send_major_error(
             interaction,
-            title = "Error!",
-            texts="I could not fetch the Personal Leave role.",
+            title    = "Error!",
+            texts    = "I could not fetch the Personal Leave role.",
             subtitle = f"Invalid Configuration. Contact an administrator and <@{BOT_OWNER_ID}>.",
         )
         return
@@ -244,7 +244,7 @@ async def run_leave_add(
     if new_nick is None:
         await send_minor_error(
             interaction,
-            "The resulting nickname, as well as `PL | nickname`, exceed Discord's 32 character limit.",
+            texts    = "The resulting nickname, as well as `PL | nickname`, exceed Discord's 32 character limit.",
             subtitle = "Invalid operation.",
         )
         return
@@ -256,26 +256,26 @@ async def run_leave_add(
         )
 
         data[str(target_member.id)] = {
-            "original_nick": original_full_nick,
-            "leave_type":    resolved_type.value,
-            "removed_roles": soft_role_ids,
-            "begin_date":    parsed_begin.strftime(DATE_FMT),
-            "end_date":      parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
-            "timer_end":     None,
-            "timer_seconds": timer_seconds,
+            "original_nick" : original_full_nick,
+            "leave_type"    : resolved_type.value,
+            "removed_roles" : soft_role_ids,
+            "begin_date"    : parsed_begin.strftime(DATE_FMT),
+            "end_date"      : parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
+            "timer_end"     : None,
+            "timer_seconds" : timer_seconds,
         }
         save_data(data)
 
         begin_stamp = discord.utils.format_dt(
             datetime(parsed_begin.year, parsed_begin.month, parsed_begin.day, tzinfo=UTC),
-            style="D",
+            style = "D",
         )
 
         end_note = ""
         if parsed_end is not None:
             end_stamp = discord.utils.format_dt(
                 datetime(parsed_end.year, parsed_end.month, parsed_end.day, tzinfo=UTC),
-                style="D",
+                style = "D",
             )
             end_note = f" and scheduled to end on {end_stamp}"
         elif timer_seconds is not None:
@@ -296,7 +296,7 @@ async def run_leave_add(
         await send_minor_error(interaction, "User already has the Personal Leave role.")
         return
 
-    timer_end_ts: float | None = None
+    timer_end_ts : float | None = None
     if timer_seconds is not None:
         now_ts       = datetime.now(tz=UTC).timestamp()
         timer_end_ts = now_ts + timer_seconds
@@ -317,13 +317,13 @@ async def run_leave_add(
         nick_changed = True
 
         data[str(target_member.id)] = {
-            "original_nick": original_full_nick,
-            "leave_type":    resolved_type.value,
-            "removed_roles": [r.id for r in roles_to_remove],
-            "begin_date":    None,
-            "end_date":      parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
-            "timer_end":     timer_end_ts,
-            "timer_seconds": None,
+            "original_nick" : original_full_nick,
+            "leave_type"    : resolved_type.value,
+            "removed_roles" : [r.id for r in roles_to_remove],
+            "begin_date"    : None,
+            "end_date"      : parsed_end.strftime(DATE_FMT) if parsed_end is not None else None,
+            "timer_end"     : timer_end_ts,
+            "timer_seconds" : None,
         }
         save_data(data)
 
@@ -331,13 +331,13 @@ async def run_leave_add(
         if parsed_end is not None:
             end_stamp = discord.utils.format_dt(
                 datetime(parsed_end.year, parsed_end.month, parsed_end.day, tzinfo=UTC),
-                style="D",
+                style = "D",
             )
             end_note = f" Leave is scheduled to end on {end_stamp}."
         elif timer_end_ts is not None:
             end_stamp = discord.utils.format_dt(
                 datetime.fromtimestamp(timer_end_ts, tz=UTC),
-                style="f",
+                style = "f",
             )
             end_note = f" Leave will automatically end at {end_stamp}."
 

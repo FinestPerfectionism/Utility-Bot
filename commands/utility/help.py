@@ -39,17 +39,17 @@ _NO_PING = discord.AllowedMentions(users=False)
 
 def _build_info_view() -> discord.ui.LayoutView:
     class InfoView(discord.ui.LayoutView):
-        container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay(content=_BOT_INFO_TEXT), # type: ignore
+        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(content = _BOT_INFO_TEXT),
             accent_color = COLOR_BLURPLE,
         )
     return InfoView()
 
 
 async def _run_help(
-    bot:          commands.Bot,
-    ctx_or_inter: commands.Context[commands.Bot] | discord.Interaction,
-    command_name: str                            | None,
+    bot          : commands.Bot,
+    ctx_or_inter : commands.Context[commands.Bot] | discord.Interaction,
+    command_name : str                            | None,
 ) -> None:
     if isinstance(ctx_or_inter, commands.Context):
         if not isinstance(ctx_or_inter.author, discord.Member):

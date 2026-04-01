@@ -1,4 +1,5 @@
 import asyncio
+import logging as log
 
 import discord
 from discord.ext import commands, tasks
@@ -33,8 +34,8 @@ class AuditQueue(commands.Cog):
         except discord.RateLimited as e:
             await asyncio.sleep(e.retry_after)
             await self._queue.put((channel, embed))
-        except discord.HTTPException as e:
-            print(f"Failed to send log embed: {e}")
+        except discord.HTTPException:
+            log.exception("Failed to send log embed")
         finally:
             self._queue.task_done()
 
@@ -62,7 +63,7 @@ class AuditCog(commands.Cog):
     async def get_log_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
         channel = guild.get_channel(self.log_channel_id)
         if not isinstance(channel, discord.TextChannel):
-            print(f"Warning: Logging channel {self.log_channel_id} not found in {guild.name}")
+            log.warning("Logging channel %s not found in %s", self.log_channel_id, guild.name)
             return None
         return channel
 
@@ -74,17 +75,17 @@ class AuditCog(commands.Cog):
 
     async def get_executor(
         self,
-        guild: discord.Guild,
-        action_type: discord.AuditLogAction,
-        target_id: int | None = None,
+        guild       : discord.Guild,
+        action_type : discord.AuditLogAction,
+        target_id   : int | None = None,
     ) -> discord.Member | None:
         try:
             await asyncio.sleep(0.5)
             async for entry in guild.audit_logs(limit=10, action=action_type):
                 if (target_id is None or (entry.target is not None and entry.target.id == target_id)) and isinstance(entry.user, discord.Member):
                     return entry.user
-        except discord.HTTPException as e:
-            print(f"Error fetching audit log: {e}")
+        except discord.HTTPException:
+            log.exception("Error fetching audit log")
         return None
 
     from collections.abc import Iterable

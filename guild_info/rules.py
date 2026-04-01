@@ -4,8 +4,8 @@ from constants import STANDSTILL_EMOJI_ID
 
 
 class RuleComponents1(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "# Welcome to The Goobers!\n"
                 "A server for dumbassery and gaming.\n"
@@ -16,8 +16,8 @@ class RuleComponents1(discord.ui.LayoutView):
 class RuleComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout = None)
-        self.container = discord.ui.Container( # type: ignore
-            discord.ui.Section( # type: ignore
+        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.Section(
                 discord.ui.TextDisplay(
                     content=
                         "# Rules",
@@ -29,25 +29,25 @@ class RuleComponents2(discord.ui.LayoutView):
                     emoji = f"{STANDSTILL_EMOJI_ID}",
                 ),
             ),
-            discord.ui.TextDisplay( # type: ignore
+            discord.ui.TextDisplay(
                 content=
                    f"Rules last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay( # type: ignore
+            discord.ui.TextDisplay(
                 content=
                     "## §1 Behavior\n"
                     "### §1.1 Harassment\n"
@@ -87,4 +87,4 @@ class RuleComponents2(discord.ui.LayoutView):
                     "> *Ear-rape*",
             ),
         )
-        self.add_item(self.container) # type: ignore
+        _ = self.add_item(self.container)

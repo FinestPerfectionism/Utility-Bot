@@ -1,3 +1,4 @@
+import contextlib
 import re
 
 import discord
@@ -72,10 +73,8 @@ class MessageEditHandler(commands.Cog):
         if before.channel.id == WAPPLE_CHAIN_CHANNEL_ID:
             content = (after.content or "").strip()
             if not WAPPLE_PATTERN.fullmatch(content):
-                try:
+                with contextlib.suppress(discord.HTTPException):
                     await after.delete()
-                except discord.HTTPException:
-                    pass
                 return
 
         if self.is_directorship_channel(before.channel):
@@ -108,14 +107,15 @@ class MessageEditHandler(commands.Cog):
         )
         before_text = before.content or "[No content]"
         after_text = after.content or "[No content]"
+        n_1024 = 1024
         _ = embed.add_field(
             name   = "Before",
-            value  = before_text[:1021] + "..." if len(before_text) > 1024 else before_text,
+            value  = before_text[:1021] + "..." if len(before_text) > n_1024 else before_text,
             inline = True,
         )
         _ = embed.add_field(
             name   = "After",
-            value  = after_text[:1021] + "..." if len(after_text) > 1024 else after_text,
+            value  = after_text[:1021] + "..." if len(after_text) > n_1024 else after_text,
             inline = True,
         )
         _ = embed.add_field(

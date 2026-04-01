@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, cast
 import discord
 from discord.ext import commands
 
-from core.state import ACTIVE_APPLICATIONS, save_active_applications
+from core.state.application_state import ACTIVE_APPLICATIONS, save_active_applications
 
 if TYPE_CHECKING:
     from events.member.verification import VerificationHandler

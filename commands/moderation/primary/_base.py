@@ -1,8 +1,9 @@
 import asyncio
 import contextlib
 import json
-import os
-from datetime import datetime, timedelta
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -46,12 +47,12 @@ _Context = discord.Interaction
 class ModerationListPaginator(discord.ui.View):
     def __init__(
         self,
-        context:         _Context,
-        title:           str,
-        color:           discord.Color,
-        fields:          list[tuple[str, str]],
-        delete_delay:    float | None = None,
-        delete_callback: Any          = None,
+        context         : _Context,
+        title           : str,
+        color           : discord.Color,
+        fields          : list[tuple[str, str]],
+        delete_delay    : float                         | None = None,
+        delete_callback : Callable[[], Awaitable[None]] | None = None,
     ) -> None:
         super().__init__(timeout = 120)
         self.context         = context
@@ -63,7 +64,7 @@ class ModerationListPaginator(discord.ui.View):
         self.max_page        = (len(fields) - 1) // self.per_page
         self.delete_delay    = delete_delay
         self.delete_callback = delete_callback
-        self._delete_task: asyncio.Task[None] | None = None
+        self._delete_task : asyncio.Task[None] | None = None
 
         self.update_buttons()
 
@@ -99,7 +100,7 @@ class ModerationListPaginator(discord.ui.View):
         embed = discord.Embed(
             title     = self.title,
             color     = self.color,
-            timestamp = datetime.now(),
+            timestamp = datetime.now(UTC),
         )
 
         for name, value in page_fields:
@@ -118,8 +119,8 @@ class ModerationListPaginator(discord.ui.View):
     @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
     async def first_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["ModerationListPaginator"],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button["ModerationListPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
@@ -130,8 +131,8 @@ class ModerationListPaginator(discord.ui.View):
     @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
     async def previous_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["ModerationListPaginator"],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button["ModerationListPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
@@ -143,8 +144,8 @@ class ModerationListPaginator(discord.ui.View):
     @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
     async def next_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["ModerationListPaginator"],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button["ModerationListPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
@@ -156,8 +157,8 @@ class ModerationListPaginator(discord.ui.View):
     @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
     async def last_page(
         self,
-        interaction: discord.Interaction,
-        button:      discord.ui.Button["ModerationListPaginator"],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button["ModerationListPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
@@ -214,22 +215,22 @@ class ModerationBase(commands.Cog):
         return self.bot.cases_manager
 
     def _load_data(self) -> dict[str, Any]:
-        if os.path.exists("moderation_data.json"):
-            with contextlib.suppress(json.JSONDecodeError), open("moderation_data.json") as f:
+        if Path("moderation_data.json").exists():
+            with contextlib.suppress(json.JSONDecodeError), Path("moderation_data.json").open() as f:
                 return json.load(f)
         return self._get_default_data()
 
     def _get_default_data(self) -> dict[str, Any]:
         return {
-            "bans":        {},
-            "timeouts":    {},
-            "kicks":       {},
-            "rate_limits": {},
-            "quarantined": {},
+            "bans"        : {},
+            "timeouts"    : {},
+            "kicks"       : {},
+            "rate_limits" : {},
+            "quarantined" : {},
         }
 
     def save_data(self) -> None:
-        with open("moderation_data.json", "w") as f:
+        with Path("moderation_data.json").open("w") as f:
             json.dump(self.data, f, indent=4)
 
     def ensure_data_section(self, section: str) -> dict[str, Any]:
@@ -265,17 +266,17 @@ class ModerationBase(commands.Cog):
 
         rl: dict[str, list[str]] = rate_limits[user_id]
         for key in (
-            "ban_hourly", "ban_daily",
-            "kick_hourly", "kick_daily",
-            "timeout_hourly", "timeout_daily",
+            "ban_hourly"       , "ban_daily",
+            "kick_hourly"      , "kick_daily",
+            "timeout_hourly"   , "timeout_daily",
             "quarantine_hourly", "quarantine_daily",
-            "severe_hourly", "severe_daily",
+            "severe_hourly"    , "severe_daily",
         ):
             if key not in rl:
                 rl[key] = []
 
     def clean_old_rate_limits(self, user_id: str) -> None:
-        now = datetime.now()
+        now = datetime.now(UTC)
         self._ensure_rate_limit_entry(user_id)
 
         rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
@@ -321,7 +322,7 @@ class ModerationBase(commands.Cog):
         return True, ""
 
     def add_rate_limit_entry(self, user_id: str, action: str) -> None:
-        now = datetime.now().isoformat()
+        now = datetime.now(UTC).isoformat()
         self._ensure_rate_limit_entry(user_id)
 
         rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
@@ -419,10 +420,10 @@ class ModerationBase(commands.Cog):
             self.data["quarantined"] = {}
 
         self.data["quarantined"][str(moderator.id)] = {
-            "roles":          saved_roles,
-            "quarantined_at": datetime.now().isoformat(),
-            "quarantined_by": self.bot.user.id,
-            "reason":         "UB Anti-Nuke: exceeded moderation rate limits",
+            "roles"          : saved_roles,
+            "quarantined_at" : datetime.now(UTC).isoformat(),
+            "quarantined_by" : self.bot.user.id,
+            "reason"         : "UB Anti-Nuke: exceeded moderation rate limits",
         }
         self.save_data()
 

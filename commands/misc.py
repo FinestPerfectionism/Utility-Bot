@@ -17,7 +17,7 @@ class Ping(discord.ui.LayoutView):
         super().__init__()
 
         _ = self.add_item(
-            discord.ui.TextDisplay(content="# I HAVE BEEN AWAKENEDDDD."),
+            discord.ui.TextDisplay(content = "# I HAVE BEEN AWAKENEDDDD."),
         )
         _ = self.add_item(
             discord.ui.Separator(
@@ -27,7 +27,7 @@ class Ping(discord.ui.LayoutView):
         )
         _ = self.add_item(
             discord.ui.TextDisplay(
-                content=f"*cough cough* My ping is {ping} milliseconds.",
+                content = f"*cough cough* My ping is {ping} milliseconds.",
             ),
         )
 
@@ -114,7 +114,8 @@ class MiscCommands(commands.Cog):
             )
             return
 
-        if interaction.user.id == 1167207694424350740:
+        CHEESE = 1167207694424350740
+        if interaction.user.id == CHEESE:
             _ = await interaction.response.send_message(
                 "My developer is so fucking tired of unbanning you and adding your roles back that he has decided that you can never touch this command again. Dumbass. <:laugh5:1481288430150484111>",
             )

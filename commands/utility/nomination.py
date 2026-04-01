@@ -1,6 +1,6 @@
 import contextlib
 import json
-import os
+from pathlib import Path
 from typing import TypedDict, cast
 
 import discord
@@ -28,16 +28,14 @@ class NominationCase(TypedDict):
     target_id: int
     acceptors: list[int]
 
-
 def load_nomination_data() -> dict[str, NominationCase]:
-    if not os.path.exists(NOMINATION_DATA_FILE):
+    if not Path(NOMINATION_DATA_FILE).exists():
         return {}
-    with open(NOMINATION_DATA_FILE) as f:
+    with Path(NOMINATION_DATA_FILE).open() as f:
         return cast("dict[str, NominationCase]", json.load(f))
 
-
 def save_nomination_data(data: dict[str, NominationCase]) -> None:
-    with open(NOMINATION_DATA_FILE, "w") as f:
+    with Path(NOMINATION_DATA_FILE).open("w") as f:
         json.dump(data, f, indent=2)
 
 
@@ -52,9 +50,9 @@ def extract_name(nickname: str) -> str:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class NominationFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    action:  str = commands.flag(aliases=["a"])
-    user:    discord.Member | None = commands.flag(aliases=["u"], default=None)
-    case_id: str            | None = commands.flag(name = "id", default=None)
+    action  : str = commands.flag(aliases=["a"])
+    user    : discord.Member | None = commands.flag(aliases=["u"], default=None)
+    case_id : str            | None = commands.flag(name = "id", default=None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Nomination Commands
@@ -80,12 +78,12 @@ class NominationCommands(commands.Cog):
 
     @commands.command(name = "nomination", aliases=["nom"])
     @help_description(
-        desc="Directors only —— workflow for triggering, accepting, or denying supporting-director nominations.",
-        prefix=True,
-        slash=False,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        aliases=["nom"],
-        arguments={
+        desc      = "Directors only —— Triggrs, accepts, or denies supporting-director nominations.",
+        prefix    = True,
+        slash     = False,
+        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        aliases   = ["nom"],
+        arguments = {
             "action": ArgumentInfo(description="Use `/action trigger`, `/action accept`, or `/action deny`.", is_flag=True),
             "user": ArgumentInfo(required=False, description="Target member for the nomination trigger.", is_flag=True),
             "id": ArgumentInfo(required=False, description="Nomination case ID used by trigger, accept, and deny.", is_flag=True),
@@ -93,9 +91,9 @@ class NominationCommands(commands.Cog):
     )
     async def nomination(
         self,
-        ctx:   commands.Context[commands.Bot],
+        ctx   : commands.Context[commands.Bot],
         *,
-        flags: NominationFlags,
+        flags : NominationFlags,
     ) -> None:
         if not ctx.guild:
             return
@@ -119,10 +117,10 @@ class NominationCommands(commands.Cog):
 
     async def _handle_trigger(
         self,
-        ctx: commands.Context[commands.Bot],
-        guild: discord.Guild,
-        flags: NominationFlags,
-        invoker: discord.Member,
+        ctx      : commands.Context[commands.Bot],
+        _guild   : discord.Guild,
+        flags    : NominationFlags,
+        _invoker : discord.Member,
     ) -> None:
         target = flags.user
         case_id = flags.case_id
@@ -150,10 +148,10 @@ class NominationCommands(commands.Cog):
 
     async def _handle_accept(
         self,
-        ctx: commands.Context[commands.Bot],
-        guild: discord.Guild,
-        flags: NominationFlags,
-        invoker: discord.Member,
+        ctx     : commands.Context[commands.Bot],
+        guild   : discord.Guild,
+        flags   : NominationFlags,
+        invoker : discord.Member,
     ) -> None:
         case_id = flags.case_id
         if case_id is None or case_id not in self.data:
@@ -182,9 +180,9 @@ class NominationCommands(commands.Cog):
 
     async def _complete_nomination(
         self,
-        guild: discord.Guild,
-        case_id: str,
-        case: NominationCase,
+        guild   : discord.Guild,
+        case_id : str,
+        case    : NominationCase,
     ) -> None:
         target = guild.get_member(case["target_id"])
 
@@ -205,14 +203,15 @@ class NominationCommands(commands.Cog):
         original_nick = target.nick or target.name
         new_nick = f"S. Director | {extract_name(original_nick)}"
 
-        if len(new_nick) <= 32:
+        n_32 = 32
+        if len(new_nick) <= n_32:
             with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                 _ = await target.edit(nick=new_nick)
 
     async def _handle_deny(
         self,
-        ctx: commands.Context[commands.Bot],
-        flags: NominationFlags,
+        ctx   : commands.Context[commands.Bot],
+        flags : NominationFlags,
     ) -> None:
         case_id = flags.case_id
         if case_id is None or case_id not in self.data:
@@ -225,7 +224,6 @@ class NominationCommands(commands.Cog):
             f"{DENIED_EMOJI_ID} **Ended nomination case `{case_id}`.**\n"
             f"Director {ctx.author.mention} has denied the nomination.",
         )
-
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(NominationCommands(bot))

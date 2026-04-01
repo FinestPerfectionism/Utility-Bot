@@ -1,8 +1,9 @@
 import discord
 
+
 class HierarchyComponents1(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "# Welcome to the Hierarchy!\n"
                 "The hierarchy of the server.\n"
@@ -13,27 +14,27 @@ class HierarchyComponents1(discord.ui.LayoutView):
 class HierarchyComponents2(discord.ui.LayoutView):
     def __init__(self, timestamp: int) -> None:
         super().__init__(timeout = None)
-        self.container = discord.ui.Container( # type: ignore
-            discord.ui.TextDisplay( # type: ignore
+        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+            discord.ui.TextDisplay(
                 content=
                     "# Hierarchy\n"
                    f"Hierarchy last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>; assisted by <@1167207694424350740>, <@1135600413954019339>, and <@1333839098485542949>.\n",
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = True,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.Separator( # type: ignore
+            discord.ui.Separator(
                 visible = False,
                 spacing = discord.SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay( # type: ignore
+            discord.ui.TextDisplay(
                 content=
                     "## Goobers Directorate\n"
                     "The **Goobers Directorate** oversees the entire server and holds the highest level of authority. Directors are responsible for governance, internal staff policy, and high-level decision making. While Directors are typically occupied with backend responsibilities, they hold Senior Staff status within both the Moderation and Administration Teams and are expected to intervene in escalated situations when necessary.\n\n"
@@ -59,11 +60,11 @@ class HierarchyComponents2(discord.ui.LayoutView):
                     "> This position is obtainable only through **appointment by the existing Directorate**.",
             ),
         )
-        self.add_item(self.container) # type: ignore
+        _ = self.add_item(self.container)
 
 class HierarchyComponents3(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## Staff Committee\n"
                 "The **Staff Committee** is the final decision-making body for Staff Proposals. It is composed of all active Directors and the Owner. After an advisory poll concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
@@ -73,8 +74,8 @@ class HierarchyComponents3(discord.ui.LayoutView):
     )
 
 class HierarchyComponents4(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## Goobers Administration Team\n"
                 "The **Administration Team** is responsible for managing the server's structure and maintaining public-facing policies as directed by the Directorate. Administrators implement approved proposals and oversee the server's technical infrastructure. The Administration Team is **not the same as the Moderation Team**, though staff may exist within both.\n\n"
@@ -125,8 +126,8 @@ class HierarchyComponents4(discord.ui.LayoutView):
     )
 
 class HierarchyComponents5(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## Goobers Staff Team\n"
                 "The **Goobers Staff Team** consists of members within the **Moderation Team**, the **Administration Team**, or both. Staff members assist with maintaining the community and may submit and vote on proposals intended to improve server operations. Staff members may hold positions in both teams simultaneously.\n\n"
@@ -138,8 +139,8 @@ class HierarchyComponents5(discord.ui.LayoutView):
     )
 
 class HierarchyComponents6(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## Guild Trustees\n"
                 "**Guild Trustees** are community members who have demonstrated a level of trust and engagement within the server. They may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.\n\n"
@@ -150,8 +151,8 @@ class HierarchyComponents6(discord.ui.LayoutView):
     )
 
 class HierarchyComponents7(discord.ui.LayoutView):
-    container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=
                 "## Verified\n"
                 "The **Verified** role is granted upon passing the server's entry verification. It serves as an anti-raid gate and is required to gain access to the server's channels.\n\n"

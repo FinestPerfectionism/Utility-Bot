@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 from typing import Any
 
 ACTIVE_TICKETS: dict[int, int] = {}
@@ -12,8 +12,8 @@ RESOLUTION_STATE: dict[int, dict[str, Any]] = {}
 _STATE_PATH = "data/tickets.json"
 
 def save_ticket_state() -> None:
-    os.makedirs("data", exist_ok=True)
-    with open(_STATE_PATH, "w", encoding="utf-8") as f:
+    Path("data").mkdir(parents=True, exist_ok=True)
+    with Path(_STATE_PATH).open("w", encoding="utf-8") as f:
         json.dump(
             {
                 "active_tickets": {str(k): v for k, v in ACTIVE_TICKETS.items()},
@@ -28,9 +28,9 @@ def save_ticket_state() -> None:
         )
 
 def load_ticket_state() -> None:
-    if not os.path.exists(_STATE_PATH):
+    if not Path(_STATE_PATH).exists():
         return
-    with open(_STATE_PATH, encoding="utf-8") as f:
+    with Path(_STATE_PATH).open(encoding="utf-8") as f:
         data = json.load(f)
     ACTIVE_TICKETS.update({int(k): int(v) for k, v in data.get("active_tickets", {}).items()})
     THREAD_OPENERS.update({int(k): int(v) for k, v in data.get("thread_openers", {}).items()})

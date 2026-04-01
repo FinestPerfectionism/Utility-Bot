@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import discord
@@ -102,9 +102,9 @@ async def run_unquarantine(
         )
 
         embed = discord.Embed(
-            title = "Member Unquarantined",
-            color = COLOR_GREEN,
-            timestamp = datetime.now(),
+            title     = "Member Unquarantined",
+            color     = COLOR_GREEN,
+            timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member",        value = member.mention,         inline = True)
         _ = embed.add_field(name = "Director",      value = actor.mention,          inline = True)

@@ -1,6 +1,6 @@
 import json
-import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, cast
 
 import discord
@@ -8,6 +8,7 @@ import pytz
 from discord.ext import commands
 from typing_extensions import override
 
+from constants import BOT_ID
 from core.help import ArgumentInfo, help_description
 
 TIMEZONE_FILE = "user_timezones.json"
@@ -21,17 +22,17 @@ class UserCommands(commands.Cog):
         self.bot = bot
 
     def load_timezones(self) -> dict[str, Any]:
-        if os.path.exists(TIMEZONE_FILE):
-            with open(TIMEZONE_FILE) as f:
+        if Path(TIMEZONE_FILE).exists():
+            with Path(TIMEZONE_FILE).open() as f:
                 return json.load(f)
         return {}
 
     def save_timezones(self, data: dict[str, Any]) -> None:
-        with open(TIMEZONE_FILE, "w") as f:
+        with Path(TIMEZONE_FILE).open("w") as f:
             json.dump(data, f, indent=2)
 
     def resolve_timezone(self, tz_str: str) -> pytz.BaseTzInfo | list[str] | None:
-        ABBREV_MAP = {
+        abbrev_map = {
             "EST": "America/New_York",
             "EDT": "America/New_York",
             "CST": "America/Chicago",
@@ -203,8 +204,8 @@ class UserCommands(commands.Cog):
         }
 
         normalized = tz_str.upper()
-        if normalized in ABBREV_MAP:
-            tz_str = ABBREV_MAP[normalized]
+        if normalized in abbrev_map:
+            tz_str = abbrev_map[normalized]
 
         for tz in pytz.all_timezones:
             if tz.lower() == tz_str.lower():
@@ -315,7 +316,7 @@ class UserCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def first_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = 0
             self.update_buttons()
             _ = await interaction.response.edit_message(
@@ -324,31 +325,31 @@ class UserCommands(commands.Cog):
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def previous_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def next_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def last_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = self.max_page
             self.update_buttons()
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
@@ -439,7 +440,7 @@ class UserCommands(commands.Cog):
 
             tz = result
 
-            if target.id == 1436054709700919477:
+            if target.id == BOT_ID:
                 _ = await ctx.send("One should not dare to alter the clock of the immortal.")
                 return
 
@@ -466,7 +467,7 @@ class UserCommands(commands.Cog):
             return
 
         if user is not None and flags.s is None:
-            if user.id == 1436054709700919477:
+            if user.id == BOT_ID:
                 _ = await ctx.send(f"Is my time ∞:∞..? Or maybe null... It's whatever you wish, {ctx.author.mention}.")
                 return
 
@@ -500,8 +501,8 @@ class UserCommands(commands.Cog):
                 elif len(matches) > 1:
                     view = self.UserMatchPaginator(ctx, matches)
                     _ = await ctx.send(
-                        content=view.get_page_content(),
-                        view = view,
+                        content = view.get_page_content(),
+                        view    = view,
                     )
                     return
                 else:
@@ -566,7 +567,7 @@ class UserCommands(commands.Cog):
             if isinstance(result, list):
                 view = self.TimezoneMatchPaginator(ctx, result)
                 _ = await ctx.send(
-                    content=view.get_page_content(),
+                    content = view.get_page_content(),
                     view = view,
                 )
 
@@ -652,45 +653,45 @@ class UserCommands(commands.Cog):
 
         async def update_message(self, interaction: discord.Interaction) -> None:
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
         @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def first_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = 0
             self.update_buttons()
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
         @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def previous_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
         @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def next_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
         @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+        async def last_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
             self.page = self.max_page
             self.update_buttons()
             _ = await interaction.response.edit_message(
-                content=self.get_page_content(),
+                content = self.get_page_content(),
                 view = self,
             )
 
@@ -732,7 +733,7 @@ class UserCommands(commands.Cog):
                 elif len(matches) > 1:
                     view = self.UserMatchPaginator(ctx, matches)
                     _ = await ctx.send(
-                        content=view.get_page_content(),
+                        content = view.get_page_content(),
                         view = view,
                     )
                     return

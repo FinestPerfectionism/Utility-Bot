@@ -14,8 +14,8 @@ from constants import (
     MODERATORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
-from core.state import BLACKLIST
-from core.ticket_state import (
+from core.state.blacklist_state import BLACKLIST
+from core.state.ticket_state import (
     ACTIVE_TICKETS,
     RESOLUTION_STATE,
     RESOLUTION_STOPPED,
@@ -48,7 +48,7 @@ def _is_staff(member: discord.Member) -> bool:
 
 def stop_resolution(thread_id: int) -> None:
     RESOLUTION_STOPPED.add(thread_id)
-    _ = RESOLUTION_STATE.pop(thread_id, None)
+    _    = RESOLUTION_STATE.pop(thread_id, None)
     task = RESOLUTION_TASKS.pop(thread_id, None)
     if task is not None and not task.done():
         _ = task.cancel()
@@ -86,8 +86,8 @@ async def _run_resolution_checks(
 
         interval_minutes *= 2
         RESOLUTION_STATE[thread_id] = {
-            "next_ts": time_mod.time() + interval_minutes * 60.0,
-            "interval": interval_minutes,
+            "next_ts"  : time_mod.time() + interval_minutes * 60.0,
+            "interval" : interval_minutes,
         }
         save_ticket_state()
 
@@ -104,11 +104,11 @@ def start_resolution_task(
 ) -> None:
     task = asyncio.create_task(
         _run_resolution_checks(
-            thread_id=thread_id,
-            user_id=user_id,
-            bot=bot,
-            interval_minutes=interval_minutes,
-            delay=delay,
+            thread_id        = thread_id,
+            user_id          = user_id,
+            bot              = bot,
+            interval_minutes = interval_minutes,
+            delay            = delay,
         ),
     )
     RESOLUTION_TASKS[thread_id] = task
@@ -123,14 +123,14 @@ class ResolutionView(discord.ui.View):
         super().__init__(timeout = None)
 
     @discord.ui.button(
-        label="Yes",
-        style=discord.ButtonStyle.green,
-        custom_id="resolution:yes",
+        label     = "Yes",
+        style     = discord.ButtonStyle.green,
+        custom_id = "resolution:yes",
     )
     async def yes_button(
         self,
-        interaction: discord.Interaction,
-        button: discord.ui.Button[discord.ui.View],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button[discord.ui.View],
     ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
@@ -157,14 +157,14 @@ class ResolutionView(discord.ui.View):
         _ = await channel.edit(locked=True, archived=True)
 
     @discord.ui.button(
-        label="No",
-        style=discord.ButtonStyle.danger,
-        custom_id="resolution:no",
+        label     = "No",
+        style     = discord.ButtonStyle.danger,
+        custom_id = "resolution:no",
     )
     async def no_button(
         self,
-        interaction: discord.Interaction,
-        button: discord.ui.Button[discord.ui.View],
+        interaction : discord.Interaction,
+        _button     : discord.ui.Button[discord.ui.View],
     ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
@@ -192,10 +192,10 @@ class ResolutionView(discord.ui.View):
 
 class AddMemberModal(discord.ui.Modal, title = "Add Member to Ticket"):
     user_input: discord.ui.TextInput[discord.ui.Modal] = discord.ui.TextInput(
-        label="User ID",
-        placeholder="Enter a user ID...",
-        required=True,
-        max_length=20,
+        label       = "User ID",
+        placeholder = "Enter a user ID...",
+        required    = True,
+        max_length  = 20,
     )
 
     @override
@@ -260,35 +260,35 @@ class TicketControlPanel(discord.ui.LayoutView):
             elif item.custom_id == "ticket:panel:claim":
                 item.callback = self._claim
 
-    panel_container = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay(content="# Ticket Controls"), # type: ignore
-        discord.ui.ActionRow( # type: ignore
+    panel_container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(content = "# Ticket Controls"),
+        discord.ui.ActionRow(
             discord.ui.Button(
-                label="Archive Ticket",
-                style=discord.ButtonStyle.red,
-                custom_id="ticket:panel:archive",
+                label     = "Archive Ticket",
+                style     = discord.ButtonStyle.red,
+                custom_id = "ticket:panel:archive",
             ),
             discord.ui.Button(
-                label="Lock Ticket",
-                style=discord.ButtonStyle.grey,
-                custom_id="ticket:panel:lock",
+                label     = "Lock Ticket",
+                style     = discord.ButtonStyle.grey,
+                custom_id = "ticket:panel:lock",
             ),
             discord.ui.Button(
-                label="Close Ticket",
-                style=discord.ButtonStyle.grey,
-                custom_id="ticket:panel:close",
+                label     = "Close Ticket",
+                style     = discord.ButtonStyle.grey,
+                custom_id = "ticket:panel:close",
             ),
         ),
-        discord.ui.ActionRow( # type: ignore
+        discord.ui.ActionRow(
             discord.ui.Button(
-                label="Add Members",
-                style=discord.ButtonStyle.blurple,
-                custom_id="ticket:panel:add_members",
+                label     = "Add Members",
+                style     = discord.ButtonStyle.blurple,
+                custom_id = "ticket:panel:add_members",
             ),
             discord.ui.Button(
-                label="Claim",
-                style=discord.ButtonStyle.green,
-                custom_id="ticket:panel:claim",
+                label     = "Claim",
+                style     = discord.ButtonStyle.green,
+                custom_id = "ticket:panel:claim",
             ),
         ),
         accent_color = COLOR_GREEN,
@@ -360,7 +360,7 @@ class TicketControlPanel(discord.ui.LayoutView):
 
         if not _is_staff(interaction.user):
             _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!**"
+               f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!**"
                 "Only moderators can add members to tickets.",
                 ephemeral = True,
             )
@@ -412,8 +412,8 @@ class TicketComponents(discord.ui.LayoutView):
             if isinstance(item, discord.ui.Select) and item.custom_id == "ticket:select":
                 item.callback = self.open_ticket
 
-    container1 = discord.ui.Container( # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
+        discord.ui.TextDisplay(
             content=(
                 "# Support Tickets\n"
                 "Tickets are used to contact the moderation team for support, reports, or questions that cannot be handled publicly.\n\n"
@@ -424,28 +424,28 @@ class TicketComponents(discord.ui.LayoutView):
                 "**Note:** You may run `.archive` to close your ticket."
             ),
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
-        discord.ui.TextDisplay( # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
+        discord.ui.TextDisplay(
             content=(
                 "We look forward to assisting you! Sincerely,\n"
                 "-# The Goobers Moderator team."
             ),
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large), # type: ignore
-        discord.ui.ActionRow( # type: ignore
+        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
+        discord.ui.ActionRow(
             discord.ui.Select(
-                placeholder="Select ticket type...",
-                custom_id="ticket:select",
-                options=[
+                placeholder = "Select ticket type...",
+                custom_id   = "ticket:select",
+                options     = [
                     discord.SelectOption(
-                        label="Contact Moderators",
-                        value = "moderator",
-                        description="Open a ticket with moderators for issues or questions.",
+                        label       = "Contact Moderators",
+                        value       = "moderator",
+                        description = "Open a ticket with moderators for issues or questions.",
                     ),
                     discord.SelectOption(
-                        label="Contact Directors",
-                        value = "director",
-                        description="Open a ticket with Directors for staff issues.",
+                        label       = "Contact Directors",
+                        value       = "director",
+                        description = "Open a ticket with Directors for staff issues.",
                     ),
                 ],
             ),
@@ -587,11 +587,11 @@ class TicketsSystem(commands.Cog):
             interval = state.get("interval", 15)
 
             start_resolution_task(
-                thread_id=thread_id,
-                user_id=user_id,
-                bot=self.bot,
-                interval_minutes=interval,
-                delay=remaining,
+                thread_id        = thread_id,
+                user_id          = user_id,
+                bot              = self.bot,
+                interval_minutes = interval,
+                delay            = remaining,
             )
 
 

@@ -1,12 +1,12 @@
 import asyncio
+import logging as log
 from datetime import UTC, datetime
 
 import discord
 from discord.ext import commands
 
 from constants import COLOR_BLURPLE, COLOR_GREEN, COLOR_RED
-
-from .._base import AuditCog, AuditQueue
+from events.logging.audit._base import AuditCog, AuditQueue
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Server Integrations Audit
@@ -22,9 +22,9 @@ class IntegrationsCog(AuditCog):
         if not log_channel:
             return
 
-        executor: discord.User | discord.Member | None = None
-        action_type: discord.AuditLogAction | None = None
-        target_name: str | None = None
+        executor    : discord.User           | discord.Member | None = None
+        action_type : discord.AuditLogAction                  | None = None
+        target_name : str                                     | None = None
 
         try:
             await asyncio.sleep(0.5)
@@ -43,8 +43,8 @@ class IntegrationsCog(AuditCog):
                         target_name = f"ID: {entry.target.id}"
 
                     break
-        except discord.HTTPException as e:
-            print(f"Error fetching integration audit log: {e}")
+        except discord.HTTPException:
+            log.exception("Error fetching integration audit log")
 
         if action_type == discord.AuditLogAction.integration_create:
             title = "Integration Added"
@@ -57,14 +57,14 @@ class IntegrationsCog(AuditCog):
             color = COLOR_BLURPLE
 
         embed = discord.Embed(
-            title = title,
-            color = color,
+            title     = title,
+            color     = color,
             timestamp = datetime.now(UTC),
         )
 
         _ = embed.add_field(
-            name = "Server",
-            value = f"`{guild.name}`\n`{guild.id}`",
+            name   = "Server",
+            value  = f"`{guild.name}`\n`{guild.id}`",
             inline = False,
         )
 
@@ -73,8 +73,8 @@ class IntegrationsCog(AuditCog):
 
         if executor:
             _ = embed.add_field(
-                name = "Action By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Action By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 
