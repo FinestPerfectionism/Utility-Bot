@@ -8,19 +8,9 @@ from discord.ext import commands
 from typing_extensions import override
 
 from bot import bot
-from constants import (
-    ACCEPTED_EMOJI_ID,
-    APPLICATION_LOG_CHANNEL_ID,
-    BOT_CONSOLE_CHANNEL_ID,
-)
-from core.state.application_state import (
-    ACTIVE_APPLICATIONS,
-    load_active_applications,
-)
-from core.state.automod_state import (
-    load_automod_strikes,
-    save_automod_strikes,
-)
+from constants import ACCEPTED_EMOJI_ID, APPLICATION_LOG_CHANNEL_ID, BOT_CONSOLE_CHANNEL_ID
+from core.state.application_state import ACTIVE_APPLICATIONS, load_active_applications
+from core.state.automod_state import load_automod_strikes, save_automod_strikes
 from events.systems.applications import DecisionView
 
 log = logging.getLogger("Utility Bot")

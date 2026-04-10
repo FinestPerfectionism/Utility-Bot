@@ -9,14 +9,8 @@ if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-from constants import (
-    COLOR_GREEN,
-    CONTESTED_EMOJI_ID,
-)
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
+from constants import COLOR_GREEN, CONTESTED_EMOJI_ID
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation unquarantine Logic

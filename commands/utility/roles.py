@@ -2,12 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import (
-    ACCEPTED_EMOJI_ID,
-    COLOR_BLURPLE,
-    DENIED_EMOJI_ID,
-    DIRECTORS_ROLE_ID,
-)
+from constants import ACCEPTED_EMOJI_ID, COLOR_BLURPLE, DENIED_EMOJI_ID, DIRECTORS_ROLE_ID
 from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only
 from core.utils import send_minor_error

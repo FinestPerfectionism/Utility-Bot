@@ -3,16 +3,8 @@ from typing import cast
 import discord
 from discord.ext import commands
 
-from constants import (
-    BOT_OWNER_ID,
-    COLOR_BLURPLE,
-    CONTESTED_EMOJI_ID,
-)
-from core.help import (
-    HelpedCallable,
-    build_help_view,
-    find_nested_command,
-)
+from constants import BOT_OWNER_ID, COLOR_BLURPLE, CONTESTED_EMOJI_ID
+from core.help import HelpedCallable, build_help_view, find_nested_command
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Help Commands

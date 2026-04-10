@@ -3,10 +3,7 @@ import contextlib
 import discord
 from discord.ext import commands
 
-from constants import (
-    BOT_OWNER_ID,
-    DENIED_EMOJI_ID,
-)
+from constants import BOT_OWNER_ID, DENIED_EMOJI_ID
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # .shutdown Logic

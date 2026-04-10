@@ -5,18 +5,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import (
-    ACCEPTED_EMOJI_ID,
-    COLOR_GREEN,
-    COLOR_ORANGE,
-    COLOR_RED,
-    DIRECTORS_ROLE_ID,
-)
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from constants import ACCEPTED_EMOJI_ID, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, DIRECTORS_ROLE_ID
+from core.help import ArgumentInfo, RoleConfig, help_description
 from core.utils import send_major_error, send_minor_error
 
 if TYPE_CHECKING:

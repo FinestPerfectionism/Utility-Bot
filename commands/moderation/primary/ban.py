@@ -9,9 +9,7 @@ if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-from constants import (
-    COLOR_RED,
-)
+from constants import COLOR_RED
 from core.permissions import is_director
 from core.utils import send_major_error, send_minor_error
 

@@ -9,11 +9,7 @@ import secrets
 from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
-from typing import (
-    Any,
-    TypedDict,
-    cast,
-)
+from typing import Any, TypedDict, cast
 
 import discord
 from discord.ext import commands
@@ -32,15 +28,8 @@ from constants import (
     STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
     WAPPLE_CHAIN_CHANNEL_ID,
 )
-from core.state.application_state import (
-    ACTIVE_APPLICATIONS,
-    save_active_applications,
-)
-from core.state.automod_state import (
-    AUTOMOD_DELETIONS,
-    AUTOMOD_STRIKES,
-    save_automod_strikes,
-)
+from core.state.application_state import ACTIVE_APPLICATIONS, save_active_applications
+from core.state.automod_state import AUTOMOD_DELETIONS, AUTOMOD_STRIKES, save_automod_strikes
 from events.systems.applications import ApplicationSubmitView
 
 MAX_STRIKES = 5

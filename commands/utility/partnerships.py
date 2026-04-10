@@ -10,18 +10,14 @@ from discord import app_commands
 from discord.ext import commands
 
 from constants import BOT_OWNER_ID, DIRECTORS_ROLE_ID, PARTNERSHIPS_CHANNEL_ID
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from core.help import ArgumentInfo, RoleConfig, help_description
+from core.permissions import directors_only
 from core.state.partnership_state import (
     IMAGE_DIR,
     PartnershipEntry,
     load_partnership_data,
     save_partnership_data,
 )
-from core.permissions import directors_only
 from core.utils import send_major_error, send_minor_error
 from guild_info.partnerships import rebuild_partnership_layout
 

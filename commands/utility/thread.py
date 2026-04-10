@@ -6,11 +6,7 @@ from constants import (
     STAFF_PROPOSALS_REVIEW_CHANNEL_ID,
     TICKET_CHANNEL_ID,
 )
-from core.permissions import (
-    is_director,
-    is_moderator,
-    is_staff_committee,
-)
+from core.permissions import is_director, is_moderator, is_staff_committee
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Thread Commands

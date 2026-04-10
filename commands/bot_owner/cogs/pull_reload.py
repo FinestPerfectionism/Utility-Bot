@@ -5,10 +5,7 @@ import discord
 from discord.ext import commands
 
 from constants import BOT_OWNER_ID
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
+from core.utils import send_major_error, send_minor_error
 from events.logging.errors import PermissionsError
 
 log = logging.getLogger("Utility Bot")
@@ -47,7 +44,7 @@ async def run_pull_reload(
                         "```py\n"
                        f"{pull_output[:1800]}\n"
                         "```",
-            subtitle = "Invalid operation.",
+            subtitle =  "Invalid operation.",
         )
         log.error("git pull failed (exit %s):\n%s", proc.returncode, pull_output)
         return

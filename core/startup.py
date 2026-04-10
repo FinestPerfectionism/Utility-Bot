@@ -7,6 +7,7 @@ from discord.ext import commands
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
+
 import asyncio
 import json
 import logging
@@ -31,21 +32,12 @@ from constants import (
     TICKET_CHANNEL_ID,
     VERIFICATION_CHANNEL_ID,
 )
-from core.state.partnership_state import (
-    PartnershipData,
-    load_partnership_data,
-)
-from core.state.layout_state import (
-    load_layout_message_ids,
-    save_layout_message_ids,
-)
-from events.systems.verification import (
-    VerificationComponents,
-    VerificationHandler,
-)
+from core.state.layout_state import load_layout_message_ids, save_layout_message_ids
+from core.state.partnership_state import PartnershipData, load_partnership_data
 from events.systems.applications import ApplicationComponents
 from events.systems.leave import LeaveComponents
 from events.systems.tickets import TicketComponents
+from events.systems.verification import VerificationComponents, VerificationHandler
 from guild_info.guidelines.administrator_guidelines import (
     AdministratorComponents1,
     AdministratorComponents2,
@@ -79,18 +71,9 @@ from guild_info.hierarchy import (
     HierarchyComponents6,
     HierarchyComponents7,
 )
-from guild_info.partnership_requirements import (
-    RequirementComponents1,
-    RequirementComponents2,
-)
-from guild_info.partnerships import (
-    rebuild_partnership_layout,
-    split_partnerships,
-)
-from guild_info.rules import (
-    RuleComponents1,
-    RuleComponents2,
-)
+from guild_info.partnership_requirements import RequirementComponents1, RequirementComponents2
+from guild_info.partnerships import rebuild_partnership_layout, split_partnerships
+from guild_info.rules import RuleComponents1, RuleComponents2
 from guild_info.staff_proposal_info import (
     StaffProposalComponents1,
     StaffProposalComponents2a,

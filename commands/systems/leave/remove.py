@@ -2,16 +2,9 @@ from typing import Any
 
 import discord
 
-from constants import (
-    BOT_OWNER_ID,
-    DENIED_EMOJI_ID,
-    PERSONAL_LEAVE_ROLE_ID,
-)
+from constants import BOT_OWNER_ID, DENIED_EMOJI_ID, PERSONAL_LEAVE_ROLE_ID
 from core.permissions import is_staff
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
+from core.utils import send_major_error, send_minor_error
 
 from ._base import (
     InterferenceConfirmView,

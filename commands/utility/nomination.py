@@ -12,11 +12,7 @@ from constants import (
     DIRECTORS_ROLE_ID,
     SUPPORTING_DIRECTORS_ROLE_ID,
 )
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from core.help import ArgumentInfo, RoleConfig, help_description
 
 NOMINATION_DATA_FILE = "nomination_data.json"
 

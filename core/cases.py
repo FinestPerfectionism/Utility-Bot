@@ -184,7 +184,7 @@ class CasesManager:
             "related_case_id"    : related_case_id,
             "visibility_level"   : visibility_level,
             "pending_visibility" : None,
-            "created_at"         : datetime.now().isoformat(),
+            "created_at"         : datetime.now(UTC).isoformat(),
             "edited_at"          : None,
             "metadata"           : metadata or {},
         }

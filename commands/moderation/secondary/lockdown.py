@@ -20,11 +20,7 @@ from constants import (
     DIRECTORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import is_director
 from core.utils import send_major_error, send_minor_error
 

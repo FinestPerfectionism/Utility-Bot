@@ -1,12 +1,6 @@
 import contextlib
-from datetime import (
-    UTC,
-    datetime,
-    timedelta,
-)
-from datetime import (
-    date as date_type,
-)
+from datetime import UTC, datetime, timedelta
+from datetime import date as date_type
 from typing import Any
 
 import discord
@@ -17,14 +11,8 @@ from constants import (
     LEADING_DIRECTOR_ROLE_ID,
     PERSONAL_LEAVE_ROLE_ID,
 )
-from core.permissions import (
-    is_director,
-    is_staff,
-)
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
+from core.permissions import is_director, is_staff
+from core.utils import send_major_error, send_minor_error
 
 from ._base import (
     ALL_STAFF_ROLE_IDS,

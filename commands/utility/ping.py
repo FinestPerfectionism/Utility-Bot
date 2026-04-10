@@ -13,10 +13,7 @@ from constants import (
     STAFF_PROPOSALS_CHANNEL_ID,
     STAFF_ROLE_ID,
 )
-from core.help import (
-    RoleConfig,
-    help_description,
-)
+from core.help import RoleConfig, help_description
 
 log = logging.getLogger("Utility Bot")
 

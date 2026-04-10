@@ -8,10 +8,7 @@ import discord
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from constants import (
-    COLOR_BLACK,
-    COLOR_GREEN,
-)
+from constants import COLOR_BLACK, COLOR_GREEN
 from core.utils import send_major_error
 
 from ._base import ModerationListPaginator

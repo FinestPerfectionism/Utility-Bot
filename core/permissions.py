@@ -1,6 +1,4 @@
-from collections.abc import (
-    Callable,
-)
+from collections.abc import Callable
 from typing import Any
 
 import discord
@@ -18,7 +16,6 @@ from constants import (
     STAFF_COMMITTEE_ROLE_ID,
     STAFF_ROLE_ID,
 )
-
 from core import state
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

@@ -1,9 +1,6 @@
 import contextlib
 from datetime import datetime
-from typing import (
-    Any,
-    cast,
-)
+from typing import Any, cast
 
 import discord
 from discord import ui
@@ -31,7 +28,11 @@ from constants import (
     STAFF_ROLE_ID,
     TRUSTED_ROLE_ID,
 )
-from core.state.application_state import ACTIVE_APPLICATIONS, APPLICATIONS_OPEN, save_active_applications
+from core.state.application_state import (
+    ACTIVE_APPLICATIONS,
+    APPLICATIONS_OPEN,
+    save_active_applications,
+)
 from core.state.blacklist_state import BLACKLIST
 
 ADMIN_ROLE_IDS = {

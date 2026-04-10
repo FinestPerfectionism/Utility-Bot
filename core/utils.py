@@ -69,15 +69,15 @@ def format_attachments(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def resolve_forum_tags(
-    forum: discord.ForumChannel,
-    tag_ids: list[int],
+    forum   : discord.ForumChannel,
+    tag_ids : list[int],
 ) -> list[discord.ForumTag]:
-    resolved: list[discord.ForumTag] = []
+    resolved : list[discord.ForumTag] = []
 
     for tag_id in tag_ids:
         tag = forum.get_tag(tag_id)
         if tag is None:
-            string =  "Forum tag not found: {tag_id}"
+            string = f"Forum tag not found: {tag_id}"
             raise ValueError(string)
         resolved.append(tag)
 
@@ -96,16 +96,16 @@ def parse_duration(input_str: str) -> timedelta | None:
 
     total_seconds = 0
 
-    for value, unit in matches:
-        value = int(value)
-        unit  = unit.lower()
+    for raw_value, raw_unit in matches:
+        value = int(raw_value)
+        unit  = raw_unit.lower()
 
         if unit == "mo":
-            total_seconds += value * 28 * 24 * 60 * 60
+            total_seconds += value * 2419200
         elif unit == "d":
-            total_seconds += value * 24 * 60 * 60
+            total_seconds += value * 86400
         elif unit == "h":
-            total_seconds += value * 60 * 60
+            total_seconds += value * 3600
         elif unit == "m":
             total_seconds += value * 60
         elif unit == "s":
@@ -120,9 +120,9 @@ def parse_duration(input_str: str) -> timedelta | None:
 class MinorError(discord.ui.LayoutView):
     def __init__(
         self,
-        texts:    list[str],
-        subtitle: str = "Invalid argument.",
-        title:    str = "Error!",
+        texts    : list[str],
+        subtitle : str = "Invalid argument.",
+        title    : str = "Error!",
     ) -> None:
         super().__init__()
 
@@ -202,10 +202,10 @@ async def send_minor_error(
         )
 
 async def send_major_error(
-    interaction: discord.Interaction,
-    texts:       list[str] | str,
-    subtitle:    str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-    title:       str = "Error!",
+    interaction : discord.Interaction,
+    texts       : list[str] | str,
+    subtitle    : str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
+    title       : str = "Error!",
 ) -> None:
     if isinstance(texts, str):
         texts = [texts]
@@ -214,8 +214,8 @@ async def send_major_error(
 
     if interaction.response.is_done():
         await interaction.followup.send(
-            content = " ",
-            view = view,
+            content   = " ",
+            view      = view,
             ephemeral = True,
         )
     else:

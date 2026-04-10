@@ -4,17 +4,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import (
-    ACCEPTED_EMOJI_ID,
-    CONTESTED_EMOJI_ID,
-    DIRECTORS_ROLE_ID,
-    STAFF_ROLE_ID,
-)
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from constants import ACCEPTED_EMOJI_ID, CONTESTED_EMOJI_ID, DIRECTORS_ROLE_ID, STAFF_ROLE_ID
+from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only, main_guild_only
 from core.state.application_state import APPLICATIONS_OPEN, save_application_state
 from core.state.blacklist_state import BLACKLIST, save_blacklist

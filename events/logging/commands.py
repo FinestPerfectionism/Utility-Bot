@@ -1,7 +1,4 @@
-from typing import Any
-
 import discord
-from discord import app_commands
 from discord.ext import commands
 
 from constants import BOT_LOG_CHANNEL_ID, COLOR_BLURPLE
@@ -21,29 +18,28 @@ class CommandLogger(commands.Cog):
     @commands.Cog.listener()
     async def on_app_command_completion(
         self,
-        interaction: discord.Interaction,
-        command: app_commands.Command[Any, Any, Any],
+        interaction : discord.Interaction,
     ) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
 
         embed = discord.Embed(
-            title = "Application Command Executed",
-            color = COLOR_BLURPLE,
+            title     = "Application Command Executed",
+            color     = COLOR_BLURPLE,
             timestamp = interaction.created_at,
         )
 
         _ = embed.add_field(
-            name = "User",
-            value = f"`{interaction.user}`\n`{interaction.user.id}`",
+            name   = "User",
+            value  = f"`{interaction.user}`\n`{interaction.user.id}`",
             inline = True,
         )
 
         if interaction.guild:
             _ = embed.add_field(
-                name = "Guild",
-                value = f"`{interaction.guild}`\n`{interaction.guild.id}`",
+                name   = "Guild",
+                value  = f"`{interaction.guild}`\n`{interaction.guild.id}`",
                 inline = True,
             )
 
@@ -51,8 +47,8 @@ class CommandLogger(commands.Cog):
         cmd_name = f"/{cmd.qualified_name}" if cmd else "Unknown"
 
         _ = embed.add_field(
-            name = "Command",
-            value = f"`{cmd_name}`",
+            name   = "Command",
+            value  = f"`{cmd_name}`",
             inline = True,
         )
 
@@ -65,8 +61,8 @@ class CommandLogger(commands.Cog):
                 display_channel = str(interaction.channel)
 
         _ = embed.add_field(
-            name = "Channel",
-            value = display_channel,
+            name   = "Channel",
+            value  = display_channel,
             inline = False,
         )
 
@@ -83,32 +79,32 @@ class CommandLogger(commands.Cog):
             return
 
         embed = discord.Embed(
-            title = "Prefix Command Executed",
-            color = COLOR_BLURPLE,
+            title     = "Prefix Command Executed",
+            color     = COLOR_BLURPLE,
             timestamp = ctx.message.created_at,
         )
 
         _ = embed.add_field(
-            name = "User",
-            value = f"`{ctx.author}`\n`{ctx.author.id}`",
+            name   = "User",
+            value  = f"`{ctx.author}`\n`{ctx.author.id}`",
             inline = True,
         )
 
         if ctx.guild:
             _ = embed.add_field(
-                name = "Guild",
-                value = f"`{ctx.guild}`\n`{ctx.guild.id}`",
+                name   = "Guild",
+                value  = f"`{ctx.guild}`\n`{ctx.guild.id}`",
                 inline = True,
             )
 
         _ = embed.add_field(
-            name = "Command",
-            value = f"`.{ctx.command.qualified_name if ctx.command else 'Unknown'}`",
+            name   = "Command",
+            value  = f"`.{ctx.command.qualified_name if ctx.command else 'Unknown'}`",
             inline = True,
         )
 
         _ = embed.add_field(
-            name = "Channel",
+            name  = "Channel",
             value = (
                 ctx.channel.mention
                 if isinstance(ctx.channel, discord.TextChannel | discord.Thread)

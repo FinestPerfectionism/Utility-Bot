@@ -2,13 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import (
-    BOT_OWNER_ID,
-    HOLY_FATHER_ID,
-)
-from core.help import (
-    help_description,
-)
+from constants import BOT_OWNER_ID, HOLY_FATHER_ID
+from core.help import help_description
 from core.utils import send_minor_error
 
 
@@ -44,13 +39,13 @@ class MiscCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "femboy",
-        description="Such a good little utility kitten.",
+        name        = "femboy",
+        description = "Such a good little utility kitten.",
     )
     @help_description(
-        desc="Sends the bot's intentionally unserious self-introduction message. This is a flavor command with no arguments or permissions beyond being able to invoke the slash command.",
-        prefix=False,
-        slash=True,
+        desc   = "Mreow!",
+        prefix = False,
+        slash  = True,
     )
     async def femboy(self, interaction: discord.Interaction) -> None:
         _ = await interaction.response.defer()
@@ -64,11 +59,6 @@ class MiscCommands(commands.Cog):
 
     @commands.command(
         name = "super_secret_command",
-    )
-    @help_description(
-        desc="Runs a private easter-egg response path intended for the configured bot owner and a small hard-coded exception. Access is controlled by user ID checks inside the command, not by Discord roles.",
-        prefix=True,
-        slash=False,
     )
     async def super_secret_command(self, ctx: commands.Context[commands.Bot]) -> None:
         author_id = ctx.author.id
@@ -94,13 +84,13 @@ class MiscCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(
-        name = "roulette",
-        description="Have fun...",
+        name        = "roulette",
+        description = "Have fun...",
     )
     @help_description(
-        desc="Plays a deliberately risky roulette gag. Depending on the random chamber result and the bot's permissions, the command may attempt to ban the invoking user or simply report that the shot misfired.",
-        prefix=False,
-        slash=True,
+        desc   = "Russian roulette... have fun.",
+        prefix = False,
+        slash  = True,
     )
     async def roulette(self, interaction: discord.Interaction) -> None:
         guild = interaction.guild
@@ -109,13 +99,13 @@ class MiscCommands(commands.Cog):
         if guild is None:
             await send_minor_error(
                 interaction,
-                "This command can only be used in a server.",
+                texts    = "This command can only be used in a server.",
                 subtitle = "Bad command environment.",
             )
             return
 
-        CHEESE = 1167207694424350740
-        if interaction.user.id == CHEESE:
+        cheese = 1167207694424350740
+        if interaction.user.id == cheese:
             _ = await interaction.response.send_message(
                 "My developer is so fucking tired of unbanning you and adding your roles back that he has decided that you can never touch this command again. Dumbass. <:laugh5:1481288430150484111>",
             )
@@ -131,8 +121,8 @@ class MiscCommands(commands.Cog):
             try:
                 await guild.ban(
                     member,
-                    reason="Played a stupid game, won a stupid prize.",
-                    delete_message_seconds=0,
+                    reason                 = "Played a stupid game, won a stupid prize.",
+                    delete_message_seconds = 0,
                 )
                 await interaction.followup.send(
                     "<a:CatShoot:1466460098955313294> *Click,* ***BAM***.",
@@ -154,7 +144,7 @@ class MiscCommands(commands.Cog):
         name = "bot-ping",
     )
     @help_description(
-        desc        = "The ping command displays the bot's current latency in milliseconds.",
+        desc        = "Displays the bot's current latency in milliseconds.",
         prefix      = True,
         slash       = False,
         has_inverse = False,

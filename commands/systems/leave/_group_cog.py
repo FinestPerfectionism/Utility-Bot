@@ -6,16 +6,8 @@ from discord import app_commands
 from discord.ext import commands, tasks
 from typing_extensions import override
 
-from constants import (
-    DIRECTORS_ROLE_ID,
-    PERSONAL_LEAVE_ROLE_ID,
-    STAFF_ROLE_ID,
-)
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from constants import DIRECTORS_ROLE_ID, PERSONAL_LEAVE_ROLE_ID, STAFF_ROLE_ID
+from core.help import ArgumentInfo, RoleConfig, help_description
 
 from ._base import (
     ALL_STAFF_ROLE_IDS,

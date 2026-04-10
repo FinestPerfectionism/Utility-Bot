@@ -11,10 +11,7 @@ from constants import (
     MESSAGE_DELETE_LOG_CHANNEL_ID,
 )
 from core.state.automod_state import AUTOMOD_DELETIONS
-from core.utils import (
-    channel_display,
-    format_attachments,
-)
+from core.utils import channel_display, format_attachments
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Message Deletion
@@ -73,7 +70,8 @@ class MessageDeleteHandler(commands.Cog):
                     continue
                 if channel.id != message.channel.id:
                     continue
-                if (discord.utils.utcnow() - entry.created_at).total_seconds() > 5:
+                n_5 = 5
+                if (discord.utils.utcnow() - entry.created_at).total_seconds() > n_5:
                     continue
                 if entry.user:
                     deleter = f"`{entry.user}`\n`{entry.user.id}`"
@@ -107,8 +105,9 @@ class MessageDeleteHandler(commands.Cog):
             value  = channel_display(message.channel),
             inline = True,
         )
-        content = message.content or "[No content, likely an embed or attachment]"
-        display_content = (content[:1021] + "...") if len(content) > 1024 else content
+        content         = message.content or "[No content, likely an embed or attachment]"
+        n_1024          = 1024
+        display_content = (content[:1021] + "...") if len(content) > n_1024 else content
         _ = embed.add_field(
             name   = "Content",
             value  = display_content,

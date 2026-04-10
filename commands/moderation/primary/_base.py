@@ -10,10 +10,7 @@ import discord
 from discord.ext import commands
 from typing_extensions import override
 
-from core.cases import (
-    CasesManager,
-    CaseType,
-)
+from core.cases import CasesManager, CaseType
 
 if TYPE_CHECKING:
     from bot import UtilityBot

@@ -2,15 +2,7 @@ from __future__ import annotations
 
 import functools
 from dataclasses import dataclass, field
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ParamSpec,
-    Protocol,
-    TypeVar,
-    cast,
-    runtime_checkable,
-)
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast, runtime_checkable
 
 import discord
 from discord.ext import commands
@@ -30,13 +22,13 @@ from constants import (
     DENIED_EMOJI_ID,
 )
 
-P = ParamSpec("P")
-T = TypeVar("T", covariant=True)
+P    = ParamSpec("P")
+T_co = TypeVar("T_co", covariant=True)
 
 @runtime_checkable
-class HelpCallback(Protocol[P, T]):
+class HelpCallback(Protocol[P, T_co]):
     __help_data__: CommandHelpData
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Awaitable[T]: ...
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Awaitable[T_co]: ...
 
 @dataclass
 class RoleConfig:
@@ -80,26 +72,26 @@ def help_description(
     has_inverse :                    bool | str  = False,
     arguments   : dict[str, ArgumentInfo] | None = None,
     aliases     :               list[str] | None = None,
-) -> Callable[[Callable[P, Coroutine[Any, Any, T]]], Callable[P, Coroutine[Any, Any, T]]]:
+) -> Callable[[Callable[P, Coroutine[Any, Any, T_co]]], Callable[P, Coroutine[Any, Any, T_co]]]:
     run_roles = run_roles or []
     run_users = run_users or []
     arguments = arguments or {}
     aliases   = aliases   or []
 
-    def decorator(func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]:
+    def decorator(func: Callable[P, Coroutine[Any, Any, T_co]]) -> Callable[P, Coroutine[Any, Any, T_co]]:
         data = CommandHelpData(
-            desc=desc,
-            prefix=prefix,
-            slash=slash,
-            run_roles=run_roles,
-            run_users=run_users,
-            has_inverse=has_inverse,
-            arguments=arguments,
-            aliases=aliases,
+            desc        = desc,
+            prefix      = prefix,
+            slash       = slash,
+            run_roles   = run_roles,
+            run_users   = run_users,
+            has_inverse = has_inverse,
+            arguments   = arguments,
+            aliases     = aliases,
         )
 
         @functools.wraps(func)
-        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T_co:
             return await func(*args, **kwargs)
 
         cast("HelpedCallable", wrapper).__help_data__ = data
@@ -175,9 +167,9 @@ def build_argument_line(name: str, info: ArgumentInfo) -> str:
     return f"{{{name}}}" if info.required else f"[{name}]"
 
 def build_help_view(
-    command_name: str,
-    data:         CommandHelpData,
-    member:       discord.Member,
+    command_name : str,
+    data         : CommandHelpData,
+    member       : discord.Member,
 ) -> discord.ui.LayoutView:
 
     arg_tokens = " ".join(

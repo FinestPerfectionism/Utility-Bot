@@ -9,11 +9,7 @@ from constants import (
     STAFF_ROLE_ID,
     TICKET_CHANNEL_ID,
 )
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only, main_guild_only
 from core.state.blacklist_state import BLACKLIST, save_blacklist
 from core.state.ticket_state import (

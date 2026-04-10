@@ -4,10 +4,7 @@ import discord
 from discord.ext import commands
 
 from constants import BOT_OWNER_ID
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
+from core.utils import send_major_error, send_minor_error
 from events.logging.errors import PermissionsError
 
 log = logging.getLogger("Utility Bot")

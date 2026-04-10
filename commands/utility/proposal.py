@@ -19,15 +19,8 @@ from constants import (
     TAG_SPECIAL,
     TAG_STATUS,
 )
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
-from core.permissions import (
-    has_director_role,
-    main_guild_only,
-)
+from core.help import ArgumentInfo, RoleConfig, help_description
+from core.permissions import has_director_role, main_guild_only
 from core.utils import (
     assert_forum_thread,
     format_body,
@@ -375,7 +368,7 @@ class ProposalCommands(
         notes="Additional notes.",
     )
     @app_commands.choices(
-        tag=[
+        tag = [
             app_commands.Choice(name = "Needs Revision",       value = "needs_revision"),
             app_commands.Choice(name = "Needs Implementation", value = "needs_implementation"),
             app_commands.Choice(name = "Owner Action",         value = "owner_action"),
@@ -383,11 +376,11 @@ class ProposalCommands(
         ],
     )
     @help_description(
-        desc="Staff Committee only —— Applies or removes a process tag on the current proposal thread.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
-        arguments={
+        desc      = "Staff Committee only —— Applies or removes a process tag on the current proposal thread.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
+        arguments = {
             "tag": ArgumentInfo(description="Process tag to modify.", choices=["needs_revision", "needs_implementation", "owner_action", "sdirector_action"]),
             "enabled": ArgumentInfo(description="Whether the tag should be present after running the command."),
             "notes": ArgumentInfo(required=False, description="Optional additional notes."),
@@ -398,6 +391,7 @@ class ProposalCommands(
         self,
         interaction : discord.Interaction,
         tag         : app_commands.Choice[str],
+        *,
         enabled     : bool,
         notes       : str | None = None,
     ) -> None:

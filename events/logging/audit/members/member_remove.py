@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import UTC, datetime
 
 import discord
@@ -10,6 +11,8 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Member Remove Audit
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+log = logging.getLogger("Utility Bot")
 
 class MemberRemoveCog(AuditCog):
     def __init__(self, bot: commands.Bot, queue: AuditQueue) -> None:
@@ -31,8 +34,8 @@ class MemberRemoveCog(AuditCog):
                     executor = entry.user
                     was_kicked = True
                     break
-        except discord.HTTPException as e:
-            print(f"Error fetching audit log: {e}")
+        except discord.HTTPException:
+            log.exception("Error fetching audit log")
 
         embed = discord.Embed(
             title     = "Member Kicked" if was_kicked else "Member Left",

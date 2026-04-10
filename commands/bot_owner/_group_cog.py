@@ -5,26 +5,14 @@ from discord import app_commands
 from discord.ext import commands
 
 from constants import BOT_OWNER_ID
-from core.help import (
-    ArgumentInfo,
-    UserConfig,
-    help_description,
-)
+from core.help import ArgumentInfo, UserConfig, help_description
 
-from ._base import (
-    cog_autocomplete,
-    get_cogs,
-)
+from ._base import cog_autocomplete, get_cogs
 from .cogs.load import run_load
 from .cogs.pull_reload import run_pull_reload
 from .cogs.reload import run_reload
 from .cogs.unload import run_unload
-from .misc import (
-    run_eval,
-        EvalFlags,
-    run_say,
-    run_status,
-)
+from .misc import EvalFlags, run_eval, run_say, run_status
 from .state.restart import run_restart
 from .state.shutdown import run_shutdown
 
@@ -225,34 +213,63 @@ class BotOwnerCommands(
         prefix    = True,
         slash     = False,
         run_users = [UserConfig(user_id = BOT_OWNER_ID)],
-        arguments = {"body": ArgumentInfo(description = "Python code to evaluate.")},
+        arguments = {"body" : ArgumentInfo(description = "Python code to evaluate.")},
     )
     async def _eval(
         self,
-        ctx   : commands.Context[commands.Bot],
+        ctx  : commands.Context[commands.Bot],
         *,
         body  : str,
-        flags : EvalFlags | None = None
+        flags : EvalFlags | None = None,
     ) -> None:
-        
         if flags is None:
             flags = EvalFlags()
-            
-        await run_eval(self.bot, ctx, body, flags=flags)
+
+        await run_eval(self.bot, ctx, body, flags = flags)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .say Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "say")
+    @app_commands.command(name = "say")
+    @help_description(
+        desc      = "Bot Owner only —— Make the bot say something.",
+        prefix    = False,
+        slash     = True,
+        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
+        arguments = {
+            "text"           : ArgumentInfo(description = "The text to send."),
+            "target-channel" : ArgumentInfo(description = "The channel to send the message in."),
+            "reply-id"       : ArgumentInfo(description = "The ID of the message to reply to." ),
+        },
+    )
+    @app_commands.describe(
+        message        = "The text to send.",
+        target_channel = "The channel to send the message in.",
+        reply_id       = "The ID of the message to reply to.",
+    )
+    @app_commands.rename(
+        target_channel = "target-channel",
+        reply_id       = "reply-id",
+    )
     async def say(
         self,
-        ctx            : commands.Context[commands.Bot],
+        interaction    : discord.Interaction,
+        message        : str,
         target_channel : discord.TextChannel | None = None,
-        *,
-        message: str,
+        reply_id       : str                 | None = None,
     ) -> None:
-        await run_say(ctx, target_channel, message)
+        target = target_channel or interaction.channel
+
+        if not isinstance(target, discord.abc.Messageable):
+            return
+
+        await run_say(
+            interaction = interaction,
+            channel     = target,
+            text        = message,
+            message_id  = reply_id,
+        )
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(BotOwnerCommands(bot))

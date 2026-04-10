@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import io
 import textwrap
@@ -24,6 +25,10 @@ from constants import (
     BOT_OWNER_ID,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
+)
+from core.utils import (
+    send_major_error,
+    send_minor_error,
 )
 from events.logging.errors import PermissionsError
 
@@ -108,7 +113,7 @@ async def run_status(
 # .eval Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class EvalFlags(commands.FlagConverter, prefix="/", delimiter=" "):
+class EvalFlags(commands.FlagConverter, prefix = "/", delimiter = " "):
     s: str | None = commands.flag(
         name        = "s",
         aliases     = ["silent", "supress", "shush"],
@@ -154,7 +159,7 @@ async def run_eval(
             msg = await ctx.send(
                 "```py\n"
                f"{e.__class__.__name__}: {e}\n"
-                "```"
+                "```",
             )
             await sleep(5)
             await msg.delete()
@@ -192,28 +197,55 @@ async def run_eval(
             _ = await ctx.send(f"```py\n{value}{ret}\n```")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# .say Logic
+# /bot-owner say Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_say(
-    ctx            : commands.Context[commands.Bot],
-    target_channel : discord.TextChannel | None,
-    message        : str,
+    interaction : discord.Interaction,
+    channel     : discord.abc.Messageable,
+    text        : str,
+    message_id  : str | None = None,
 ) -> None:
-    if ctx.author.id != BOT_OWNER_ID:
-        _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
+    if interaction.user.id != BOT_OWNER_ID:
+        _ = await interaction.response.send_message(
+            view      = PermissionsError(),
+            ephemeral = True,
+        )
         return
 
-    _ = await ctx.message.delete()
+    _ = await interaction.response.defer(ephemeral = True)
 
-    channel           = target_channel or ctx.channel
-    formatted_message = message.replace("\\n", "\n")
+    typing_speed = len(text) * 0.05
+    typing_delay = min(typing_speed, 10.0)
 
-    if ctx.message.reference and ctx.message.reference.message_id is not None:
-        ref_channel_id = ctx.message.reference.channel_id
-        ref_channel = ctx.bot.get_channel(ref_channel_id) or await ctx.bot.fetch_channel(ref_channel_id)
-        if isinstance(ref_channel, discord.abc.Messageable):
-            original_message = await ref_channel.fetch_message(ctx.message.reference.message_id)
-            _ = await original_message.reply(formatted_message)
-    else:
-        _ = await channel.send(formatted_message)
+    try:
+        reply_reference: discord.Message | None = None
+
+        if message_id:
+            try:
+                if channel:
+                    reply_reference = await channel.fetch_message(int(message_id))
+            except (discord.NotFound, ValueError, discord.HTTPException):
+                _ = await send_minor_error(
+                    interaction,
+                    texts = "Message ID not found.",
+                )
+                return
+
+        if hasattr(channel, "typing"):
+            async with channel.typing():
+                await asyncio.sleep(typing_delay)
+
+        if reply_reference:
+            _ = await reply_reference.reply(content = text)
+        else:
+            _ = await channel.send(content = text)
+
+        await interaction.followup.send("Sent!", ephemeral = True)
+
+    except discord.Forbidden:
+        await send_major_error(
+            interaction,
+            texts    = "I lack the necessary permissions to run this command.",
+            subtitle = "Invalid configuration. Contact the owner.",
+        )

@@ -1,12 +1,6 @@
 import contextlib
 from datetime import UTC, datetime
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ClassVar,
-    Literal,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
 import discord
 from discord import app_commands
@@ -32,25 +26,10 @@ from constants import (
     MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 )
-from core.cases import (
-    CasesManager,
-    CaseType,
-)
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
-from core.permissions import (
-    is_administrator,
-    is_director,
-    is_moderator,
-    is_senior_moderator,
-)
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
+from core.cases import CasesManager, CaseType
+from core.help import ArgumentInfo, RoleConfig, help_description
+from core.permissions import is_administrator, is_director, is_moderator, is_senior_moderator
+from core.utils import send_major_error, send_minor_error
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Classification Request View

@@ -13,11 +13,7 @@ from constants import (
     MODERATORS_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
 )
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from core.help import ArgumentInfo, RoleConfig, help_description
 
 from ._base import ModerationBase
 from .ban import run_ban

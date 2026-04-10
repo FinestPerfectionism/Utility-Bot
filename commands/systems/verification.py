@@ -5,11 +5,7 @@ import discord
 from discord.ext import commands
 
 from constants import GOOBERS_ROLE_ID, STAFF_ROLE_ID
-from core.help import (
-    ArgumentInfo,
-    RoleConfig,
-    help_description,
-)
+from core.help import ArgumentInfo, RoleConfig, help_description
 
 if TYPE_CHECKING:
     from events.systems.verification import VerificationHandler

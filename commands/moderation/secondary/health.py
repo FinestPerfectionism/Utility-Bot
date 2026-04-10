@@ -26,10 +26,7 @@ from constants import (
 if TYPE_CHECKING:
     from bot import UtilityBot
 
-from core.help import (
-    RoleConfig,
-    help_description,
-)
+from core.help import RoleConfig, help_description
 from core.permissions import is_director
 from core.utils import send_major_error
 
