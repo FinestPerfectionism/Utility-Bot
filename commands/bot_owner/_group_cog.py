@@ -12,7 +12,7 @@ from .cogs.load import run_load
 from .cogs.pull_reload import run_pull_reload
 from .cogs.reload import run_reload
 from .cogs.unload import run_unload
-from .misc import EvalFlags, run_eval, run_say, run_status
+from .misc import run_eval, run_say, run_status
 from .state.restart import run_restart
 from .state.shutdown import run_shutdown
 
@@ -219,13 +219,9 @@ class BotOwnerCommands(
         self,
         ctx  : commands.Context[commands.Bot],
         *,
-        body  : str,
-        flags : EvalFlags | None = None,
+        body : str,
     ) -> None:
-        if flags is None:
-            flags = EvalFlags()
-
-        await run_eval(self.bot, ctx, body, flags = flags)
+        await run_eval(self.bot, ctx, body)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /bot-owner say Command

@@ -93,7 +93,7 @@ class MiscCommands(commands.Cog):
         slash  = True,
     )
     async def roulette(self, interaction: discord.Interaction) -> None:
-        guild = interaction.guild
+        guild  = interaction.guild
         member = interaction.user
 
         if guild is None:

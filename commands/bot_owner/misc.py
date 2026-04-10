@@ -113,26 +113,28 @@ async def run_status(
 # .eval Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class EvalFlags(commands.FlagConverter, prefix = "/", delimiter = " "):
-    s : str | None = commands.flag(
-        aliases     = ["silent", "supress", "shush"],
-        default     = None,
-        max_args    = -1,
-    )
+_SILENT_FLAGS = {"/s", "/silent", "/supress", "/shush"}
+
+def _parse_eval_input(raw: str) -> tuple[str, bool]:
+    lines            = raw.splitlines()
+    silent           = False
+    kept : list[str] = []
+    for line in lines:
+        if line.strip().lower() in _SILENT_FLAGS:
+            silent = True
+        else:
+            kept.append(line)
+    return "\n".join(kept), silent
 
 async def run_eval(
-    bot   : commands.Bot,
-    ctx   : commands.Context[commands.Bot],
-    body  : str,
-    *,
-    flags : EvalFlags | None = None,
+    bot  : commands.Bot,
+    ctx  : commands.Context[commands.Bot],
+    body : str,
 ) -> None:
-    silent = flags and flags.s is not None
-
+    body, silent = _parse_eval_input(body)
     if ctx.author.id != BOT_OWNER_ID:
         _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
         return
-
     env: dict[str, Any] = {
         "bot"      : bot,
         "ctx"      : ctx,
@@ -143,15 +145,13 @@ async def run_eval(
         "discord"  : discord,
         "commands" : commands,
     }
-
     body       = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
     stdout     = io.StringIO()
     to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
-
     try:
         import builtins
         builtins.exec(to_compile, env)
-    except Exception as e: # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         if silent:
             _   = await ctx.message.delete()
             msg = await ctx.send(
@@ -165,13 +165,11 @@ async def run_eval(
         _ = await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
         _ = await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
         return
-
     func = cast("Callable[[], Awaitable[Any]]", env["func"])
-
     try:
         with contextlib.redirect_stdout(stdout):
             ret = await func()
-    except Exception: # noqa: BLE001
+    except Exception:  # noqa: BLE001
         value = stdout.getvalue()
         if silent:
             _   = await ctx.message.delete()
@@ -187,7 +185,6 @@ async def run_eval(
             _ = await ctx.message.delete()
             return
         _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
-
         if ret is None:
             if value:
                 _ = await ctx.send(f"```py\n{value}\n```")
