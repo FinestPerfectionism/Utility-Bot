@@ -34,7 +34,7 @@ class LeaveCommands(commands.Cog):
 
     leave_group = app_commands.Group(
         name = "leave",
-        description="Staff only —— Leave commands.",
+        description = "Staff only —— Leave commands.",
     )
 
     @override
@@ -191,7 +191,7 @@ class LeaveCommands(commands.Cog):
     # /leave add Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @leave_group.command(name = "add", description="Add personal leave to yourself or another user.")
+    @leave_group.command(name = "add", description = "Add personal leave to yourself or another user.")
     @app_commands.describe(
         leave_type = "The type of leave to apply.",
         target     = "The user to add personal leave to. Defaults to yourself.",
@@ -213,11 +213,11 @@ class LeaveCommands(commands.Cog):
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "type": ArgumentInfo(description="Leave mode to apply.", choices=["none", "soft_clean", "hard_clean"]),
-            "target": ArgumentInfo(required=False, description="Staff member to place on leave; defaults to yourself."),
-            "begin-date": ArgumentInfo(required=False, description="Optional future start date in YYYY-MM-DD format."),
-            "end-date": ArgumentInfo(required=False, description="Optional future end date in YYYY-MM-DD format."),
-            "timer": ArgumentInfo(required=False, description="Optional duration such as 1w2d3h4m."),
+            "type": ArgumentInfo(description = "Leave mode to apply.", choices=["none", "soft_clean", "hard_clean"]),
+            "target": ArgumentInfo(required=False, description = "Staff member to place on leave; defaults to yourself."),
+            "begin-date": ArgumentInfo(required=False, description = "Optional future start date in YYYY-MM-DD format."),
+            "end-date": ArgumentInfo(required=False, description = "Optional future end date in YYYY-MM-DD format."),
+            "timer": ArgumentInfo(required=False, description = "Optional duration such as 1w2d3h4m."),
         },
     )
     async def leave_add(
@@ -235,7 +235,7 @@ class LeaveCommands(commands.Cog):
     # /leave remove Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @leave_group.command(name = "remove", description="Remove personal leave from yourself or another user.")
+    @leave_group.command(name = "remove", description = "Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
     @help_description(
         desc="Staff only —— Removes personal leave from yourself or another staff member. Self-removal also works for your own scheduled leave entry.",
@@ -244,7 +244,7 @@ class LeaveCommands(commands.Cog):
         run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
         arguments={"target": ArgumentInfo(
                 required=False,
-                description="Staff member whose leave should be removed; defaults to yourself.",
+                description = "Staff member whose leave should be removed; defaults to yourself.",
                 roles=[DIRECTORS_ROLE_ID],
             ),
         },

@@ -218,7 +218,7 @@ class AntiNukeSystem(commands.Cog):
 
         embed = discord.Embed(
             title = "Anti-Nuke Warning",
-            description=f"{user.mention} is approaching rate limits",
+            description = f"{user.mention} is approaching rate limits",
             color = COLOR_ORANGE,
             timestamp = datetime.now(UTC),
         )
@@ -250,7 +250,7 @@ class AntiNukeSystem(commands.Cog):
 
         embed = discord.Embed(
             title = "Anti-Nuke: User Quarantined",
-            description=f"{member.mention} has been automatically quarantined for exceeding action limits.",
+            description = f"{member.mention} has been automatically quarantined for exceeding action limits.",
             color = COLOR_RED,
             timestamp = datetime.now(UTC),
         )

@@ -91,7 +91,7 @@ class AntiNukeCommands(commands.Cog):
         _ = embed.set_footer(text="Directors are exempt from all limits")
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
-    @antinuke_group.command(name = "toggle", description="Enable or disable anti-nuke protection.")
+    @antinuke_group.command(name = "toggle", description = "Enable or disable anti-nuke protection.")
     @help_description(
         desc      = "Directors only —— Toggle anti-nuke system.",
         prefix    = False,
@@ -126,16 +126,16 @@ class AntiNukeCommands(commands.Cog):
 
         _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
-    @antinuke_group.command(name = "set-limit", description="Configure limits for a specific action type.")
+    @antinuke_group.command(name = "set-limit", description = "Configure limits for a specific action type.")
     @help_description(
         desc = "Directors only —— Set hourly and daily anti-nuke limits for a tracked action type.",
         prefix    = False,
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments = {
-            "action" : ArgumentInfo(description="Tracked action key to configure."),
-            "hourly" : ArgumentInfo(description="Maximum allowed executions per hour."),
-            "daily"  : ArgumentInfo(description="Maximum allowed executions per day, and it must be at least the hourly limit."),
+            "action" : ArgumentInfo(description = "Tracked action key to configure."),
+            "hourly" : ArgumentInfo(description = "Maximum allowed executions per hour."),
+            "daily"  : ArgumentInfo(description = "Maximum allowed executions per day, and it must be at least the hourly limit."),
         },
     )
     @app_commands.describe(
@@ -215,7 +215,7 @@ class AntiNukeCommands(commands.Cog):
         prefix    = False,
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments = {"channel": ArgumentInfo(description="Text channel that should receive anti-nuke alerts.")},
+        arguments = {"channel": ArgumentInfo(description = "Text channel that should receive anti-nuke alerts.")},
     )
     @app_commands.describe(
         channel = "The channel where anti-nuke alerts will be sent.",

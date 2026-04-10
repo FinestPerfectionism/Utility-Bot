@@ -591,7 +591,7 @@ class CasesCommands(commands.Cog):
     # /cases query Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name = "query", description="Query the moderation case history.")
+    @cases_group.command(name = "query", description = "Query the moderation case history.")
     @app_commands.describe(
         user          = "Filter by user.",
         moderator     = "Filter by moderator.",
@@ -611,13 +611,13 @@ class CasesCommands(commands.Cog):
         slash=True,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "user": ArgumentInfo(required=False, description="Optional target user filter."),
-            "moderator": ArgumentInfo(required=False, description="Optional moderator filter."),
-            "type": ArgumentInfo(required=False, description="Optional case type filter."),
-            "contains": ArgumentInfo(required=False, description="Optional text search over reason or content."),
-            "after": ArgumentInfo(required=False, description="Optional lower date bound in YYYY-MM-DD format."),
-            "before": ArgumentInfo(required=False, description="Optional upper date bound in YYYY-MM-DD format."),
-            "include-notes": ArgumentInfo(required=False, description="Whether note entries should be included."),
+            "user": ArgumentInfo(required=False, description = "Optional target user filter."),
+            "moderator": ArgumentInfo(required=False, description = "Optional moderator filter."),
+            "type": ArgumentInfo(required=False, description = "Optional case type filter."),
+            "contains": ArgumentInfo(required=False, description = "Optional text search over reason or content."),
+            "after": ArgumentInfo(required=False, description = "Optional lower date bound in YYYY-MM-DD format."),
+            "before": ArgumentInfo(required=False, description = "Optional upper date bound in YYYY-MM-DD format."),
+            "include-notes": ArgumentInfo(required=False, description = "Whether note entries should be included."),
         },
     )
     async def cases_query(
@@ -705,7 +705,7 @@ class CasesCommands(commands.Cog):
             filter_text = " and ".join(filters)
             description = f"No cases found{' for ' + filter_text if filter_text else ''}."
 
-            embed = discord.Embed(description=description, color = COLOR_GREEN)
+            embed = discord.Embed(description = description, color = COLOR_GREEN)
             await interaction.followup.send(embed=embed, ephemeral = True)
             return
 
@@ -726,7 +726,7 @@ class CasesCommands(commands.Cog):
     # /cases view Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name = "view", description="View a single case with its related notes.")
+    @cases_group.command(name = "view", description = "View a single case with its related notes.")
     @app_commands.describe(case_id="The case ID to view.")
     @app_commands.rename(case_id="case-id")
     @help_description(
@@ -734,7 +734,7 @@ class CasesCommands(commands.Cog):
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={"case-id": ArgumentInfo(description="Case ID to view.")},
+        arguments={"case-id": ArgumentInfo(description = "Case ID to view.")},
     )
     async def cases_view(
         self,
@@ -794,7 +794,7 @@ class CasesCommands(commands.Cog):
     # /cases add-note Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name = "add-note", description="Add a note to a user or case.")
+    @cases_group.command(name = "add-note", description = "Add a note to a user or case.")
     @app_commands.describe(
         content    = "The note content.",
         user       = "The user to attach the note to.",
@@ -808,10 +808,10 @@ class CasesCommands(commands.Cog):
         slash=True,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "content": ArgumentInfo(description="Note content."),
-            "user": ArgumentInfo(required=False, description="Optional user to attach the note to."),
-            "case-id": ArgumentInfo(required=False, description="Optional case ID to attach the note to."),
-            "visibility": ArgumentInfo(required=False, description="Visibility restriction level.", choices=["moderators", "senior_moderators", "directors"]),
+            "content": ArgumentInfo(description = "Note content."),
+            "user": ArgumentInfo(required=False, description = "Optional user to attach the note to."),
+            "case-id": ArgumentInfo(required=False, description = "Optional case ID to attach the note to."),
+            "visibility": ArgumentInfo(required=False, description = "Visibility restriction level.", choices=["moderators", "senior_moderators", "directors"]),
         },
     )
     async def cases_add_note(
@@ -881,7 +881,7 @@ class CasesCommands(commands.Cog):
     # /cases edit-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name = "edit-entry", description="Edit a note entry.")
+    @cases_group.command(name = "edit-entry", description = "Edit a note entry.")
     @app_commands.describe(
         case_id = "The case ID of the note to edit.",
         content = "The updated note content.",
@@ -893,8 +893,8 @@ class CasesCommands(commands.Cog):
         slash=True,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "case-id": ArgumentInfo(description="Note case ID to edit."),
-            "content": ArgumentInfo(description="Replacement note content."),
+            "case-id": ArgumentInfo(description = "Note case ID to edit."),
+            "content": ArgumentInfo(description = "Replacement note content."),
         },
     )
     async def cases_edit_entry(
@@ -946,7 +946,7 @@ class CasesCommands(commands.Cog):
     # /cases delete-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name = "delete-entry", description="Delete a case entry.")
+    @cases_group.command(name = "delete-entry", description = "Delete a case entry.")
     @app_commands.describe(case_id="The case ID to delete.")
     @app_commands.rename(case_id="case-id")
     @help_description(
@@ -954,7 +954,7 @@ class CasesCommands(commands.Cog):
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={"case-id": ArgumentInfo(description="Case ID to delete.")},
+        arguments={"case-id": ArgumentInfo(description = "Case ID to delete.")},
     )
     async def cases_delete_entry(
         self,
@@ -997,7 +997,7 @@ class CasesCommands(commands.Cog):
     # /cases classify Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name = "classify", description="Classify a case entry's visibility.")
+    @cases_group.command(name = "classify", description = "Classify a case entry's visibility.")
     @app_commands.describe(
         case_id    = "The case ID to classify.",
         visibility = "The visibility restriction to apply or request.",
@@ -1012,8 +1012,8 @@ class CasesCommands(commands.Cog):
         slash=True,
         run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "case-id": ArgumentInfo(description="Case ID to classify."),
-            "level": ArgumentInfo(description="Requested visibility level.", choices=["moderators", "senior_moderators", "directors"]),
+            "case-id": ArgumentInfo(description = "Case ID to classify."),
+            "level": ArgumentInfo(description = "Requested visibility level.", choices=["moderators", "senior_moderators", "directors"]),
         },
     )
     async def cases_classify(
@@ -1114,14 +1114,14 @@ class CasesCommands(commands.Cog):
     # /cases config Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @cases_group.command(name = "config", description="Configure the cases log channel.")
+    @cases_group.command(name = "config", description = "Configure the cases log channel.")
     @app_commands.describe(channel="The channel where case logs will be sent.")
     @help_description(
         desc="Configures the channel used for case logs. Restricted to administrators and directors.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={"channel": ArgumentInfo(description="Text channel that should receive case logs.")},
+        arguments={"channel": ArgumentInfo(description = "Text channel that should receive case logs.")},
     )
     async def cases_config(
         self,

@@ -170,7 +170,7 @@ class LockdownCommands(commands.Cog):
         prefix    = False,
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments = {"reason": ArgumentInfo(description="Reason for engaging lockdown.")},
+        arguments = {"reason": ArgumentInfo(description = "Reason for engaging lockdown.")},
     )
     async def lockdown_activate(
         self,

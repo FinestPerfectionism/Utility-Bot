@@ -298,7 +298,7 @@ class DecisionView(ui.View):
 
         if not cases:
             embed = discord.Embed(
-                description="This applicant has no recorded cases.",
+                description = "This applicant has no recorded cases.",
                 color = COLOR_GREEN,
             )
             await interaction.followup.send(embed=embed, ephemeral=True)

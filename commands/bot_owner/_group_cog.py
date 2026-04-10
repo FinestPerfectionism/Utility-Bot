@@ -113,7 +113,7 @@ class BotOwnerCommands(
         prefix    = False,
         slash     = True,
         run_users = [UserConfig(user_id=BOT_OWNER_ID)],
-        arguments = {"cog": ArgumentInfo(description="Cog name to unload.")},
+        arguments = {"cog": ArgumentInfo(description = "Cog name to unload.")},
     )
     async def unload(self, interaction: discord.Interaction, cog: str) -> None:
         await run_unload(self.bot, interaction, cog, get_cogs())
@@ -228,10 +228,10 @@ class BotOwnerCommands(
         await run_eval(self.bot, ctx, body, flags = flags)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-    # .say Command
+    # /bot-owner say Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "say")
+    @app_commands.command(name = "say", description = "")
     @help_description(
         desc      = "Bot Owner only —— Make the bot say something.",
         prefix    = False,

@@ -46,7 +46,7 @@ class ModerationCommands(
     # /moderation ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "ban", description="Ban a member from the server.")
+    @app_commands.command(name = "ban", description = "Ban a member from the server.")
     @app_commands.describe(
         member          = "The member to ban.",
         reason          = "Reason for the ban.",
@@ -61,10 +61,10 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-ban",
         arguments   = {
-            "member"          : ArgumentInfo(description="Member to ban."),
-            "reason"          : ArgumentInfo(required=True, description="Reason for the ban."),
-            "delete-messages" : ArgumentInfo(required=False, description="Delete messages from the last 1-7 days."),
-            "proof"           : ArgumentInfo(required=False, description="Proof attachment."),
+            "member"          : ArgumentInfo(description = "Member to ban."),
+            "reason"          : ArgumentInfo(required=True, description = "Reason for the ban."),
+            "delete-messages" : ArgumentInfo(required=False, description = "Delete messages from the last 1-7 days."),
+            "proof"           : ArgumentInfo(required=False, description = "Proof attachment."),
         },
     )
     async def ban(
@@ -81,7 +81,7 @@ class ModerationCommands(
     # /moderation un-ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "un-ban", description="Un-ban a member from the server.")
+    @app_commands.command(name = "un-ban", description = "Un-ban a member from the server.")
     @app_commands.describe(
         user   = "The member ID, username, or tag to un-ban.",
         reason = "Reason for the un-ban.",
@@ -93,8 +93,8 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         has_inverse = "moderation ban",
         arguments   = {
-            "user"   : ArgumentInfo(description="User ID, username, or tag to unban."),
-            "reason" : ArgumentInfo(required=True, description="Reason for the unban."),
+            "user"   : ArgumentInfo(description = "User ID, username, or tag to unban."),
+            "reason" : ArgumentInfo(required=True, description = "Reason for the unban."),
         },
     )
     async def unban(
@@ -109,7 +109,7 @@ class ModerationCommands(
     # /moderation bans Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "bans", description="View all banned members.")
+    @app_commands.command(name = "bans", description = "View all banned members.")
     @help_description(
         desc      = "Staff* only —— Lists all currently banned users.",
         prefix    = False,
@@ -123,16 +123,16 @@ class ModerationCommands(
     # /moderation kick Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "kick", description="Kick a member from the server.")
+    @app_commands.command(name = "kick", description = "Kick a member from the server.")
     @help_description(
         desc      = "Senior Moderators only —— Kicks a member from the server.",
         prefix    = False,
         slash     = True,
         run_roles = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
         arguments = {
-            "member" : ArgumentInfo(description="Member to kick."),
-            "reason" : ArgumentInfo(required=True, description="Reason for the kick."),
-            "proof"  : ArgumentInfo(required=False, description="Proof attachment."),
+            "member" : ArgumentInfo(description = "Member to kick."),
+            "reason" : ArgumentInfo(required=True, description = "Reason for the kick."),
+            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -153,7 +153,7 @@ class ModerationCommands(
     # /moderation timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "timeout", description="Timeout a member.")
+    @app_commands.command(name = "timeout", description = "Timeout a member.")
     @help_description(
         desc        = "Moderators only —— Times out a member for a given duration.",
         prefix      = False,
@@ -161,10 +161,10 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id = MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-timeout",
         arguments   = {
-            "member"   : ArgumentInfo(description="Member to timeout."),
-            "duration" : ArgumentInfo(description="Duration (e.g. 30s, 5m, 1h, 2d, 1w)."),
-            "reason"   : ArgumentInfo(required=True, description="Reason for the timeout."),
-            "proof"    : ArgumentInfo(required=False, description="Proof attachment."),
+            "member"   : ArgumentInfo(description = "Member to timeout."),
+            "duration" : ArgumentInfo(description = "Duration (e.g. 30s, 5m, 1h, 2d, 1w)."),
+            "reason"   : ArgumentInfo(required=True, description = "Reason for the timeout."),
+            "proof"    : ArgumentInfo(required=False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -187,7 +187,7 @@ class ModerationCommands(
     # /moderation un-timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "un-timeout", description="Un-timeout a member.")
+    @app_commands.command(name = "un-timeout", description = "Un-timeout a member.")
     @help_description(
         desc        = "Senior Moderators only —— Removes an active timeout from a member.",
         prefix      = False,
@@ -195,8 +195,8 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation timeout",
         arguments   = {
-            "member" : ArgumentInfo(description="Member to un-timeout."),
-            "reason" : ArgumentInfo(required=True, description="Reason for removing the timeout."),
+            "member" : ArgumentInfo(description = "Member to un-timeout."),
+            "reason" : ArgumentInfo(required=True, description = "Reason for removing the timeout."),
         },
     )
     @app_commands.describe(
@@ -215,7 +215,7 @@ class ModerationCommands(
     # /moderation timeouts Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "timeouts", description="View all timed out members.")
+    @app_commands.command(name = "timeouts", description = "View all timed out members.")
     @help_description(
         desc      = "Staff* only —— Lists all currently timed out members.",
         prefix    = False,
@@ -229,17 +229,17 @@ class ModerationCommands(
     # /moderation purge Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "purge", description="Delete a specified number of messages.")
+    @app_commands.command(name = "purge", description = "Delete a specified number of messages.")
     @help_description(
         desc      = "Moderators only —— Bulk deletes recent messages, optionally filtered to a single member.",
         prefix    = False,
         slash     = True,
         run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID)],
         arguments = {
-            "amount" : ArgumentInfo(description="Number of messages to delete."),
-            "reason" : ArgumentInfo(required=True, description="Reason for the purge."),
-            "member" : ArgumentInfo(required=False, description="Only delete messages from this member."),
-            "proof"  : ArgumentInfo(required=False, description="Proof attachment."),
+            "amount" : ArgumentInfo(description = "Number of messages to delete."),
+            "reason" : ArgumentInfo(required=True, description = "Reason for the purge."),
+            "member" : ArgumentInfo(required=False, description = "Only delete messages from this member."),
+            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -262,7 +262,7 @@ class ModerationCommands(
     # /moderation quarantines Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "quarantines", description="View all quarantined members.")
+    @app_commands.command(name = "quarantines", description = "View all quarantined members.")
     @help_description(
         desc      = "Staff\\* only —— Lists all currently quarantined members.",
         prefix    = False,
@@ -276,7 +276,7 @@ class ModerationCommands(
     # /moderation quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "quarantine", description="Quarantine a member.")
+    @app_commands.command(name = "quarantine", description = "Quarantine a member.")
     @help_description(
         desc        = "Senior Moderators only —— Places a member into quarantine.",
         prefix      = False,
@@ -284,9 +284,9 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-quarantine",
         arguments   = {
-            "member" : ArgumentInfo(description="Member to quarantine."),
-            "reason" : ArgumentInfo(required=True, description="Reason for the quarantine."),
-            "proof"  : ArgumentInfo(required=False, description="Proof attachment."),
+            "member" : ArgumentInfo(description = "Member to quarantine."),
+            "reason" : ArgumentInfo(required=True, description = "Reason for the quarantine."),
+            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -307,7 +307,7 @@ class ModerationCommands(
     # /moderation un-quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "un-quarantine", description="Un-quarantine a member.")
+    @app_commands.command(name = "un-quarantine", description = "Un-quarantine a member.")
     @help_description(
         desc        = "Directors only —— Removes a member from quarantine.",
         prefix      = False,
@@ -315,9 +315,9 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         has_inverse = "moderation quarantine",
         arguments   = {
-            "member" : ArgumentInfo(description="Member to unquarantine."),
-            "reason" : ArgumentInfo(required=True, description="Reason for removing quarantine."),
-            "proof"  : ArgumentInfo(required=False, description="Proof attachment."),
+            "member" : ArgumentInfo(description = "Member to unquarantine."),
+            "reason" : ArgumentInfo(required=True, description = "Reason for removing quarantine."),
+            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(

@@ -209,7 +209,7 @@ async def _update_control_message(
 class ProposalCommands(
     commands.GroupCog,
     name = "proposal",
-    description="Staff Committee only —— Proposal commands.",
+    description = "Staff Committee only —— Proposal commands.",
 ):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -228,7 +228,7 @@ class ProposalCommands(
 
     @app_commands.command(
         name = "status",
-        description="Set the official Staff Committee decision for this proposal.",
+        description = "Set the official Staff Committee decision for this proposal.",
     )
     @app_commands.describe(
         status="The formal decision to apply.",
@@ -258,9 +258,9 @@ class ProposalCommands(
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
         arguments={
-            "status": ArgumentInfo(description="Decision to apply.", choices=["accepted", "contested", "denied", "standstill"]),
-            "reason": ArgumentInfo(description="Approved reason for that decision."),
-            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+            "status": ArgumentInfo(description = "Decision to apply.", choices=["accepted", "contested", "denied", "standstill"]),
+            "reason": ArgumentInfo(description = "Approved reason for that decision."),
+            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -360,7 +360,7 @@ class ProposalCommands(
 
     @app_commands.command(
         name = "tag",
-        description="Apply or remove a process-related tag from this proposal.",
+        description = "Apply or remove a process-related tag from this proposal.",
     )
     @app_commands.describe(
         tag="The process tag to apply or remove.",
@@ -381,9 +381,9 @@ class ProposalCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments = {
-            "tag": ArgumentInfo(description="Process tag to modify.", choices=["needs_revision", "needs_implementation", "owner_action", "sdirector_action"]),
-            "enabled": ArgumentInfo(description="Whether the tag should be present after running the command."),
-            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+            "tag": ArgumentInfo(description = "Process tag to modify.", choices=["needs_revision", "needs_implementation", "owner_action", "sdirector_action"]),
+            "enabled": ArgumentInfo(description = "Whether the tag should be present after running the command."),
+            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -507,8 +507,8 @@ class ProposalCommands(
         slash=True,
         run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
         arguments={
-            "reason": ArgumentInfo(description="Reason for finalization."),
-            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+            "reason": ArgumentInfo(description = "Reason for finalization."),
+            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -615,8 +615,8 @@ class ProposalCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
         arguments = {
-            "reason": ArgumentInfo(description="Reason for unlocking."),
-            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+            "reason": ArgumentInfo(description = "Reason for unlocking."),
+            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -689,8 +689,8 @@ class ProposalCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
         arguments = {
-            "reason": ArgumentInfo(description="Reason for removing standstill."),
-            "notes": ArgumentInfo(required=False, description="Optional additional notes."),
+            "reason": ArgumentInfo(description = "Reason for removing standstill."),
+            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()

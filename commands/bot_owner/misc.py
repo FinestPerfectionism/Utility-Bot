@@ -114,8 +114,7 @@ async def run_status(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EvalFlags(commands.FlagConverter, prefix = "/", delimiter = " "):
-    s: str | None = commands.flag(
-        name        = "s",
+    s : str | None = commands.flag(
         aliases     = ["silent", "supress", "shush"],
         default     = None,
         max_args    = -1,
@@ -145,15 +144,14 @@ async def run_eval(
         "commands" : commands,
     }
 
-    body = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
-
+    body       = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
     stdout     = io.StringIO()
     to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
 
     try:
         import builtins
         builtins.exec(to_compile, env)
-    except BaseException as e:
+    except Exception as e: # noqa: BLE001
         if silent:
             _   = await ctx.message.delete()
             msg = await ctx.send(
@@ -173,7 +171,7 @@ async def run_eval(
     try:
         with contextlib.redirect_stdout(stdout):
             ret = await func()
-    except BaseException:
+    except Exception: # noqa: BLE001
         value = stdout.getvalue()
         if silent:
             _   = await ctx.message.delete()

@@ -70,7 +70,7 @@ class PartnershipCommands(commands.Cog):
     # /partnership add
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @partnership.command(name = "add", description="Add a server partnership.")
+    @partnership.command(name = "add", description = "Add a server partnership.")
     @app_commands.describe(
         server_picture     = "The server's picture.",
         server_name        = "The server's name.",
@@ -84,11 +84,11 @@ class PartnershipCommands(commands.Cog):
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments = {
-            "server_picture": ArgumentInfo(description="Image attachment shown for the partner server."),
-            "server_name": ArgumentInfo(description="Partner server name."),
-            "server_description": ArgumentInfo(description="Partner server description."),
-            "server_owner": ArgumentInfo(description="Discord user who owns the partner server."),
-            "server_link": ArgumentInfo(description="Discord invite URL for the partner server."),
+            "server_picture": ArgumentInfo(description = "Image attachment shown for the partner server."),
+            "server_name": ArgumentInfo(description = "Partner server name."),
+            "server_description": ArgumentInfo(description = "Partner server description."),
+            "server_owner": ArgumentInfo(description = "Discord user who owns the partner server."),
+            "server_link": ArgumentInfo(description = "Discord invite URL for the partner server."),
         },
     )
     @directors_only()
@@ -173,14 +173,14 @@ class PartnershipCommands(commands.Cog):
     # /partnership remove
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @partnership.command(name = "remove", description="Remove a server partnership.")
+    @partnership.command(name = "remove", description = "Remove a server partnership.")
     @app_commands.describe(server_name = "The name of the server to remove.")
     @help_description(
         desc="Directors only —— Removes a partnership entry and rebuilds the partnerships channel layout.",
         prefix=False,
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={"server_name": ArgumentInfo(description="Exact partner server name to remove.")},
+        arguments={"server_name": ArgumentInfo(description = "Exact partner server name to remove.")},
     )
     @directors_only()
     async def partnership_remove(
@@ -232,7 +232,7 @@ class PartnershipCommands(commands.Cog):
     # /partnership update
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @partnership.command(name = "update", description="Update an existing server partnership.")
+    @partnership.command(name = "update", description = "Update an existing server partnership.")
     @app_commands.describe(
         server_name        = "The name of the server to update.",
         server_picture     = "The server's new picture.",
@@ -248,12 +248,12 @@ class PartnershipCommands(commands.Cog):
         slash=True,
         run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments={
-            "server_name": ArgumentInfo(description="Existing partner server name to update."),
-            "server_picture": ArgumentInfo(required=False, description="Optional replacement image attachment."),
-            "new_server_name": ArgumentInfo(required=False, description="Optional replacement server name."),
-            "server_description": ArgumentInfo(required=False, description="Optional replacement description."),
-            "server_owner": ArgumentInfo(required=False, description="Optional replacement server owner."),
-            "server_link": ArgumentInfo(required=False, description="Optional replacement Discord invite URL."),
+            "server_name": ArgumentInfo(description = "Existing partner server name to update."),
+            "server_picture": ArgumentInfo(required=False, description = "Optional replacement image attachment."),
+            "new_server_name": ArgumentInfo(required=False, description = "Optional replacement server name."),
+            "server_description": ArgumentInfo(required=False, description = "Optional replacement description."),
+            "server_owner": ArgumentInfo(required=False, description = "Optional replacement server owner."),
+            "server_link": ArgumentInfo(required=False, description = "Optional replacement Discord invite URL."),
         },
     )
     @directors_only()

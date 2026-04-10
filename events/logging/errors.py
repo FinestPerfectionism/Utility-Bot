@@ -407,28 +407,28 @@ class ErrorLogger(commands.Cog):
     async def on_shard_disconnect(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Disconnected",
-            description=f"Shard {shard_id}",
+            description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_connect(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Connected",
-            description=f"Shard {shard_id}",
+            description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_ready(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Ready",
-            description=f"Shard {shard_id}",
+            description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_resumed(self, shard_id: int) -> None:
         await self.send_info(
             title = "Shard Resumed",
-            description=f"Shard {shard_id}",
+            description = f"Shard {shard_id}",
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

@@ -65,8 +65,8 @@ class TicketsCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments = {
-            "action": ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
-            "user": ArgumentInfo(description="User to blacklist or unblacklist from tickets."),
+            "action": ArgumentInfo(description = "Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
+            "user": ArgumentInfo(description = "User to blacklist or unblacklist from tickets."),
         },
     )
     @main_guild_only()

@@ -55,8 +55,8 @@ class ApplicationsCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments = {
-            "action" : ArgumentInfo(description="Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
-            "user"   : ArgumentInfo(description="User to blacklist or unblacklist from applications."),
+            "action" : ArgumentInfo(description = "Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
+            "user"   : ArgumentInfo(description = "User to blacklist or unblacklist from applications."),
         },
     )
     @main_guild_only()
@@ -159,8 +159,8 @@ class ApplicationsCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         arguments = {
-            "application" : ArgumentInfo(description="Application type to modify.", choices=["Moderators", "Administrators"]),
-            "state"       : ArgumentInfo(description="Whether that application should be open or closed.", choices=["Open", "Closed"]),
+            "application" : ArgumentInfo(description = "Application type to modify.", choices=["Moderators", "Administrators"]),
+            "state"       : ArgumentInfo(description = "Whether that application should be open or closed.", choices=["Open", "Closed"]),
         },
     )
     @directors_only()

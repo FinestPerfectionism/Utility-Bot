@@ -33,7 +33,7 @@ class VerificationCommands(commands.Cog):
         slash     = False,
         run_roles = [RoleConfig(role_id=STAFF_ROLE_ID)],
         aliases   = ["v"],
-        arguments = {"member": ArgumentInfo(description="Member to verify.")},
+        arguments = {"member": ArgumentInfo(description = "Member to verify.")},
     )
     async def manual_verify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):
@@ -77,7 +77,7 @@ class VerificationCommands(commands.Cog):
         slash     = False,
         run_roles = [RoleConfig(role_id = STAFF_ROLE_ID)],
         aliases   = ["un-verify", "uv", "deverify", "de-verify", "dv"],
-        arguments = {"member": ArgumentInfo(description="Member to unverify.")},
+        arguments = {"member": ArgumentInfo(description = "Member to unverify.")},
     )
     async def unverify(self, ctx: commands.Context[commands.Bot], member: discord.Member) -> None:
         if not ctx.guild or not isinstance(ctx.author, discord.Member):

@@ -361,18 +361,18 @@ class UserCommands(commands.Cog):
         s: str | None = commands.flag(
             name = "s",
             default=None,
-            description="Set timezone for yourself or a user. Usage: /s [user]",
+            description = "Set timezone for yourself or a user. Usage: /s [user]",
             max_args=-1,
         )
         tz: str | None = commands.flag(
             name = "tz",
             default=None,
-            description="Timezone to use with /s or standalone. Usage: /tz {timezone}",
+            description = "Timezone to use with /s or standalone. Usage: /tz {timezone}",
         )
         at: str | None = commands.flag(
             name = "@",
             default=None,
-            description="View time for a timezone. Usage: /@ {timezone}",
+            description = "View time for a timezone. Usage: /@ {timezone}",
         )
 
     @commands.command(name = "timezone", aliases=["ti"])
@@ -386,19 +386,19 @@ class UserCommands(commands.Cog):
             "s": ArgumentInfo(
                 roles=[],
                 required=False,
-                description="Set timezone for yourself or a user.",
+                description = "Set timezone for yourself or a user.",
                 is_flag=True,
             ),
             "user": ArgumentInfo(
                 roles=[],
                 required=False,
-                description="The user to view the timezone of.",
+                description = "The user to view the timezone of.",
                 is_flag=False,
             ),
             "tz": ArgumentInfo(
                 roles=[],
                 required=False,
-                description="The timezone to view or set to.",
+                description = "The timezone to view or set to.",
                 is_flag=True,
             ),
         },
