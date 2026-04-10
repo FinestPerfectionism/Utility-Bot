@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import io
+import re
 import textwrap
 import traceback
 from asyncio import sleep
@@ -113,18 +114,29 @@ async def run_status(
 # .eval Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-_SILENT_FLAGS = {"/s", "/silent", "/supress", "/shush"}
+_SILENT_FLAGS  = {"/s", "/silent", "/supress", "/shush"}
+_FENCE_PATTERN = re.compile(r"```.*?```", re.DOTALL)
 
 def _parse_eval_input(raw: str) -> tuple[str, bool]:
-    lines            = raw.splitlines()
-    silent           = False
-    kept : list[str] = []
-    for line in lines:
-        if line.strip().lower() in _SILENT_FLAGS:
-            silent = True
-        else:
-            kept.append(line)
-    return "\n".join(kept), silent
+    match  = _FENCE_PATTERN.search(raw)
+    silent = False
+    if match:
+        body    = match.group()
+        outside = raw[: match.start()] + raw[match.end() :]
+        for line in outside.splitlines():
+            if line.strip().lower() in _SILENT_FLAGS:
+                silent = True
+    else:
+        body  = raw
+        lines = raw.splitlines()
+        kept  = []
+        for line in lines:
+            if line.strip().lower() in _SILENT_FLAGS:
+                silent = True
+            else:
+                kept.append(line)
+        body = "\n".join(kept)
+    return body, silent
 
 async def run_eval(
     bot  : commands.Bot,
