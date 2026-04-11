@@ -52,7 +52,7 @@ class MemberRemoveCog(AuditCog):
         if member.joined_at:
             _ = embed.add_field(
                 name  = "Joined Server",
-                value = discord.utils.format_dt(member.joined_at, style="R"),
+                value = discord.utils.format_dt(member.joined_at, style = "R"),
                 inline = True,
             )
 

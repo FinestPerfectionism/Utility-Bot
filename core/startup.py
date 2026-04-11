@@ -8,6 +8,8 @@ from discord.ext import commands
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
 
+    from discord.ui import View
+
 import asyncio
 import json
 import logging
@@ -153,7 +155,7 @@ class Startup(commands.Cog):
     async def restore_or_send_layouts(self) -> None:
         config = load_layout_config()
 
-        view_mapping: dict[str, tuple[int, type[discord.ui.View]]] = {
+        view_mapping: dict[str, tuple[int, type[View]]] = {
             "tickets": (TICKET_CHANNEL_ID, cast("type[discord.ui.View]", TicketComponents)),
             "applications": (APPLICATION_CHANNEL_ID, cast("type[discord.ui.View]", ApplicationComponents)),
             "leave": (STAFF_LEAVE_CHANNEL_ID, cast("type[discord.ui.View]", LeaveComponents)),

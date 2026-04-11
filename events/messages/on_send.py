@@ -227,12 +227,12 @@ class MessageSendHandler(commands.Cog):
         self.state["last_message_id"] = None
         self._save()
 
-    async def _assign_failed_role(self, guild: discord.Guild, new_id: int) -> None:
+    async def _assign_failed_role(self, guild: discord.Guild, new_id : int) -> None:
         role = guild.get_role(COUNTING_FAILED_ROLE_ID)
         if role is None:
             return
 
-        old_id: int | None = self.state.get("failed_user_id")
+        old_id : int | None = self.state.get("failed_user_id")
         if old_id is not None and old_id != new_id:
             old_member = guild.get_member(old_id)
             if old_member and role in old_member.roles:

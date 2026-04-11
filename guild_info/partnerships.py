@@ -5,6 +5,8 @@ import time
 from typing import Any
 
 import discord
+from discord import SeparatorSpacing
+from discord.ui import Container, LayoutView, Section, Separator, TextDisplay, Thumbnail
 
 from constants import PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, TICKET_CHANNEL_ID
 from core.state.partnership_state import (
@@ -23,49 +25,47 @@ _NO_PINGS = discord.AllowedMentions(users=False)
 # Partnership Views
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class PartnershipComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=(
+class PartnershipComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to our Partnerships!\n"
                 f"Our server partnerships. Looking to partner? View <#{PARTNERSHIP_REQUIREMENTS_CHANNEL_ID}>"
                 f" then open a __director__ ticket in <#{TICKET_CHANNEL_ID}>.\n"
                 "-# **Note:** It is within Directors' discretion as to whether we choose to partner with your server. "
-                "Directors are not required to provide a reason when denying a partnership."
-            ),
+                "Directors are not required to provide a reason when denying a partnership.",
         ),
     )
 
-class PartnershipComponents2(discord.ui.LayoutView):
-    def __init__(self, partnerships: list[PartnershipEntry], timestamp: int) -> None:
+class PartnershipComponents2(LayoutView):
+    def __init__(self, partnerships: list[PartnershipEntry], timestamp : int) -> None:
         super().__init__(timeout = None)
 
-        children: list[Any] = [
-            discord.ui.TextDisplay(
-                content=(
+        children : list[Any] = [
+            TextDisplay(
+                content =
                     "# Partnerships\n"
                     f"Partnerships last updated <t:{timestamp}:D>.\n"
                     "-# All partnerships below are subject to removal or update at any time based on Directorate decision. Partnerships are not influenced by the public or other staff.\n"
-                    "-# Partnerships assembled by the Directorate team."
-                ),
+                    "-# Partnerships assembled by the Directorate team.",
             ),
-            discord.ui.Separator(visible = False, spacing = discord.SeparatorSpacing.small),
-            discord.ui.Separator(visible = True,  spacing = discord.SeparatorSpacing.small),
-            discord.ui.Separator(visible = False, spacing = discord.SeparatorSpacing.small),
+            Separator(visible = False, spacing = SeparatorSpacing.small),
+            Separator(visible = True,  spacing = SeparatorSpacing.small),
+            Separator(visible = False, spacing = SeparatorSpacing.small),
         ]
 
         if not partnerships:
             children.append(
-                discord.ui.TextDisplay(
-                    content="Looks like this server has no partnerships! :[",
+                TextDisplay(
+                    content ="Looks like this server has no partnerships! :[",
                 ),
             )
         else:
             for i, p in enumerate(partnerships):
                 children.append(
-                    discord.ui.Section(
-                        discord.ui.TextDisplay(
-                            content=(
+                    Section(
+                        TextDisplay(
+                            content =(
                                 f"# {p['server_name']}\n"
                                 "**Description:**\n"
                                 f"> {p['server_description']}\n"
@@ -74,20 +74,20 @@ class PartnershipComponents2(discord.ui.LayoutView):
                                 f"[Join Here!]({p['server_link']})"
                             ),
                         ),
-                        accessory=discord.ui.Thumbnail(
-                            media=f"attachment://{p['image_filename']}",
+                        accessory = Thumbnail(
+                            media = f"attachment://{p['image_filename']}",
                         ),
                     ),
                 )
                 if i < len(partnerships) - 1:
                     children.append(
-                        discord.ui.Separator(
+                        Separator(
                             visible = True,
-                            spacing = discord.SeparatorSpacing.large,
+                            spacing = SeparatorSpacing.large,
                         ),
                     )
 
-        self.container = discord.ui.Container(*children)
+        self.container = Container(*children)
         _ = self.add_item(self.container)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -147,7 +147,7 @@ async def rebuild_partnership_layout(
         except (discord.NotFound, discord.HTTPException):
             pass
 
-    timestamp: int = int(time.time())
+    timestamp : int = int(time.time())
     header_msg = await channel.send(view = PartnershipComponents1())
 
     partnerships = data["partnerships"]

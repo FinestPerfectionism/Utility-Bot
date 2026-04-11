@@ -80,7 +80,7 @@ class AntiNukeSystem(commands.Cog):
     def is_director(self, member: discord.Member) -> bool:
         return any(role.id == self.DIRECTORS_ROLE_ID for role in member.roles)
 
-    def clean_old_actions(self, user_id: int, action_type: str) -> None:
+    def clean_old_actions(self, user_id : int, action_type: str) -> None:
         now = datetime.now(UTC)
 
         bucket = self.action_tracker[user_id][action_type]

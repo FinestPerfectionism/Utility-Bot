@@ -12,7 +12,19 @@ from typing import Any
 
 import discord
 import numpy as np
+from discord import ButtonStyle, SeparatorSpacing
 from discord.ext import commands, tasks
+from discord.ui import (
+    ActionRow,
+    Button,
+    Container,
+    LayoutView,
+    MediaGallery,
+    Modal,
+    Separator,
+    TextDisplay,
+    TextInput,
+)
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from typing_extensions import override
 
@@ -36,8 +48,8 @@ log = logging.getLogger("Utility Bot")
 # Verification System
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
-    code_input: discord.ui.TextInput[discord.ui.Modal] = discord.ui.TextInput(
+class CaptchaModal(Modal, title = "Enter CAPTCHA Code"):
+    code_input: TextInput[Modal] = TextInput(
         label       = "CAPTCHA Code",
         placeholder = "Enter the code from the image.",
         required    = True,
@@ -51,7 +63,7 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
         self.cog: VerificationHandler = cog
 
     @override
-    async def on_submit(self, interaction: discord.Interaction) -> None:
+    async def on_submit(self, interaction : discord.Interaction) -> None:
         session = self.cog.active_captchas.get(interaction.user.id)
 
         if not session:
@@ -98,17 +110,17 @@ class CaptchaModal(discord.ui.Modal, title = "Enter CAPTCHA Code"):
             ephemeral = True,
         )
 
-class VerificationButton(discord.ui.Button[discord.ui.LayoutView]):
+class VerificationButton(Button[LayoutView]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
-            style     = discord.ButtonStyle.primary,
+            style     = ButtonStyle.primary,
             label     = "Verify",
             custom_id = "persistent_verification_button",
         )
         self.cog = cog
 
     @override
-    async def callback(self, interaction: discord.Interaction) -> None:
+    async def callback(self, interaction : discord.Interaction) -> None:
         try:
             await self.cog.start_verification(interaction)
         except Exception:
@@ -119,27 +131,27 @@ class VerificationButton(discord.ui.Button[discord.ui.LayoutView]):
             )
             log.exception("Error in verification")
 
-class HelpButton(discord.ui.Button[discord.ui.LayoutView]):
+class HelpButton(Button[LayoutView]):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(
-            style     = discord.ButtonStyle.red,
+            style     = ButtonStyle.red,
             label     = "Help!",
             custom_id = "persistent_help_button",
         )
         self.cog = cog
 
     @override
-    async def callback(self, interaction: discord.Interaction) -> None:
+    async def callback(self, interaction : discord.Interaction) -> None:
         await self.cog.start_help(interaction)
 
-class VerificationComponents(discord.ui.LayoutView):
+class VerificationComponents(LayoutView):
     def __init__(self, cog: "VerificationHandler") -> None:
         super().__init__(timeout = None)
         self.cog = cog
 
-        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(
-                content=(
+        container : Container[LayoutView] = Container(
+            TextDisplay(
+                content =(
                     "# Verification\n"
                     "This verification system ensures that spammers get harshly limited and bots get completely blocked. "
                     "Humans, though, should be able to pass the verification, so let's see, are you human? :]\n\n"
@@ -151,21 +163,20 @@ class VerificationComponents(discord.ui.LayoutView):
                     "You will be warned at 48 hours. This is __not__ a ban and you can rejoin and start the process again!"
                 ),
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.large,
+                spacing = SeparatorSpacing.large,
             ),
-            discord.ui.TextDisplay(
-                content=(
+            TextDisplay(
+                content =
                     "Welcome to the server! We look forward to meeting you,\n"
-                    "-# The Goobers community."
-                ),
+                    "-# The Goobers community.",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.large,
+                spacing = SeparatorSpacing.large,
             ),
-            discord.ui.ActionRow(
+            ActionRow(
                 VerificationButton(cog),
                 HelpButton(cog),
             ),
@@ -380,13 +391,13 @@ class VerificationHandler(commands.Cog):
 
         return code, buffer
 
-    class HelpComponents(discord.ui.LayoutView):
+    class HelpComponents(LayoutView):
         def __init__(self, cog: commands.Cog) -> None:
             super().__init__(timeout = None)
             self.cog = cog
 
-            container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-                discord.ui.TextDisplay(
+            container : Container[LayoutView] = Container(
+                TextDisplay(
                     content = (
                         "# Stuck?\n"
                         "Ocasionally, the CAPTCHA system may be difficult to pass. Here are some tips:\n\n"
@@ -401,13 +412,13 @@ class VerificationHandler(commands.Cog):
 
             _ = self.add_item(container)
 
-    async def start_help(self, interaction: discord.Interaction) -> None:
+    async def start_help(self, interaction : discord.Interaction) -> None:
         _ = await interaction.response.send_message(
             view     = self.HelpComponents(self),
             ephemeral = True,
         )
 
-    async def start_verification(self, interaction: discord.Interaction) -> None:
+    async def start_verification(self, interaction : discord.Interaction) -> None:
         _ = await interaction.response.defer(ephemeral = True)
 
         user  = interaction.user
@@ -435,15 +446,15 @@ class VerificationHandler(commands.Cog):
 
         verification_cog = self
 
-        class SubmitButton(discord.ui.Button[discord.ui.LayoutView]):
+        class SubmitButton(Button[LayoutView]):
             def __init__(self) -> None:
                 super().__init__(
                     label = "Submit Code",
-                    style = discord.ButtonStyle.green,
+                    style = ButtonStyle.green,
                 )
 
             @override
-            async def callback(self, interaction: discord.Interaction) -> None:
+            async def callback(self, interaction : discord.Interaction) -> None:
                 session = verification_cog.active_captchas.get(interaction.user.id)
 
                 if not session:
@@ -459,31 +470,31 @@ class VerificationHandler(commands.Cog):
                 )
 
         file   = discord.File(image_buffer, filename = "captcha.png")
-        layout = discord.ui.LayoutView()
+        layout = LayoutView()
 
-        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(
-                content=(
+        container : Container[LayoutView] = Container(
+            TextDisplay(
+                content =(
                     "## CAPTCHA Verification\n"
                     "Enter the code shown in the image below.\n"
                     "- Code is **case-insensitive.**\n"
                     "- You have **5 minutes**."
                 ),
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.large,
+                spacing = SeparatorSpacing.large,
             ),
-            discord.ui.MediaGallery(
+            MediaGallery(
                 discord.MediaGalleryItem(
-                    media="attachment://captcha.png",
+                    media = "attachment://captcha.png",
                 ),
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.large,
+                spacing = SeparatorSpacing.large,
             ),
-            discord.ui.ActionRow(SubmitButton()),
+            ActionRow(SubmitButton()),
             accent_color = COLOR_BLURPLE,
         )
 
@@ -495,7 +506,7 @@ class VerificationHandler(commands.Cog):
             ephemeral = True,
         )
 
-    async def verify_user(self, interaction: discord.Interaction) -> None:
+    async def verify_user(self, interaction : discord.Interaction) -> None:
         user  = interaction.user
         guild = interaction.guild
 

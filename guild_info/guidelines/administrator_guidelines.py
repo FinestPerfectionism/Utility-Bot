@@ -1,41 +1,42 @@
-import discord
+from discord import SeparatorSpacing
+from discord.ui import Container, LayoutView, Separator, TextDisplay
 
 
-class AdministratorComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class AdministratorComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to Administrator Guidelines!\n"
                 "Internal guidelines for the Goobers Administration Team.\n"
                 "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. Sharing internal administration policy outside staff spaces is prohibited.",
         ),
     )
 
-class AdministratorComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int) -> None:
+class AdministratorComponents2(LayoutView):
+    def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
-        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(
-                content=
+        self.container : Container[LayoutView] = Container(
+            TextDisplay(
+                content =
                     "# Administrator Guidelines\n"
                    f"Administrator guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                     "## §1 Scope and Permissions\n"
                     "Administrators manage the server's structural and technical infrastructure. Administrators are **not Moderators** — do not take enforcement actions against members. If a moderation situation arises while carrying out administrative duties, defer to the Moderation Team or escalate to a Director.\n\n"
                     "### §1.1 Role Scope\n"
@@ -56,10 +57,10 @@ class AdministratorComponents2(discord.ui.LayoutView):
         )
         _ = self.add_item(self.container)
 
-class AdministratorComponents3(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class AdministratorComponents3(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §3 Infrastructure Management\n"
                 "All structural changes to the server must be deliberate and purposeful. Do not make changes that have not been approved through a proposal or explicitly directed by the Directorate. Document all significant changes in the appropriate staff channel after implementation.\n\n"
                 "### §3.1 Channels\n"
@@ -75,10 +76,10 @@ class AdministratorComponents3(discord.ui.LayoutView):
         ),
     )
 
-class AdministratorComponents4(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class AdministratorComponents4(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §4 Bot and Integration Management\n"
                 "Bot configuration and integration management is Senior Administrator+. Changes to bot settings, command permissions, or integrations must be sanctioned by the Directorate or an accepted proposal. Document all changes to bot configurations in the appropriate staff channel after implementation.\n\n"
                 "### §4.1 Webhooks\n"

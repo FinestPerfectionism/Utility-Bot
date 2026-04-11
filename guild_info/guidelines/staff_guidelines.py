@@ -1,41 +1,42 @@
-import discord
+from discord import SeparatorSpacing
+from discord.ui import Container, LayoutView, Separator, TextDisplay
 
 
-class StaffComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class StaffComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to Staff Guidelines!\n"
                 "Shared guidelines for all members of the Goobers Staff Team.\n"
                 "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. They apply to all staff regardless of team or seniority. Sharing internal staff policy outside staff spaces is prohibited.",
         ),
     )
 
-class StaffComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int) -> None:
+class StaffComponents2(LayoutView):
+    def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
-        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(
-                content=
+        self.container : Container[LayoutView] = Container(
+            TextDisplay(
+                content =
                     "# Staff Guidelines\n"
                    f"Staff guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                     "## §1 The Staff Structure\n"
                     "The Goobers Staff Team is composed of three distinct bodies: the **Directorate**, the **Moderation Team**, and the **Administration Team**. Each serves a different function, and their separation is intentional. Staff members must understand not only their own team's responsibilities but how all three relate to each other.\n\n"
                     "### §1.1 The Directorate\n"
@@ -56,10 +57,10 @@ class StaffComponents2(discord.ui.LayoutView):
         )
         _ = self.add_item(self.container)
 
-class StaffComponents3(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class StaffComponents3(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §3 Proposals as a Shared System\n"
                 "The Staff Proposal system is the primary formal mechanism through which all staff teams interact.\n\n"
                 "### §3.1 Who Can Raise Proposals\n"
@@ -81,10 +82,10 @@ class StaffComponents3(discord.ui.LayoutView):
         ),
     )
 
-class StaffComponents4(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class StaffComponents4(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §5 Shared Conduct Standards\n"
                 "The following standards apply to all staff regardless of team or seniority.\n\n"
                 "### §5.1 Professionalism\n"

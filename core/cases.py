@@ -323,7 +323,7 @@ class CasesManager:
         with contextlib.suppress(discord.Forbidden):
             _ = await log_channel.send(embed=embed)
 
-    def get_case_by_id(self, case_id: int) -> dict[str, Any] | None:
+    def get_case_by_id(self, case_id : int) -> dict[str, Any] | None:
         self.data = self.load_data()
         for case in self.data["cases"]:
             if case["case_id"] == case_id:
@@ -337,7 +337,7 @@ class CasesManager:
             if c.get("pending_visibility") is not None
         ]
 
-    def edit_case(self, case_id: int, content: str) -> bool:
+    def edit_case(self, case_id : int, content: str) -> bool:
         case = self.get_case_by_id(case_id)
         if not case:
             return False
@@ -346,7 +346,7 @@ class CasesManager:
         self.save_data()
         return True
 
-    def delete_case(self, case_id: int) -> bool:
+    def delete_case(self, case_id : int) -> bool:
         cases: list[dict[str, Any]] = self.data["cases"]
         for i, case in enumerate(cases):
             if case["case_id"] == case_id:
@@ -355,7 +355,7 @@ class CasesManager:
                 return True
         return False
 
-    def set_visibility(self, case_id: int, visibility: str) -> bool:
+    def set_visibility(self, case_id : int, visibility: str) -> bool:
         case = self.get_case_by_id(case_id)
         if not case:
             return False
@@ -364,7 +364,7 @@ class CasesManager:
         self.save_data()
         return True
 
-    def request_visibility(self, case_id: int, visibility: str) -> bool:
+    def request_visibility(self, case_id : int, visibility: str) -> bool:
         case = self.get_case_by_id(case_id)
         if not case:
             return False
@@ -372,7 +372,7 @@ class CasesManager:
         self.save_data()
         return True
 
-    def approve_visibility(self, case_id: int) -> bool:
+    def approve_visibility(self, case_id : int) -> bool:
         case = self.get_case_by_id(case_id)
         if not case or not case.get("pending_visibility"):
             return False
@@ -381,7 +381,7 @@ class CasesManager:
         self.save_data()
         return True
 
-    def deny_visibility(self, case_id: int) -> bool:
+    def deny_visibility(self, case_id : int) -> bool:
         case = self.get_case_by_id(case_id)
         if not case or not case.get("pending_visibility"):
             return False
@@ -389,7 +389,7 @@ class CasesManager:
         self.save_data()
         return True
 
-    def get_related_notes(self, case_id: int, guild_id: int) -> list[dict[str, Any]]:
+    def get_related_notes(self, case_id : int, guild_id : int) -> list[dict[str, Any]]:
         self.data = self.load_data()
         return [
             c for c in self.data["cases"]

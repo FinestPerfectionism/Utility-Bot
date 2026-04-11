@@ -1,41 +1,42 @@
-import discord
+from discord import SeparatorSpacing
+from discord.ui import Container, LayoutView, Separator, TextDisplay
 
 
-class DirectorateComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class DirectorateComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to Directorate Guidelines!\n"
                 "Internal guidelines for the Goobers Directorate.\n"
                 "-# **Note:** These guidelines are Directorate-only and may be revised at any time by Directorate decision. They apply to all Directors regardless of rank. Sharing internal Directorate policy outside authorized spaces is prohibited.",
         ),
     )
 
-class DirectorateComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int) -> None:
+class DirectorateComponents2(LayoutView):
+    def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
-        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(
-                content=
+        self.container : Container[LayoutView] = Container(
+            TextDisplay(
+                content =
                     "# Directorate Guidelines\n"
                    f"Directorate guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                     "## §1 Directorate Authority\n"
                     "The Directorate holds ultimate governance authority over the server. All staff teams operate under Directorate oversight. Directorate decisions are final and binding unless revisited by the Directorate itself.\n\n"
                     "### §1.1 Leading Director\n"
@@ -60,10 +61,10 @@ class DirectorateComponents2(discord.ui.LayoutView):
         )
         _ = self.add_item(self.container)
 
-class DirectorateComponents3(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class DirectorateComponents3(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §3 Nominations and Promotions\n"
                 "All appointment and promotion decisions are made internally by the Directorate. Senior Staff members may provide information or advice regarding Junior Staff candidates, but such input is non-binding. The final decision rests entirely with the Directorate.\n\n"
                 "### §3.1 Director Nominations\n"
@@ -87,10 +88,10 @@ class DirectorateComponents3(discord.ui.LayoutView):
         ),
     )
 
-class DirectorateComponents4(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class DirectorateComponents4(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §5 Director Tickets\n"
                 "Directors are responsible for all tickets escalated to Director scope. This includes ban appeals, partnership requests, and issues involving staff members.\n\n"
                 "### §5.1 Ban Appeals\n"
@@ -122,10 +123,10 @@ class DirectorateComponents4(discord.ui.LayoutView):
         ),
     )
 
-class DirectorateComponents5(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class DirectorateComponents5(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §6 Staff Misconduct\n"
                 "### §6.1 What Constitutes Misconduct\n"
                 "Staff misconduct includes: abuse of permissions, harassment of members or colleagues, breaching confidentiality, acting outside authorized scope, sustained bad-faith behavior, and actions that damage the server's reputation or operation. Misconduct is not limited to formal enforcement actions — it encompasses any conduct incompatible with holding a staff role.\n\n"

@@ -1,54 +1,55 @@
-import discord
+from discord import ButtonStyle, SeparatorSpacing
+from discord.ui import Button, Container, LayoutView, Section, Separator, TextDisplay
 
 from constants import STANDSTILL_EMOJI_ID
 
 
-class RuleComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class RuleComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to The Goobers!\n"
                 "A server for dumbassery and gaming.\n"
                 "-# **Note:** It is within moderators' discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here.",
         ),
     )
 
-class RuleComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int) -> None:
+class RuleComponents2(LayoutView):
+    def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
-        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.Section(
-                discord.ui.TextDisplay(
-                    content=
+        self.container : Container[LayoutView] = Container(
+            Section(
+                TextDisplay(
+                    content =
                         "# Rules",
                 ),
-                accessory=discord.ui.Button(
+                accessory = Button(
                     url   =  "https://discord.com/terms",
-                    style = discord.ButtonStyle.link,
+                    style = ButtonStyle.link,
                     label =  "Discord Terms of Service",
                     emoji = f"{STANDSTILL_EMOJI_ID}",
                 ),
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                    f"Rules last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                     "## §1 Behavior\n"
                     "### §1.1 Harassment\n"
                     "Any form of harassment, threats, or intimidation is forbidden.\n"

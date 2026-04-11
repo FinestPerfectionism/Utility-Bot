@@ -2,6 +2,7 @@ from typing import cast
 
 import discord
 from discord.ext import commands
+from discord.ui import Container, LayoutView, TextDisplay
 
 from constants import BOT_OWNER_ID, COLOR_BLURPLE, CONTESTED_EMOJI_ID
 from core.help import HelpedCallable, build_help_view, find_nested_command
@@ -29,10 +30,10 @@ _BOT_INFO_TEXT = (
 _NO_PING = discord.AllowedMentions(users=False)
 
 
-def _build_info_view() -> discord.ui.LayoutView:
-    class InfoView(discord.ui.LayoutView):
-        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(content = _BOT_INFO_TEXT),
+def _build_info_view() -> LayoutView:
+    class InfoView(LayoutView):
+        container : Container[LayoutView] = Container(
+            TextDisplay(content = _BOT_INFO_TEXT),
             accent_color = COLOR_BLURPLE,
         )
     return InfoView()
@@ -97,7 +98,7 @@ class HelpCommands(commands.Cog):
     @commands.command(name = "help")
     async def help(
         self,
-        ctx: commands.Context[commands.Bot],
+        ctx : commands.Context[commands.Bot],
         *,
         command_name: str | None = None,
     ) -> None:

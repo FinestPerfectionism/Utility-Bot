@@ -101,7 +101,7 @@ class LockdownCommands(commands.Cog):
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
     )
-    async def lockdown_status(self, interaction: discord.Interaction) -> None:
+    async def lockdown_status(self, interaction : discord.Interaction) -> None:
         member = interaction.user
         if not isinstance(member, discord.Member):
             return
@@ -298,7 +298,7 @@ class LockdownCommands(commands.Cog):
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
     )
-    async def lockdown_lift(self, interaction: discord.Interaction) -> None:
+    async def lockdown_lift(self, interaction : discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return

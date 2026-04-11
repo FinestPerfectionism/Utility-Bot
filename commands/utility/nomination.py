@@ -21,7 +21,7 @@ NOMINATION_DATA_FILE = "nomination_data.json"
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class NominationCase(TypedDict):
-    target_id: int
+    target_id : int
     acceptors: list[int]
 
 def load_nomination_data() -> dict[str, NominationCase]:

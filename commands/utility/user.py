@@ -5,7 +5,9 @@ from typing import Any, cast
 
 import discord
 import pytz
+from discord import ButtonStyle
 from discord.ext import commands
+from discord.ui import Button, View
 from typing_extensions import override
 
 from constants import BOT_ID
@@ -279,7 +281,7 @@ class UserCommands(commands.Cog):
     # .ti Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    class TimezoneMatchPaginator(discord.ui.View):
+    class TimezoneMatchPaginator(View):
         def __init__(self, ctx: commands.Context[commands.Bot], matches: list[str]) -> None:
             super().__init__(timeout = 120)
             self.ctx = ctx
@@ -315,8 +317,8 @@ class UserCommands(commands.Cog):
                 + "\n\nReply with the number of the timezone you want."
             )
 
-        @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = "<<", style = ButtonStyle.secondary)
+        async def first_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             self.page = 0
             self.update_buttons()
             _ = await interaction.response.edit_message(
@@ -324,8 +326,8 @@ class UserCommands(commands.Cog):
                 view    = self,
             )
 
-        @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = "<", style = ButtonStyle.secondary)
+        async def previous_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
@@ -334,8 +336,8 @@ class UserCommands(commands.Cog):
                 view = self,
             )
 
-        @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = ">", style = ButtonStyle.secondary)
+        async def next_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
@@ -344,8 +346,8 @@ class UserCommands(commands.Cog):
                 view = self,
             )
 
-        @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = ">>", style = ButtonStyle.secondary)
+        async def last_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             self.page = self.max_page
             self.update_buttons()
             _ = await interaction.response.edit_message(
@@ -354,19 +356,19 @@ class UserCommands(commands.Cog):
             )
 
         @override
-        async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        async def interaction_check(self, interaction : discord.Interaction) -> bool:
             return interaction.user == self.ctx.author
 
     class TimezoneFlags(commands.FlagConverter, prefix="/", delimiter=" "):
         s: str | None = commands.flag(
             name = "s",
-            default=None,
+            default = None,
             description = "Set timezone for yourself or a user. Usage: /s [user]",
             max_args=-1,
         )
         tz: str | None = commands.flag(
             name = "tz",
-            default=None,
+            default = None,
             description = "Timezone to use with /s or standalone. Usage: /tz {timezone}",
         )
         at: str | None = commands.flag(
@@ -616,7 +618,7 @@ class UserCommands(commands.Cog):
     # .ui Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    class UserMatchPaginator(discord.ui.View):
+    class UserMatchPaginator(View):
         def __init__(self, ctx: commands.Context[commands.Bot], matches: list[discord.Member]) -> None:
             super().__init__(timeout = 120)
             self.ctx = ctx
@@ -651,14 +653,14 @@ class UserCommands(commands.Cog):
                 + "\n".join(lines)
             )
 
-        async def update_message(self, interaction: discord.Interaction) -> None:
+        async def update_message(self, interaction : discord.Interaction) -> None:
             _ = await interaction.response.edit_message(
                 content = self.get_page_content(),
                 view = self,
             )
 
-        @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
-        async def first_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = "<<", style = ButtonStyle.secondary)
+        async def first_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             self.page = 0
             self.update_buttons()
             _ = await interaction.response.edit_message(
@@ -666,8 +668,8 @@ class UserCommands(commands.Cog):
                 view = self,
             )
 
-        @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
-        async def previous_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = "<", style = ButtonStyle.secondary)
+        async def previous_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             if self.page > 0:
                 self.page -= 1
             self.update_buttons()
@@ -676,8 +678,8 @@ class UserCommands(commands.Cog):
                 view = self,
             )
 
-        @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
-        async def next_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = ">", style = ButtonStyle.secondary)
+        async def next_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             if self.page < self.max_page:
                 self.page += 1
             self.update_buttons()
@@ -686,8 +688,8 @@ class UserCommands(commands.Cog):
                 view = self,
             )
 
-        @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
-        async def last_page(self, interaction: discord.Interaction, _button: discord.ui.Button[discord.ui.View]) -> None:
+        @discord.ui.button(label = ">>", style = ButtonStyle.secondary)
+        async def last_page(self, interaction : discord.Interaction, _button : Button[View]) -> None:
             self.page = self.max_page
             self.update_buttons()
             _ = await interaction.response.edit_message(
@@ -695,7 +697,7 @@ class UserCommands(commands.Cog):
                 view = self,
             )
 
-    @commands.command(name = "userinfo", aliases=["ui"])
+    @commands.command(name = "userinfo", aliases = ["ui"])
     @help_description(
         desc        = "The userinfo command displays information about a user, including their username, display name, guild nickname, time (if set by the user), roles, time, join date, and account creation date.",
         prefix      = True,

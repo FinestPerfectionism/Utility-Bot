@@ -56,7 +56,7 @@ def _resolve_status(thread: discord.Thread) -> ProposalStatus:
             return ProposalStatus(key)
     return ProposalStatus.NONE
 
-def _has_tag(thread: discord.Thread, tag_id: int) -> bool:
+def _has_tag(thread: discord.Thread, tag_id : int) -> bool:
     return any(t.id == tag_id for t in thread.applied_tags)
 
 def _validate_transition(
@@ -153,7 +153,7 @@ def _build_control_content(
 
 async def _find_control_message(
     thread: discord.Thread,
-    bot_id: int,
+    bot_id : int,
 ) -> discord.Message | None:
     try:
         pins = await thread.pins()
@@ -266,7 +266,7 @@ class ProposalCommands(
     @main_guild_only()
     async def status(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         status:      app_commands.Choice[str],
         reason:      app_commands.Choice[str],
         notes:       str | None = None,
@@ -514,7 +514,7 @@ class ProposalCommands(
     @main_guild_only()
     async def finalize(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         reason:      app_commands.Choice[str],
         notes:       str | None = None,
     ) -> None:
@@ -761,7 +761,7 @@ class ProposalCommands(
         aliases   = ["d", "del"],
     )
     @has_director_role()
-    async def delete_thread(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def delete_thread(self, ctx : commands.Context[commands.Bot]) -> None:
         if not isinstance(ctx.channel, discord.Thread):
             return
 

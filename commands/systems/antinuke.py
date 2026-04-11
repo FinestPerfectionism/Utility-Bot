@@ -38,7 +38,7 @@ class AntiNukeCommands(commands.Cog):
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
     )
-    async def antinuke_status(self, interaction: discord.Interaction) -> None:
+    async def antinuke_status(self, interaction : discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
@@ -98,7 +98,7 @@ class AntiNukeCommands(commands.Cog):
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
     )
-    async def antinuke_toggle(self, interaction: discord.Interaction) -> None:
+    async def antinuke_toggle(self, interaction : discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return

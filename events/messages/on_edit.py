@@ -58,7 +58,7 @@ class MessageEditHandler(commands.Cog):
             from events.messages.on_send import MessageSendHandler
             counting_cog = self.bot.get_cog("MessageSendHandler")
             if isinstance(counting_cog, MessageSendHandler):
-                last_id: int | None = counting_cog.state["last_message_id"]
+                last_id : int | None = counting_cog.state["last_message_id"]
                 if (
                     last_id is not None
                     and before.id == last_id

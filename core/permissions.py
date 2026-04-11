@@ -41,7 +41,7 @@ class PermissionDenied(app_commands.CheckFailure):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def main_guild_only() -> Callable[[Any], Any]:
-    async def predicate(interaction: discord.Interaction) -> bool:
+    async def predicate(interaction : discord.Interaction) -> bool:
         if interaction.guild is None or interaction.guild.id != GUILD_ID:
             raise WrongGuild
         return True
@@ -52,8 +52,8 @@ def main_guild_only() -> Callable[[Any], Any]:
 # Require Role Check
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def require_role(role_id: int) -> Callable[[Any], Any]:
-    async def predicate(interaction: discord.Interaction) -> bool:
+def require_role(role_id : int) -> Callable[[Any], Any]:
+    async def predicate(interaction : discord.Interaction) -> bool:
         if interaction.user.id == BOT_OWNER_ID and state.OWNER_PRIVILEGE_ENABLED:
             return True
 
@@ -94,13 +94,13 @@ def committee_only() -> Callable[[Any], Any]:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def has_director_role() -> Callable[[Any], Any]:
-    async def predicate(ctx: commands.Context[commands.Bot]) -> bool:
+    async def predicate(ctx : commands.Context[commands.Bot]) -> bool:
         if not isinstance(ctx.author, discord.Member):
             return False
         return any(role.id == DIRECTORS_ROLE_ID for role in ctx.author.roles)
     return commands.check(predicate)
 
-def has_role(member: discord.Member, role_id: int) -> bool:
+def has_role(member: discord.Member, role_id : int) -> bool:
     return any(role.id == role_id for role in member.roles)
 
 def is_director(member: discord.Member) -> bool:

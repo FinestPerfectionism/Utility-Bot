@@ -1,27 +1,28 @@
 import discord
-from discord import app_commands
+from discord import SeparatorSpacing, app_commands
 from discord.ext import commands
+from discord.ui import LayoutView, Separator, TextDisplay
 
 from constants import BOT_OWNER_ID, HOLY_FATHER_ID
 from core.help import help_description
 from core.utils import send_minor_error
 
 
-class Ping(discord.ui.LayoutView):
-    def __init__(self, ping: int) -> None:
+class Ping(LayoutView):
+    def __init__(self, ping : int) -> None:
         super().__init__()
 
         _ = self.add_item(
-            discord.ui.TextDisplay(content = "# I HAVE BEEN AWAKENEDDDD."),
+            TextDisplay(content = "# I HAVE BEEN AWAKENEDDDD."),
         )
         _ = self.add_item(
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
         )
         _ = self.add_item(
-            discord.ui.TextDisplay(
+            TextDisplay(
                 content = f"*cough cough* My ping is {ping} milliseconds.",
             ),
         )
@@ -47,7 +48,7 @@ class MiscCommands(commands.Cog):
         prefix = False,
         slash  = True,
     )
-    async def femboy(self, interaction: discord.Interaction) -> None:
+    async def femboy(self, interaction : discord.Interaction) -> None:
         _ = await interaction.response.defer()
         await interaction.followup.send(
             "i-i'm such a submissive wittle kitty UwU. *snuggles* I hewp cwose proposals... naa~~",
@@ -60,7 +61,7 @@ class MiscCommands(commands.Cog):
     @commands.command(
         name = "super_secret_command",
     )
-    async def super_secret_command(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def super_secret_command(self, ctx : commands.Context[commands.Bot]) -> None:
         author_id = ctx.author.id
 
         if author_id == BOT_OWNER_ID:
@@ -92,7 +93,7 @@ class MiscCommands(commands.Cog):
         prefix = False,
         slash  = True,
     )
-    async def roulette(self, interaction: discord.Interaction) -> None:
+    async def roulette(self, interaction : discord.Interaction) -> None:
         guild  = interaction.guild
         member = interaction.user
 
@@ -111,7 +112,7 @@ class MiscCommands(commands.Cog):
             )
             return
 
-        _ = await interaction.response.defer(ephemeral=False)
+        _ = await interaction.response.defer(ephemeral = False)
 
         import secrets
 
@@ -149,7 +150,7 @@ class MiscCommands(commands.Cog):
         slash       = False,
         has_inverse = False,
     )
-    async def ping(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def ping(self, ctx : commands.Context[commands.Bot]) -> None:
         latency_ms = round(self.bot.latency * 1000)
         _ = await ctx.send(
             view = Ping(latency_ms),

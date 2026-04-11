@@ -1,5 +1,7 @@
 import discord
+from discord import ButtonStyle, SeparatorSpacing
 from discord.ext import commands
+from discord.ui import ActionRow, Button, Container, LayoutView, Separator, TextDisplay
 
 from constants import (
     ACCEPTED_EMOJI_ID,
@@ -13,10 +15,10 @@ from constants import (
 # Leave System
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class LeaveFormatView(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=(
+class LeaveFormatView(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Leave Request Format\n\n"
                 "```\n"
                 "Beginning Date: MM/DD/YYYY\n"
@@ -25,25 +27,24 @@ class LeaveFormatView(discord.ui.LayoutView):
                 "Reason:         Reason (optional)\n"
                 "Type:           Standard / Clean\n"
                 "```\n"
-                "Leave requests created not following the format above will be ignored."
-            ),
+                "Leave requests created not following the format above will be ignored.",
         ),
         accent_color = COLOR_GREEN,
     )
 
-class LeaveComponents(discord.ui.LayoutView):
+class LeaveComponents(LayoutView):
     def __init__(self) -> None:
         super().__init__(timeout = None)
         for item in self.walk_children():
-            if isinstance(item, discord.ui.Button):
+            if isinstance(item, Button):
                 if item.custom_id == "leave:open":
                     item.callback = self.open_leave
                 elif item.custom_id == "leave:format":
                     item.callback = self.format_leave
 
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=(
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Staff Leave\n"
                 "When you plan to be unavailable for a period of time, you must notify directors using this channel. This system exists solely to track staff availability and ensure operational coverage. Taking leave is expected and acceptable, provided it is communicated properly.\n\n"
                 "When submitting a leave request, include the following information:\n\n"
@@ -56,23 +57,21 @@ class LeaveComponents(discord.ui.LayoutView):
                 "## Types of Leave\n\n"
                 "- **Standard:** Places you on personal leave while retaining your staff roles. This is used when you are temporarily unavailable but will resume normal duties after your leave ends.\n"
                 "- **Clean:** Temporarily removes all staff roles while you are on leave. Your roles will automatically be restored when your leave ends.\n\n"
-                "**Note:** If you do not have the personal leave role, you are expected to be online and active."
-            ),
-
+                "**Note:** If you do not have the personal leave role, you are expected to be online and active.",
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
-        discord.ui.TextDisplay(
-            content="Sincerely,\n-# The Goobers Directorate team.",
+        Separator(visible = True, spacing = SeparatorSpacing.large),
+        TextDisplay(
+            content = "Sincerely,\n-# The Goobers Directorate team.",
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
-        discord.ui.ActionRow(
-            discord.ui.Button(
-                style     = discord.ButtonStyle.primary,
+        Separator(visible = True, spacing = SeparatorSpacing.large),
+        ActionRow(
+            Button(
+                style     = ButtonStyle.primary,
                 label     = "Open Leave Request",
                 custom_id = "leave:open",
             ),
-            discord.ui.Button(
-                style     = discord.ButtonStyle.primary,
+           Button(
+                style     = ButtonStyle.primary,
                 label     = "Leave Request Format",
                 custom_id = "leave:format",
             ),

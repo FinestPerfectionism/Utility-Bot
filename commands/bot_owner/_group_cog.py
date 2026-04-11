@@ -49,7 +49,7 @@ class BotOwnerCommands(
         slash     = True,
         run_users = [UserConfig(user_id = BOT_OWNER_ID)],
     )
-    async def pull_reload(self, interaction: discord.Interaction) -> None:
+    async def pull_reload(self, interaction : discord.Interaction) -> None:
         await run_pull_reload(self.bot, interaction, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -71,7 +71,7 @@ class BotOwnerCommands(
         run_users = [UserConfig(user_id=BOT_OWNER_ID)],
         arguments = {"cog": ArgumentInfo(required = False, description = "Cog name to reload. Omittion reloads all cogs.")},
     )
-    async def reload(self, interaction: discord.Interaction, cog: str | None = None) -> None:
+    async def reload(self, interaction : discord.Interaction, cog: str | None = None) -> None:
         await run_reload(self.bot, interaction, cog, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -93,7 +93,7 @@ class BotOwnerCommands(
         run_users = [UserConfig(user_id=BOT_OWNER_ID)],
         arguments = {"cog": ArgumentInfo(description = "Cog name to load.")},
     )
-    async def load(self, interaction: discord.Interaction, cog: str) -> None:
+    async def load(self, interaction : discord.Interaction, cog: str) -> None:
         await run_load(self.bot, interaction, cog, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -115,7 +115,7 @@ class BotOwnerCommands(
         run_users = [UserConfig(user_id=BOT_OWNER_ID)],
         arguments = {"cog": ArgumentInfo(description = "Cog name to unload.")},
     )
-    async def unload(self, interaction: discord.Interaction, cog: str) -> None:
+    async def unload(self, interaction : discord.Interaction, cog: str) -> None:
         await run_unload(self.bot, interaction, cog, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -130,7 +130,7 @@ class BotOwnerCommands(
         run_users = [UserConfig(user_id = BOT_OWNER_ID)],
         aliases   = ["shut"],
     )
-    async def shutdown(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def shutdown(self, ctx : commands.Context[commands.Bot]) -> None:
         await run_shutdown(self.bot, ctx)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -145,7 +145,7 @@ class BotOwnerCommands(
         run_users = [UserConfig(user_id = BOT_OWNER_ID)],
         aliases   = ["r"],
     )
-    async def restart(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def restart(self, ctx : commands.Context[commands.Bot]) -> None:
         await run_restart(self.bot, ctx, self.restarting_ref, self.logger)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -227,7 +227,7 @@ class BotOwnerCommands(
     # /bot-owner say Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "say", description = "")
+    @app_commands.command(name = "say", description = "Make the bot say something.")
     @help_description(
         desc      = "Bot Owner only —— Make the bot say something.",
         prefix    = False,

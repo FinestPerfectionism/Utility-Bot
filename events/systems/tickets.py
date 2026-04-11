@@ -2,7 +2,20 @@ import asyncio
 import time as time_mod
 
 import discord
+from discord import ButtonStyle, SeparatorSpacing
 from discord.ext import commands
+from discord.ui import (
+    ActionRow,
+    Button,
+    Container,
+    LayoutView,
+    Modal,
+    Select,
+    Separator,
+    TextDisplay,
+    TextInput,
+    View,
+)
 from typing_extensions import override
 
 from constants import (
@@ -46,7 +59,7 @@ def _is_staff(member: discord.Member) -> bool:
 # Resolution Check System
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def stop_resolution(thread_id: int) -> None:
+def stop_resolution(thread_id : int) -> None:
     RESOLUTION_STOPPED.add(thread_id)
     _    = RESOLUTION_STATE.pop(thread_id, None)
     task = RESOLUTION_TASKS.pop(thread_id, None)
@@ -118,19 +131,19 @@ def start_resolution_task(
 # Resolution View
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class ResolutionView(discord.ui.View):
+class ResolutionView(View):
     def __init__(self) -> None:
         super().__init__(timeout = None)
 
     @discord.ui.button(
         label     = "Yes",
-        style     = discord.ButtonStyle.green,
+        style     = ButtonStyle.green,
         custom_id = "resolution:yes",
     )
     async def yes_button(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button[discord.ui.View],
+        _button     : Button[View],
     ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
@@ -158,13 +171,13 @@ class ResolutionView(discord.ui.View):
 
     @discord.ui.button(
         label     = "No",
-        style     = discord.ButtonStyle.danger,
+        style     = ButtonStyle.danger,
         custom_id = "resolution:no",
     )
     async def no_button(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button[discord.ui.View],
+        _button     : Button[View],
     ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
@@ -190,8 +203,8 @@ class ResolutionView(discord.ui.View):
 # Add Member Modal
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class AddMemberModal(discord.ui.Modal, title = "Add Member to Ticket"):
-    user_input: discord.ui.TextInput[discord.ui.Modal] = discord.ui.TextInput(
+class AddMemberModal(Modal, title = "Add Member to Ticket"):
+    user_input: TextInput[Modal] = TextInput(
         label       = "User ID",
         placeholder = "Enter a user ID...",
         required    = True,
@@ -199,7 +212,7 @@ class AddMemberModal(discord.ui.Modal, title = "Add Member to Ticket"):
     )
 
     @override
-    async def on_submit(self, interaction: discord.Interaction) -> None:
+    async def on_submit(self, interaction : discord.Interaction) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
 
@@ -243,11 +256,11 @@ class AddMemberModal(discord.ui.Modal, title = "Add Member to Ticket"):
 # Ticket Control Panel
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class TicketControlPanel(discord.ui.LayoutView):
+class TicketControlPanel(LayoutView):
     def __init__(self) -> None:
         super().__init__(timeout = None)
         for item in self.walk_children():
-            if not isinstance(item, discord.ui.Button):
+            if not isinstance(item, Button):
                 continue
             if item.custom_id == "ticket:panel:archive":
                 item.callback = self._archive
@@ -260,41 +273,41 @@ class TicketControlPanel(discord.ui.LayoutView):
             elif item.custom_id == "ticket:panel:claim":
                 item.callback = self._claim
 
-    panel_container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(content = "# Ticket Controls"),
-        discord.ui.ActionRow(
-            discord.ui.Button(
+    panel_container : Container[LayoutView] = Container(
+        TextDisplay(content = "# Ticket Controls"),
+        ActionRow(
+            Button(
                 label     = "Archive Ticket",
-                style     = discord.ButtonStyle.red,
+                style     = ButtonStyle.red,
                 custom_id = "ticket:panel:archive",
             ),
-            discord.ui.Button(
+            Button(
                 label     = "Lock Ticket",
-                style     = discord.ButtonStyle.grey,
+                style     = ButtonStyle.grey,
                 custom_id = "ticket:panel:lock",
             ),
-            discord.ui.Button(
+            Button(
                 label     = "Close Ticket",
-                style     = discord.ButtonStyle.grey,
+                style     = ButtonStyle.grey,
                 custom_id = "ticket:panel:close",
             ),
         ),
-        discord.ui.ActionRow(
-            discord.ui.Button(
+        ActionRow(
+            Button(
                 label     = "Add Members",
-                style     = discord.ButtonStyle.blurple,
+                style     = ButtonStyle.blurple,
                 custom_id = "ticket:panel:add_members",
             ),
-            discord.ui.Button(
+            Button(
                 label     = "Claim",
-                style     = discord.ButtonStyle.green,
+                style     = ButtonStyle.green,
                 custom_id = "ticket:panel:claim",
             ),
         ),
         accent_color = COLOR_GREEN,
     )
 
-    async def _archive(self, interaction: discord.Interaction) -> None:
+    async def _archive(self, interaction : discord.Interaction) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
         if not isinstance(interaction.user, discord.Member):
@@ -316,7 +329,7 @@ class TicketControlPanel(discord.ui.LayoutView):
         _ = await interaction.response.send_message("Archiving ticket.")
         _ = await channel.edit(locked=True, archived=True)
 
-    async def _lock(self, interaction: discord.Interaction) -> None:
+    async def _lock(self, interaction : discord.Interaction) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
         if not isinstance(interaction.user, discord.Member):
@@ -334,7 +347,7 @@ class TicketControlPanel(discord.ui.LayoutView):
         _ = await interaction.response.send_message("Ticket locked.")
         _ = await interaction.channel.edit(locked=True)
 
-    async def _close(self, interaction: discord.Interaction) -> None:
+    async def _close(self, interaction : discord.Interaction) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
         if not isinstance(interaction.user, discord.Member):
@@ -354,7 +367,7 @@ class TicketControlPanel(discord.ui.LayoutView):
         _ = await interaction.response.send_message("Closing ticket.")
         _ = await interaction.channel.edit(archived=True)
 
-    async def _add_members(self, interaction: discord.Interaction) -> None:
+    async def _add_members(self, interaction : discord.Interaction) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
 
@@ -368,7 +381,7 @@ class TicketControlPanel(discord.ui.LayoutView):
 
         _ = await interaction.response.send_modal(AddMemberModal())
 
-    async def _claim(self, interaction: discord.Interaction) -> None:
+    async def _claim(self, interaction : discord.Interaction) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
         if not isinstance(interaction.channel, discord.Thread):
@@ -405,16 +418,16 @@ class TicketControlPanel(discord.ui.LayoutView):
 # Ticket Opener
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class TicketComponents(discord.ui.LayoutView):
+class TicketComponents(LayoutView):
     def __init__(self) -> None:
         super().__init__(timeout = None)
         for item in self.walk_children():
-            if isinstance(item, discord.ui.Select) and item.custom_id == "ticket:select":
+            if isinstance(item, Select) and item.custom_id == "ticket:select":
                 item.callback = self.open_ticket
 
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=(
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =(
                 "# Support Tickets\n"
                 "Tickets are used to contact the moderation team for support, reports, or questions that cannot be handled publicly.\n\n"
                 "- **How to Start:** Open the correct ticket category and clearly explain your issue from the start.\n"
@@ -424,16 +437,16 @@ class TicketComponents(discord.ui.LayoutView):
                 "**Note:** You may run `.archive` to close your ticket."
             ),
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
-        discord.ui.TextDisplay(
-            content=(
+        Separator(visible = True, spacing = SeparatorSpacing.large),
+        TextDisplay(
+            content =(
                 "We look forward to assisting you! Sincerely,\n"
                 "-# The Goobers Moderator team."
             ),
         ),
-        discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large),
-        discord.ui.ActionRow(
-            discord.ui.Select(
+        Separator(visible = True, spacing = SeparatorSpacing.large),
+        ActionRow(
+            Select(
                 placeholder = "Select ticket type...",
                 custom_id   = "ticket:select",
                 options     = [
@@ -453,7 +466,7 @@ class TicketComponents(discord.ui.LayoutView):
         accent_color = COLOR_GREEN,
     )
 
-    async def open_ticket(self, interaction: discord.Interaction) -> None:
+    async def open_ticket(self, interaction : discord.Interaction) -> None:
         if interaction.response.is_done():
             return
 

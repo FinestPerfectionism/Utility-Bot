@@ -1,41 +1,42 @@
-import discord
+from discord import SeparatorSpacing
+from discord.ui import Container, LayoutView, Separator, TextDisplay
 
 
-class HierarchyComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class HierarchyComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to the Hierarchy!\n"
                 "The hierarchy of the server.\n"
                 "-# **Note:** Roles and their responsibilities are subject to change at any time based on Directorate decision or structural updates. Sensitive information such as internal policy and nomination details has not been shared here.",
         ),
     )
 
-class HierarchyComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int) -> None:
+class HierarchyComponents2(LayoutView):
+    def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
-        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(
-                content=
+        self.container : Container[LayoutView] = Container(
+            TextDisplay(
+                content =
                     "# Hierarchy\n"
                    f"Hierarchy last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>; assisted by <@1167207694424350740>, <@1135600413954019339>, and <@1333839098485542949>.\n",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                     "## Goobers Directorate\n"
                     "The **Goobers Directorate** oversees the entire server and holds the highest level of authority. Directors are responsible for governance, internal staff policy, and high-level decision making. While Directors are typically occupied with backend responsibilities, they hold Senior Staff status within both the Moderation and Administration Teams and are expected to intervene in escalated situations when necessary.\n\n"
                     "**Responsibilities**\n"
@@ -62,10 +63,10 @@ class HierarchyComponents2(discord.ui.LayoutView):
         )
         _ = self.add_item(self.container)
 
-class HierarchyComponents3(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class HierarchyComponents3(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## Staff Committee\n"
                 "The **Staff Committee** is the final decision-making body for Staff Proposals. It is composed of all active Directors and the Owner. After an advisory poll concludes, the committee reviews all vote data, staff discussion, and operational considerations before issuing a binding decision.\n\n"
                 "For full details on the Staff Committee's composition, procedures, voting thresholds, and review timelines, refer to the staff proposal information.\n\n"
@@ -73,10 +74,10 @@ class HierarchyComponents3(discord.ui.LayoutView):
         ),
     )
 
-class HierarchyComponents4(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class HierarchyComponents4(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## Goobers Administration Team\n"
                 "The **Administration Team** is responsible for managing the server's structure and maintaining public-facing policies as directed by the Directorate. Administrators implement approved proposals and oversee the server's technical infrastructure. The Administration Team is **not the same as the Moderation Team**, though staff may exist within both.\n\n"
                 "**Primary Responsibilities**\n"
@@ -125,10 +126,10 @@ class HierarchyComponents4(discord.ui.LayoutView):
         ),
     )
 
-class HierarchyComponents5(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class HierarchyComponents5(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## Goobers Staff Team\n"
                 "The **Goobers Staff Team** consists of members within the **Moderation Team**, the **Administration Team**, or both. Staff members assist with maintaining the community and may submit and vote on proposals intended to improve server operations. Staff members may hold positions in both teams simultaneously.\n\n"
                 "Staff membership may be obtained through:\n"
@@ -138,10 +139,10 @@ class HierarchyComponents5(discord.ui.LayoutView):
         ),
     )
 
-class HierarchyComponents6(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class HierarchyComponents6(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## Guild Trustees\n"
                 "**Guild Trustees** are community members who have demonstrated a level of trust and engagement within the server. They may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.\n\n"
                 "Guild Trustees are not Staff, but are a recognized contributor group within the community. Members holding this role are more likely to be considered for nomination to the Moderation Team, Administration Team, or Staff Committee.\n\n"
@@ -150,10 +151,10 @@ class HierarchyComponents6(discord.ui.LayoutView):
         ),
     )
 
-class HierarchyComponents7(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class HierarchyComponents7(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## Verified\n"
                 "The **Verified** role is granted upon passing the server's entry verification. It serves as an anti-raid gate and is required to gain access to the server's channels.\n\n"
                 "> This role is obtained automatically upon **completing server verification**.",

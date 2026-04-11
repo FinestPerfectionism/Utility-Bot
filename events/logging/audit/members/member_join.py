@@ -33,7 +33,7 @@ class MemberJoinCog(AuditCog):
         )
         _ = embed.add_field(
             name   = "Account Created",
-            value  = discord.utils.format_dt(member.created_at, style="R"),
+            value  = discord.utils.format_dt(member.created_at, style = "R"),
             inline = True,
         )
 

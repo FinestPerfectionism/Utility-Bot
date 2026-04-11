@@ -10,6 +10,7 @@ from discord import app_commands
 from discord.app_commands import CommandOnCooldown
 from discord.app_commands.errors import CommandNotFound
 from discord.ext import commands
+from discord.ui import Container, LayoutView, TextDisplay
 from typing_extensions import override
 
 from constants import (
@@ -211,7 +212,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context[commands.Bot], error: commands.CommandError) -> None:
+    async def on_command_error(self, ctx : commands.Context[commands.Bot], error: commands.CommandError) -> None:
         if hasattr(ctx.command, "on_error"):
             return
 
@@ -248,7 +249,7 @@ class ErrorLogger(commands.Cog):
 
     async def app_command_error_handler(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         error: app_commands.AppCommandError,
     ) -> None:
         if isinstance(error, CommandOnCooldown):
@@ -404,28 +405,28 @@ class ErrorLogger(commands.Cog):
         await self.send_info(title = "Gateway Resumed")
 
     @commands.Cog.listener()
-    async def on_shard_disconnect(self, shard_id: int) -> None:
+    async def on_shard_disconnect(self, shard_id : int) -> None:
         await self.send_info(
             title = "Shard Disconnected",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
-    async def on_shard_connect(self, shard_id: int) -> None:
+    async def on_shard_connect(self, shard_id : int) -> None:
         await self.send_info(
             title = "Shard Connected",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
-    async def on_shard_ready(self, shard_id: int) -> None:
+    async def on_shard_ready(self, shard_id : int) -> None:
         await self.send_info(
             title = "Shard Ready",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
-    async def on_shard_resumed(self, shard_id: int) -> None:
+    async def on_shard_resumed(self, shard_id : int) -> None:
         await self.send_info(
             title = "Shard Resumed",
             description = f"Shard {shard_id}",
@@ -463,9 +464,9 @@ class ErrorLogger(commands.Cog):
 # Views
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class WrongGuildError(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(content =
+class WrongGuildError(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(content =
             f"### {CONTESTED_EMOJI_ID} Error!\n"
             "-# Bad command environment.\n"
             "Although you have the necessary permissions to run this command (Bot Owner), using it in this current Guild/DM will not work.",
@@ -473,9 +474,9 @@ class WrongGuildError(discord.ui.LayoutView):
         accent_color = COLOR_YELLOW,
     )
 
-class PermissionsError(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(content =
+class PermissionsError(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(content =
             f"### {DENIED_EMOJI_ID} Unauthorized!\n"
             "-# Invalid permissions.\n"
             "You lack the necessary permissions to run this command.",

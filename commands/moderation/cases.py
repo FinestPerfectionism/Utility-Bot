@@ -3,8 +3,9 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
 import discord
-from discord import app_commands
+from discord import ButtonStyle, app_commands
 from discord.ext import commands
+from discord.ui import Button, View
 from typing_extensions import override
 
 if TYPE_CHECKING:
@@ -35,8 +36,8 @@ from core.utils import send_major_error, send_minor_error
 # Classification Request View
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class ClassificationView(discord.ui.View):
-    def __init__(self, case_id: int, cases_manager: "CasesManager") -> None:
+class ClassificationView(View):
+    def __init__(self, case_id : int, cases_manager: "CasesManager") -> None:
         super().__init__(timeout = None)
         self.case_id       = case_id
         self.cases_manager = cases_manager
@@ -46,14 +47,14 @@ class ClassificationView(discord.ui.View):
 
     @discord.ui.button(
         label     =  "Accept",
-        style     =  discord.ButtonStyle.success,
+        style     =  ButtonStyle.success,
         emoji     = f"{ACCEPTED_EMOJI_ID}",
         custom_id =  "classify:accept:0",
     )
     async def accept_button(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["ClassificationView"],
+        _button     : Button["ClassificationView"],
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -92,21 +93,21 @@ class ClassificationView(discord.ui.View):
             )
 
         for child in self.children:
-            if isinstance(child, discord.ui.Button):
+            if isinstance(child, Button):
                 child.disabled = True
         with contextlib.suppress(discord.HTTPException):
             await interaction.message.edit(view = self) if interaction.message else None
 
     @discord.ui.button(
         label     = "Deny",
-        style     = discord.ButtonStyle.danger,
+        style     = ButtonStyle.danger,
         emoji     = f"{DENIED_EMOJI_ID}",
         custom_id = "classify:deny:0",
     )
     async def deny_button(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["ClassificationView"],
+        _button     : Button["ClassificationView"],
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
@@ -145,7 +146,7 @@ class ClassificationView(discord.ui.View):
             )
 
         for child in self.children:
-            if isinstance(child, discord.ui.Button):
+            if isinstance(child, Button):
                 child.disabled = True
         with contextlib.suppress(discord.HTTPException):
             await interaction.message.edit(view = self) if interaction.message else None
@@ -154,10 +155,10 @@ class ClassificationView(discord.ui.View):
 # Cases Paginators
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class CaseQueryPaginator(discord.ui.View):
+class CaseQueryPaginator(View):
     def __init__(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         cases:       list[dict[str, Any]],
         title:       str,
         color_map:   dict[str, discord.Color],
@@ -240,17 +241,17 @@ class CaseQueryPaginator(discord.ui.View):
         return embed
 
     @override
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction : discord.Interaction) -> bool:
         return interaction.user == self.interaction.user
 
     @discord.ui.button(
         label = "<<",
-        style = discord.ButtonStyle.secondary,
+        style = ButtonStyle.secondary,
     )
     async def first_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["CaseQueryPaginator"],
+        _button     : Button["CaseQueryPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
@@ -258,23 +259,26 @@ class CaseQueryPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = "<",
-        style = discord.ButtonStyle.secondary,
+        style = ButtonStyle.secondary,
     )
     async def previous_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["CaseQueryPaginator"],
+        _button     : Button["CaseQueryPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        label = ">",
+        style = ButtonStyle.secondary,
+    )
     async def next_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["CaseQueryPaginator"],
+        _button     : Button["CaseQueryPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
@@ -283,22 +287,22 @@ class CaseQueryPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = ">>",
-        style = discord.ButtonStyle.secondary,
+        style = ButtonStyle.secondary,
     )
     async def last_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["CaseQueryPaginator"],
+        _button     : Button["CaseQueryPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
 
-class CaseViewPaginator(discord.ui.View):
+class CaseViewPaginator(View):
     def __init__(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         case_embed:  discord.Embed,
         notes:       list[dict[str, Any]],
     ) -> None:
@@ -353,17 +357,17 @@ class CaseViewPaginator(discord.ui.View):
         return embed
 
     @override
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction : discord.Interaction) -> bool:
         return interaction.user == self.interaction.user
 
     @discord.ui.button(
         label = "<<",
-        style = discord.ButtonStyle.secondary,
+        style = ButtonStyle.secondary,
     )
     async def first_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["CaseViewPaginator"],
+        _button     : Button["CaseViewPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
@@ -371,12 +375,12 @@ class CaseViewPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = "<",
-        style = discord.ButtonStyle.secondary,
+        style = ButtonStyle.secondary,
     )
     async def previous_page(
         self,
-        interaction: discord.Interaction,
-        _button     : discord.ui.Button["CaseViewPaginator"],
+        interaction : discord.Interaction,
+        _button     : Button["CaseViewPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
@@ -385,12 +389,12 @@ class CaseViewPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = ">",
-        style = discord.ButtonStyle.secondary,
+        style = ButtonStyle.secondary,
     )
     async def next_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["CaseViewPaginator"],
+        _button     : Button["CaseViewPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
@@ -399,12 +403,12 @@ class CaseViewPaginator(discord.ui.View):
 
     @discord.ui.button(
         label = ">>",
-        style = discord.ButtonStyle.secondary,
+        style = ButtonStyle.secondary,
     )
     async def last_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["CaseViewPaginator"],
+        _button     : Button["CaseViewPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
@@ -622,7 +626,7 @@ class CasesCommands(commands.Cog):
     )
     async def cases_query(
         self,
-        interaction:   discord.Interaction,
+        interaction :   discord.Interaction,
         user:          discord.User | None = None,
         moderator:     discord.User | None = None,
         case_type:     Literal[
@@ -738,7 +742,7 @@ class CasesCommands(commands.Cog):
     )
     async def cases_view(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         case_id:     int,
     ) -> None:
         actor = interaction.user
@@ -816,7 +820,7 @@ class CasesCommands(commands.Cog):
     )
     async def cases_add_note(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         content:     str,
         user:        discord.User | None = None,
         case_id:     int          | None = None,
@@ -899,7 +903,7 @@ class CasesCommands(commands.Cog):
     )
     async def cases_edit_entry(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         case_id:     int,
         content:     str,
     ) -> None:
@@ -1125,7 +1129,7 @@ class CasesCommands(commands.Cog):
     )
     async def cases_config(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         channel:     discord.TextChannel,
     ) -> None:
         actor = interaction.user

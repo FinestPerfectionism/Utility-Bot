@@ -143,7 +143,7 @@ class TicketsCommands(
         slash   = False,
         aliases = ["a"],
     )
-    async def archive(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def archive(self, ctx : commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
@@ -194,7 +194,7 @@ class TicketsCommands(
         prefix = True,
         slash  = False,
     )
-    async def claim(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def claim(self, ctx : commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
@@ -261,7 +261,7 @@ class TicketsCommands(
         slash   = False,
         aliases = ["e", "esc"],
     )
-    async def escalate(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def escalate(self, ctx : commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):

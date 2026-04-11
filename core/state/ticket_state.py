@@ -39,13 +39,13 @@ def load_ticket_state() -> None:
     RESOLUTION_STOPPED.update(int(x) for x in data.get("resolution_stopped", []))
     RESOLUTION_STATE.update({int(k): v for k, v in data.get("resolution_state", {}).items()})
 
-def register_ticket(user_id: int, thread_id: int, ticket_type: str) -> None:
+def register_ticket(user_id : int, thread_id : int, ticket_type: str) -> None:
     ACTIVE_TICKETS[user_id] = thread_id
     THREAD_OPENERS[thread_id] = user_id
     TICKET_TYPES[thread_id] = ticket_type
     save_ticket_state()
 
-def unregister_ticket(thread_id: int) -> None:
+def unregister_ticket(thread_id : int) -> None:
     user_id = THREAD_OPENERS.pop(thread_id, None)
     if user_id is not None:
         _ = ACTIVE_TICKETS.pop(user_id, None)

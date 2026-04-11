@@ -127,9 +127,9 @@ def _parse_eval_input(raw: str) -> tuple[str, bool]:
             if line.strip().lower() in _SILENT_FLAGS:
                 silent = True
     else:
-        body  = raw
-        lines = raw.splitlines()
-        kept  = []
+        body             = raw
+        lines            = raw.splitlines()
+        kept : list[str] = []
         for line in lines:
             if line.strip().lower() in _SILENT_FLAGS:
                 silent = True

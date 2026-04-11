@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any, cast
 
 import discord
+from discord import ButtonStyle, SeparatorSpacing
+from discord.ui import ActionRow, Button, Container, LayoutView, Separator, TextDisplay
 from typing_extensions import override
 
 from constants import (
@@ -124,7 +126,7 @@ def describe_automation(entry: dict[str, Any]) -> str:
     if entry.get("timer_end"):
         ts    = cast("float", entry["timer_end"])
         dt    = datetime.fromtimestamp(ts, tz=UTC)
-        stamp = discord.utils.format_dt(dt, style="f")
+        stamp = discord.utils.format_dt(dt, style = "f")
         parts.append(f"on a **timer** expiring {stamp}")
     return ", ".join(parts) if parts else "unknown automation"
 
@@ -138,7 +140,7 @@ def build_leave_nick(name: str) -> str | None:
         return short_nick
     return None
 
-class HardCleanConfirmView(discord.ui.LayoutView):
+class HardCleanConfirmView(LayoutView):
     def __init__(
         self,
         invocator_id:    int,
@@ -152,21 +154,21 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self.roles_to_remove = roles_to_remove
         self.message: discord.WebhookMessage | None = None
 
-        self._confirm_button: discord.ui.Button[HardCleanConfirmView] = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.danger)
+        self._confirm_button : Button[HardCleanConfirmView] = Button(label = "Confirm", style = ButtonStyle.danger)
         self._confirm_button.callback = self._confirm_callback
 
-        self._cancel_button: discord.ui.Button[HardCleanConfirmView] = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.primary)
+        self._cancel_button : Button[HardCleanConfirmView] = Button(label = "Cancel", style = ButtonStyle.primary)
         self._cancel_button.callback = self._cancel_callback
 
-        self._action_row: discord.ui.ActionRow[HardCleanConfirmView] = discord.ui.ActionRow()
+        self._action_row : ActionRow[HardCleanConfirmView] = ActionRow()
         _ = self._action_row.add_item(self._confirm_button)
         _ = self._action_row.add_item(self._cancel_button)
 
-        self._text_display: discord.ui.TextDisplay[HardCleanConfirmView] = discord.ui.TextDisplay(content = warning_text)
+        self._text_display: TextDisplay[HardCleanConfirmView] = TextDisplay(content = warning_text)
 
-        container: discord.ui.Container[HardCleanConfirmView] = discord.ui.Container(accent_color = COLOR_RED)
+        container : Container[HardCleanConfirmView] = Container(accent_color = COLOR_RED)
         _ = container.add_item(self._text_display)
-        _ = container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
+        _ = container.add_item(Separator(visible = True, spacing = SeparatorSpacing.large))
         _ = container.add_item(self._action_row)
 
         _ = self.add_item(container)
@@ -175,7 +177,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self._confirm_button.disabled = True
         self._cancel_button.disabled  = True
 
-    async def _confirm_callback(self, interaction: discord.Interaction) -> None:
+    async def _confirm_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
             await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return
@@ -205,7 +207,7 @@ class HardCleanConfirmView(discord.ui.LayoutView):
         self._text_display.content = f"{self.target.mention} has been hard cleaned —— {len(self.roles_to_remove)} staff role(s) removed."
         _ = await interaction.response.edit_message(view = self)
 
-    async def _cancel_callback(self, interaction: discord.Interaction) -> None:
+    async def _cancel_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
             await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return
@@ -224,10 +226,10 @@ class HardCleanConfirmView(discord.ui.LayoutView):
                 self._text_display.content = "Hard clean timed out —— no changes were made."
                 _ = await self.message.edit(view = self)
 
-class InterferenceConfirmView(discord.ui.LayoutView):
+class InterferenceConfirmView(LayoutView):
     def __init__(
         self,
-        invocator_id: int,
+        invocator_id : int,
         warning_text: str,
     ) -> None:
         super().__init__(timeout = 60)
@@ -235,21 +237,21 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         self.confirmed    = False
         self.message: discord.WebhookMessage | None = None
 
-        self._confirm_button: discord.ui.Button[InterferenceConfirmView] = discord.ui.Button(label="Proceed Anyway", style=discord.ButtonStyle.danger)
+        self._confirm_button : Button[InterferenceConfirmView] = Button(label = "Proceed Anyway", style = ButtonStyle.danger)
         self._confirm_button.callback = self._confirm_callback
 
-        self._cancel_button: discord.ui.Button[InterferenceConfirmView] = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.primary)
+        self._cancel_button : Button[InterferenceConfirmView] = Button(label = "Cancel", style = ButtonStyle.primary)
         self._cancel_button.callback = self._cancel_callback
 
-        self._action_row: discord.ui.ActionRow[InterferenceConfirmView] = discord.ui.ActionRow()
+        self._action_row : ActionRow[InterferenceConfirmView] = ActionRow()
         _ = self._action_row.add_item(self._confirm_button)
         _ = self._action_row.add_item(self._cancel_button)
 
-        self._text_display: discord.ui.TextDisplay[InterferenceConfirmView] = discord.ui.TextDisplay(content = warning_text)
+        self._text_display: TextDisplay[InterferenceConfirmView] = TextDisplay(content = warning_text)
 
-        container: discord.ui.Container[InterferenceConfirmView] = discord.ui.Container(accent_color = COLOR_RED)
+        container : Container[InterferenceConfirmView] = Container(accent_color = COLOR_RED)
         _ = container.add_item(self._text_display)
-        _ = container.add_item(discord.ui.Separator(visible = True, spacing = discord.SeparatorSpacing.large))
+        _ = container.add_item(Separator(visible = True, spacing = SeparatorSpacing.large))
         _ = container.add_item(self._action_row)
 
         _ = self.add_item(container)
@@ -258,7 +260,7 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         self._confirm_button.disabled = True
         self._cancel_button.disabled  = True
 
-    async def _confirm_callback(self, interaction: discord.Interaction) -> None:
+    async def _confirm_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
             await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return
@@ -269,7 +271,7 @@ class InterferenceConfirmView(discord.ui.LayoutView):
         self.stop()
         _ = await interaction.response.edit_message(view = self)
 
-    async def _cancel_callback(self, interaction: discord.Interaction) -> None:
+    async def _cancel_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
             await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
             return

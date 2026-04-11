@@ -271,7 +271,7 @@ async def run_leave_add(
                 datetime(parsed_begin.year, parsed_begin.month, parsed_begin.day, tzinfo=UTC)
                 + timedelta(seconds=timer_seconds)
             )
-            end_note = f" with a timer ending approximately {discord.utils.format_dt(approx_end_dt, style='f')}"
+            end_note = f" with a timer ending approximately {discord.utils.format_dt(approx_end_dt, style = 'f')}"
 
         who = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
         await interaction.followup.send(

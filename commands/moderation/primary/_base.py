@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import discord
+from discord import ButtonStyle
 from discord.ext import commands
+from discord.ui import Button, View
 from typing_extensions import override
 
 from core.cases import CasesManager, CaseType
@@ -41,7 +43,7 @@ from core.permissions import (
 
 _Context = discord.Interaction
 
-class ModerationListPaginator(discord.ui.View):
+class ModerationListPaginator(View):
     def __init__(
         self,
         context         : _Context,
@@ -110,14 +112,14 @@ class ModerationListPaginator(discord.ui.View):
         return embed
 
     @override
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, interaction : discord.Interaction) -> bool:
         return interaction.user == self.context.user
 
-    @discord.ui.button(label="<<", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label = "<<", style = ButtonStyle.secondary)
     async def first_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["ModerationListPaginator"],
+        _button     : Button["ModerationListPaginator"],
     ) -> None:
         self.page = 0
         self.update_buttons()
@@ -125,11 +127,11 @@ class ModerationListPaginator(discord.ui.View):
             self._schedule_delete()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label="<", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label = "<", style = ButtonStyle.secondary)
     async def previous_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["ModerationListPaginator"],
+        _button     : Button["ModerationListPaginator"],
     ) -> None:
         if self.page > 0:
             self.page -= 1
@@ -138,11 +140,11 @@ class ModerationListPaginator(discord.ui.View):
             self._schedule_delete()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label=">", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label = ">", style = ButtonStyle.secondary)
     async def next_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["ModerationListPaginator"],
+        _button     : Button["ModerationListPaginator"],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
@@ -151,11 +153,11 @@ class ModerationListPaginator(discord.ui.View):
             self._schedule_delete()
         _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
 
-    @discord.ui.button(label=">>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label = ">>", style = ButtonStyle.secondary)
     async def last_page(
         self,
         interaction : discord.Interaction,
-        _button     : discord.ui.Button["ModerationListPaginator"],
+        _button     : Button["ModerationListPaginator"],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()

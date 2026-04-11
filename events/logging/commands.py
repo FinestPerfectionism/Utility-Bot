@@ -73,7 +73,7 @@ class CommandLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_command_completion(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def on_command_completion(self, ctx : commands.Context[commands.Bot]) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return

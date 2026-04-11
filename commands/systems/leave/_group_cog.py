@@ -222,7 +222,7 @@ class LeaveCommands(commands.Cog):
     )
     async def leave_add(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         leave_type:  str,
         target:      discord.Member | None = None,
         begin_date:             str | None = None,
@@ -251,7 +251,7 @@ class LeaveCommands(commands.Cog):
     )
     async def leave_remove(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         target:      discord.Member | None = None,
     ) -> None:
         await run_leave_remove(self.data, interaction, target)

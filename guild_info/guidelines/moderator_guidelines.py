@@ -1,41 +1,42 @@
-import discord
+from discord import SeparatorSpacing
+from discord.ui import Container, LayoutView, Separator, TextDisplay
 
 
-class ModerationComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class ModerationComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to Moderation Guidelines!\n"
                 "Internal guidelines for the Goobers Moderation Team.\n"
                 "-# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. Sharing internal moderation policy outside staff spaces is prohibited.",
         ),
     )
 
-class ModerationComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int) -> None:
+class ModerationComponents2(LayoutView):
+    def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
-        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(
-                content=
+        self.container : Container[LayoutView] = Container(
+            TextDisplay(
+                content =
                     "# Moderation Guidelines\n"
                    f"Moderation guidelines last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                     "## §1 Scope and Permissions\n"
                     "Moderators must act within command permissions as implemented by the bot. If a command denies your action, escalate instead of attempting workarounds.\n\n"
                     "### §1.1 Role Scope\n"
@@ -73,10 +74,10 @@ class ModerationComponents2(discord.ui.LayoutView):
         )
         _ = self.add_item(self.container)
 
-class ModerationComponents3(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class ModerationComponents3(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "## §4 Abuse Prevention and Escalation\n"
                 "### §4.1 Rate Limits and Auto-Quarantine\n"
                 "Non-Director staff are rate-limited on severe actions including timeouts, kicks, bans, and quarantine adds. Repeated exceedance can trigger automatic quarantine. If rate limits are reached, stop, document, and escalate instead of retrying commands.\n\n"

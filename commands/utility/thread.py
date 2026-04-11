@@ -16,7 +16,7 @@ class ThreadCommands(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    def allowed_in_thread(self, ctx: commands.Context[commands.Bot]) -> bool:
+    def allowed_in_thread(self, ctx : commands.Context[commands.Bot]) -> bool:
         if not isinstance(ctx.channel, discord.Thread):
             return False
 
@@ -46,7 +46,7 @@ class ThreadCommands(commands.Cog):
         name = "lock",
         aliases=["l"],
     )
-    async def lock(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def lock(self, ctx : commands.Context[commands.Bot]) -> None:
         if not self.allowed_in_thread(ctx):
             return
 
@@ -63,7 +63,7 @@ class ThreadCommands(commands.Cog):
         name = "close",
         aliases=["c"],
     )
-    async def close(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def close(self, ctx : commands.Context[commands.Bot]) -> None:
         if not self.allowed_in_thread(ctx):
             return
 

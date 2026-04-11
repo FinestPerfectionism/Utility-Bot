@@ -23,7 +23,7 @@ from ._base import (
 
 async def run_leave_remove(
     data:        dict[str, Any],
-    interaction: discord.Interaction,
+    interaction : discord.Interaction,
     target:      discord.Member | None,
 ) -> None:
     if not interaction.guild:

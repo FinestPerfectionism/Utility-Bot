@@ -4,8 +4,9 @@ from datetime import timedelta
 from typing import cast
 
 import discord
-from discord import ForumChannel, TextChannel, Thread
+from discord import ForumChannel, SeparatorSpacing, TextChannel, Thread
 from discord.abc import GuildChannel, Messageable
+from discord.ui import Container, LayoutView, Separator, TextDisplay
 
 from constants import (
     BOT_OWNER_ID,
@@ -117,7 +118,7 @@ def parse_duration(input_str: str) -> timedelta | None:
 # Error Helpers
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class MinorError(discord.ui.LayoutView):
+class MinorError(LayoutView):
     def __init__(
         self,
         texts    : list[str],
@@ -126,10 +127,10 @@ class MinorError(discord.ui.LayoutView):
     ) -> None:
         super().__init__()
 
-        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(accent_color = COLOR_YELLOW)
+        container : Container[LayoutView] = Container(accent_color = COLOR_YELLOW)
 
         _ = container.add_item(
-            discord.ui.TextDisplay(
+            TextDisplay(
                 content = f"### {CONTESTED_EMOJI_ID} {title}\n"
                         f"-# {subtitle}",
             ),
@@ -138,16 +139,16 @@ class MinorError(discord.ui.LayoutView):
         for i, text in enumerate(texts):
             if i > 0:
                 _ = container.add_item(
-                    discord.ui.Separator(
+                    Separator(
                         visible = True,
-                        spacing = discord.SeparatorSpacing.small,
+                        spacing = SeparatorSpacing.small,
                     ),
                 )
-            _ = container.add_item(discord.ui.TextDisplay(content = text))
+            _ = container.add_item(TextDisplay(content = text))
 
         _ = self.add_item(container)
 
-class MajorError(discord.ui.LayoutView):
+class MajorError(LayoutView):
     def __init__(
         self,
         texts    : list[str],
@@ -156,10 +157,10 @@ class MajorError(discord.ui.LayoutView):
     ) -> None:
         super().__init__()
 
-        container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(accent_color = COLOR_RED)
+        container : Container[LayoutView] = Container(accent_color = COLOR_RED)
 
         _ = container.add_item(
-            discord.ui.TextDisplay(
+            TextDisplay(
                 content = f"### {DENIED_EMOJI_ID} {title}\n"
                           f"-# {subtitle}",
             ),
@@ -168,12 +169,12 @@ class MajorError(discord.ui.LayoutView):
         for i, text in enumerate(texts):
             if i > 0:
                 _ = container.add_item(
-                    discord.ui.Separator(
+                    Separator(
                         visible = True,
-                        spacing = discord.SeparatorSpacing.small,
+                        spacing = SeparatorSpacing.small,
                     ),
                 )
-            _ = container.add_item(discord.ui.TextDisplay(content = text))
+            _ = container.add_item(TextDisplay(content = text))
 
         _ = self.add_item(container)
 
@@ -230,7 +231,7 @@ async def send_major_error(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def assert_forum_thread(
-    interaction: discord.Interaction,
+    interaction : discord.Interaction,
 ) -> tuple[discord.Thread, discord.ForumChannel]:
     if not isinstance(interaction.channel, discord.Thread):
         string = "This command must be used inside a staff proposal thread."
@@ -250,7 +251,7 @@ def assert_forum_thread(
 
 def resolve_single_tag(
     forum: discord.ForumChannel,
-    tag_id: int,
+    tag_id : int,
     label: str,
 ) -> discord.ForumTag:
     try:

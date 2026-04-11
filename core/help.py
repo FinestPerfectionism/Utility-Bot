@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast, runti
 
 import discord
 from discord.ext import commands
+from discord.ui import Container, LayoutView, TextDisplay
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Coroutine
@@ -99,7 +100,7 @@ def help_description(
 
     return decorator
 
-def member_has_role(member: discord.Member, role_id: int) -> bool:
+def member_has_role(member: discord.Member, role_id : int) -> bool:
     return any(r.id == role_id for r in member.roles)
 
 def check_access(
@@ -170,7 +171,7 @@ def build_help_view(
     command_name : str,
     data         : CommandHelpData,
     member       : discord.Member,
-) -> discord.ui.LayoutView:
+) -> LayoutView:
 
     arg_tokens = " ".join(
         build_argument_line(n, i) for n, i in data.arguments.items()
@@ -295,13 +296,13 @@ def build_help_view(
             f"{channel_detail}"
         )
 
-    class HelpView(discord.ui.LayoutView):
-        container1: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(content = main_text),
+    class HelpView(LayoutView):
+        container1: Container[LayoutView] = Container(
+            TextDisplay(content = main_text),
             accent_color = COLOR_BLURPLE,
         )
-        container2: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.TextDisplay(content = perm_text),
+        container2: Container[LayoutView] = Container(
+            TextDisplay(content = perm_text),
             accent_color = perm_colour,
         )
 
@@ -334,7 +335,7 @@ def find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
         return None
 
     for part in parts[1:]:
-        children: list[AppGroup] = getattr(node, "commands", None) or []
+        children : list[AppGroup] = getattr(node, "commands", None) or []
         found = next((c for c in children if c.name == part), None)
         if found is None:
             return None

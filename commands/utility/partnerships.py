@@ -185,7 +185,7 @@ class PartnershipCommands(commands.Cog):
     @directors_only()
     async def partnership_remove(
         self,
-        interaction: discord.Interaction,
+        interaction : discord.Interaction,
         server_name: str,
     ) -> None:
         _ = await interaction.response.defer(ephemeral = True)

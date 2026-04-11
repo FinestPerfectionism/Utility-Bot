@@ -1,54 +1,55 @@
-import discord
+from discord import ButtonStyle, SeparatorSpacing
+from discord.ui import Button, Container, LayoutView, Section, Separator, TextDisplay
 
 from constants import STANDSTILL_EMOJI_ID, TICKET_CHANNEL_ID
 
 
-class RequirementComponents1(discord.ui.LayoutView):
-    container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-        discord.ui.TextDisplay(
-            content=
+class RequirementComponents1(LayoutView):
+    container : Container[LayoutView] = Container(
+        TextDisplay(
+            content =
                 "# Welcome to our Partnership Requirements!\n"
                 "Our requirements for server partnerships.\n"
                 "-# **Note:** It is within Directors' discretion as to whether we choose to partner wtih your server regardless of if the rules they find you to be not qualifying for are listed here. Directors are not required to provide a reason, if any, when denying a partnerhsip.",
         ),
     )
 
-class RequirementComponents2(discord.ui.LayoutView):
-    def __init__(self, timestamp: int) -> None:
+class RequirementComponents2(LayoutView):
+    def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
-        self.container: discord.ui.Container[discord.ui.LayoutView] = discord.ui.Container(
-            discord.ui.Section(
-                discord.ui.TextDisplay(
-                    content=
+        self.container : Container[LayoutView] = Container(
+            Section(
+                TextDisplay(
+                    content =
                         "# Partnership Requirements",
                 ),
-                accessory=discord.ui.Button(
+                accessory = Button(
                     url   =  "https://discord.com/terms",
-                    style = discord.ButtonStyle.link,
+                    style = ButtonStyle.link,
                     label =  "Discord Terms of Service",
                     emoji = f"{STANDSTILL_EMOJI_ID}",
                 ),
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                    f"Partnership Requirements last updated <t:{timestamp}:D>.\n"
                     "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
                     "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = True,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.Separator(
+            Separator(
                 visible = False,
-                spacing = discord.SeparatorSpacing.small,
+                spacing = SeparatorSpacing.small,
             ),
-            discord.ui.TextDisplay(
-                content=
+            TextDisplay(
+                content =
                     "## §1 Eligibility\n"
                     "To be considered for partnership, a server must:\n\n"
                     "- Comply fully with Discord Terms of Service.\n"

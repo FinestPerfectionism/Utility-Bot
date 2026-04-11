@@ -198,7 +198,7 @@ class ApplicationsCommands(
         prefix = True,
         slash  = False,
     )
-    async def cancel(self, ctx: commands.Context[commands.Bot]) -> None:
+    async def cancel(self, ctx : commands.Context[commands.Bot]) -> None:
         if ctx.guild is not None:
             _ = await ctx.send(
               f"{CONTESTED_EMOJI_ID} **Failed to cancel application!**"

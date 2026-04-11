@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 import discord
-from discord import app_commands
+from discord import ButtonStyle, app_commands
 from discord.ext import commands
+from discord.ui import Button, Select, View
 
 from constants import (
     ACCEPTED_EMOJI_ID,
@@ -103,7 +104,7 @@ async def _save_json_file(path: str, data: dict[str, Any]) -> None:
 # Fix View
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class HealthFixView(discord.ui.View):
+class HealthFixView(View):
     def __init__(self, guild: discord.Guild, fixable: list[str], cog: "HealthCommands") -> None:
         super().__init__(timeout = 300)
         self.guild   = guild
@@ -112,7 +113,7 @@ class HealthFixView(discord.ui.View):
 
         if not fixable:
             for child in self.children:
-                if isinstance(child, discord.ui.Button | discord.ui.Select):
+                if isinstance(child, Button | Select):
                     child.disabled = True
 
     async def _apply_everyone_role(
@@ -296,8 +297,8 @@ class HealthFixView(discord.ui.View):
                 await _save_json_file(config_file, config)
                 fixed.append("Enabled the anti-nuke system")
 
-    @discord.ui.button(label="Fix Issues", style=discord.ButtonStyle.danger, emoji=f"{STANDSTILL_EMOJI_ID}")
-    async def fix_button(self, interaction: discord.Interaction, button: discord.ui.Button[discord.ui.View]) -> None:
+    @discord.ui.button(label = "Fix Issues", style = ButtonStyle.danger, emoji=f"{STANDSTILL_EMOJI_ID}")
+    async def fix_button(self, interaction : discord.Interaction, button: Button[View]) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
 
@@ -334,7 +335,7 @@ class HealthFixView(discord.ui.View):
 
         button.disabled = True
         for child in self.children:
-            if isinstance(child, discord.ui.Button):
+            if isinstance(child, Button):
                 child.disabled = True
 
         _ = await interaction.response.edit_message(view = self)
@@ -615,7 +616,7 @@ class HealthCommands(commands.Cog):
         slash     = True,
         run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
     )
-    async def health(self, interaction: discord.Interaction) -> None:
+    async def health(self, interaction : discord.Interaction) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return

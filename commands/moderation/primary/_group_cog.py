@@ -116,7 +116,7 @@ class ModerationCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
     )
-    async def bans(self, interaction: discord.Interaction) -> None:
+    async def bans(self, interaction : discord.Interaction) -> None:
         await run_bans(self, interaction)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -222,7 +222,7 @@ class ModerationCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
     )
-    async def timeouts(self, interaction: discord.Interaction) -> None:
+    async def timeouts(self, interaction : discord.Interaction) -> None:
         await run_timeouts(self, interaction)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -269,7 +269,7 @@ class ModerationCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
     )
-    async def quarantines(self, interaction: discord.Interaction) -> None:
+    async def quarantines(self, interaction : discord.Interaction) -> None:
         await run_quarantines(self, interaction)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
