@@ -2,11 +2,11 @@
 pattern = "**/*.py"
 
 [languages.python.lsp]
-name = "ruff"
-command = ["ruff", "server", "--preview"]
+name = "pyright"
+command = ["pyright-langserver", "--stdio"]
 
 [languages.python.languageServer]
-start = "ruff server --preview"
+start = "pyright-langserver --stdio"
 run = "python3 main.py"
 
 [nix]
