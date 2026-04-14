@@ -809,7 +809,7 @@ class UserCommands(commands.Cog):
         if fetched_user.banner:
             _ = embed.set_image(url=fetched_user.banner.url)
 
-        _ = await ctx.send(embed=embed)
+        _ = await ctx.send(embed = embed)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(UserCommands(bot))

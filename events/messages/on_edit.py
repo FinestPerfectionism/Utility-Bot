@@ -123,7 +123,7 @@ class MessageEditHandler(commands.Cog):
             value  = format_attachments(after.attachments),
             inline = True,
         )
-        _ = await log_channel.send(embed=embed)
+        _ = await log_channel.send(embed = embed)
         await self.bot.process_commands(after)
 
 async def setup(bot: commands.Bot) -> None:

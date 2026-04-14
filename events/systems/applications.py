@@ -183,7 +183,7 @@ class DecisionModal(Modal, title = "Decision Reason"):
         _ = new_embed.set_footer(text="Decision Made")
         new_embed.timestamp = interaction.created_at
 
-        _ = await msg.edit(embed=new_embed, view=None)
+        _ = await msg.edit(embed = new_embed, view=None)
 
         archive_channel = interaction.client.get_channel(ARCHIVED_APPLICATION_LOG_CHANNEL_ID)
 
@@ -204,7 +204,7 @@ class DecisionModal(Modal, title = "Decision Reason"):
                         inline = False,
                     )
 
-                _ = await archive_channel.send(embed=archive_embed)
+                _ = await archive_channel.send(embed = archive_embed)
 
         thread_id = ACTIVE_APPLICATIONS.get(self.applicant_id, {}).get("thread_id")
         if thread_id:
@@ -313,7 +313,7 @@ class DecisionView(View):
                 description = "This applicant has no recorded cases.",
                 color = COLOR_GREEN,
             )
-            await interaction.followup.send(embed=embed, ephemeral = True)
+            await interaction.followup.send(embed = embed, ephemeral = True)
             return
 
         applicant = interaction.client.get_user(applicant_id)
@@ -350,7 +350,7 @@ class DecisionView(View):
             fields.append((f"Case #{case['case_id']}", "\n".join(value_parts)))
 
         paginator = ModerationListPaginator(title = title, fields=fields, color = COLOR_BLURPLE, context=interaction)
-        await interaction.followup.send(embed=paginator.get_embed(), view=paginator, ephemeral = True)
+        await interaction.followup.send(embed = paginator.get_embed(), view=paginator, ephemeral = True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Questions / State
@@ -494,7 +494,7 @@ class ApplicationSubmitView(View):
 
         msg = await channel.send(
             content =f"<@&{DIRECTORS_ROLE_ID}>",
-            embed=embed,
+            embed = embed,
         )
 
         __ = await msg.edit(view=DecisionView())

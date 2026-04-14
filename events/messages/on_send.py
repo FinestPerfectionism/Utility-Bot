@@ -237,12 +237,12 @@ class MessageSendHandler(commands.Cog):
             old_member = guild.get_member(old_id)
             if old_member and role in old_member.roles:
                 with contextlib.suppress(discord.HTTPException):
-                    await old_member.remove_roles(role, reason="Counting: no longer the last to fail")
+                    await old_member.remove_roles(role, reason = "Counting: no longer the last to fail")
 
         new_member = guild.get_member(new_id)
         if new_member and role not in new_member.roles:
             with contextlib.suppress(discord.HTTPException):
-                await new_member.add_roles(role, reason="Counting: ruined the chain")
+                await new_member.add_roles(role, reason = "Counting: ruined the chain")
 
         self.state["failed_user_id"] = new_id
         self._save()

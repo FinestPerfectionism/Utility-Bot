@@ -66,7 +66,7 @@ class CommandLogger(commands.Cog):
             inline = False,
         )
 
-        _ = await channel.send(embed=embed)
+        _ = await channel.send(embed = embed)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Prefix Command Handling
@@ -113,7 +113,7 @@ class CommandLogger(commands.Cog):
             inline = False,
         )
 
-        _ = await channel.send(embed=embed)
+        _ = await channel.send(embed = embed)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(CommandLogger(bot))

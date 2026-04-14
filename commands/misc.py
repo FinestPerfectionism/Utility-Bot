@@ -3,9 +3,10 @@ from discord import SeparatorSpacing, app_commands
 from discord.ext import commands
 from discord.ui import LayoutView, Separator, TextDisplay
 
+import core.responses as cr
 from constants import BOT_OWNER_ID, HOLY_FATHER_ID
 from core.help import help_description
-from core.utils import send_minor_error
+from core.responses import send_custom_message
 
 
 class Ping(LayoutView):
@@ -98,10 +99,12 @@ class MiscCommands(commands.Cog):
         member = interaction.user
 
         if guild is None:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                texts    = "This command can only be used in a server.",
-                subtitle = "Bad command environment.",
+                msg_type = cr.warning,
+                title    = "run command",
+                subtitle = "This command can only be used in a server.",
+                footer   = "Bad environment",
             )
             return
 

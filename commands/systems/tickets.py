@@ -3,7 +3,6 @@ from discord import app_commands
 from discord.ext import commands
 
 from constants import (
-    CONTESTED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     STAFF_ROLE_ID,
@@ -11,6 +10,7 @@ from constants import (
 )
 from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only, main_guild_only
+from core.responses import send_custom_message
 from core.state.blacklist_state import BLACKLIST, save_blacklist
 from core.state.ticket_state import (
     THREAD_OPENERS,
@@ -19,7 +19,6 @@ from core.state.ticket_state import (
     save_ticket_state,
     unregister_ticket,
 )
-from core.utils import send_minor_error
 from events.systems.tickets import stop_resolution
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -50,11 +49,11 @@ class TicketsCommands(
     @app_commands.choices(
         action = [
             app_commands.Choice(
-                name = "Add",
+                name  = "Add",
                 value = "add",
             ),
             app_commands.Choice(
-                name = "Remove",
+                name  = "Remove",
                 value = "remove",
             ),
         ],
@@ -63,10 +62,10 @@ class TicketsCommands(
         desc      = "Directors only —— Add or remove a user from the ticket blacklist.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         arguments = {
             "action": ArgumentInfo(description = "Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
-            "user": ArgumentInfo(description = "User to blacklist or unblacklist from tickets."),
+            "user":   ArgumentInfo(description = "User to blacklist or unblacklist from tickets."),
         },
     )
     @main_guild_only()
@@ -81,9 +80,12 @@ class TicketsCommands(
         target_list = BLACKLIST["tickets"]
 
         if interaction.user.id == user.id:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                "You cannot blacklist yourself.",
+                msg_type = "warning",
+                title    = "modify blacklist",
+                subtitle = "You cannot blacklist yourself.",
+                footer   = "Bad request",
             )
             return
 
@@ -91,42 +93,53 @@ class TicketsCommands(
         if guild and isinstance(user, discord.Member):
             staff_role = guild.get_role(STAFF_ROLE_ID)
             if staff_role and staff_role in user.roles:
-                await send_minor_error(
+                await send_custom_message(
                     interaction,
-                    "You cannot blacklist staff.",
+                    msg_type = "warning",
+                    title    = "modify blacklist",
+                    subtitle = "You cannot blacklist staff.",
+                    footer   = "Bad request",
                 )
                 return
 
         if action.value == "add":
             if user_id in target_list:
-                await send_minor_error(
+                await send_custom_message(
                     interaction,
-                    "This user is already blacklisted from Tickets.",
+                    msg_type = "warning",
+                    title    = "modify blacklist",
+                    subtitle = "This user is already blacklisted from Tickets.",
+                    footer   = "Bad argument",
                 )
                 return
 
             target_list.append(user_id)
             save_blacklist()
 
-            _ = await interaction.response.send_message(
-                f"{user.mention} has been blacklisted from Tickets.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "success",
+                title    = f"blacklisted {user.mention} from Tickets",
             )
 
         else:
             if user_id not in target_list:
-                await send_minor_error(
+                await send_custom_message(
                     interaction,
-                    "This user is not blacklisted from Tickets.",
+                    msg_type = "warning",
+                    title    = "modify blacklist",
+                    subtitle = "This user is not blacklisted from Tickets.",
+                    footer   = "Bad argument",
                 )
                 return
 
             target_list.remove(user_id)
             save_blacklist()
 
-            _ = await interaction.response.send_message(
-                f"{user.mention} has been removed from the Tickets blacklist.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "success",
+                title    = f"un-blacklisted {user.mention} from Tickets",
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -147,16 +160,22 @@ class TicketsCommands(
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**\n"
-                "This command can only be used in a ticket thread.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "archive ticket",
+                subtitle = "This command can only be used in a ticket thread.",
+                footer   = "Bad environment",
             )
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**\n"
-                "This command can only be used in a ticket thread.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "archive ticket",
+                subtitle = "This command can only be used in a ticket thread.",
+                footer   = "Bad environment",
             )
             return
 
@@ -167,15 +186,17 @@ class TicketsCommands(
         if guild is None:
             return
 
-        mod_role = guild.get_role(MODERATORS_ROLE_ID)
-        is_mod   = mod_role is not None and mod_role in ctx.author.roles
-
+        mod_role  = guild.get_role(MODERATORS_ROLE_ID)
+        is_mod    = mod_role is not None and mod_role in ctx.author.roles
         opener_id = THREAD_OPENERS.get(channel.id)
 
         if not is_mod and ctx.author.id != opener_id:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**\n"
-                "Only the ticket opener or a moderator can close this ticket.",
+            await send_custom_message(
+                ctx,
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -198,16 +219,22 @@ class TicketsCommands(
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
-                "This command can only be used in a ticket thread.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "claim ticket",
+                subtitle = "This command can only be used in a ticket thread.",
+                footer   = "Bad environment",
             )
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
-                "This command can only be used in a ticket thread.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "claim ticket",
+                subtitle = "This command can only be used in a ticket thread.",
+                footer   = "Bad environment",
             )
             return
 
@@ -226,25 +253,33 @@ class TicketsCommands(
         )
 
         if not is_staff:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
-                "Only moderators can claim tickets.",
+            await send_custom_message(
+                ctx,
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         existing_claimer_id = TICKET_CLAIMS.get(channel.id)
         if existing_claimer_id == ctx.author.id:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**\n"
-                "You have already claimed this ticket.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "claim ticket",
+                subtitle = "You have already claimed this ticket.",
+                footer   = "Bad request",
             )
             return
 
         TICKET_CLAIMS[channel.id] = ctx.author.id
         save_ticket_state()
-        _ = await ctx.send(
-            f"{CONTESTED_EMOJI_ID} **Successfully claimed ticket!**\n"
-            f"Ticket claimed by {ctx.author.mention}.",
+
+        await send_custom_message(
+            ctx,
+            msg_type = "success",
+            title    = f"claimed ticket by {ctx.author.mention}",
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -256,7 +291,7 @@ class TicketsCommands(
         aliases = ["e", "esc"],
     )
     @help_description(
-        desc = "Moderators only —— Escalates the current ticket thread to Directors.",
+        desc    = "Moderators only —— Escalates the current ticket thread to Directors.",
         prefix  = True,
         slash   = False,
         aliases = ["e", "esc"],
@@ -265,16 +300,22 @@ class TicketsCommands(
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
-                "This command can only be used in a ticket thread.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "escalate ticket",
+                subtitle = "This command can only be used in a ticket thread.",
+                footer   = "Bad environment",
             )
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
-                "This command can only be used in a ticket thread.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "escalate ticket",
+                subtitle = "This command can only be used in a ticket thread.",
+                footer   = "Bad environment",
             )
             return
 
@@ -287,29 +328,39 @@ class TicketsCommands(
 
         mod_role = guild.get_role(MODERATORS_ROLE_ID)
         if mod_role is None or mod_role not in ctx.author.roles:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
-                "Only moderators can escalate tickets.",
+            await send_custom_message(
+                ctx,
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         if TICKET_TYPES.get(channel.id) != "moderator":
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
-                "This ticket is not a moderator ticket or is already escalated.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "escalate ticket",
+                subtitle = "This ticket is not a moderator ticket or is already escalated.",
+                footer   = "Bad request",
             )
             return
 
         opener_id = THREAD_OPENERS.get(channel.id)
         if opener_id is None:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to escalate ticket!**\n"
-                "This ticket does not have a parsed opener. The ticket may not be tracked.",
+            await send_custom_message(
+                ctx,
+                msg_type          = "error",
+                title             = "escalate ticket",
+                subtitle          = "This ticket does not have a parsed opener. The ticket may not be tracked.",
+                footer            = "Invalid IDs",
+                contact_bot_owner = True,
             )
             return
 
         try:
-            opener  = guild.get_member(opener_id) or await guild.fetch_member(opener_id)
+            opener   = guild.get_member(opener_id) or await guild.fetch_member(opener_id)
             new_name = f"dir-ticket · {opener.display_name}"[:100]
         except (discord.NotFound, discord.HTTPException):
             new_name = f"dir-ticket · {channel.name.removeprefix('ticket · ')}"[:100]
@@ -323,9 +374,10 @@ class TicketsCommands(
         if director_role:
             _ = await channel.send(director_role.mention)
 
-        _ = await ctx.send(
-           f"{CONTESTED_EMOJI_ID} **Successfully escalated ticket!**\n"
-            "Ticket has been escalated to Directors.",
+        await send_custom_message(
+            ctx,
+            msg_type = "success",
+            title    = "escalated ticket to Directors",
         )
 
 async def setup(bot: commands.Bot) -> None:

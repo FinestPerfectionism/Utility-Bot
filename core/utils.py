@@ -1,21 +1,12 @@
 import re
 from asyncio import Queue
 from datetime import timedelta
-from typing import cast
 
 import discord
-from discord import ForumChannel, SeparatorSpacing, TextChannel, Thread
+from discord import ForumChannel, TextChannel, Thread
 from discord.abc import GuildChannel, Messageable
-from discord.ui import Container, LayoutView, Separator, TextDisplay
 
-from constants import (
-    BOT_OWNER_ID,
-    COLOR_RED,
-    COLOR_YELLOW,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
-    STAFF_PROPOSALS_CHANNEL_ID,
-)
+from constants import STAFF_PROPOSALS_CHANNEL_ID
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Helpers Management
@@ -112,119 +103,7 @@ def parse_duration(input_str: str) -> timedelta | None:
         elif unit == "s":
             total_seconds += value
 
-    return timedelta(seconds=total_seconds)
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Error Helpers
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-class MinorError(LayoutView):
-    def __init__(
-        self,
-        texts    : list[str],
-        subtitle : str = "Invalid argument.",
-        title    : str = "Error!",
-    ) -> None:
-        super().__init__()
-
-        container : Container[LayoutView] = Container(accent_color = COLOR_YELLOW)
-
-        _ = container.add_item(
-            TextDisplay(
-                content = f"### {CONTESTED_EMOJI_ID} {title}\n"
-                        f"-# {subtitle}",
-            ),
-        )
-
-        for i, text in enumerate(texts):
-            if i > 0:
-                _ = container.add_item(
-                    Separator(
-                        visible = True,
-                        spacing = SeparatorSpacing.small,
-                    ),
-                )
-            _ = container.add_item(TextDisplay(content = text))
-
-        _ = self.add_item(container)
-
-class MajorError(LayoutView):
-    def __init__(
-        self,
-        texts    : list[str],
-        subtitle : str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-        title    : str =  "Error!",
-    ) -> None:
-        super().__init__()
-
-        container : Container[LayoutView] = Container(accent_color = COLOR_RED)
-
-        _ = container.add_item(
-            TextDisplay(
-                content = f"### {DENIED_EMOJI_ID} {title}\n"
-                          f"-# {subtitle}",
-            ),
-        )
-
-        for i, text in enumerate(texts):
-            if i > 0:
-                _ = container.add_item(
-                    Separator(
-                        visible = True,
-                        spacing = SeparatorSpacing.small,
-                    ),
-                )
-            _ = container.add_item(TextDisplay(content = text))
-
-        _ = self.add_item(container)
-
-async def send_minor_error(
-    interaction : discord.Interaction,
-    texts       : list[str] | str,
-    subtitle    : str = "Invalid argument.",
-    title       : str = "Error!",
-) -> None:
-    if isinstance(texts, str):
-        texts = [texts]
-
-    view = cast("discord.ui.View", MinorError(texts, subtitle, title))
-
-    if interaction.response.is_done():
-        await interaction.followup.send(
-            content = " ",
-            view = view,
-            ephemeral = True,
-        )
-    else:
-        _ = await interaction.response.send_message(
-            content   = " ",
-            view      = view,
-            ephemeral = True,
-        )
-
-async def send_major_error(
-    interaction : discord.Interaction,
-    texts       : list[str] | str,
-    subtitle    : str = f"Invalid IDs/Operation. Contact <@{BOT_OWNER_ID}>.",
-    title       : str = "Error!",
-) -> None:
-    if isinstance(texts, str):
-        texts = [texts]
-
-    view = cast("discord.ui.View", MajorError(texts, subtitle, title))
-
-    if interaction.response.is_done():
-        await interaction.followup.send(
-            content   = " ",
-            view      = view,
-            ephemeral = True,
-        )
-    else:
-        _ = await interaction.response.send_message(
-            content   = " ",
-            view      = view,
-            ephemeral = True,
-        )
+    return timedelta(seconds = total_seconds)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Proposal Helpers

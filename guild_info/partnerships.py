@@ -65,14 +65,13 @@ class PartnershipComponents2(LayoutView):
                 children.append(
                     Section(
                         TextDisplay(
-                            content =(
+                            content =
                                 f"# {p['server_name']}\n"
                                 "**Description:**\n"
                                 f"> {p['server_description']}\n"
                                 "**Server Owner**\n"
                                 f"> <@{p['server_owner_id']}>\n"
-                                f"[Join Here!]({p['server_link']})"
-                            ),
+                                f"[Join Here!]({p['server_link']})",
                         ),
                         accessory = Thumbnail(
                             media = f"attachment://{p['image_filename']}",

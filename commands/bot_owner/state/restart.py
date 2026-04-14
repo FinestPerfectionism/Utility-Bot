@@ -5,12 +5,13 @@ import logging
 import os
 import sys
 from datetime import UTC, datetime
-from pathlib import Path
 
 import discord
 from discord.ext import commands
 
-from constants import BOT_OWNER_ID, DENIED_EMOJI_ID
+import core.responses as cr
+from constants import BOT_OWNER_ID, DENIED_EMOJI_ID, STANDSTILL_EMOJI_ID
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # .restart Logic
@@ -23,23 +24,37 @@ async def run_restart(
     log            : logging.Logger,
 ) -> None:
     if ctx.author.id != BOT_OWNER_ID:
-        await ctx.message.add_reaction(DENIED_EMOJI_ID)
+        _ = await send_custom_message(
+            ctx,
+            msg_type = cr.error,
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions.",
+        )
         return
 
     if restarting_ref[0]:
-        _ = await ctx.send("Restart already in progress.", delete_after=1)
+        _ = await send_custom_message(
+            ctx,
+            msg_type = cr.warning,
+            title    = "restart bot",
+            subtitle = "A restart is already in progress.",
+            footer   = "Bad operation.",
+        )
         return
 
     restarting_ref[0] = True
-
-    confirm_msg = await ctx.send("Restarting bot...", delete_after=1)
+    confirm_msg = await ctx.send(
+           f"{STANDSTILL_EMOJI_ID} **Restarting bot.**\n"
+            "Restarting bot...",
+    )
 
     with contextlib.suppress(discord.HTTPException, discord.Forbidden):
         await ctx.message.delete()
 
     loop = asyncio.get_running_loop()
     restart_task = loop.create_task(restart_bot(bot, log, restarting_ref, confirm_msg))
-    restart_task.add_done_callback(lambda t: t.exception() if not t.cancelled() else None)
+    restart_task.add_done_callback(lambda t : t.exception() if not t.cancelled() else None)
 
 async def restart_bot(
     bot            : commands.Bot,
@@ -53,14 +68,17 @@ async def restart_bot(
             activity = discord.CustomActivity(name = "Restarting..."),
         )
 
+        import anyio
+
         if confirm_msg:
             try:
-                with Path("restart_info.json").open("w") as f:
-                    json.dump({
-                        "channel_id": confirm_msg.channel.id,
-                        "message_id": confirm_msg.id,
-                        "timestamp":  datetime.now(UTC).isoformat(),
-                    }, f)
+                restart_data = json.dumps({
+                    "channel_id" : confirm_msg.channel.id,
+                    "message_id" : confirm_msg.id,
+                    "timestamp"  : datetime.now(UTC).isoformat(),
+                })
+                path = anyio.Path("restart_info.json")
+                _ = await path.write_text(restart_data)
             except Exception:
                 log.exception("Failed to save restart info")
 
@@ -90,7 +108,7 @@ async def restart_bot(
         sys.stdout.flush()
         sys.stderr.flush()
 
-        os.execv(sys.executable, [sys.executable, *sys.argv])
+        os.execv(sys.executable, [sys.executable, *sys.argv]) # noqa: S606
 
     except (OSError, discord.DiscordException) as e:
         log.critical("Fatal error during restart: %s", e, exc_info=True)
@@ -98,7 +116,14 @@ async def restart_bot(
 
         if confirm_msg:
             with contextlib.suppress(Exception):
-                _ = await confirm_msg.edit(content = f"Restart failed: {str(e)[:100]}")
+                _ = await confirm_msg.edit(
+                    content =
+                   f"{DENIED_EMOJI_ID} **Failed to restart bot!**\n"
+                    "Restart failed:\n"
+                    "```py\n"
+                   f"{e}\n"
+                    "```",
+                )
 
         with contextlib.suppress(Exception):
             await bot.change_presence(status=discord.Status.online)

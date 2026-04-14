@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 from commands.moderation.cases import CaseType
 from constants import COLOR_GREEN
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation un-ban Logic
@@ -28,11 +28,12 @@ async def run_unban(
         return
 
     if not base.can_reverse_actions(actor):
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title    = "Unauthorized!",
-            texts    = "You lack the necessary permissions to unban members.",
-            subtitle = "Invalid permissions.",
+            msg_type = "error",
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions",
         )
         return
 
@@ -60,19 +61,28 @@ async def run_unban(
                     user_to_unban = ban_entry.user
                     break
         except discord.Forbidden:
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                texts    = "I lack the necessary permissions to view bans.",
-                subtitle = "Invalid configuration. Contact the owner.",
+                msg_type          = "error",
+                title             = "view banned members",
+                subtitle          = "I lack permissions to view banned members: `Ban Members`",
+                footer            = "Bad configuration",
+                contact_bot_owner = True,
             )
             return
 
     if not user_to_unban:
-        await send_minor_error(interaction, f"Could not find banned user: {user}")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "unban member",
+            subtitle = f"Could not find banned user: {user}",
+            footer   = "Bad argument",
+        )
         return
 
     try:
-        await guild.unban(user_to_unban, reason=f"Unbanned by {actor}: {reason}")
+        await guild.unban(user_to_unban, reason = f"Unbanned by {actor}: {reason}")
 
         if "bans" in base.data and str(user_to_unban.id) in base.data["bans"]:
             del base.data["bans"][str(user_to_unban.id)]
@@ -87,21 +97,29 @@ async def run_unban(
         )
 
         embed = discord.Embed(
-            title = "User Unbanned",
-            color = COLOR_GREEN,
+            title     = "User Unbanned",
+            color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "User",     value = f"{user_to_unban.mention} ({user_to_unban.id})", inline = True)
         _ = embed.add_field(name = "Director", value = actor.mention,                                   inline = True)
         _ = embed.add_field(name = "Reason",   value = reason,                                          inline = False)
-
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
     except discord.NotFound:
-        await send_minor_error(interaction, f"{user_to_unban.mention} is not banned.")
-    except discord.Forbidden:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = "I lack the necessary permissions to unban this member.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type = "warning",
+            title    = "unban member",
+            subtitle = f"{user_to_unban.mention} is not banned.",
+            footer   = "Bad argument",
+        )
+    except discord.Forbidden:
+        await send_custom_message(
+            interaction,
+            msg_type          = "error",
+            title             = "unban members",
+            subtitle          = "I lack permissions to unban members: `Ban Members`",
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
         )

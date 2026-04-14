@@ -50,7 +50,7 @@ class MemberLeaveHandler(commands.Cog):
         )
         _ = embed.set_footer(text="Decision Made")
         embed.timestamp = discord.utils.utcnow()
-        _ = await msg.edit(embed=embed, view = None)
+        _ = await msg.edit(embed = embed, view = None)
         thread_id = data.get("thread_id")
         if thread_id:
             try:

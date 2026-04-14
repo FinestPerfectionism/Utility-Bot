@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+)
 
 import discord
 
@@ -11,7 +14,7 @@ if TYPE_CHECKING:
 from commands.moderation.cases import CaseType
 from constants import COLOR_RED
 from core.permissions import is_director
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation ban Logic
@@ -30,24 +33,34 @@ async def run_ban(
         return
 
     if not base.can_apply_standard_actions(actor):
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title    = "Unauthorized!",
-            texts    = "You lack the necessary permissions to ban members.",
-            subtitle = "Invalid permissions.",
+            msg_type = "error",
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions",
         )
         return
 
     if member.id == actor.id:
-        await send_minor_error(
+        await send_custom_message(
             interaction,
-            texts = "You cannot ban yourself.",
+            msg_type = "warning",
+            title    = "ban member",
+            subtitle = "You cannot ban yourself.",
+            footer   = "Bad argument",
         )
         return
 
     can_moderate, error_msg = base.check_can_moderate_target(actor, member)
     if not can_moderate:
-        await send_minor_error(interaction, error_msg)
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "ban member",
+            subtitle = error_msg,
+            footer   = "Bad request",
+        )
         return
 
     guild = interaction.guild
@@ -57,15 +70,19 @@ async def run_ban(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "ban")
         if not can_proceed:
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                texts    = f"Rate limit exceeded. {error_msg}.\n"
-                            "Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle =  "Rate limit exceeded.",
+                msg_type          = "error",
+                title             = "ban member",
+                subtitle          = (
+                    f"Rate limit exceeded. {error_msg}.\n"
+                    "Continuing to exceed rate limits will result in your own quarantine."
+                ),
+                footer            = "Bad operation",
+                contact_bot_owner = True,
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
-
         base.add_rate_limit_entry(str(actor.id), "ban")
 
     _ = await interaction.response.defer(ephemeral = True)
@@ -90,7 +107,6 @@ async def run_ban(
         base.save_data()
 
         metadata: dict[str, Any] = {"delete_message_days": delete_messages}
-
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -112,13 +128,16 @@ async def run_ban(
         _ = embed.add_field(name = "Moderator", value = actor.mention,                     inline = True)
         _ = embed.add_field(name = "Reason",    value = reason,                            inline = False)
         if proof:
-            _ = embed.set_image(url=proof.url)
+            _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
     except discord.Forbidden:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = "I lack the necessary permissions to ban this member.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type          = "error",
+            title             = "ban members",
+            subtitle          = "I lack permissions to ban members: `Ban Members`",
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
         )

@@ -119,7 +119,7 @@ class MessageDeleteHandler(commands.Cog):
             inline = True,
         )
         _ = embed.set_footer(text='Please note that the "Deleted By" section guesses by checking the audit log, and may not always be accurate')
-        _ = await log_channel.send(embed=embed)
+        _ = await log_channel.send(embed = embed)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(MessageDeleteHandler(bot))

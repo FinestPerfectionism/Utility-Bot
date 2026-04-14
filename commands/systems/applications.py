@@ -4,12 +4,15 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import ACCEPTED_EMOJI_ID, CONTESTED_EMOJI_ID, DIRECTORS_ROLE_ID, STAFF_ROLE_ID
+from constants import (
+    DIRECTORS_ROLE_ID,
+    STAFF_ROLE_ID,
+)
 from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only, main_guild_only
+from core.responses import send_custom_message
 from core.state.application_state import APPLICATIONS_OPEN, save_application_state
 from core.state.blacklist_state import BLACKLIST, save_blacklist
-from core.utils import send_minor_error
 from events.systems.applications import ACTIVE_APPLICATIONS, delete_application_messages
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -53,7 +56,7 @@ class ApplicationsCommands(
         desc      = "Directors only —— Add or remove a user from the applications blacklist.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         arguments = {
             "action" : ArgumentInfo(description = "Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
             "user"   : ArgumentInfo(description = "User to blacklist or unblacklist from applications."),
@@ -71,9 +74,12 @@ class ApplicationsCommands(
         target_list = BLACKLIST["applications"]
 
         if interaction.user.id == user.id:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                "You cannot blacklist yourself.",
+                msg_type = "warning",
+                title    = "modify blacklist",
+                subtitle = "You cannot blacklist yourself.",
+                footer   = "Bad argument",
             )
             return
 
@@ -81,42 +87,53 @@ class ApplicationsCommands(
         if guild and isinstance(user, discord.Member):
             staff_role = guild.get_role(STAFF_ROLE_ID)
             if staff_role and staff_role in user.roles:
-                await send_minor_error(
+                await send_custom_message(
                     interaction,
-                    "You cannot blacklist staff.",
+                    msg_type = "warning",
+                    title    = "modify blacklist",
+                    subtitle = "You cannot blacklist staff.",
+                    footer   = "Bad argument",
                 )
                 return
 
         if action.value == "add":
             if user_id in target_list:
-                await send_minor_error(
+                await send_custom_message(
                     interaction,
-                    "This user is already blacklisted from Applications.",
+                    msg_type = "warning",
+                    title    = "modify blacklist",
+                    subtitle = "This user is already blacklisted from Applications.",
+                    footer   = "Bad argument",
                 )
                 return
 
             target_list.append(user_id)
             save_blacklist()
 
-            _ = await interaction.response.send_message(
-                f"{user.mention} has been blacklisted from Applications.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "success",
+                title    = f"blacklisted {user.mention} from Applications",
             )
 
         else:
             if user_id not in target_list:
-                await send_minor_error(
+                await send_custom_message(
                     interaction,
-                    "This user is not blacklisted from Applications.",
+                    msg_type = "warning",
+                    title    = "modify blacklist",
+                    subtitle = "This user is not blacklisted from Applications.",
+                    footer   = "Bad argument",
                 )
                 return
 
             target_list.remove(user_id)
             save_blacklist()
 
-            _ = await interaction.response.send_message(
-                f"{user.mention} has been removed from the Applications blacklist.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "success",
+                title    = f"un-blacklisted {user.mention} from Applications",
             )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -138,7 +155,7 @@ class ApplicationsCommands(
                 value = "mod",
             ),
             app_commands.Choice(
-                name = "Administrators",
+                name  = "Administrators",
                 value = "admin",
             ),
         ],
@@ -174,18 +191,22 @@ class ApplicationsCommands(
         current_state = APPLICATIONS_OPEN.get(application.value, False)
 
         if current_state == new_state:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                f"{application.name} applications are already {state.value}.",
+                msg_type = "warning",
+                title    = "modify application state",
+                subtitle = f"{application.name} applications are already {state.value}.",
+                footer   = "Bad request",
             )
             return
 
         APPLICATIONS_OPEN[application.value] = new_state
         save_application_state()
 
-        _ = await interaction.response.send_message(
-            f"{application.name} applications have been {state.value}.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = f"set {application.name} applications to {state.value}",
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -200,29 +221,36 @@ class ApplicationsCommands(
     )
     async def cancel(self, ctx : commands.Context[commands.Bot]) -> None:
         if ctx.guild is not None:
-            _ = await ctx.send(
-              f"{CONTESTED_EMOJI_ID} **Failed to cancel application!**"
-                "This command can only be used in DMs.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "cancel application",
+                subtitle = "This command can only be used in DMs.",
+                footer   = "Bad environment",
             )
             return
 
         if ctx.author.id not in ACTIVE_APPLICATIONS:
-            _ = await ctx.send(
-               f"{CONTESTED_EMOJI_ID} **Failed to cancel application!**"
-                "This command can only be used with an active application to cancel.",
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "cancel application",
+                subtitle = "This command can only be used with an active application to cancel.",
+                footer   = "Bad request",
             )
             return
 
         with contextlib.suppress(discord.Forbidden, discord.NotFound):
             await ctx.message.delete(delay=300)
 
-        await delete_application_messages(client=self.bot, user_id=ctx.author.id)
+        await delete_application_messages(client = self.bot, user_id = ctx.author.id)
 
-        confirm = await ctx.send(
-           f"{ACCEPTED_EMOJI_ID} **Successfully cancelled application.**\n"
-            "Your application has been cancelled and deleted.",
+        await send_custom_message(
+            ctx,
+            msg_type = "success",
+            title    = "cancelled application",
+            subtitle = "Your application has been cancelled and deleted.",
         )
-        await confirm.delete(delay=300)
 
 async def setup(bot: commands.Bot) -> None:
     cog = ApplicationsCommands(bot)

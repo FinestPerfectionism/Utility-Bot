@@ -3,14 +3,14 @@ import logging
 import discord
 from discord.ext import commands
 
+import core.responses as cr
 from constants import BOT_OWNER_ID
-from core.utils import send_major_error, send_minor_error
-from events.logging.errors import PermissionsError
+from core.responses import send_custom_message
 
 log = logging.getLogger("Utility Bot")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# /unload Logic
+# /bot-owner unload Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_unload(
@@ -20,31 +20,53 @@ async def run_unload(
     cogs        : list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        _ = await interaction.response.send_message(
-            view      = PermissionsError(),
-            ephemeral = True,
+        _ = await send_custom_message(
+            interaction,
+            msg_type = cr.error,
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions.",
         )
         return
 
     if cog not in cogs:
-        await send_minor_error(interaction, f"Cog `{cog}` not found.")
+        await send_custom_message(
+            interaction,
+            msg_type = cr.warning,
+            title    = "unload cog",
+            subtitle = f"Failed to unload cog `{cog}`: cog `{cog}` not found.",
+            footer   = "Bad argument.",
+        )
         return
 
     if cog not in bot.extensions:
-        await send_minor_error(interaction, f"Cog `{cog}` is already not loaded.")
+        await send_custom_message(
+            interaction,
+            msg_type = cr.warning,
+            title    =  "unload cog",
+            subtitle = f"Cog `{cog}` is not currently loaded.",
+            footer   =  "Bad argument.",
+        )
         return
 
     try:
         await bot.unload_extension(cog)
-        _ = await interaction.response.send_message(
-            f"Unloaded cog `{cog}`.",
-            ephemeral = True,
+        _ = await send_custom_message(
+            interaction,
+            msg_type = cr.success,
+            title    =  "unloaded cog",
+            subtitle = f"Unloaded cog `{cog}`.",
         )
         log.info("Unloaded cog %s", cog)
     except Exception as e:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = f"Failed to unload `{cog}`: {e}",
-            subtitle = "Invalid operation.",
+            msg_type = cr.error,
+            title    =  "unload cog",
+            subtitle = f"Failed to unload cog `{cog}`:\n"
+                        "```py\n"
+                       f"{e}"
+                        "```",
+            footer   =  "Bad operation.",
         )
         log.exception("Failed to unload cog %s", cog)

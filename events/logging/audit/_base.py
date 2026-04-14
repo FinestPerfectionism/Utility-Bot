@@ -30,7 +30,7 @@ class AuditQueue(commands.Cog):
 
         channel, embed = await self._queue.get()
         try:
-            _ = await channel.send(embed=embed)
+            _ = await channel.send(embed = embed)
         except discord.RateLimited as e:
             await asyncio.sleep(e.retry_after)
             await self._queue.put((channel, embed))

@@ -47,7 +47,7 @@ class MemberJoinHandler(commands.Cog):
                 with contextlib.suppress(discord.Forbidden):
                     await member.add_roles(
                         quarantine_role,
-                        reason="UB Quarantine: rejoined while quarantined",
+                        reason = "UB Quarantine: rejoined while quarantined",
                     )
 
 async def setup(bot: commands.Bot) -> None:

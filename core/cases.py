@@ -36,7 +36,7 @@ class CaseType(str, Enum):
     NOTE              = "note"
 
 class CasesManager:
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot         = bot
         self.data_file   = "cases_data.json"
         self.config_file = "cases_config.json"
@@ -321,7 +321,7 @@ class CasesManager:
             _ = embed.set_image(url=metadata["proof_url"])
 
         with contextlib.suppress(discord.Forbidden):
-            _ = await log_channel.send(embed=embed)
+            _ = await log_channel.send(embed = embed)
 
     def get_case_by_id(self, case_id : int) -> dict[str, Any] | None:
         self.data = self.load_data()

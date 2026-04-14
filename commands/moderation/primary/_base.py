@@ -125,7 +125,7 @@ class ModerationListPaginator(View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(label = "<", style = ButtonStyle.secondary)
     async def previous_page(
@@ -138,7 +138,7 @@ class ModerationListPaginator(View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(label = ">", style = ButtonStyle.secondary)
     async def next_page(
@@ -151,7 +151,7 @@ class ModerationListPaginator(View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(label = ">>", style = ButtonStyle.secondary)
     async def last_page(
@@ -163,7 +163,7 @@ class ModerationListPaginator(View):
         self.update_buttons()
         if self.delete_delay is not None:
             self._schedule_delete()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Moderation Base
@@ -428,8 +428,8 @@ class ModerationBase(commands.Cog):
 
         try:
             roles_to_remove = [role for role in moderator.roles if role.id != guild.default_role.id]
-            await moderator.remove_roles(*roles_to_remove, reason="UB Anti-Nuke: Exceeded rate limits")
-            await moderator.add_roles(quarantine_role, reason="UB Anti-Nuke: Exceeded rate limits")
+            await moderator.remove_roles(*roles_to_remove, reason = "UB Anti-Nuke: Exceeded rate limits")
+            await moderator.add_roles(quarantine_role, reason = "UB Anti-Nuke: Exceeded rate limits")
 
             bot_member = guild.get_member(self.bot.user.id)
             if bot_member:

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 from core.help import RoleConfig, help_description
 from core.permissions import is_director
-from core.utils import send_major_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Health Check
@@ -118,10 +118,10 @@ class HealthFixView(View):
 
     async def _apply_everyone_role(
         self,
-        guild: discord.Guild,
-        actor: discord.Member,
-        fixed: list[str],
-        failed: list[str],
+        guild  : discord.Guild,
+        actor  : discord.Member,
+        fixed  : list[str],
+        failed : list[str],
     ) -> None:
         try:
             everyone  = guild.default_role
@@ -139,12 +139,12 @@ class HealthFixView(View):
 
     async def _apply_everyone_channel(
         self,
-        guild: discord.Guild,
-        actor: discord.Member,
-        fixed: list[str],
-        failed: list[str],
+        guild  : discord.Guild,
+        actor  : discord.Member,
+        fixed  :list[str],
+        failed : list[str],
     ) -> None:
-        everyone      = guild.default_role
+        everyone       = guild.default_role
         channel_errors = 0
         for channel in guild.channels:
             if isinstance(channel, discord.CategoryChannel):
@@ -171,12 +171,12 @@ class HealthFixView(View):
 
     async def _apply_native_mod(
         self,
-        guild: discord.Guild,
-        actor: discord.Member,
-        fixed: list[str],
-        failed: list[str],
+        guild  : discord.Guild,
+        actor  : discord.Member,
+        fixed  : list[str],
+        failed : list[str],
     ) -> None:
-        role_errors: list[str] = []
+        role_errors : list[str] = []
         for role in guild.roles:
             if role.id in (guild.default_role.id, DIRECTORS_ROLE_ID):
                 continue
@@ -200,10 +200,10 @@ class HealthFixView(View):
 
     async def _apply_quarantine_role(
         self,
-        guild: discord.Guild,
-        actor: discord.Member,
-        fixed: list[str],
-        failed: list[str],
+        guild  : discord.Guild,
+        actor  : discord.Member,
+        fixed  : list[str],
+        failed : list[str],
     ) -> None:
         quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
         if not quarantine_role:
@@ -219,10 +219,10 @@ class HealthFixView(View):
 
     async def _apply_quarantine_channel(
         self,
-        guild: discord.Guild,
-        actor: discord.Member,
-        fixed: list[str],
-        failed: list[str],
+        guild  : discord.Guild,
+        actor  : discord.Member,
+        fixed  : list[str],
+        failed : list[str],
     ) -> None:
         quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
         if not quarantine_role:
@@ -249,10 +249,10 @@ class HealthFixView(View):
 
     async def _apply_fixes(
         self,
-        guild: discord.Guild,
-        actor: discord.Member,
-        fixed: list[str],
-        failed: list[str],
+        guild  : discord.Guild,
+        actor  : discord.Member,
+        fixed  : list[str],
+        failed : list[str],
     ) -> None:
         if "EVERYONE_ROLE_PERMS" in self.fixable:
             await self._apply_everyone_role(guild, actor, fixed, failed)
@@ -297,15 +297,15 @@ class HealthFixView(View):
                 await _save_json_file(config_file, config)
                 fixed.append("Enabled the anti-nuke system")
 
-    @discord.ui.button(label = "Fix Issues", style = ButtonStyle.danger, emoji=f"{STANDSTILL_EMOJI_ID}")
-    async def fix_button(self, interaction : discord.Interaction, button: Button[View]) -> None:
+    @discord.ui.button(label = "Fix Issues", style = ButtonStyle.danger, emoji = f"{STANDSTILL_EMOJI_ID}")
+    async def fix_button(self, interaction : discord.Interaction, button : Button[View]) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
 
         _ = await interaction.response.defer(ephemeral = True)
 
-        fixed:  list[str] = []
-        failed: list[str] = []
+        fixed  : list[str] = []
+        failed : list[str] = []
         guild = self.guild
 
         await self._apply_fixes(guild, interaction.user, fixed, failed)
@@ -355,10 +355,10 @@ class HealthFixView(View):
         )
 
         categories = [
-            ("Bot Configuration", ["BOT_ADMIN", "BOT_TOP"]),
-            ("Permission Safety", ["EVERYONE_ROLE_PERMS", "EVERYONE_CHANNEL_PERMS", "NATIVE_MOD_PERMS"]),
-            ("Quarantine Setup", ["QUARANTINE_EXISTS", "QUARANTINE_ROLE_CLEAN", "QUARANTINE_CHANNEL_DENY"]),
-            ("Server Security", ["VERIFICATION_LEVEL", "CONTENT_FILTER"]),
+            ("Bot Configuration",    ["BOT_ADMIN", "BOT_TOP"]),
+            ("Permission Safety",    ["EVERYONE_ROLE_PERMS", "EVERYONE_CHANNEL_PERMS", "NATIVE_MOD_PERMS"]),
+            ("Quarantine Setup",     ["QUARANTINE_EXISTS", "QUARANTINE_ROLE_CLEAN", "QUARANTINE_CHANNEL_DENY"]),
+            ("Server Security",      ["VERIFICATION_LEVEL", "CONTENT_FILTER"]),
             ("System Configuration", ["ANTINUKE_ENABLED", "ANTINUKE_LOG", "CASES_LOG"]),
         ]
 
@@ -371,10 +371,10 @@ class HealthFixView(View):
                 if not check:
                     continue
 
-                check_passed: bool       = bool(check.get("passed", False))
-                label:        str        = str(check.get("label", ""))
-                fail_label:   str        = str(check.get("fail_label", label))
-                detail:       str | None = check.get("detail")
+                check_passed : bool       = bool(check.get("passed", False))
+                label        : str        = str(check.get("label", ""))
+                fail_label   : str        = str(check.get("fail_label", label))
+                detail       : str | None = check.get("detail")
 
                 icon = f"{ACCEPTED_EMOJI_ID}" if check_passed else f"{DENIED_EMOJI_ID}"
                 text = label if check_passed else fail_label
@@ -397,8 +397,8 @@ class HealthFixView(View):
         if not remaining_fixable:
             _ = self.clear_items()
 
-        _ = await interaction.edit_original_response(embed=updated_embed, view = self)
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        _ = await interaction.edit_original_response(embed = updated_embed, view = self)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Health Commands
@@ -614,7 +614,7 @@ class HealthCommands(commands.Cog):
         desc      = "Directors only —— Views a server health report and runs automated fixes if any issues are found.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
     )
     async def health(self, interaction : discord.Interaction) -> None:
         actor = interaction.user
@@ -622,11 +622,12 @@ class HealthCommands(commands.Cog):
             return
 
         if not self.can_use(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to run a health check.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -696,7 +697,7 @@ class HealthCommands(commands.Cog):
         fixable = [c["id"] for c in checks if not c["passed"] and c["fixable"]]
         view    = HealthFixView(guild, fixable, self)
 
-        await interaction.followup.send(embed=embed, view = view, ephemeral = True)
+        await interaction.followup.send(embed = embed, view = view, ephemeral = True)
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(HealthCommands(cast("UtilityBot", bot)))

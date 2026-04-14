@@ -5,9 +5,15 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import ACCEPTED_EMOJI_ID, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, DIRECTORS_ROLE_ID
+from constants import (
+    ACCEPTED_EMOJI_ID,
+    COLOR_GREEN,
+    COLOR_ORANGE,
+    COLOR_RED,
+    DIRECTORS_ROLE_ID,
+)
 from core.help import ArgumentInfo, RoleConfig, help_description
-from core.utils import send_major_error, send_minor_error
+from core.responses import multi_custom_message, send_custom_message
 
 if TYPE_CHECKING:
     from events.systems.antinuke import AntiNukeSystem
@@ -44,11 +50,12 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to view anti-nuke settings.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -89,7 +96,7 @@ class AntiNukeCommands(commands.Cog):
             _ = embed.add_field(name = action_name, value = limit_text, inline = True)
 
         _ = embed.set_footer(text="Directors are exempt from all limits")
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
+        _ = await interaction.response.send_message(embed = embed, ephemeral = True)
 
     @antinuke_group.command(name = "toggle", description = "Enable or disable anti-nuke protection.")
     @help_description(
@@ -104,11 +111,12 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -124,7 +132,7 @@ class AntiNukeCommands(commands.Cog):
             timestamp   = datetime.now(UTC),
         )
 
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
+        _ = await interaction.response.send_message(embed = embed, ephemeral = True)
 
     @antinuke_group.command(name = "set-limit", description = "Configure limits for a specific action type.")
     @help_description(
@@ -155,32 +163,60 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
+
+        errors = multi_custom_message(interaction)
 
         if action not in self.config["limits"]:
-            await send_minor_error(
-                interaction,
-                f"Invalid action type. Valid types: {', '.join(self.config['limits'].keys())}",
+            _ = errors.add_field(
+                title     = "set limit",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = f"Invalid action type. Valid types: {', '.join(self.config['limits'].keys())}",
+                        footer   = "Bad argument",
+                    ),
+                ],
             )
-            return
 
         if hourly < 1:
-            await send_minor_error(interaction, "Hourly limit must be at least 1.")
-            return
+            _ = errors.add_field(
+                title     = "set limit",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = "Hourly limit must be at least 1.",
+                        footer   = "Bad argument",
+                    ),
+                ],
+            )
 
         if daily < hourly:
-            await send_minor_error(interaction, "Daily limit must be greater than or equal to hourly limit.")
+            _ = errors.add_field(
+                title     = "set limit",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = "Daily limit must be greater than or equal to hourly limit.",
+                        footer   = "Bad argument",
+                    ),
+                ],
+            )
+
+        if errors.has_errors():
+            await errors.send()
             return
 
         self.config["limits"][action] = {
             "hourly": hourly,
-            "daily": daily,
+            "daily" : daily,
         }
         self.save_config()
 
@@ -190,11 +226,11 @@ class AntiNukeCommands(commands.Cog):
             color       = COLOR_GREEN,
             timestamp   = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Action", value = action.replace("_", " ").title(), inline = True)
-        _ = embed.add_field(name = "Hourly Limit", value = str(hourly), inline = True)
-        _ = embed.add_field(name = "Daily Limit", value = str(daily), inline = True)
+        _ = embed.add_field(name = "Action",       value = action.replace("_", " ").title(), inline = True)
+        _ = embed.add_field(name = "Hourly Limit", value = str(hourly),                      inline = True)
+        _ = embed.add_field(name = "Daily Limit",  value = str(daily),                       inline = True)
 
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
+        _ = await interaction.response.send_message(embed = embed, ephemeral = True)
 
     @antinuke_setlimit.autocomplete("action")
     async def antinuke_setlimit_autocomplete(
@@ -230,20 +266,22 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to configure anti-nuke settings.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         self.config["log_channel_id"] = channel.id
         self.save_config()
 
-        _ = await interaction.response.send_message(
-            f"Anti-nuke alerts will now be sent to {channel.mention}.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = f"set anti-nuke alert channel to {channel.mention}",
         )
 
 async def setup(bot: commands.Bot) -> None:
@@ -252,6 +290,6 @@ async def setup(bot: commands.Bot) -> None:
         string = "AntiNukeSystem cog must be loaded before AntiNukeCommands"
         raise RuntimeError(string)
 
-    await bot.add_cog(AntiNukeCommands(
-        cast("AntiNukeSystem", antinuke_system),
-    ))
+    await bot.add_cog(
+        AntiNukeCommands(cast("AntiNukeSystem", antinuke_system)),
+    )

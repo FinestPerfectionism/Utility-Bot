@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from typing import Any
 
 import discord
 
-from constants import BOT_OWNER_ID, DENIED_EMOJI_ID, PERSONAL_LEAVE_ROLE_ID
+from constants import DENIED_EMOJI_ID, PERSONAL_LEAVE_ROLE_ID
 from core.permissions import is_staff
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 from ._base import (
     InterferenceConfirmView,
@@ -22,15 +24,17 @@ from ._base import (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_leave_remove(
-    data:        dict[str, Any],
+    data        : dict[str, Any],
     interaction : discord.Interaction,
-    target:      discord.Member | None,
+    target      : discord.Member | None,
 ) -> None:
     if not interaction.guild:
-        await send_minor_error(
+        await send_custom_message(
             interaction,
-            texts    = "This command can only be used in a server.",
-            subtitle = "Bad command environment.",
+            msg_type = "error",
+            title    = "use this command in a server",
+            subtitle = "This command can only be used in a server.",
+            footer   = "Bad environment",
         )
         return
 
@@ -43,7 +47,12 @@ async def run_leave_remove(
     target_member = target or invocator
 
     if target_member.bot:
-        await send_minor_error(interaction, "Bots cannot go on personal leave.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "remove personal leave from a bot",
+            footer   = "Bad argument",
+        )
         return
 
     is_self_removal  = target_member.id == invocator.id
@@ -51,41 +60,57 @@ async def run_leave_remove(
 
     if not (is_self_removal and is_self_on_leave):
         if not is_staff(invocator):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         if not is_staff(target_member):
-            await send_minor_error(interaction, "Target must exist within the Goobers Staff Team.")
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "remove personal leave from this member",
+                subtitle = "Target must exist within the Goobers Staff Team.",
+                footer   = "Bad argument",
+            )
             return
 
         if not can_manage_leave(invocator, target_member):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to remove personal leave from other Staff Members.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
     raw_entry = data.get(str(target_member.id))
     if not raw_entry:
-        await send_minor_error(interaction, "User is not on personal leave.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "remove personal leave from this member",
+            subtitle = "User is not on personal leave.",
+            footer   = "Bad argument",
+        )
         return
 
     entry = normalize_entry(raw_entry)
 
     personal_leave_role = interaction.guild.get_role(PERSONAL_LEAVE_ROLE_ID)
     if personal_leave_role is None:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title = "Error!",
-            texts="I could not fetch the Personal Leave role.",
-            subtitle = f"Invalid configuration. Contact an administrator and <@{BOT_OWNER_ID}>.",
+            msg_type          = "error",
+            title             = "fetch the Personal Leave role",
+            subtitle          = "I lack permissions to fetch the Personal Leave role: `PERSONAL_LEAVE_ROLE_ID`",
+            footer            = "Invalid IDs",
+            contact_bot_owner = True,
         )
         return
 
@@ -99,7 +124,7 @@ async def run_leave_remove(
             f"{target_member.mention} has a pending scheduled leave entry ({automation_desc}).\n\n"
             "Confirming will cancel this scheduled leave before it applies."
         )
-        view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
+        view         = InterferenceConfirmView(invocator_id = invocator.id, warning_text = warning_text)
         msg          = await interaction.followup.send(view = view, ephemeral = True)
         view.message = msg
         _ = await view.wait()
@@ -109,14 +134,25 @@ async def run_leave_remove(
 
         data.pop(str(target_member.id), None)
         save_data(data)
+
         who = "Your" if target_member.id == interaction.user.id else f"{target_member.mention}'s"
-        await interaction.followup.send(f"{who} scheduled leave has been cancelled.", ephemeral = True)
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = f"canceled {who} scheduled leave",
+        )
         return
 
     if not is_active:
         data.pop(str(target_member.id), None)
         save_data(data)
-        await send_minor_error(interaction, "User does not have the Personal Leave role.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "remove personal leave from this member",
+            subtitle = "User does not have the Personal Leave role.",
+            footer   = "Bad argument",
+        )
         return
 
     if entry_has_automation(entry):
@@ -126,7 +162,7 @@ async def run_leave_remove(
             f"{target_member.mention} currently has an active automation entry ({automation_desc}).\n\n"
             "Running `/leave remove` now will override and clear that automation. Proceed?"
         )
-        view         = InterferenceConfirmView(invocator_id=invocator.id, warning_text=warning_text)
+        view         = InterferenceConfirmView(invocator_id = invocator.id, warning_text = warning_text)
         msg          = await interaction.followup.send(view = view, ephemeral = True)
         view.message = msg
         _ = await view.wait()
@@ -134,19 +170,19 @@ async def run_leave_remove(
         if not view.confirmed:
             return
 
-    stored_name:     str       = entry.get("original_nick") or target_member.display_name
-    leave_type_str:  str       = entry.get("leave_type", LeaveType.none.value)
-    stored_role_ids: list[int] = entry.get("removed_roles", [])
+    stored_name     : str       = entry.get("original_nick") or target_member.display_name
+    leave_type_str  : str       = entry.get("leave_type", LeaveType.none.value)
+    stored_role_ids : list[int] = entry.get("removed_roles", [])
 
-    roles_to_restore: list[discord.Role] = []
+    roles_to_restore : list[discord.Role] = []
     if leave_type_str in (LeaveType.soft_clean.value, "soft_clean"):
         for role_id in stored_role_ids:
             restored_role = interaction.guild.get_role(role_id)
             if restored_role is not None:
                 roles_to_restore.append(restored_role)
 
-    nickname_error:      str | None = None
-    roles_restore_error: str | None = None
+    nickname_error      : str | None = None
+    roles_restore_error : str | None = None
 
     try:
         await target_member.remove_roles(personal_leave_role)
@@ -158,7 +194,7 @@ async def run_leave_remove(
 
         if current_nick in (expected_long, expected_short):
             try:
-                _ = await target_member.edit(nick=stored_name)
+                _ = await target_member.edit(nick = stored_name)
             except discord.Forbidden:
                 nickname_error = "forbidden"
             except discord.HTTPException:
@@ -176,59 +212,81 @@ async def run_leave_remove(
         save_data(data)
 
     except discord.Forbidden:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title = "Error!",
-            texts="I lack the necessary permissions to remove the Personal Leave role.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type          = "error",
+            title             = "remove the Personal Leave role",
+            subtitle          = "I lack permissions to remove roles: `Manage Roles`",
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
         )
         return
 
     except discord.HTTPException:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title = "Error!",
-            texts="A Discord API error occurred while removing the role. Please try again later.",
-            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
+            msg_type          = "error",
+            title             = "remove the Personal Leave role",
+            subtitle          = "A Discord API error occurred while removing the role. Please try again later.",
+            footer            = "Bad operation",
+            contact_bot_owner = True,
         )
         return
 
     if nickname_error == "forbidden":
         if target_member.id == interaction.guild.owner_id:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                "The role was removed, but I cannot change the server owner's nickname. Please change it back manually.",
+                msg_type = "warning",
+                title    = "restore the server owner's nickname",
+                subtitle = "The role was removed, but I cannot change the server owner's nickname. Please change it back manually.",
+                footer   = "Bad argument",
             )
         else:
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title = "Error!",
-                texts="The role was removed, but I lack the necessary permissions to restore the nickname. Please change it back manually.",
-                subtitle = "Invalid configuration. Contact the owner.",
+                msg_type          = "error",
+                title             = "restore the member's nickname",
+                subtitle          = "I lack permissions to edit members: `Manage Nicknames`",
+                footer            = "Bad configuration",
+                contact_bot_owner = True,
             )
     elif nickname_error == "http":
-        await send_minor_error(
+        await send_custom_message(
             interaction,
-            "The role was removed, but a Discord API error prevented the nickname from being restored.",
-            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
+            msg_type          = "error",
+            title             = "restore the member's nickname",
+            subtitle          = "The role was removed, but a Discord API error prevented the nickname from being restored.",
+            footer            = "Bad operation",
+            contact_bot_owner = True,
         )
     elif roles_restore_error == "forbidden":
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title = "Error!",
-            texts="Personal leave was removed and the nickname restored, but I lack the permissions to re-add the original staff roles. Please restore them manually.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type          = "error",
+            title             = "restore the member's staff roles",
+            subtitle          = "I lack permissions to add roles: `Manage Roles`",
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
         )
     elif roles_restore_error == "http":
-        await send_minor_error(
+        await send_custom_message(
             interaction,
-            "Personal leave was removed and the nickname restored, but a Discord API error prevented the original staff roles from being re-added.",
-            subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
+            msg_type          = "error",
+            title             = "restore the member's staff roles",
+            subtitle          = "Personal leave was removed and the nickname restored, but a Discord API error prevented the original staff roles from being re-added.",
+            footer            = "Bad operation",
+            contact_bot_owner = True,
         )
     elif target_member.id == interaction.user.id:
-        await interaction.followup.send("You have been removed from personal leave.", ephemeral = True)
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "removed you from personal leave",
+        )
     else:
-        await interaction.followup.send(
-            f"{target_member.mention} has been removed from personal leave.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = f"removed {target_member.mention} from personal leave",
         )

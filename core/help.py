@@ -271,7 +271,7 @@ def build_help_view(
         perm_text = (
             f"### {DENIED_EMOJI_ID} Unauthorized!\n"
              "-# Invalid permissions.\n"
-             "You lack the necessary permissions to run this command."
+             "You are not authorized to run this command."
         )
 
     else:
@@ -398,7 +398,7 @@ async def run_help(
 
         if lines:
             _ = await respond(
-                embed=discord.Embed(
+                embed = discord.Embed(
                     title       = "Available Commands",
                     description = "\n".join(lines),
                     color       = COLOR_BLURPLE,

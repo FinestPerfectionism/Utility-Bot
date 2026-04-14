@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
@@ -30,14 +32,14 @@ from constants import (
 from core.cases import CasesManager, CaseType
 from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import is_administrator, is_director, is_moderator, is_senior_moderator
-from core.utils import send_major_error, send_minor_error
+from core.responses import multi_custom_message, send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Classification Request View
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ClassificationView(View):
-    def __init__(self, case_id : int, cases_manager: "CasesManager") -> None:
+    def __init__(self, case_id : int, cases_manager: CasesManager) -> None:
         super().__init__(timeout = None)
         self.case_id       = case_id
         self.cases_manager = cases_manager
@@ -47,33 +49,37 @@ class ClassificationView(View):
 
     @discord.ui.button(
         label     =  "Accept",
-        style     =  ButtonStyle.success,
+        style     = ButtonStyle.success,
         emoji     = f"{ACCEPTED_EMOJI_ID}",
         custom_id =  "classify:accept:0",
     )
     async def accept_button(
         self,
         interaction : discord.Interaction,
-        _button     : Button["ClassificationView"],
+        _button     : Button[ClassificationView],
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
 
         if not is_director(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "Only Directors can accept classification requests.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         case = self.cases_manager.get_case_by_id(self.case_id)
         if not case or not case.get("pending_visibility"):
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                texts = f"Case **#{self.case_id}** has no pending visibility request.",
+                msg_type = "warning",
+                title    = "accept classification request",
+                subtitle = f"Case **#{self.case_id}** has no pending visibility request.",
+                footer   = "Bad argument",
             )
             return
 
@@ -107,26 +113,30 @@ class ClassificationView(View):
     async def deny_button(
         self,
         interaction : discord.Interaction,
-        _button     : Button["ClassificationView"],
+        _button     : Button[ClassificationView],
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
 
         if not is_director(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "Only Directors can deny classification requests.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         case = self.cases_manager.get_case_by_id(self.case_id)
         if not case or not case.get("pending_visibility"):
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                texts = f"Case **#{self.case_id}** has no pending visibility request.",
+                msg_type = "warning",
+                title    = "deny classification request",
+                subtitle = f"Case **#{self.case_id}** has no pending visibility request.",
+                footer   = "Bad argument",
             )
             return
 
@@ -159,9 +169,9 @@ class CaseQueryPaginator(View):
     def __init__(
         self,
         interaction : discord.Interaction,
-        cases:       list[dict[str, Any]],
-        title:       str,
-        color_map:   dict[str, discord.Color],
+        cases       : list[dict[str, Any]],
+        title       : str,
+        color_map   : dict[str, discord.Color],
     ) -> None:
         super().__init__(timeout = 120)
         self.interaction = interaction
@@ -220,8 +230,8 @@ class CaseQueryPaginator(View):
         return f"Case #{case['case_id']}", "\n".join(parts)
 
     def get_embed(self) -> discord.Embed:
-        start = self.page * self.per_page
-        end   = start + self.per_page
+        start      = self.page * self.per_page
+        end        = start + self.per_page
         page_cases = self.cases[start:end]
 
         embed = discord.Embed(
@@ -251,11 +261,11 @@ class CaseQueryPaginator(View):
     async def first_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseQueryPaginator"],
+        _button     : Button[CaseQueryPaginator],
     ) -> None:
         self.page = 0
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(
         label = "<",
@@ -264,12 +274,12 @@ class CaseQueryPaginator(View):
     async def previous_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseQueryPaginator"],
+        _button     : Button[CaseQueryPaginator],
     ) -> None:
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(
         label = ">",
@@ -278,12 +288,12 @@ class CaseQueryPaginator(View):
     async def next_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseQueryPaginator"],
+        _button     : Button[CaseQueryPaginator],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(
         label = ">>",
@@ -292,19 +302,19 @@ class CaseQueryPaginator(View):
     async def last_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseQueryPaginator"],
+        _button     : Button[CaseQueryPaginator],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
 
 class CaseViewPaginator(View):
     def __init__(
         self,
         interaction : discord.Interaction,
-        case_embed:  discord.Embed,
-        notes:       list[dict[str, Any]],
+        case_embed  : discord.Embed,
+        notes       : list[dict[str, Any]],
     ) -> None:
         super().__init__(timeout = 120)
         self.interaction = interaction
@@ -367,11 +377,11 @@ class CaseViewPaginator(View):
     async def first_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseViewPaginator"],
+        _button     : Button[CaseViewPaginator],
     ) -> None:
         self.page = 0
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(
         label = "<",
@@ -380,12 +390,12 @@ class CaseViewPaginator(View):
     async def previous_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseViewPaginator"],
+        _button     : Button[CaseViewPaginator],
     ) -> None:
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(
         label = ">",
@@ -394,12 +404,12 @@ class CaseViewPaginator(View):
     async def next_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseViewPaginator"],
+        _button     : Button[CaseViewPaginator],
     ) -> None:
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(
         label = ">>",
@@ -408,18 +418,18 @@ class CaseViewPaginator(View):
     async def last_page(
         self,
         interaction : discord.Interaction,
-        _button     : Button["CaseViewPaginator"],
+        _button     : Button[CaseViewPaginator],
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view = self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CasesCommands(commands.Cog):
-    def __init__(self, bot: "UtilityBot") -> None:
+    def __init__(self, bot: UtilityBot) -> None:
         self.bot = bot
 
         if not hasattr(bot, "cases_manager"):
@@ -610,35 +620,38 @@ class CasesCommands(commands.Cog):
         include_notes = "include-notes",
     )
     @help_description(
-        desc="Queries moderation cases visible to you. Restricted to moderators, senior moderators, administrators, and directors according to case visibility rules.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
-            "user": ArgumentInfo(required=False, description = "Optional target user filter."),
-            "moderator": ArgumentInfo(required=False, description = "Optional moderator filter."),
-            "type": ArgumentInfo(required=False, description = "Optional case type filter."),
-            "contains": ArgumentInfo(required=False, description = "Optional text search over reason or content."),
-            "after": ArgumentInfo(required=False, description = "Optional lower date bound in YYYY-MM-DD format."),
-            "before": ArgumentInfo(required=False, description = "Optional upper date bound in YYYY-MM-DD format."),
-            "include-notes": ArgumentInfo(required=False, description = "Whether note entries should be included."),
+        desc      = "Staff* only —— Queries moderation cases visible to you.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [
+            RoleConfig(role_id = MODERATORS_ROLE_ID),
+            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
+        ],
+        arguments = {
+            "user"          : ArgumentInfo(required = False, description = "Optional target user filter."),
+            "moderator"     : ArgumentInfo(required = False, description = "Optional moderator filter."),
+            "type"          : ArgumentInfo(required = False, description = "Optional case type filter."),
+            "contains"      : ArgumentInfo(required = False, description = "Optional text search over reason or content."),
+            "after"         : ArgumentInfo(required = False, description = "Optional lower date bound in YYYY-MM-DD format."),
+            "before"        : ArgumentInfo(required = False, description = "Optional upper date bound in YYYY-MM-DD format."),
+            "include-notes" : ArgumentInfo(required = False, description = "Whether note entries should be included."),
         },
     )
     async def cases_query(
         self,
-        interaction :   discord.Interaction,
-        user:          discord.User | None = None,
-        moderator:     discord.User | None = None,
-        case_type:     Literal[
+        interaction : discord.Interaction,
+        user        : discord.User | None = None,
+        moderator   : discord.User | None = None,
+        case_type   : Literal[
             "ban", "unban", "kick",
             "timeout", "untimeout",
             "quarantine_add", "quarantine_remove",
             "lockdown_add", "lockdown_remove",
             "purge", "note",
-        ] | None = None,
-        contains:      str | None = None,
-        after:         str | None = None,
-        before:        str | None = None,
+        ]                          | None = None,
+        contains    : str          | None = None,
+        after       : str          | None = None,
+        before      : str          | None = None,
         *,
         include_notes: bool       = True,
     ) -> None:
@@ -647,11 +660,12 @@ class CasesCommands(commands.Cog):
             return
 
         if not self.can_view(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to query cases.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -659,26 +673,42 @@ class CasesCommands(commands.Cog):
         if not guild:
             return
 
+        errors = multi_custom_message(interaction)
+
         after_dt:  datetime | None = None
         before_dt: datetime | None = None
 
         if after:
             after_dt = self._parse_dt(after)
             if after_dt is None:
-                await send_minor_error(
-                    interaction,
-                    texts = "Invalid `after` date. Use ISO format: `YYYY-MM-DD`.",
+                _ = errors.add_field(
+                    title     = "query cases",
+                    msg_type  = "warning",
+                    subfields = [
+                        errors.add_subfield(
+                            subtitle = "Invalid `after` date. Use ISO format: `YYYY-MM-DD`.",
+                            footer   = "Bad argument",
+                        ),
+                    ],
                 )
-                return
 
         if before:
             before_dt = self._parse_dt(before)
             if before_dt is None:
-                await send_minor_error(
-                    interaction,
-                    texts = "Invalid `before` date. Use ISO format: `YYYY-MM-DD`.",
+                _ = errors.add_field(
+                    title     = "query cases",
+                    msg_type  = "warning",
+                    subfields = [
+                        errors.add_subfield(
+                            subtitle = "Invalid `before` date. Use ISO format: `YYYY-MM-DD`.",
+                            footer   = "Bad argument",
+                        ),
+                    ],
                 )
-                return
+
+        if errors.has_errors():
+            await errors.send()
+            return
 
         _ = await interaction.response.defer(ephemeral = True)
 
@@ -710,7 +740,7 @@ class CasesCommands(commands.Cog):
             description = f"No cases found{' for ' + filter_text if filter_text else ''}."
 
             embed = discord.Embed(description = description, color = COLOR_GREEN)
-            await interaction.followup.send(embed=embed, ephemeral = True)
+            await interaction.followup.send(embed = embed, ephemeral = True)
             return
 
         title_parts: list[str] = []
@@ -724,21 +754,24 @@ class CasesCommands(commands.Cog):
         title = "Cases " + " ".join(title_parts) if title_parts else "All Cases"
 
         view = CaseQueryPaginator(interaction, cases, title, self.COLOR_MAP)
-        await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)
+        await interaction.followup.send(embed = view.get_embed(), view = view, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases view Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @cases_group.command(name = "view", description = "View a single case with its related notes.")
-    @app_commands.describe(case_id="The case ID to view.")
-    @app_commands.rename(case_id="case-id")
+    @app_commands.describe(case_id = "The case ID to view.")
+    @app_commands.rename(case_id = "case-id")
     @help_description(
-        desc="Views a single case and any visible related notes.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={"case-id": ArgumentInfo(description = "Case ID to view.")},
+        desc      = "Staff* only —— Views a single case and any visible related notes.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [
+            RoleConfig(role_id = MODERATORS_ROLE_ID),
+            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
+        ],
+        arguments = {"case-id" : ArgumentInfo(description = "Case ID to view.")},
     )
     async def cases_view(
         self,
@@ -750,11 +783,12 @@ class CasesCommands(commands.Cog):
             return
 
         if not self.can_view(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to view cases.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -767,18 +801,22 @@ class CasesCommands(commands.Cog):
         case = self.cases_manager.get_case_by_id(case_id)
 
         if not case or case["guild_id"] != guild.id:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                texts = f"Case **#{case_id}** was not found.",
+                msg_type = "warning",
+                title    = "view case",
+                subtitle = f"Case **#{case_id}** was not found.",
+                footer   = "Bad argument",
             )
             return
 
         if not self._can_see_case(actor, case):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    =  "Unauthorized!",
-                texts    = f"You lack the necessary permissions to view Case **#{case_id}**.",
-                subtitle =  "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -788,11 +826,11 @@ class CasesCommands(commands.Cog):
         visible_notes = [n for n in notes if self._can_see_case(actor, n)]
 
         if not visible_notes:
-            await interaction.followup.send(embed=embed, ephemeral = True)
+            await interaction.followup.send(embed = embed, ephemeral = True)
             return
 
         view = CaseViewPaginator(interaction, embed, visible_notes)
-        await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)
+        await interaction.followup.send(embed = view.get_embed(), view = view, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases add-note Command
@@ -805,26 +843,32 @@ class CasesCommands(commands.Cog):
         case_id    = "The case ID to attach the note to.",
         visibility = "Visibility restriction level.",
     )
-    @app_commands.rename(case_id="case-id")
+    @app_commands.rename(case_id = "case-id")
     @help_description(
-        desc="Adds a note to a user or an existing case.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
-            "content": ArgumentInfo(description = "Note content."),
-            "user": ArgumentInfo(required=False, description = "Optional user to attach the note to."),
-            "case-id": ArgumentInfo(required=False, description = "Optional case ID to attach the note to."),
-            "visibility": ArgumentInfo(required=False, description = "Visibility restriction level.", choices=["moderators", "senior_moderators", "directors"]),
+        desc      = "Staff* only —— Adds a note to a user or an existing case.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [
+            RoleConfig(role_id = MODERATORS_ROLE_ID),
+            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
+        ],
+        arguments = {
+            "content"    : ArgumentInfo(description = "Note content."),
+            "user"       : ArgumentInfo(required = False, description = "Optional user to attach the note to."),
+            "case-id"    : ArgumentInfo(required = False, description = "Optional case ID to attach the note to."),
+            "visibility" : ArgumentInfo(required = False, description = "Visibility restriction level.", choices = [
+                    "moderators", "senior_moderators", "directors",
+                ],
+            ),
         },
     )
     async def cases_add_note(
         self,
         interaction : discord.Interaction,
-        content:     str,
-        user:        discord.User | None = None,
-        case_id:     int          | None = None,
-        visibility:  Literal[
+        content     : str,
+        user        : discord.User | None = None,
+        case_id     : int          | None = None,
+        visibility  : Literal[
             "moderators", "senior_moderators", "directors",
         ] = "moderators",
     ) -> None:
@@ -833,18 +877,12 @@ class CasesCommands(commands.Cog):
             return
 
         if not self.can_view(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to add notes.",
-                subtitle = "Invalid permissions.",
-            )
-            return
-
-        if user is None and case_id is None:
-            await send_minor_error(
-                interaction,
-                texts = "You must provide either a user or a case ID.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -852,11 +890,34 @@ class CasesCommands(commands.Cog):
         if not guild:
             return
 
-        if visibility == "directors" and not is_director(actor):
-            await send_minor_error(
-                interaction,
-                texts = "Only Directors can create director-level notes.",
+        errors = multi_custom_message(interaction)
+
+        if user is None and case_id is None:
+            _ = errors.add_field(
+                title     = "add note",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = "You must provide either a user or a case ID.",
+                        footer   = "Bad argument",
+                    ),
+                ],
             )
+
+        if visibility == "directors" and not is_director(actor):
+            _ = errors.add_field(
+                title     = "add note",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = "Only Directors can create director-level notes.",
+                        footer   = "No permissions",
+                    ),
+                ],
+            )
+
+        if errors.has_errors():
+            await errors.send()
             return
 
         new_case_id = await self.cases_manager.add_note(
@@ -869,17 +930,16 @@ class CasesCommands(commands.Cog):
         )
 
         description = (
-            f"Note **#{new_case_id}** added for {user.mention}."
+            f"added #{new_case_id} note for {user.mention}."
             if user else
-            f"Note **#{new_case_id}** added to Case **#{case_id}**."
+            f"added #{new_case_id} note to Case **#{case_id}**."
         )
 
-        embed = discord.Embed(
-            description = description,
-            color       = COLOR_GREEN,
-            timestamp   = datetime.now(UTC),
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = description,
         )
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases edit-entry Command
@@ -890,15 +950,18 @@ class CasesCommands(commands.Cog):
         case_id = "The case ID of the note to edit.",
         content = "The updated note content.",
     )
-    @app_commands.rename(case_id="case-id")
+    @app_commands.rename(case_id = "case-id")
     @help_description(
-        desc="Edits a note entry.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
-            "case-id": ArgumentInfo(description = "Note case ID to edit."),
-            "content": ArgumentInfo(description = "Replacement note content."),
+        desc      = "Staff* only —— Edits a note entry.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [
+            RoleConfig(role_id = MODERATORS_ROLE_ID),
+            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
+        ],
+        arguments = {
+            "case-id" : ArgumentInfo(description = "Note case ID to edit."),
+            "content" : ArgumentInfo(description = "Replacement note content."),
         },
     )
     async def cases_edit_entry(
@@ -917,48 +980,67 @@ class CasesCommands(commands.Cog):
 
         case = self.cases_manager.get_case_by_id(case_id)
 
+        errors = multi_custom_message(interaction)
+
         if not case or case["guild_id"] != guild.id:
-            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
-            return
-
-        if case["type"] != CaseType.NOTE.value:
-            await send_minor_error(
-                interaction,
-                texts = f"Case **#{case_id}** is not a note entry and cannot be edited here.",
+            _ = errors.add_field(
+                title     = "edit note entry",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = f"Case **#{case_id}** was not found.",
+                        footer   = "Bad argument",
+                    ),
+                ],
             )
-            return
-
-        if not self._can_edit_entry(actor, case):
-            await send_major_error(
-                interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to edit this note.",
-                subtitle = "Invalid permissions.",
+        elif case["type"] != CaseType.NOTE.value:
+            _ = errors.add_field(
+                title     = "edit note entry",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = f"Case **#{case_id}** is not a note entry and cannot be edited here.",
+                        footer   = "Bad argument",
+                    ),
+                ],
             )
+        elif not self._can_edit_entry(actor, case):
+            _ = errors.add_field(
+                title     = "run command",
+                msg_type  = "error",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = "You are not authorized to run this command.",
+                        footer   = "No permissions",
+                    ),
+                ],
+            )
+
+        if errors.has_errors():
+            await errors.send()
             return
 
         _ = self.cases_manager.edit_case(case_id, content)
 
-        embed = discord.Embed(
-            description = f"Note **#{case_id}** has been updated.",
-            color       = COLOR_GREEN,
-            timestamp   = datetime.now(UTC),
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = f"updated #{case_id}",
         )
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases delete-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @cases_group.command(name = "delete-entry", description = "Delete a case entry.")
-    @app_commands.describe(case_id="The case ID to delete.")
-    @app_commands.rename(case_id="case-id")
+    @app_commands.describe(case_id = "The case ID to delete.")
+    @app_commands.rename(case_id = "case-id")
     @help_description(
-        desc="Directors only —— Delete a case entry. Use strictly for deleting test cases.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={"case-id": ArgumentInfo(description = "Case ID to delete.")},
+        desc      = "Directors only —— Delete a case entry. Use strictly for deleting test cases.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
+        arguments = {"case-id" : ArgumentInfo(description = "Case ID to delete.")},
     )
     async def cases_delete_entry(
         self,
@@ -970,11 +1052,12 @@ class CasesCommands(commands.Cog):
             return
 
         if not is_director(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "Only Directors can delete case entries.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -985,17 +1068,22 @@ class CasesCommands(commands.Cog):
         case = self.cases_manager.get_case_by_id(case_id)
 
         if not case or case["guild_id"] != guild.id:
-            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "delete case entry",
+                subtitle = f"Case **#{case_id}** was not found.",
+                footer   = "Bad argument",
+            )
             return
 
         _ = self.cases_manager.delete_case(case_id)
 
-        embed = discord.Embed(
-            description = f"Case **#{case_id}** has been deleted.",
-            color       = COLOR_GREEN,
-            timestamp   = datetime.now(UTC),
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = f"deleted #{case_id}",
         )
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases classify Command
@@ -1011,13 +1099,16 @@ class CasesCommands(commands.Cog):
         visibility = "level",
     )
     @help_description(
-        desc="Changes or requests a change to a case's visibility classification.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={
-            "case-id": ArgumentInfo(description = "Case ID to classify."),
-            "level": ArgumentInfo(description = "Requested visibility level.", choices=["moderators", "senior_moderators", "directors"]),
+        desc      = "Staff* only —— Changes or requests a change to a case's visibility classification.",
+        prefix    = False,
+        slash     = True,
+        run_roles = [
+            RoleConfig(role_id = MODERATORS_ROLE_ID),
+            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
+        ],
+        arguments = {
+            "case-id" : ArgumentInfo(description = "Case ID to classify."),
+            "level"   : ArgumentInfo(description = "Requested visibility level.", choices=["moderators", "senior_moderators", "directors"]),
         },
     )
     async def cases_classify(
@@ -1031,11 +1122,12 @@ class CasesCommands(commands.Cog):
             return
 
         if not self.can_view(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to classify cases.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -1046,42 +1138,67 @@ class CasesCommands(commands.Cog):
         case = self.cases_manager.get_case_by_id(case_id)
 
         if not case or case["guild_id"] != guild.id:
-            await send_minor_error(interaction, texts=f"Case **#{case_id}** was not found.")
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "classify case",
+                subtitle = f"Case **#{case_id}** was not found.",
+                footer   = "Bad argument",
+            )
             return
 
         if is_director(actor):
             label = visibility.replace("_", " ").title()
             _ = self.cases_manager.set_visibility(case_id, visibility)
-            embed = discord.Embed(
-                description = f"Case **#{case_id}** visibility set to **{label}**.",
-                color       = COLOR_GREEN,
-                timestamp   = datetime.now(UTC),
+            await send_custom_message(
+                interaction,
+                msg_type = "success",
+                title    = f"set #{case_id} visibility to {label}",
             )
-            _ = await interaction.response.send_message(embed=embed, ephemeral = True)
             return
 
-        if visibility == "directors" and not is_director(actor):
-            await send_minor_error(
-                interaction,
-                texts = "Only Directors can apply or request director-level classification.",
+        errors = multi_custom_message(interaction)
+
+        if visibility == "directors":
+            _ = errors.add_field(
+                title     = "classify case",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = "Only Directors can apply or request director-level classification.",
+                        footer   = "No permissions",
+                    ),
+                ],
             )
-            return
 
         if case.get("pending_visibility"):
-            await send_minor_error(
-                interaction,
-                texts = (
-                   f"Case **#{case_id}** already has a pending classification request. "
-                    "It must be resolved before a new one can be submitted."
-                ),
+            _ = errors.add_field(
+                title     = "classify case",
+                msg_type  = "warning",
+                subfields = [
+                    errors.add_subfield(
+                        subtitle = (
+                            f"Case **#{case_id}** already has a pending classification request. "
+                            "It must be resolved before a new one can be submitted."
+                        ),
+                        footer   = "Bad request",
+                    ),
+                ],
             )
+
+        if errors.has_errors():
+            await errors.send()
             return
 
         forum_channel = self.bot.get_channel(DIRECTOR_TASKS_CHANNEL_ID)
         if not isinstance(forum_channel, discord.ForumChannel):
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                texts = "The Director tasks channel could not be found or is not a forum.",
+                msg_type          = "error",
+                title             = "classify case",
+                subtitle          = "The Director tasks channel could not be found or is not a forum.",
+                footer            = "Invalid IDs",
+                contact_bot_owner = True,
             )
             return
 
@@ -1104,53 +1221,54 @@ class CasesCommands(commands.Cog):
 
         self.bot.add_view(view, message_id = thread_with_message.message.id)
 
-        embed = discord.Embed(
-            description = (
-                f"Visibility request submitted for Case **#{case_id}**.\n"
-                f"A Director must approve the **{label}** restriction."
+        await send_custom_message(
+            interaction,
+            msg_type = "information",
+            title    = (
+                f"Visibility request submitted for Case **#{case_id}**. "
+                f"A Director must approve the **{label}** restriction"
             ),
-            color     = COLOR_YELLOW,
-            timestamp = datetime.now(UTC),
         )
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases config Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @cases_group.command(name = "config", description = "Configure the cases log channel.")
-    @app_commands.describe(channel="The channel where case logs will be sent.")
+    @app_commands.describe(channel = "The channel where case logs will be sent.")
     @help_description(
-        desc="Configures the channel used for case logs. Restricted to administrators and directors.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id=ADMINISTRATORS_ROLE_ID), RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments={"channel": ArgumentInfo(description = "Text channel that should receive case logs.")},
+        desc      = "Directors only —— Configures the channel used for case logs",
+        prefix    = False,
+        slash     = True,
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
+        arguments = {"channel" : ArgumentInfo(description = "Text channel that should receive case logs.")},
     )
     async def cases_config(
         self,
         interaction : discord.Interaction,
-        channel:     discord.TextChannel,
+        channel     : discord.TextChannel,
     ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
 
         if not self.can_configure(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to configure cases.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         self.cases_manager.config["log_channel_id"] = channel.id
         self.cases_manager.save_config()
 
-        _ = await interaction.response.send_message(
-            f"Case logs will now be sent to {channel.mention}.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = f"set case log channel to {channel.mention}",
         )
 
 async def setup(bot: commands.Bot) -> None:

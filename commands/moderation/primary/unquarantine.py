@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+)
 
 import discord
 
@@ -10,7 +13,7 @@ if TYPE_CHECKING:
 
 from commands.moderation.cases import CaseType
 from constants import COLOR_GREEN, CONTESTED_EMOJI_ID
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation unquarantine Logic
@@ -28,20 +31,23 @@ async def run_unquarantine(
         return
 
     if not base.can_reverse_actions(actor):
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title    = "Unauthorized!",
-            texts    = "You lack the necessary permissions to remove members from quarantine.",
-            subtitle = "No permissions.",
+            msg_type = "error",
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions",
         )
         return
 
     guild = interaction.guild
     if not guild:
-        await send_minor_error(
+        await send_custom_message(
             interaction,
-            texts    = "This command can only be used in a server.",
-            subtitle = "Bad command environment.",
+            msg_type = "warning",
+            title    = "unquarantine member",
+            subtitle = "This command can only be used in a server.",
+            footer   = "Bad environment",
         )
         return
 
@@ -50,7 +56,13 @@ async def run_unquarantine(
     has_quarantine  = quarantine_role in member.roles if quarantine_role else False
 
     if not in_json and not has_quarantine:
-        await send_minor_error(interaction, f"{member.mention} is already not quarantined.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "unquarantine member",
+            subtitle = f"{member.mention} is already not quarantined.",
+            footer   = "Bad argument",
+        )
         return
 
     _ = await interaction.response.defer(ephemeral = True)
@@ -60,7 +72,7 @@ async def run_unquarantine(
 
     try:
         if quarantine_role and quarantine_role in member.roles:
-            await member.remove_roles(quarantine_role, reason=f"Unquarantined by {actor}: {reason}")
+            await member.remove_roles(quarantine_role, reason = f"Unquarantined by {actor}: {reason}")
 
         roles_to_add:    list[discord.Role] = []
         roles_not_found: list[int]          = []
@@ -75,7 +87,7 @@ async def run_unquarantine(
                 roles_not_found.append(role_id)
 
         if roles_to_add:
-            await member.add_roles(*roles_to_add, reason=f"Unquarantined by {actor}: {reason}")
+            await member.add_roles(*roles_to_add, reason = f"Unquarantined by {actor}: {reason}")
 
         quarantined = base.ensure_data_section("quarantined")
         if str(member.id) in quarantined:
@@ -100,10 +112,10 @@ async def run_unquarantine(
             color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",        value = member.mention,         inline = True)
-        _ = embed.add_field(name = "Director",      value = actor.mention,          inline = True)
-        _ = embed.add_field(name = "Roles Restored", value = str(len(roles_to_add)), inline = True)
-        _ = embed.add_field(name = "Reason",        value = reason,                 inline = False)
+        _ = embed.add_field(name = "Member",         value = member.mention,          inline = True)
+        _ = embed.add_field(name = "Director",       value = actor.mention,           inline = True)
+        _ = embed.add_field(name = "Roles Restored", value = str(len(roles_to_add)),  inline = True)
+        _ = embed.add_field(name = "Reason",         value = reason,                  inline = False)
 
         if roles_not_found:
             _ = embed.add_field(
@@ -113,13 +125,16 @@ async def run_unquarantine(
             )
 
         if proof:
-            _ = embed.set_image(url=proof.url)
+            _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
     except discord.Forbidden:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = "I lack the necessary permissions to unquarantine this member.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type          = "error",
+            title             = "unquarantine members",
+            subtitle          = "I lack permissions to manage member roles: `Manage Roles`",
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
         )

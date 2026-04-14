@@ -14,7 +14,6 @@ from typing_extensions import override
 
 from constants import (
     ADMINISTRATORS_ROLE_ID,
-    BOT_OWNER_ID,
     COLOR_RED,
     DIRECTORS_ROLE_ID,
     JUNIOR_ADMINISTRATORS_ROLE_ID,
@@ -28,7 +27,7 @@ from constants import (
     SUPPORTING_DIRECTORS_ROLE_ID,
 )
 from core.permissions import is_director, is_staff
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Leave Base
@@ -36,7 +35,7 @@ from core.utils import send_major_error, send_minor_error
 
 DATA_FILE = "leave_data.json"
 
-ALL_STAFF_ROLE_IDS: list[int] = [
+ALL_STAFF_ROLE_IDS : list[int] = [
     STAFF_ROLE_ID,
     SENIOR_MODERATORS_ROLE_ID,
     JUNIOR_MODERATORS_ROLE_ID,
@@ -83,13 +82,13 @@ def can_manage_leave(invocator: discord.Member, target: discord.Member) -> bool:
 def normalize_entry(raw: str | dict[str, Any]) -> dict[str, Any]:
     if isinstance(raw, str):
         return {
-            "original_nick": raw,
-            "leave_type":    LeaveType.none.value,
-            "removed_roles": [],
-            "begin_date":    None,
-            "end_date":      None,
-            "timer_end":     None,
-            "timer_seconds": None,
+            "original_nick" : raw,
+            "leave_type"    : LeaveType.none.value,
+            "removed_roles" : [],
+            "begin_date"    : None,
+            "end_date"      : None,
+            "timer_end"     : None,
+            "timer_seconds" : None,
         }
     entry = dict(raw)
     _ = entry.setdefault("original_nick", None)
@@ -125,7 +124,7 @@ def describe_automation(entry: dict[str, Any]) -> str:
         parts.append(f"scheduled to **end** on `{entry['end_date']}`")
     if entry.get("timer_end"):
         ts    = cast("float", entry["timer_end"])
-        dt    = datetime.fromtimestamp(ts, tz=UTC)
+        dt    = datetime.fromtimestamp(ts, tz = UTC)
         stamp = discord.utils.format_dt(dt, style = "f")
         parts.append(f"on a **timer** expiring {stamp}")
     return ", ".join(parts) if parts else "unknown automation"
@@ -143,10 +142,10 @@ def build_leave_nick(name: str) -> str | None:
 class HardCleanConfirmView(LayoutView):
     def __init__(
         self,
-        invocator_id:    int,
-        target:          discord.Member,
-        roles_to_remove: list[discord.Role],
-        warning_text:    str,
+        invocator_id    : int,
+        target          : discord.Member,
+        roles_to_remove : list[discord.Role],
+        warning_text    : str,
     ) -> None:
         super().__init__(timeout = 60)
         self.invocator_id    = invocator_id
@@ -179,27 +178,37 @@ class HardCleanConfirmView(LayoutView):
 
     async def _confirm_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "confirm hard clean",
+                subtitle = "This confirmation is not for you.",
+                footer   = "Bad request",
+            )
             return
 
         self.stop()
 
         try:
-            await self.target.remove_roles(*self.roles_to_remove, reason=f"Hard Clean leave by {interaction.user.display_name}")
+            await self.target.remove_roles(*self.roles_to_remove, reason = f"Hard Clean leave by {interaction.user.display_name}")
         except discord.Forbidden:
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title = "Error!",
-                texts=f"I lack the permissions to remove roles from {self.target.mention}.",
-                subtitle = "Invalid configuration. Contact the owner.",
+                msg_type          = "error",
+                title             = "hard clean member",
+                subtitle          = f"I lack permissions to remove roles from {self.target.mention}: `Manage Roles`",
+                footer            = "Bad configuration",
+                contact_bot_owner = True,
             )
             return
         except discord.HTTPException:
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title = "Error!",
-                texts="A Discord API error occurred.",
-                subtitle = f"Invalid operation. Contact <@{BOT_OWNER_ID}>.",
+                msg_type          = "error",
+                title             = "hard clean member",
+                subtitle          = "A Discord API error occurred.",
+                footer            = "Bad operation",
+                contact_bot_owner = True,
             )
             return
 
@@ -209,7 +218,13 @@ class HardCleanConfirmView(LayoutView):
 
     async def _cancel_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "confirm hard clean",
+                subtitle = "This confirmation is not for you.",
+                footer   = "Bad request",
+            )
             return
 
         self._disable_buttons()
@@ -230,12 +245,12 @@ class InterferenceConfirmView(LayoutView):
     def __init__(
         self,
         invocator_id : int,
-        warning_text: str,
+        warning_text : str,
     ) -> None:
         super().__init__(timeout = 60)
         self.invocator_id = invocator_id
         self.confirmed    = False
-        self.message: discord.WebhookMessage | None = None
+        self.message : discord.WebhookMessage | None = None
 
         self._confirm_button : Button[InterferenceConfirmView] = Button(label = "Proceed Anyway", style = ButtonStyle.danger)
         self._confirm_button.callback = self._confirm_callback
@@ -262,7 +277,13 @@ class InterferenceConfirmView(LayoutView):
 
     async def _confirm_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "confirm action",
+                subtitle = "This confirmation is not for you.",
+                footer   = "Bad request",
+            )
             return
 
         self.confirmed = True
@@ -273,7 +294,13 @@ class InterferenceConfirmView(LayoutView):
 
     async def _cancel_callback(self, interaction : discord.Interaction) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_minor_error(interaction, "This confirmation is not for you.", subtitle = "Invalid operation.")
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "confirm action",
+                subtitle = "This confirmation is not for you.",
+                footer   = "Bad request",
+            )
             return
 
         self._disable_buttons()

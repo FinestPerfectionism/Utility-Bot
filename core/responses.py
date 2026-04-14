@@ -5,8 +5,8 @@ from typing import Literal, cast, overload
 import discord
 from discord import Interaction
 from discord.ext import commands
-from discord.ext.commands import Context # type: ignore[reportMissingModuleSource]
-from discord.ui import Separator, TextDisplay, LayoutView
+from discord.ext.commands import Context  # type: ignore[reportMissingModuleSource]
+from discord.ui import LayoutView, Separator, TextDisplay
 
 from constants import (
     ACCEPTED_EMOJI_ID,
@@ -17,16 +17,17 @@ from constants import (
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Types
+# Response Management
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+success     : Literal["success"]     = "success"
+information : Literal["information"] = "information"
+warning     : Literal["warning"]     = "warning"
+error       : Literal["error"]       = "error"
 
 MessageType      = Literal["success", "warning", "error", "information"]
 SubMessageType   = Literal["warning", "error"]
 CtxOrInteraction = Context[commands.Bot] | Interaction[discord.Client]
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Internal data classes
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class _Subfield:
     def __init__(
@@ -52,10 +53,6 @@ class _Field:
         self.msg_type  = msg_type
         self.subfields = subfields
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Helpers
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
 def _emoji(msg_type : MessageType | SubMessageType) -> str:
     match msg_type:
         case "success":
@@ -79,33 +76,38 @@ def _type_prefix(msg_type : MessageType | SubMessageType) -> str:
             return "Failed to"
 
 def _build_header(msg_type : MessageType | SubMessageType, title : str) -> str:
-    prefix = _type_prefix(msg_type)
+    prefix      = _type_prefix(msg_type)
+    punctuation = "!" if msg_type in ("warning", "error") else "."
+    clean_title = title.rstrip(".!") + punctuation
+
     if prefix:
-        return f"{_emoji(msg_type)} **{prefix} {title}**"
-    return f"{_emoji(msg_type)} **{title}**"
+        return f"{_emoji(msg_type)} **{prefix} {clean_title}**"
+    return f"{_emoji(msg_type)} **{clean_title}**"
 
 def _build_footer_text(footer : str | None, *, contact_bot_owner : bool) -> str | None:
     if footer is None and not contact_bot_owner:
         return None
+
     base = footer or ""
+
     if contact_bot_owner:
         if base:
-            return f"{base} Contact <@{BOT_OWNER_ID}>."
+            return f"{base.rstrip('. ')}. Contact <@{BOT_OWNER_ID}>."
         return f"Contact <@{BOT_OWNER_ID}>."
-    return base
+    return f"{base.rstrip('. ')}."
 
-async def _send(target : CtxOrInteraction, view : LayoutView) -> None:
+async def _send(target : CtxOrInteraction, view : LayoutView, *, ephemeral : bool = True) -> None:
     if isinstance(target, Interaction):
         if target.response.is_done():
-            await target.followup.send(view = view)
+            await target.followup.send(view = view, ephemeral = ephemeral)
         else:
-            _ = await target.response.send_message(view = view)
+            _ = await target.response.send_message(view = view, ephemeral = ephemeral)
     else:
-        _ = await target.send(view=view)
+        _ = await target.send(view = view)
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# send_custom_message
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# send_custom_message Response
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 @overload
 async def send_custom_message(
@@ -115,6 +117,7 @@ async def send_custom_message(
     title    : str,
     subtitle : str | None = ...,
     footer   : str | None = ...,
+    ephemeral: bool       = ...,
 ) -> None: ...
 
 @overload
@@ -126,6 +129,7 @@ async def send_custom_message(
     subtitle          : str | None = ...,
     footer            : str | None = ...,
     contact_bot_owner : bool       = ...,
+    ephemeral         : bool       = ...,
 ) -> None: ...
 
 async def send_custom_message(
@@ -136,6 +140,7 @@ async def send_custom_message(
     subtitle          : str | None = None,
     footer            : str | None = None,
     contact_bot_owner : bool       = False,
+    ephemeral         : bool       = True,
 ) -> None:
     allow_contact = contact_bot_owner if msg_type in ("warning", "error") else False
 
@@ -151,16 +156,21 @@ async def send_custom_message(
     class _SingleView(LayoutView):
         text : TextDisplay[_SingleView] = TextDisplay(content = content)
 
-    await _send(target, _SingleView())
+    await _send(target, _SingleView(), ephemeral = ephemeral)
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# MultiCustomMessage
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# multi_custom_message Response
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-class MultiCustomMessage:
+class _MultiCustomMessage:
     def __init__(self, target : CtxOrInteraction) -> None:
-        self._target : CtxOrInteraction = target
-        self._fields : list[_Field]     = []
+        self._target    : CtxOrInteraction = target
+        self._fields    : list[_Field] = []
+        self._ephemeral : bool = True
+
+    def set_ephemeral(self, *, value : bool = True) -> _MultiCustomMessage:
+        self._ephemeral = value
+        return self
 
     @staticmethod
     def add_subfield(
@@ -181,7 +191,7 @@ class MultiCustomMessage:
         title     : str,
         msg_type  : SubMessageType,
         subfields : list[_Subfield],
-    ) -> MultiCustomMessage:
+    ) -> _MultiCustomMessage:
         self._fields.append(
             _Field(title = title, msg_type = msg_type, subfields = subfields),
         )
@@ -220,13 +230,13 @@ class MultiCustomMessage:
         for field_index, field in enumerate(self._fields):
             if field_index > 0:
                 all_components.append(
-                    Separator[LayoutView    ](
+                    Separator[LayoutView](
                         spacing = discord.SeparatorSpacing.large,
                         visible = True,
                     ),
                 )
             all_components.extend(
-                TextDisplay(content=block)
+                TextDisplay(content = block)
                 for block in self._render_field_blocks(field)
             )
 
@@ -237,4 +247,7 @@ class MultiCustomMessage:
         for component in all_components:
             _ = view.add_item(component)
 
-        await _send(self._target, view)
+        await _send(self._target, view, ephemeral = self._ephemeral)
+
+def multi_custom_message(target : CtxOrInteraction) -> _MultiCustomMessage:
+    return _MultiCustomMessage(target)

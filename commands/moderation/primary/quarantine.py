@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+)
 
 import discord
 
@@ -9,9 +12,9 @@ if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from commands.moderation.cases import CaseType
-from constants import BOT_OWNER_ID, COLOR_ORANGE
+from constants import COLOR_ORANGE
 from core.permissions import is_director
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation quarantine Logic
@@ -29,26 +32,45 @@ async def run_quarantine(
         return
 
     if not base.can_quarantine(actor):
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title    = "Unauthorized!",
-            texts    = "You lack the necessary permissions to add members to quarantine.",
-            subtitle = "No permissions.",
+            msg_type = "error",
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions",
         )
         return
 
     if member.id == actor.id:
-        await send_minor_error(interaction, "You cannot quarantine yourself.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "quarantine member",
+            subtitle = "You cannot quarantine yourself.",
+            footer   = "Bad argument",
+        )
         return
 
     if not base.check_hierarchy(actor, member):
-        await send_minor_error(interaction, "You cannot quarantine members with a role ≥ to yours.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "quarantine member",
+            subtitle = "You cannot quarantine members with a role ≥ to yours.",
+            footer   = "Bad argument",
+        )
         return
 
     quarantined = base.ensure_data_section("quarantined")
 
     if str(member.id) in quarantined:
-        await send_minor_error(interaction, f"{member.mention} is already quarantined.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "quarantine member",
+            subtitle = f"{member.mention} is already quarantined.",
+            footer   = "Bad argument",
+        )
         return
 
     guild = interaction.guild
@@ -58,11 +80,16 @@ async def run_quarantine(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "quarantine")
         if not can_proceed:
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                texts    = f"Rate limit exceeded. {error_msg}.\n"
-                            "Continuing to exceed rate limits will result in your own quarantine.",
-                subtitle =  "Rate limit exceeded.",
+                msg_type          = "error",
+                title             = "quarantine member",
+                subtitle          = (
+                    f"Rate limit exceeded. {error_msg}.\n"
+                    "Continuing to exceed rate limits will result in your own quarantine."
+                ),
+                footer            = "Bad operation",
+                contact_bot_owner = True,
             )
             await base.auto_quarantine_moderator(actor, guild)
             return
@@ -73,10 +100,13 @@ async def run_quarantine(
 
     quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
     if not quarantine_role:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    =  "Quarantine role not found.",
-            subtitle = f"Invalid IDs. Contact <@{BOT_OWNER_ID}>.",
+            msg_type          = "error",
+            title             = "quarantine member",
+            subtitle          = "The quarantine role could not be found.",
+            footer            = "Invalid IDs",
+            contact_bot_owner = True,
         )
         return
 
@@ -95,10 +125,10 @@ async def run_quarantine(
 
     try:
         roles_to_remove = [role for role in member.roles if role.id != guild.default_role.id]
-        await member.remove_roles(*roles_to_remove, reason=f"Quarantined by {actor}")
-        await member.add_roles(quarantine_role, reason=f"Quarantined by {actor}: {reason}")
+        await member.remove_roles(*roles_to_remove, reason = f"Quarantined by {actor}")
+        await member.add_roles(quarantine_role, reason = f"Quarantined by {actor}: {reason}")
 
-        metadata: dict[str, Any] = {"roles_saved": len(saved_roles)}
+        metadata: dict[str, Any] = {"roles_saved" : len(saved_roles)}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -121,15 +151,18 @@ async def run_quarantine(
         _ = embed.add_field(name = "Roles Saved", value = str(len(saved_roles)), inline = True)
         _ = embed.add_field(name = "Reason",      value = reason,                inline = False)
         if proof:
-            _ = embed.set_image(url=proof.url)
+            _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
     except discord.Forbidden:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = "I lack the necessary permissions to quarantine this member.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type          = "error",
+            title             = "quarantine members",
+            subtitle          = "I lack permissions to manage member roles: `Manage Roles`",
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
         )
         if str(member.id) in quarantined:
             del quarantined[str(member.id)]

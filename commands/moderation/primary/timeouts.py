@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from ._base import ModerationBase
 
 from constants import COLOR_GREEN, COLOR_YELLOW
-from core.utils import send_major_error
+from core.responses import send_custom_message
 
 from ._base import ModerationListPaginator
 
@@ -26,11 +26,12 @@ async def run_timeouts(
         return
 
     if not base.can_view_moderation(actor):
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title    = "Unauthorized!",
-            texts    = "You lack the necessary permissions to view timeouts.",
-            subtitle = "Invalid permissions.",
+            msg_type = "error",
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions",
         )
         return
 
@@ -47,10 +48,10 @@ async def run_timeouts(
             description = "No members are currently timed out.",
             color       = COLOR_GREEN,
         )
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
         return
 
-    fields: list[tuple[str, str]] = []
+    fields : list[tuple[str, str]] = []
     for member in timed_out_members:
         timeout_data = base.data.get("timeouts", {}).get(str(member.id))
 
@@ -70,4 +71,4 @@ async def run_timeouts(
         fields.append((f"{member} ({member.id})", value))
 
     view = ModerationListPaginator(interaction, "Timed Out Members", COLOR_YELLOW, fields)
-    await interaction.followup.send(embed=view.get_embed(), view = view, ephemeral = True)
+    await interaction.followup.send(embed = view.get_embed(), view = view, ephemeral = True)

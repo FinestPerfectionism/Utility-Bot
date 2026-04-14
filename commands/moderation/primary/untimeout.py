@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 from commands.moderation.cases import CaseType
 from constants import COLOR_GREEN
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation un-timeout Logic
@@ -27,16 +27,23 @@ async def run_untimeout(
         return
 
     if not base.can_untimeout(actor):
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            title    = "Unauthorized!",
-            texts    = "You lack the necessary permissions to remove timeouts.",
-            subtitle = "Invalid permissions.",
+            msg_type = "error",
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions",
         )
         return
 
     if not member.is_timed_out():
-        await send_minor_error(interaction, f"{member.mention} is not currently timed out.")
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "un-timeout member",
+            subtitle = f"{member.mention} is not currently timed out.",
+            footer   = "Bad argument",
+        )
         return
 
     _ = await interaction.response.defer(ephemeral = True)
@@ -46,7 +53,7 @@ async def run_untimeout(
         return
 
     try:
-        await member.timeout(None, reason=f"Timeout removed by {actor}: {reason}")
+        await member.timeout(None, reason = f"Timeout removed by {actor}: {reason}")
 
         if "timeouts" in base.data and str(member.id) in base.data["timeouts"]:
             del base.data["timeouts"][str(member.id)]
@@ -65,14 +72,17 @@ async def run_untimeout(
             color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member", value = member.mention, inline = True)
-        _ = embed.add_field(name = "Senior Moderator", value = actor.mention, inline = True)
-        _ = embed.add_field(name = "Reason", value = reason, inline = False)
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        _ = embed.add_field(name = "Member",           value = member.mention, inline = True)
+        _ = embed.add_field(name = "Senior Moderator", value = actor.mention,  inline = True)
+        _ = embed.add_field(name = "Reason",           value = reason,         inline = False)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
     except discord.Forbidden:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = "I lack the necessary permissions to un-timeout this member.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type          = "error",
+            title             = "un-timeout members",
+            subtitle          = "I lack permissions to timeout members: `Moderate Members`",
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
         )

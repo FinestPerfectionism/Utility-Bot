@@ -31,7 +31,7 @@ class VerificationCommands(commands.Cog):
         desc      = "Staff only —— Manually verifies a member inside the server.",
         prefix    = True,
         slash     = False,
-        run_roles = [RoleConfig(role_id=STAFF_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = STAFF_ROLE_ID)],
         aliases   = ["v"],
         arguments = {"member": ArgumentInfo(description = "Member to verify.")},
     )

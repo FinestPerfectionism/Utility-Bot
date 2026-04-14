@@ -77,7 +77,7 @@ class NominationCommands(commands.Cog):
         desc      = "Directors only —— Triggrs, accepts, or denies supporting-director nominations.",
         prefix    = True,
         slash     = False,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         aliases   = ["nom"],
         arguments = {
             "action": ArgumentInfo(description = "Use `/action trigger`, `/action accept`, or `/action deny`.", is_flag=True),

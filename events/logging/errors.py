@@ -10,21 +10,18 @@ from discord import app_commands
 from discord.app_commands import CommandOnCooldown
 from discord.app_commands.errors import CommandNotFound
 from discord.ext import commands
-from discord.ui import Container, LayoutView, TextDisplay
 from typing_extensions import override
 
+import core.responses as cr
 from constants import (
     BOT_ERRORS_LOG_CHANNEL_ID,
     BOT_LOG_CHANNEL_ID,
     BOT_OWNER_ID,
     COLOR_BLURPLE,
     COLOR_RED,
-    COLOR_YELLOW,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
 )
 from core.permissions import PermissionDenied, WrongGuild
-from core.utils import send_minor_error
+from core.responses import send_custom_message
 
 MAX_n_429S = 5
 n_429 = 429
@@ -86,7 +83,7 @@ class ErrorLogger(commands.Cog):
             timestamp   = discord.utils.utcnow(),
         )
 
-        _ = await channel.send(embed=embed)
+        _ = await channel.send(embed = embed)
 
     async def send_error(
         self,
@@ -179,7 +176,7 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_error(self, event: str, *_args: str, **_kwargs: int) -> None:
+    async def on_error(self, event : str, *_args: str, **_kwargs : int) -> None:
         if event in {"on_command_error", "on_interaction"}:
             return
 
@@ -250,30 +247,36 @@ class ErrorLogger(commands.Cog):
     async def app_command_error_handler(
         self,
         interaction : discord.Interaction,
-        error: app_commands.AppCommandError,
+        error       : app_commands.AppCommandError,
     ) -> None:
         if isinstance(error, CommandOnCooldown):
-            await send_minor_error(
+            _ = await send_custom_message(
                 interaction,
-                f"Cooldown active. Try again in {error.retry_after:.1f}s.",
-                subtitle = "Cooldown active.",
+                msg_type = cr.warning,
+                title    = "run command",
+                subtitle = f"Cooldown active. Try again in {error.retry_after:.1f}s.",
+                footer   = "Cooldown active.",
             )
             return
 
         if isinstance(error, WrongGuild):
-            if not interaction.response.is_done():
-                _ = await interaction.response.send_message(
-                    view      = WrongGuildError(),
-                    ephemeral = True,
-                )
+            _ = await send_custom_message(
+                interaction,
+                msg_type = cr.warning,
+                title    = "run command",
+                subtitle = "You are authorized to run this command, but this command is for main guild usage.",
+                footer   = "Bad environment.",
+            )
             return
 
         if isinstance(error, PermissionDenied):
-            if not interaction.response.is_done():
-                _ = await interaction.response.send_message(
-                    view      = PermissionsError(),
-                    ephemeral = True,
-                )
+            _ = await send_custom_message(
+                interaction,
+                msg_type = cr.error,
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions.",
+            )
             return
 
         actual_error = error.original if isinstance(error, app_commands.CommandInvokeError) else error
@@ -407,28 +410,28 @@ class ErrorLogger(commands.Cog):
     @commands.Cog.listener()
     async def on_shard_disconnect(self, shard_id : int) -> None:
         await self.send_info(
-            title = "Shard Disconnected",
+            title       = "Shard Disconnected",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_connect(self, shard_id : int) -> None:
         await self.send_info(
-            title = "Shard Connected",
+            title       = "Shard Connected",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_ready(self, shard_id : int) -> None:
         await self.send_info(
-            title = "Shard Ready",
+            title       = "Shard Ready",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener()
     async def on_shard_resumed(self, shard_id : int) -> None:
         await self.send_info(
-            title = "Shard Resumed",
+            title       = "Shard Resumed",
             description = f"Shard {shard_id}",
         )
 
@@ -459,30 +462,6 @@ class ErrorLogger(commands.Cog):
     async def cog_load(self) -> None:
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(self.loop_exception_handler)
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Views
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-class WrongGuildError(LayoutView):
-    container : Container[LayoutView] = Container(
-        TextDisplay(content =
-            f"### {CONTESTED_EMOJI_ID} Error!\n"
-            "-# Bad command environment.\n"
-            "Although you have the necessary permissions to run this command (Bot Owner), using it in this current Guild/DM will not work.",
-        ),
-        accent_color = COLOR_YELLOW,
-    )
-
-class PermissionsError(LayoutView):
-    container : Container[LayoutView] = Container(
-        TextDisplay(content =
-            f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-            "-# Invalid permissions.\n"
-            "You lack the necessary permissions to run this command.",
-        ),
-        accent_color = COLOR_RED,
-    )
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(ErrorLogger(bot))

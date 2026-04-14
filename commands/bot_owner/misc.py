@@ -21,20 +21,17 @@ if TYPE_CHECKING:
         Callable,
     )
 
+import core.responses as cr
 from constants import (
     ACCEPTED_EMOJI_ID,
     BOT_OWNER_ID,
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 )
-from core.utils import (
-    send_major_error,
-    send_minor_error,
-)
-from events.logging.errors import PermissionsError
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# /status Logic
+# /bot-owner status Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_status(
@@ -46,9 +43,12 @@ async def run_status(
     url           :                     str  | None,
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        _ = await interaction.response.send_message(
-            view      = PermissionsError(),
-            ephemeral = True,
+        _ = await send_custom_message(
+            interaction,
+            msg_type = cr.error,
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions.",
         )
         return
 
@@ -84,12 +84,15 @@ async def run_status(
 
         case "streaming":
             if not url:
-                _ = await interaction.response.send_message(
-                    "Streaming status requires a Twitch URL.",
-                    ephemeral = True,
+                _ = await send_custom_message(
+                    interaction,
+                    msg_type = cr.warning,
+                    title    = "update status",
+                    subtitle = "Streaming status requires a Twitch URL.",
+                    footer   = "Bad argument",
                 )
                 return
-            activity = discord.Streaming(name = text, url=url)
+            activity = discord.Streaming(name = text, url = url)
 
         case "custom":
             activity = discord.Activity(
@@ -105,9 +108,11 @@ async def run_status(
         status   = presence_status,
     )
 
-    _ = await interaction.response.send_message(
-        f"Status updated: `{activity_type.name}`: `{text}`",
-        ephemeral = True,
+    _ = await send_custom_message(
+        interaction,
+        msg_type = cr.success,
+        title    = "updated status",
+        subtitle = f"Status updated: `{activity_type.name}`: `{text}`",
     )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -214,9 +219,12 @@ async def run_say(
     message_id  : str | None = None,
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        _ = await interaction.response.send_message(
-            view      = PermissionsError(),
-            ephemeral = True,
+        _ = await send_custom_message(
+            interaction,
+            msg_type = cr.error,
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions.",
         )
         return
 
@@ -233,9 +241,12 @@ async def run_say(
                 if channel:
                     reply_reference = await channel.fetch_message(int(message_id))
             except (discord.NotFound, ValueError, discord.HTTPException):
-                _ = await send_minor_error(
+                _ = await send_custom_message(
                     interaction,
-                    texts = "Message ID not found.",
+                    msg_type = cr.warning,
+                    title    = "run command",
+                    subtitle = "The message does not exist, I lack permissions to access it, or it is not a valid ID.",
+                    footer   = "Bad argument",
                 )
                 return
 
@@ -251,8 +262,10 @@ async def run_say(
         await interaction.followup.send("Sent!", ephemeral = True)
 
     except discord.Forbidden:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = "I lack the necessary permissions to run this command.",
-            subtitle = "Invalid configuration. Contact the owner.",
+            msg_type = cr.error,
+            title       = "run command",
+            subtitle    = "I lack permissions to run this command.",
+            footer      = "Unknown error.",
         )

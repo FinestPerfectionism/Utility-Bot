@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 from commands.moderation.cases import CasesManager, CaseType
 from constants import (
-    BOT_OWNER_ID,
     COLOR_GREEN,
     COLOR_RED,
     CONTESTED_EMOJI_ID,
@@ -22,7 +21,7 @@ from constants import (
 )
 from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import is_director
-from core.utils import send_major_error, send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Lockdown Commands
@@ -30,9 +29,9 @@ from core.utils import send_major_error, send_minor_error
 
 class LockdownCommands(commands.Cog):
     def __init__(self, bot: "UtilityBot") -> None:
-        self.bot = bot
+        self.bot       = bot
         self.data_file = "lockdown_data.json"
-        self.data = self.load_data()
+        self.data      = self.load_data()
 
         self.STAFF_ROLE_ID = STAFF_ROLE_ID
 
@@ -65,17 +64,16 @@ class LockdownCommands(commands.Cog):
 
     def get_default_data(self) -> dict[str, Any]:
         return {
-            "active": False,
-            "activated_at": None,
-            "activated_by": None,
-            "reason": None,
-            "channel_permissions": {},
+            "active"              : False,
+            "activated_at"        : None,
+            "activated_by"        : None,
+            "reason"              :  None,
+            "channel_permissions" : {},
         }
 
     def save_data(self) -> None:
         with Path(self.data_file).open("w") as f:
             json.dump(self.data, f, indent=4)
-
 
     def can_manage_lockdown(self, member: discord.Member) -> bool:
         return is_director(member)
@@ -99,7 +97,7 @@ class LockdownCommands(commands.Cog):
         desc      = "Directors only —— Views the current lockdown state and summary.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
     )
     async def lockdown_status(self, interaction : discord.Interaction) -> None:
         member = interaction.user
@@ -107,11 +105,12 @@ class LockdownCommands(commands.Cog):
             return
 
         if not self.can_manage_lockdown(member):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
@@ -122,14 +121,14 @@ class LockdownCommands(commands.Cog):
                 color       = COLOR_GREEN,
                 timestamp   = datetime.now(UTC),
             )
-            _ = await interaction.response.send_message(embed=embed, ephemeral = True)
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
             return
 
         activated_at = datetime.fromisoformat(self.data["activated_at"])
         guild = interaction.guild
         if guild is None:
             return
-        activated_by = guild.get_member(self.data["activated_by"])
+        activated_by         = guild.get_member(self.data["activated_by"])
         activated_by_mention = activated_by.mention if activated_by else f"Unknown User ({self.data['activated_by']})"
 
         embed = discord.Embed(
@@ -158,18 +157,18 @@ class LockdownCommands(commands.Cog):
             inline = False,
         )
 
-        _ = await interaction.response.send_message(embed=embed, ephemeral = True)
+        _ = await interaction.response.send_message(embed = embed, ephemeral = True)
 
     @lockdown_group.command(
         name        = "activate",
         description = "Activate server lockdown.",
     )
-    @app_commands.describe(reason="Reason for lockdown.")
+    @app_commands.describe(reason = "Reason for lockdown.")
     @help_description(
         desc      = "Directors only —— Activates lockdown across the server.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         arguments = {"reason": ArgumentInfo(description = "Reason for engaging lockdown.")},
     )
     async def lockdown_activate(
@@ -177,24 +176,27 @@ class LockdownCommands(commands.Cog):
         interaction : discord.Interaction,
         reason      : str,
     ) -> None:
-
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
 
         if not self.can_manage_lockdown(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    ="Unauthorized!",
-                texts    = "You lack the necessary permissions to activate lockdown.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         if self.data["active"]:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                "The server is already in lockdown.",
+                msg_type = "warning",
+                title    = "activate lockdown",
+                subtitle = "The server is already in lockdown.",
+                footer   = "Bad request",
             )
             return
 
@@ -206,14 +208,17 @@ class LockdownCommands(commands.Cog):
 
         staff_role = guild.get_role(self.STAFF_ROLE_ID)
         if not staff_role:
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                texts    = "Staff role not found.",
-                subtitle = f"Invalid IDs. Contact <@{BOT_OWNER_ID}>.",
+                msg_type          = "error",
+                title             = "activate lockdown",
+                subtitle          = "The staff role could not be found.",
+                footer            = "Invalid IDs",
+                contact_bot_owner = True,
             )
             return
 
-        channels_locked = 0
+        channels_locked   = 0
         permission_backup = {}
 
         for channel in guild.channels:
@@ -222,8 +227,8 @@ class LockdownCommands(commands.Cog):
                     continue
 
                 with contextlib.suppress(discord.Forbidden, Exception):
-                    default_role: discord.Role = guild.default_role
-                    overwrites: discord.PermissionOverwrite = channel.overwrites_for(default_role)
+                    default_role: discord.Role                = guild.default_role
+                    overwrites:   discord.PermissionOverwrite = channel.overwrites_for(default_role)
 
                     permission_backup[str(channel.id)] = {
                         "send_messages"            : overwrites.send_messages,
@@ -286,7 +291,7 @@ class LockdownCommands(commands.Cog):
             inline = False,
         )
 
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
     @lockdown_group.command(
         name        = "lift",
@@ -296,7 +301,7 @@ class LockdownCommands(commands.Cog):
         desc      = "Directors only —— Lifs an active server lockdown and restores saved permissions.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
     )
     async def lockdown_lift(self, interaction : discord.Interaction) -> None:
         actor = interaction.user
@@ -304,18 +309,22 @@ class LockdownCommands(commands.Cog):
             return
 
         if not self.can_manage_lockdown(actor):
-            await send_major_error(
+            await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to lift lockdown.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
             return
 
         if not self.data["active"]:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                "The server is not currently in lockdown.",
+                msg_type = "warning",
+                title    = "lift lockdown",
+                subtitle = "The server is not currently in lockdown.",
+                footer   = "Bad request",
             )
             return
 
@@ -325,7 +334,7 @@ class LockdownCommands(commands.Cog):
         if guild is None:
             return
 
-        channels_restored = 0
+        channels_restored  = 0
         channels_not_found = 0
 
         for channel_id, perms in self.data["channel_permissions"].items():
@@ -350,7 +359,7 @@ class LockdownCommands(commands.Cog):
 
                 staff_role: discord.Role | None = guild.get_role(self.STAFF_ROLE_ID)
                 if staff_role and isinstance(channel, discord.TextChannel):
-                    overwrites: discord.PermissionOverwrite = channel.overwrites_for(staff_role)
+                    overwrites : discord.PermissionOverwrite = channel.overwrites_for(staff_role)
                     if overwrites.is_empty():
                         await channel.set_permissions(
                             staff_role,
@@ -360,10 +369,10 @@ class LockdownCommands(commands.Cog):
 
                 channels_restored += 1
 
-        self.data["active"] = False
-        self.data["activated_at"] = None
-        self.data["activated_by"] = None
-        self.data["reason"] = None
+        self.data["active"]              = False
+        self.data["activated_at"]        = None
+        self.data["activated_by"]        = None
+        self.data["reason"]              = None
         self.data["channel_permissions"] = {}
         self.save_data()
 
@@ -391,7 +400,7 @@ class LockdownCommands(commands.Cog):
                 inline = False,
             )
 
-        await interaction.followup.send(embed=embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
@@ -404,7 +413,7 @@ class LockdownCommands(commands.Cog):
         guild = member.guild
 
         with contextlib.suppress(discord.Forbidden, Exception):
-            bot_member: discord.Member | None = guild.get_member(self.bot.user.id) if self.bot.user else None
+            bot_member : discord.Member | None = guild.get_member(self.bot.user.id) if self.bot.user else None
             if bot_member:
                 _ = await self.cases_manager.log_case(
                     guild       = guild,
@@ -415,7 +424,7 @@ class LockdownCommands(commands.Cog):
                     metadata    = {"auto_kick": True, "lockdown": True},
                 )
 
-            await member.kick(reason="UB Lockdown: server is in lockdown")
+            await member.kick(reason = "UB Lockdown: server is in lockdown")
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(LockdownCommands(cast("UtilityBot", bot)))

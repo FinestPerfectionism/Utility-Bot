@@ -5,7 +5,7 @@ from discord.ext import commands
 from constants import ACCEPTED_EMOJI_ID, COLOR_BLURPLE, DENIED_EMOJI_ID, DIRECTORS_ROLE_ID
 from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only
-from core.utils import send_minor_error
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role Commands
@@ -212,15 +212,15 @@ class RoleCommands(
         desc      = "Directors only —— Lists members by whether they have a role and whether they are humans, bots, or both.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         arguments = {
-            "role": ArgumentInfo(roles = [DIRECTORS_ROLE_ID], description = "Role to inspect."),
-            "role-filter": ArgumentInfo(
+            "role"         : ArgumentInfo(roles = [DIRECTORS_ROLE_ID], description = "Role to inspect."),
+            "role-filter"  : ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 description = "Whether to list members who have or do not have the role.",
                 choices     = ["Who has", "Who doesnt have"],
             ),
-            "person-filter": ArgumentInfo(
+            "person-filter" : ArgumentInfo(
                 roles       = [DIRECTORS_ROLE_ID],
                 description = "Whether to list humans, bots, or both.",
                 choices     = ["Humans", "Bots", "Both"],
@@ -235,14 +235,16 @@ class RoleCommands(
         role_filter   : app_commands.Choice[str],
         person_filter : app_commands.Choice[str],
     ) -> None:
-        _ = await interaction.response.defer(ephemeral = False)
+        _ = await interaction.response.defer(ephemeral = True)
 
         guild = interaction.guild
         if guild is None:
-            await send_minor_error(
+            await send_custom_message(
                 interaction,
-                texts    = "This command can only be used in a server.",
-                subtitle = "Bad command environment.",
+                msg_type = "warning",
+                title    = "run command",
+                subtitle = "This command can only be used in a server.",
+                footer   = "Bad environment",
             )
             return
 

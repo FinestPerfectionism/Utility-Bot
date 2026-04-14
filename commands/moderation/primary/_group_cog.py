@@ -58,7 +58,7 @@ class ModerationCommands(
         desc        = "Senior Moderators only —— Bans a member from the server.",
         prefix      = False,
         slash       = True,
-        run_roles   = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-ban",
         arguments   = {
             "member"          : ArgumentInfo(description = "Member to ban."),
@@ -90,7 +90,7 @@ class ModerationCommands(
         desc        = "Unbans a user from the server.",
         prefix      = False,
         slash       = True,
-        run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         has_inverse = "moderation ban",
         arguments   = {
             "user"   : ArgumentInfo(description = "User ID, username, or tag to unban."),
@@ -114,7 +114,7 @@ class ModerationCommands(
         desc      = "Staff* only —— Lists all currently banned users.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID), RoleConfig(role_id = ADMINISTRATORS_ROLE_ID)],
     )
     async def bans(self, interaction : discord.Interaction) -> None:
         await run_bans(self, interaction)
@@ -128,7 +128,7 @@ class ModerationCommands(
         desc      = "Senior Moderators only —— Kicks a member from the server.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         arguments = {
             "member" : ArgumentInfo(description = "Member to kick."),
             "reason" : ArgumentInfo(required=True, description = "Reason for the kick."),
@@ -192,7 +192,7 @@ class ModerationCommands(
         desc        = "Senior Moderators only —— Removes an active timeout from a member.",
         prefix      = False,
         slash       = True,
-        run_roles   = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation timeout",
         arguments   = {
             "member" : ArgumentInfo(description = "Member to un-timeout."),
@@ -220,7 +220,7 @@ class ModerationCommands(
         desc      = "Staff* only —— Lists all currently timed out members.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID), RoleConfig(role_id = ADMINISTRATORS_ROLE_ID)],
     )
     async def timeouts(self, interaction : discord.Interaction) -> None:
         await run_timeouts(self, interaction)
@@ -234,7 +234,7 @@ class ModerationCommands(
         desc      = "Moderators only —— Bulk deletes recent messages, optionally filtered to a single member.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID)],
         arguments = {
             "amount" : ArgumentInfo(description = "Number of messages to delete."),
             "reason" : ArgumentInfo(required=True, description = "Reason for the purge."),
@@ -267,7 +267,7 @@ class ModerationCommands(
         desc      = "Staff\\* only —— Lists all currently quarantined members.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=MODERATORS_ROLE_ID), RoleConfig(role_id=ADMINISTRATORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID), RoleConfig(role_id = ADMINISTRATORS_ROLE_ID)],
     )
     async def quarantines(self, interaction : discord.Interaction) -> None:
         await run_quarantines(self, interaction)
@@ -281,7 +281,7 @@ class ModerationCommands(
         desc        = "Senior Moderators only —— Places a member into quarantine.",
         prefix      = False,
         slash       = True,
-        run_roles   = [RoleConfig(role_id=SENIOR_MODERATORS_ROLE_ID)],
+        run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-quarantine",
         arguments   = {
             "member" : ArgumentInfo(description = "Member to quarantine."),
@@ -312,7 +312,7 @@ class ModerationCommands(
         desc        = "Directors only —— Removes a member from quarantine.",
         prefix      = False,
         slash       = True,
-        run_roles   = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         has_inverse = "moderation quarantine",
         arguments   = {
             "member" : ArgumentInfo(description = "Member to unquarantine."),

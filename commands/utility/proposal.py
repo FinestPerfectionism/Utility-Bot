@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import time
 from dataclasses import dataclass
@@ -21,13 +23,12 @@ from constants import (
 )
 from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import has_director_role, main_guild_only
+from core.responses import multi_custom_message, send_custom_message
 from core.utils import (
     assert_forum_thread,
     format_body,
     resolve_forum_tags,
     resolve_single_tag,
-    send_major_error,
-    send_minor_error,
 )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -232,7 +233,7 @@ class ProposalCommands(
     )
     @app_commands.describe(
         status="The formal decision to apply.",
-        reason="Reason for this decision.",
+        reason = "Reason for this decision.",
         notes="Additional notes.",
     )
     @app_commands.choices(
@@ -242,7 +243,7 @@ class ProposalCommands(
             app_commands.Choice(name = "Denied",     value = "denied"),
             app_commands.Choice(name = "Standstill", value = "standstill"),
         ],
-        reason=[
+        reason = [
             app_commands.Choice(name = "Committee accepted.",        value = "Committee accepted."),
             app_commands.Choice(name = "Committee contested.",       value = "Committee contested."),
             app_commands.Choice(name = "Committee denied.",          value = "Committee denied."),
@@ -256,7 +257,7 @@ class ProposalCommands(
         desc="Staff Committee only —— Sets the official proposal decision for the current proposal thread.",
         prefix=False,
         slash=True,
-        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        run_roles=[RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments={
             "status": ArgumentInfo(description = "Decision to apply.", choices=["accepted", "contested", "denied", "standstill"]),
             "reason": ArgumentInfo(description = "Approved reason for that decision."),
@@ -273,19 +274,23 @@ class ProposalCommands(
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
-            return await send_major_error(
+            return await send_custom_message(
                 interaction,
-                title = "Unauthorized!",
-                texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
-
-        errors: list[str] = []
 
         try:
             thread, forum = assert_forum_thread(interaction)
         except ValueError as e:
-            return await send_minor_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = str(e),
+                footer   = "Bad environment",
+            )
 
         status_value  = status.value
         reason_value  = reason.value
@@ -293,15 +298,29 @@ class ProposalCommands(
         target        = ProposalStatus(status_value)
         is_locked     = _has_tag(thread, TAG_SPECIAL["locked"])
 
+        errors: list[str] = []
+
         if reason_value not in self.REASON_WHITELISTS[status_value]:
             errors.append(
                 f'{status.name} proposals cannot use the reason "{reason_value}".',
             )
 
-        errors.extend(_validate_transition(current, target, is_locked=is_locked))
+        errors.extend(_validate_transition(current, target, is_locked = is_locked))
 
         if errors:
-            return await send_minor_error(interaction, errors)
+            msg = multi_custom_message(interaction)
+            _ = msg.add_field(
+                title     = "set proposal status",
+                msg_type  = "warning",
+                subfields = [
+                    msg.add_subfield(
+                        subtitle = error,
+                        footer   = "Bad argument",
+                    )
+                    for error in errors
+                ],
+            )
+            return await msg.send()
 
         _ = await interaction.response.defer()
 
@@ -317,7 +336,13 @@ class ProposalCommands(
                 ),
             )
         except ValueError as e:
-            return await send_major_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type          = "error",
+                title             = str(e),
+                footer            = "Bad operation",
+                contact_bot_owner = True,
+            )
 
         if status_value == "accepted":
             impl_id = TAG_SPECIAL["needs_implementation"]
@@ -331,7 +356,13 @@ class ProposalCommands(
                         ),
                     )
                 except ValueError as e:
-                    return await send_major_error(interaction, str(e))
+                    return await send_custom_message(
+                        interaction,
+                        msg_type          = "error",
+                        title             = str(e),
+                        footer            = "Bad operation",
+                        contact_bot_owner = True,
+                    )
 
         _ = await thread.edit(applied_tags=tags)
 
@@ -397,24 +428,30 @@ class ProposalCommands(
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
-            return await send_major_error(
+            return await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
-
-        errors: list[str] = []
 
         try:
             thread, forum = assert_forum_thread(interaction)
         except ValueError as e:
-            return await send_minor_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = str(e),
+                footer   = "Bad environment",
+            )
 
         tag_key        = tag.value
         tag_label      = self.PROCESS_TAG_LABELS[tag_key]
         is_locked      = _has_tag(thread, TAG_SPECIAL["locked"])
         current_status = _resolve_status(thread)
+
+        errors: list[str] = []
 
         if enabled:
             if is_locked:
@@ -438,7 +475,19 @@ class ProposalCommands(
                 )
 
         if errors:
-            return await send_minor_error(interaction, errors)
+            msg = multi_custom_message(interaction)
+            _ = msg.add_field(
+                title     = "apply proposal tag",
+                msg_type  = "warning",
+                subfields = [
+                    msg.add_subfield(
+                        subtitle = error,
+                        footer   = "Bad argument",
+                    )
+                    for error in errors
+                ],
+            )
+            return await msg.send()
 
         _ = await interaction.response.defer()
 
@@ -448,9 +497,12 @@ class ProposalCommands(
             elif tag_key in TAG_ACTION:
                 tag_id = TAG_ACTION[tag_key]
             else:
-                return await send_major_error(
+                return await send_custom_message(
                     interaction,
-                    f"Tag key '{tag_key}' is not registered.",
+                    msg_type          = "error",
+                    title             = f"Tag key '{tag_key}' is not registered",
+                    footer            = "Bad operation",
+                    contact_bot_owner = True,
                 )
 
             target_tag = resolve_single_tag(
@@ -459,7 +511,13 @@ class ProposalCommands(
                 f"Process tag '{tag_label}' not found.",
             )
         except ValueError as e:
-            return await send_major_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type          = "error",
+                title             = str(e),
+                footer            = "Bad operation",
+                contact_bot_owner = True,
+            )
 
         tags = [t for t in thread.applied_tags if t.id != target_tag.id]
         if enabled:
@@ -496,7 +554,7 @@ class ProposalCommands(
         notes  = "Additional notes.",
     )
     @app_commands.choices(
-        reason=[
+        reason = [
             app_commands.Choice(name = "Proposand implemented.", value = "Proposand implemented."),
             app_commands.Choice(name = "Issue resolved.",        value = "Issue resolved."),
         ],
@@ -505,7 +563,7 @@ class ProposalCommands(
         desc="Staff Committee only —— Finalizes and locks the current proposal thread after final resolution.",
         prefix=False,
         slash=True,
-        run_roles=[RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        run_roles=[RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments={
             "reason": ArgumentInfo(description = "Reason for finalization."),
             "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
@@ -515,26 +573,33 @@ class ProposalCommands(
     async def finalize(
         self,
         interaction : discord.Interaction,
-        reason:      app_commands.Choice[str],
-        notes:       str | None = None,
+        reason      : app_commands.Choice[str],
+        notes       : str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
-            return await send_major_error(
+            return await send_custom_message(
                 interaction,
-                title = "Unauthorized!",
-                texts="You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
-
-        errors: list[str] = []
 
         try:
             thread, forum = assert_forum_thread(interaction)
         except ValueError as e:
-            return await send_minor_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = str(e),
+                footer   = "Bad environment",
+            )
 
         current_status = _resolve_status(thread)
+        implementing   = reason.value == "Proposand implemented."
+
+        errors : list[str] = []
 
         if _has_tag(thread, TAG_SPECIAL["locked"]):
             errors.append("This proposal is already finalized.")
@@ -549,15 +614,25 @@ class ProposalCommands(
                 "This proposal cannot be finalized while Needs Revision is present.",
             )
 
-        implementing = reason.value == "Proposand implemented."
-
         if not implementing and _has_tag(thread, TAG_SPECIAL["needs_implementation"]):
             errors.append(
                 "This proposal cannot be finalized while Needs Implementation is present.",
             )
 
         if errors:
-            return await send_minor_error(interaction, errors)
+            msg = multi_custom_message(interaction)
+            _ = msg.add_field(
+                title     = "finalize proposal",
+                msg_type  = "warning",
+                subfields = [
+                    msg.add_subfield(
+                        subtitle = error,
+                        footer   = "Bad argument",
+                    )
+                    for error in errors
+                ],
+            )
+            return await msg.send()
 
         _ = await interaction.response.defer()
 
@@ -575,7 +650,13 @@ class ProposalCommands(
                 ),
             )
         except ValueError as e:
-            return await send_major_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type          = "error",
+                title             = str(e),
+                footer            = "Bad operation",
+                contact_bot_owner = True,
+            )
 
         _ = await thread.edit(applied_tags=tags, locked=True)
 
@@ -604,7 +685,7 @@ class ProposalCommands(
         notes  = "Additional notes.",
     )
     @app_commands.choices(
-        reason=[
+        reason = [
             app_commands.Choice(name = "New issue.",                 value = "New issue."),
             app_commands.Choice(name = "Further discussion needed.", value = "Further discussion needed."),
         ],
@@ -613,7 +694,7 @@ class ProposalCommands(
         desc      = "Staff Committee only —— Unlocks a finalized proposal thread.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments = {
             "reason": ArgumentInfo(description = "Reason for unlocking."),
             "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
@@ -628,22 +709,31 @@ class ProposalCommands(
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
-            return await send_major_error(
+            return await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
 
         try:
             thread, _forum = assert_forum_thread(interaction)
         except ValueError as e:
-            return await send_minor_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = str(e),
+                footer   = "Bad environment",
+            )
 
         if not _has_tag(thread, TAG_SPECIAL["locked"]):
-            return await send_minor_error(
+            return await send_custom_message(
                 interaction,
-                "This proposal is not currently Locked.",
+                msg_type = "warning",
+                title    = "unlock proposal",
+                subtitle = "This proposal is not currently Locked.",
+                footer   = "Bad argument",
             )
 
         _ = await interaction.response.defer()
@@ -687,7 +777,7 @@ class ProposalCommands(
         desc      = "Staff Committee only —— Removes the standstill status from the current proposal thread.",
         prefix    = False,
         slash     = True,
-        run_roles = [RoleConfig(role_id=STAFF_COMMITTEE_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments = {
             "reason": ArgumentInfo(description = "Reason for removing standstill."),
             "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
@@ -702,30 +792,42 @@ class ProposalCommands(
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
-            return await send_major_error(
+            return await send_custom_message(
                 interaction,
-                title    = "Unauthorized!",
-                texts    = "You lack the necessary permissions to run this command.",
-                subtitle = "Invalid permissions.",
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
             )
 
         try:
             thread, forum = assert_forum_thread(interaction)
         except ValueError as e:
-            return await send_minor_error(interaction, str(e))
+            return await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = str(e),
+                footer   = "Bad environment",
+            )
 
         try:
             standstill_tag = resolve_forum_tags(forum, [TAG_STATUS["standstill"]])[0]
         except ValueError:
-            return await send_major_error(
+            return await send_custom_message(
                 interaction,
-                "Standstill tag not found in this forum.",
+                msg_type          = "error",
+                title             = "Standstill tag not found in this forum",
+                footer            = "Bad operation",
+                contact_bot_owner = True,
             )
 
         if standstill_tag.id not in {t.id for t in thread.applied_tags}:
-            return await send_minor_error(
+            return await send_custom_message(
                 interaction,
-                "This proposal is not currently in Standstill.",
+                msg_type = "warning",
+                title    = "unstandstill proposal",
+                subtitle = "This proposal is not currently in Standstill.",
+                footer   = "Bad argument",
             )
 
         _ = await interaction.response.defer()
@@ -757,7 +859,7 @@ class ProposalCommands(
         desc      = "Directors only —— Ddeletes the current staff proposal thread.",
         prefix    = True,
         slash     = False,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         aliases   = ["d", "del"],
     )
     @has_director_role()

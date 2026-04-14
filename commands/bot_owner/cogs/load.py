@@ -3,14 +3,14 @@ import logging
 import discord
 from discord.ext import commands
 
+import core.responses as cr
 from constants import BOT_OWNER_ID
-from core.utils import send_major_error, send_minor_error
-from events.logging.errors import PermissionsError
+from core.responses import send_custom_message
 
 log = logging.getLogger("Utility Bot")
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# /load Logic
+# /bot-owner load Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 async def run_load(
@@ -20,31 +20,53 @@ async def run_load(
     cogs        : list[str],
 ) -> None:
     if interaction.user.id != BOT_OWNER_ID:
-        _ = await interaction.response.send_message(
-            view      = PermissionsError(),
-            ephemeral = True,
+        _ = await send_custom_message(
+            interaction,
+            msg_type = cr.error,
+            title    = "run command",
+            subtitle = "You are not authorized to run this command.",
+            footer   = "No permissions",
         )
         return
 
     if cog not in cogs:
-        await send_minor_error(interaction, f"Cog `{cog}` not found.")
+        await send_custom_message(
+            interaction,
+            msg_type = cr.warning,
+            title    = "load cog",
+            subtitle = f"Failed to load cog `{cog}`: cog `{cog}` not found.",
+            footer   = "Bad argument",
+        )
         return
 
     if cog in bot.extensions:
-        await send_minor_error(interaction, f"Cog `{cog}` is already loaded.")
+        await send_custom_message(
+            interaction,
+            msg_type = cr.warning,
+            title    =  "load cog",
+            subtitle = f"Failed to load cog `{cog}`: cog `{cog}` is already loaded.",
+            footer   =  "Bad argument",
+        )
         return
 
     try:
         await bot.load_extension(cog)
-        _ = await interaction.response.send_message(
-            f"Loaded cog `{cog}`.",
-            ephemeral = True,
+        _ = await send_custom_message(
+            interaction,
+            msg_type = cr.success,
+            title    = "loaded cog",
+            subtitle = f"Loaded cog `{cog}`.",
         )
         log.info("Loaded cog %s", cog)
     except Exception as e:
-        await send_major_error(
+        await send_custom_message(
             interaction,
-            texts    = f"Failed to load `{cog}`: {e}",
-            subtitle = "Invalid operation.",
+            msg_type = cr.error,
+            title    =  "load cog",
+            subtitle = f"Failed to load cog `{cog}`:\n"
+                        "```py\n"
+                       f"{e}"
+                        "```",
+            footer   =  "Bad operation",
         )
         log.exception("Failed to load cog %s:", cog)

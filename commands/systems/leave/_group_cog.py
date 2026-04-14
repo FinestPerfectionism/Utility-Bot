@@ -43,8 +43,8 @@ class LeaveCommands(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def _automation_loop(self) -> None:
-        now_ts = datetime.now(tz=UTC).timestamp()
-        today  = datetime.now(tz=UTC).date()
+        now_ts = datetime.now(tz = UTC).timestamp()
+        today  = datetime.now(tz = UTC).date()
 
         to_begin: list[tuple[str, dict[str, Any]]] = []
         to_end:   list[tuple[str, dict[str, Any]]] = []
@@ -121,14 +121,14 @@ class LeaveCommands(commands.Cog):
 
         stored_timer_secs: int | None = entry.get("timer_seconds")
         new_timer_end:   float | None = (
-            datetime.now(tz=UTC).timestamp() + stored_timer_secs
+            datetime.now(tz = UTC).timestamp() + stored_timer_secs
             if stored_timer_secs is not None else None
         )
 
         try:
             if roles_to_remove:
-                await member.remove_roles(*roles_to_remove, reason="UB Leave: Scheduled leave automation")
-            await member.add_roles(personal_leave_role, reason="UB Leave: Scheduled leave automation")
+                await member.remove_roles(*roles_to_remove, reason = "UB Leave: Scheduled leave automation")
+            await member.add_roles(personal_leave_role, reason = "UB Leave: Scheduled leave automation")
             _ = await member.edit(nick=new_nick)
         except discord.HTTPException:
             return
@@ -169,7 +169,7 @@ class LeaveCommands(commands.Cog):
 
         try:
             if personal_leave_role in member.roles:
-                await member.remove_roles(personal_leave_role, reason="UB Leave: Scheduled leave automation")
+                await member.remove_roles(personal_leave_role, reason = "UB Leave: Scheduled leave automation")
 
             current_nick   = member.nick or member.name
             base_name      = extract_name(stored_name)
@@ -180,7 +180,7 @@ class LeaveCommands(commands.Cog):
                 _ = await member.edit(nick=stored_name)
 
             if roles_to_restore:
-                await member.add_roles(*roles_to_restore, reason="UB Leave: Scheduled leave automation")
+                await member.add_roles(*roles_to_restore, reason = "UB Leave: Scheduled leave automation")
         except discord.HTTPException:
             return
 
@@ -211,7 +211,7 @@ class LeaveCommands(commands.Cog):
         desc="Directors only —— Adds personal leave to yourself or another staff member, with optional scheduling and leave types.",
         prefix=False,
         slash=True,
-        run_roles=[RoleConfig(role_id=DIRECTORS_ROLE_ID)],
+        run_roles=[RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         arguments={
             "type": ArgumentInfo(description = "Leave mode to apply.", choices=["none", "soft_clean", "hard_clean"]),
             "target": ArgumentInfo(required=False, description = "Staff member to place on leave; defaults to yourself."),
@@ -241,7 +241,7 @@ class LeaveCommands(commands.Cog):
         desc="Staff only —— Removes personal leave from yourself or another staff member. Self-removal also works for your own scheduled leave entry.",
         prefix=False,
         slash=True,
-        run_roles=[RoleConfig(role_id=STAFF_ROLE_ID)],
+        run_roles=[RoleConfig(role_id = STAFF_ROLE_ID)],
         arguments={"target": ArgumentInfo(
                 required=False,
                 description = "Staff member whose leave should be removed; defaults to yourself.",
