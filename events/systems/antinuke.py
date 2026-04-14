@@ -20,7 +20,7 @@ from constants import (
 if TYPE_CHECKING:
     from bot import UtilityBot
 
-from commands.moderation.cases import CasesManager, CaseType
+from core.cases import CasesManager, CaseType
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Anti-Nuke System

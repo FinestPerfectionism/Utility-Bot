@@ -430,7 +430,7 @@ async def _handle_forbidden(
                 contact_bot_owner = True,
             )
 
-def _build_end_note_immediate(
+def build_end_note_immediate(
     parsed_end   : date_type | None,
     timer_end_ts : float     | None,
 ) -> str:
