@@ -56,7 +56,7 @@ async def run_quarantine(
             interaction,
             msg_type = "warning",
             title    = "quarantine member",
-            subtitle = "You cannot quarantine members with a role ≥ to yours.",
+            subtitle = "Target user is greater than or equal to your highest role.",
             footer   = "Bad argument",
         )
         return

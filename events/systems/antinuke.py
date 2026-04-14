@@ -35,7 +35,7 @@ class ActionType:
     ROLE_UPDATE    = "role_update"
 
 class AntiNukeSystem(commands.Cog):
-    def __init__(self, bot: "UtilityBot") -> None:
+    def __init__(self, bot : "UtilityBot") -> None:
         self.bot = bot
         self.config_file        = "antinuke_config.json"
         self.config             = self.load_config()
@@ -406,5 +406,5 @@ class AntiNukeSystem(commands.Cog):
                 )
                 break
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(AntiNukeSystem(cast("UtilityBot", bot)))

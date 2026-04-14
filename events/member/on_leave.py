@@ -15,7 +15,7 @@ from constants import APPLICATION_LOG_CHANNEL_ID, COLOR_RED
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberLeaveHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member) -> None:
@@ -62,5 +62,5 @@ class MemberLeaveHandler(commands.Cog):
         _ = ACTIVE_APPLICATIONS.pop(member.id, None)
         save_active_applications()
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(MemberLeaveHandler(bot))

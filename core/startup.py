@@ -133,7 +133,7 @@ def load_layout_config() -> dict[str, bool]:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class Startup(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
         self.layout_message_ids: dict[str, int | list[int]] = load_layout_message_ids()
 
@@ -669,5 +669,5 @@ class Startup(commands.Cog):
     async def cog_unload(self) -> None:
         pass
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(Startup(bot))

@@ -196,7 +196,7 @@ class VerificationComponents(LayoutView):
         _ = self.add_item(container)
 
 class VerificationHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot       = bot
         self.data_file = "verification_data.json"
         self.data      = self.load_data()
@@ -768,5 +768,5 @@ class VerificationHandler(commands.Cog):
         self.data["verification_message_id"] = message_id
         self.save_data()
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(VerificationHandler(bot))

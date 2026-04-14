@@ -284,7 +284,7 @@ class AntiNukeCommands(commands.Cog):
             title    = f"set anti-nuke alert channel to {channel.mention}",
         )
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     antinuke_system = bot.get_cog("AntiNukeSystem")
     if antinuke_system is None:
         string = "AntiNukeSystem cog must be loaded before AntiNukeCommands"

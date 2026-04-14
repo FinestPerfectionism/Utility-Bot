@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class VerificationCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot             = bot
         self.GOOBERS_ROLE_ID = GOOBERS_ROLE_ID
 
@@ -110,5 +110,5 @@ class VerificationCommands(commands.Cog):
         except discord.Forbidden:
             return
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(VerificationCommands(bot))

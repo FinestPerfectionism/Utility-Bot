@@ -22,7 +22,7 @@ log = logging.getLogger("Utility Bot")
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class PingCommands(commands.Cog, name = "ping"):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     async def _check_and_ping(self, ctx : commands.Context[commands.Bot], required_role_id : int, ping_role_id : int) -> None:
@@ -175,6 +175,6 @@ class PingCommands(commands.Cog, name = "ping"):
         if committee in ctx.author.roles or (staff in ctx.author.roles and is_in_valid_thread):
            _ =  await ctx.send(committee.mention)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     cog = PingCommands(bot)
     await bot.add_cog(cog)

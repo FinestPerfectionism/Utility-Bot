@@ -61,7 +61,7 @@ USER_INPUT_ERRORS = (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ErrorLogger(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot                            = bot
         self._tasks: set[asyncio.Task[Any]] = set()
         self._rate_limit_hits               = 0
@@ -463,5 +463,5 @@ class ErrorLogger(commands.Cog):
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(self.loop_exception_handler)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(ErrorLogger(bot))

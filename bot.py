@@ -59,4 +59,4 @@ class UtilityBot(commands.Bot):
             except Exception:
                 log.exception("Failed to load cog: %s", cog)
 
-bot: UtilityBot = UtilityBot()
+bot : UtilityBot = UtilityBot()

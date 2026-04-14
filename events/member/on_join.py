@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberJoinHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     @commands.Cog.listener()
@@ -50,5 +50,5 @@ class MemberJoinHandler(commands.Cog):
                         reason = "UB Quarantine: rejoined while quarantined",
                     )
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(MemberJoinHandler(bot))

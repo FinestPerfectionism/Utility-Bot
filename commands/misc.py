@@ -33,7 +33,7 @@ class Ping(LayoutView):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MiscCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         _ = self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -155,10 +155,8 @@ class MiscCommands(commands.Cog):
     )
     async def ping(self, ctx : commands.Context[commands.Bot]) -> None:
         latency_ms = round(self.bot.latency * 1000)
-        _ = await ctx.send(
-            view = Ping(latency_ms),
-        )
+        _ = await ctx.send(view = Ping(latency_ms))
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     cog = MiscCommands(bot)
     await bot.add_cog(cog)

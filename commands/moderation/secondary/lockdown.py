@@ -28,7 +28,7 @@ from core.responses import send_custom_message
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class LockdownCommands(commands.Cog):
-    def __init__(self, bot: "UtilityBot") -> None:
+    def __init__(self, bot : "UtilityBot") -> None:
         self.bot       = bot
         self.data_file = "lockdown_data.json"
         self.data      = self.load_data()
@@ -426,5 +426,5 @@ class LockdownCommands(commands.Cog):
 
             await member.kick(reason = "UB Lockdown: server is in lockdown")
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(LockdownCommands(cast("UtilityBot", bot)))

@@ -16,7 +16,7 @@ class RoleCommands(
     name        = "role",
     description = "Directors only —— Role commands.",
 ):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
         super().__init__()
 
@@ -271,6 +271,6 @@ class RoleCommands(
 
         await interaction.followup.send(embed = embed)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     cog = RoleCommands(bot)
     await bot.add_cog(cog)

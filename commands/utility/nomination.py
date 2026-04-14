@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import json
 from pathlib import Path
@@ -7,12 +9,11 @@ import discord
 from discord.ext import commands
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     SUPPORTING_DIRECTORS_ROLE_ID,
 )
 from core.help import ArgumentInfo, RoleConfig, help_description
+from core.responses import send_custom_message
 
 NOMINATION_DATA_FILE = "nomination_data.json"
 
@@ -22,7 +23,7 @@ NOMINATION_DATA_FILE = "nomination_data.json"
 
 class NominationCase(TypedDict):
     target_id : int
-    acceptors: list[int]
+    acceptors : list[int]
 
 def load_nomination_data() -> dict[str, NominationCase]:
     if not Path(NOMINATION_DATA_FILE).exists():
@@ -46,18 +47,18 @@ def extract_name(nickname: str) -> str:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class NominationFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    action  : str = commands.flag(aliases=["a"])
-    user    : discord.Member | None = commands.flag(aliases=["u"], default=None)
-    case_id : str            | None = commands.flag(name = "id", default=None)
+    action  : str                    = commands.flag(aliases=["a"])
+    user    : discord.Member | None  = commands.flag(aliases=["u"], default=None)
+    case_id : str            | None  = commands.flag(name="id", default=None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Nomination Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class NominationCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
-        self.data: dict[str, NominationCase] = load_nomination_data()
+    def __init__(self, bot : commands.Bot) -> None:
+        self.bot  = bot
+        self.data : dict[str, NominationCase] = load_nomination_data()
 
     def _is_director(self, member: discord.Member) -> bool:
         return any(role.id == DIRECTORS_ROLE_ID for role in member.roles)
@@ -72,17 +73,17 @@ class NominationCommands(commands.Cog):
     # .nomination/.nom Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "nomination", aliases=["nom"])
+    @commands.command(name="nomination", aliases=["nom"])
     @help_description(
         desc      = "Directors only —— Triggrs, accepts, or denies supporting-director nominations.",
         prefix    = True,
         slash     = False,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
+        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
         aliases   = ["nom"],
         arguments = {
-            "action": ArgumentInfo(description = "Use `/action trigger`, `/action accept`, or `/action deny`.", is_flag=True),
-            "user": ArgumentInfo(required=False, description = "Target member for the nomination trigger.", is_flag=True),
-            "id": ArgumentInfo(required=False, description = "Nomination case ID used by trigger, accept, and deny.", is_flag=True),
+            "action": ArgumentInfo(description="Use `/action trigger`, `/action accept`, or `/action deny`.", is_flag=True),
+            "user"  : ArgumentInfo(required=False, description="Target member for the nomination trigger.", is_flag=True),
+            "id"    : ArgumentInfo(required=False, description="Nomination case ID used by trigger, accept, and deny.", is_flag=True),
         },
     )
     async def nomination(
@@ -92,6 +93,13 @@ class NominationCommands(commands.Cog):
         flags : NominationFlags,
     ) -> None:
         if not ctx.guild:
+            await send_custom_message(
+                ctx,
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
+            )
             return
 
         invoker = ctx.author
@@ -99,10 +107,17 @@ class NominationCommands(commands.Cog):
             return
 
         if not self._is_director(invoker):
+            await send_custom_message(
+                ctx,
+                msg_type = "error",
+                title    = "run command",
+                subtitle = "You are not authorized to run this command.",
+                footer   = "No permissions",
+            )
             return
 
         action = flags.action.lower()
-        guild = ctx.guild
+        guild  = ctx.guild
 
         if action == "trigger":
             await self._handle_trigger(ctx, guild, flags, invoker)
@@ -118,16 +133,37 @@ class NominationCommands(commands.Cog):
         flags    : NominationFlags,
         _invoker : discord.Member,
     ) -> None:
-        target = flags.user
+        target  = flags.user
         case_id = flags.case_id
 
         if target is None or case_id is None:
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "trigger nomination",
+                subtitle = "A target user and case ID are required.",
+                footer   = "Bad argument",
+            )
             return
 
         if case_id in self.data:
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "trigger nomination",
+                subtitle = f"A nomination case with ID `{case_id}` already exists.",
+                footer   = "Bad argument",
+            )
             return
 
         if target.bot:
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "trigger nomination",
+                subtitle = "You cannot nominate a bot.",
+                footer   = "Bad argument",
+            )
             return
 
         case: NominationCase = {
@@ -137,9 +173,12 @@ class NominationCommands(commands.Cog):
         self.data[case_id] = case
         save_nomination_data(self.data)
 
-        _ = await ctx.send(
-            f"{ACCEPTED_EMOJI_ID} **Successfully started Director Nomination!**\n"
-            f"ID: `{case_id}`",
+        await send_custom_message(
+            ctx,
+            msg_type  = "success",
+            title     = "start Director Nomination",
+            subtitle  = f"ID: `{case_id}`",
+            ephemeral = False,
         )
 
     async def _handle_accept(
@@ -150,25 +189,43 @@ class NominationCommands(commands.Cog):
         invoker : discord.Member,
     ) -> None:
         case_id = flags.case_id
+
         if case_id is None or case_id not in self.data:
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "accept nomination",
+                subtitle = f"No nomination case with ID `{case_id}` was found.",
+                footer   = "Bad argument",
+            )
             return
 
         case = self.data[case_id]
 
         if invoker.id in case["acceptors"]:
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "accept nomination",
+                subtitle = "You have already accepted this nomination.",
+                footer   = "Bad request",
+            )
             return
 
         case["acceptors"].append(invoker.id)
         save_nomination_data(self.data)
 
-        directors = self._get_directors(guild)
+        directors    = self._get_directors(guild)
         director_ids = {d.id for d in directors}
-        n = sum(1 for uid in case["acceptors"] if uid in director_ids)
-        m = len(directors)
+        n            = sum(1 for uid in case["acceptors"] if uid in director_ids)
+        m            = len(directors)
 
-        _ = await ctx.send(
-            f"{ACCEPTED_EMOJI_ID} **Successfully added Director Nomination to nomination case `{case_id}`!**\n"
-            f"{n}/{m} Directors for.",
+        await send_custom_message(
+            ctx,
+            msg_type  = "success",
+            title     = f"add Director Nomination to nomination case `{case_id}`",
+            subtitle  = f"{n}/{m} Directors for.",
+            ephemeral = False,
         )
 
         if m > 0 and n >= m:
@@ -188,7 +245,7 @@ class NominationCommands(commands.Cog):
         if target is None:
             return
 
-        directors_role = guild.get_role(DIRECTORS_ROLE_ID)
+        directors_role  = guild.get_role(DIRECTORS_ROLE_ID)
         supporting_role = guild.get_role(SUPPORTING_DIRECTORS_ROLE_ID)
 
         if directors_role is None or supporting_role is None:
@@ -196,8 +253,9 @@ class NominationCommands(commands.Cog):
 
         with contextlib.suppress(discord.Forbidden, discord.HTTPException):
             await target.add_roles(directors_role, supporting_role)
+
         original_nick = target.nick or target.name
-        new_nick = f"S. Director | {extract_name(original_nick)}"
+        new_nick      = f"S. Director | {extract_name(original_nick)}"
 
         n_32 = 32
         if len(new_nick) <= n_32:
@@ -210,16 +268,27 @@ class NominationCommands(commands.Cog):
         flags : NominationFlags,
     ) -> None:
         case_id = flags.case_id
+
         if case_id is None or case_id not in self.data:
+            await send_custom_message(
+                ctx,
+                msg_type = "warning",
+                title    = "deny nomination",
+                subtitle = f"No nomination case with ID `{case_id}` was found.",
+                footer   = "Bad argument",
+            )
             return
 
         _ = self.data.pop(case_id, None)
         save_nomination_data(self.data)
 
-        _ = await ctx.send(
-            f"{DENIED_EMOJI_ID} **Ended nomination case `{case_id}`.**\n"
-            f"Director {ctx.author.mention} has denied the nomination.",
+        await send_custom_message(
+            ctx,
+            msg_type  = "information",
+            title     = f"Nomination case `{case_id}` ended",
+            subtitle  = f"Director {ctx.author.mention} has denied the nomination.",
+            ephemeral = False,
         )
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(NominationCommands(bot))

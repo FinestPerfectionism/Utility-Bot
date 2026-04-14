@@ -24,7 +24,7 @@ class ApplicationsCommands(
     name        = "applications",
     description = "Moderators only —— Applications commands.",
 ):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
         super().__init__()
 
@@ -252,6 +252,6 @@ class ApplicationsCommands(
             subtitle = "Your application has been cancelled and deleted.",
         )
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     cog = ApplicationsCommands(bot)
     await bot.add_cog(cog)

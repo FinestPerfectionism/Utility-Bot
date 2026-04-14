@@ -33,7 +33,7 @@ _INVITE_RE = re.compile(
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class PartnershipCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     partnership = app_commands.Group(
@@ -388,5 +388,5 @@ class PartnershipCommands(commands.Cog):
             (IMAGE_DIR / old_image_filename).unlink(missing_ok=True)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(PartnershipCommands(bot))

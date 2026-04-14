@@ -212,7 +212,7 @@ class ProposalCommands(
     name = "proposal",
     description = "Staff Committee only —— Proposal commands.",
 ):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
         super().__init__()
 
@@ -872,6 +872,6 @@ class ProposalCommands(
 
         await ctx.channel.delete()
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     cog = ProposalCommands(bot)
     await bot.add_cog(cog)

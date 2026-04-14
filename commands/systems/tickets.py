@@ -30,7 +30,7 @@ class TicketsCommands(
     name        = "tickets",
     description = "Moderators only —— Tickets commands.",
 ):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
         super().__init__()
 
@@ -202,7 +202,11 @@ class TicketsCommands(
 
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
-        _ = await ctx.send("Archiving ticket.")
+        _ = await send_custom_message(
+            ctx,
+            msg_type = "success",
+            title    = "archived ticket",
+        )
         _ = await channel.edit(locked=True, archived=True)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -380,6 +384,6 @@ class TicketsCommands(
             title    = "escalated ticket to Directors",
         )
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     cog = TicketsCommands(bot)
     await bot.add_cog(cog)

@@ -38,7 +38,7 @@ class ModerationCommands(
     name        = "moderation",
     description = "Moderators only —— Moderation commands.",
 ):
-    def __init__(self, bot: "UtilityBot") -> None:
+    def __init__(self, bot : "UtilityBot") -> None:
         ModerationBase.__init__(self, bot)
         commands.GroupCog.__init__(self)
 
@@ -334,5 +334,5 @@ class ModerationCommands(
     ) -> None:
         await run_unquarantine(self, interaction, member, reason, proof)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(ModerationCommands(cast("UtilityBot", bot)))

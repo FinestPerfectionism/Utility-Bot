@@ -14,7 +14,7 @@ from constants import CHANGE_LOG_CHANNEL_ID, DIRECTORSHIP_CATEGORY_ID
 _SEND_INTERVAL = 1.0
 
 class AuditQueue(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
         self._queue: asyncio.Queue[tuple[discord.abc.Messageable, discord.Embed]] = asyncio.Queue()
         _ = self._queue_worker.start()
@@ -52,7 +52,7 @@ class AuditQueue(commands.Cog):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class AuditCog(commands.Cog):
-    def __init__(self, bot: commands.Bot, queue: AuditQueue) -> None:
+    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
         self.bot = bot
         self.log_channel_id = CHANGE_LOG_CHANNEL_ID
         self._queue = queue

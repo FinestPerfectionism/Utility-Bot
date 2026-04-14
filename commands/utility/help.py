@@ -81,14 +81,14 @@ async def _run_help(
     data = cast("HelpedCallable", callback).__help_data__
     view = build_help_view(
         command_name = " ".join(parts),
-        data=data,
-        member=member,
+        data         = data,
+        member       = member,
     )
     _ = await respond(view = view)
 
 
 class HelpCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -121,6 +121,6 @@ class HelpCommands(commands.Cog):
 
         return await _run_help(self.bot, ctx, command_name)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     cog = HelpCommands(bot)
     await bot.add_cog(cog)

@@ -12,7 +12,7 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EmojiEditCog(AuditCog):
-    def __init__(self, bot: commands.Bot, queue: AuditQueue) -> None:
+    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
         super().__init__(bot, queue)
 
     @commands.Cog.listener()

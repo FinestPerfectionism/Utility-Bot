@@ -214,7 +214,7 @@ TEXACKERS_GUILD_ID = 846677253290983444
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MessageSendHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot   = bot
         self.state = _load_state()
 
@@ -479,5 +479,5 @@ class MessageSendHandler(commands.Cog):
                 save_active_applications()
                 return
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(MessageSendHandler(bot))

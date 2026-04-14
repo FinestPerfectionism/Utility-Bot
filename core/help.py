@@ -303,7 +303,7 @@ def build_help_view(
 
     return HelpView()
 
-def resolve_command(bot: commands.Bot, name: str) -> Callable[..., Awaitable[Any]] | None:
+def resolve_command(bot : commands.Bot, name: str) -> Callable[..., Awaitable[Any]] | None:
     cmd = bot.get_command(name)
     if cmd:
         return cmd.callback
@@ -314,7 +314,7 @@ def resolve_command(bot: commands.Bot, name: str) -> Callable[..., Awaitable[Any
 
     return None
 
-def find_nested_command(bot: commands.Bot, parts: list[str]) -> object | None:
+def find_nested_command(bot : commands.Bot, parts: list[str]) -> object | None:
     full = " ".join(parts)
     result = resolve_command(bot, full)
     if result:

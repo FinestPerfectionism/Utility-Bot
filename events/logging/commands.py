@@ -8,7 +8,7 @@ from constants import BOT_LOG_CHANNEL_ID, COLOR_BLURPLE
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CommandLogger(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -115,5 +115,5 @@ class CommandLogger(commands.Cog):
 
         _ = await channel.send(embed = embed)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(CommandLogger(bot))

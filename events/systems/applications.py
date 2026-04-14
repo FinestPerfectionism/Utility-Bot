@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 from datetime import datetime
 from typing import Any, cast
@@ -21,14 +23,12 @@ from typing_extensions import override
 
 from commands.moderation.primary._base import ModerationListPaginator
 from constants import (
-    ACCEPTED_EMOJI_ID,
     ADMINISTRATORS_ROLE_ID,
     APPLICATION_LOG_CHANNEL_ID,
     ARCHIVED_APPLICATION_LOG_CHANNEL_ID,
     COLOR_BLURPLE,
     COLOR_GREEN,
     COLOR_RED,
-    CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     JUNIOR_ADMINISTRATORS_ROLE_ID,
@@ -40,6 +40,7 @@ from constants import (
     STAFF_ROLE_ID,
     TRUSTED_ROLE_ID,
 )
+from core.responses import send_custom_message
 from core.state.application_state import (
     ACTIVE_APPLICATIONS,
     APPLICATIONS_OPEN,
@@ -80,7 +81,12 @@ class DecisionModal(Modal, title = "Decision Reason"):
     @override
     async def on_submit(self, interaction : discord.Interaction) -> None:
         _ = await interaction.response.defer(ephemeral = True)
-        _ = await interaction.followup.send("Decision recorded.", ephemeral = True)
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "submitted decision",
+            subtitle = "Decision recorded",
+        )
 
         guild = interaction.guild
 
@@ -94,9 +100,12 @@ class DecisionModal(Modal, title = "Decision Reason"):
             return
 
         if self.applicant_id not in ACTIVE_APPLICATIONS:
-            _ = await interaction.followup.send(
-                "This application has already been handled.",
-                ephemeral = True,
+            _ = await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "submit decision",
+                subtitle = "This application has already been handled.",
+                footer   = "Bad request",
             )
             return
 
@@ -148,15 +157,13 @@ class DecisionModal(Modal, title = "Decision Reason"):
 
             with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                 _ = await user.send(
-                    f"{ACCEPTED_EMOJI_ID} **Application accepted!**\n"
-                    f"-# Your application has been accepted! Welcome to the staff team!\n"
+                    f"{DENIED_EMOJI_ID} **Application Denied!**"
                     f"-# **Notes:** {self.notes.value}",
                 )
         else:
             with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                 _ = await user.send(
-                    f"{DENIED_EMOJI_ID} **Application denied.**\n"
-                    f"-# Your application has been denied."
+                    f"{DENIED_EMOJI_ID} **Application Denied!**"
                     f"-# **Notes:** {self.notes.value}",
                 )
 
@@ -180,10 +187,10 @@ class DecisionModal(Modal, title = "Decision Reason"):
             inline = False,
         )
 
-        _ = new_embed.set_footer(text="Decision Made")
+        _ = new_embed.set_footer(text = "Decision Made")
         new_embed.timestamp = interaction.created_at
 
-        _ = await msg.edit(embed = new_embed, view=None)
+        _ = await msg.edit(embed = new_embed, view = None)
 
         archive_channel = interaction.client.get_channel(ARCHIVED_APPLICATION_LOG_CHANNEL_ID)
 
@@ -211,7 +218,7 @@ class DecisionModal(Modal, title = "Decision Reason"):
             with contextlib.suppress(discord.NotFound):
                 channel = await interaction.client.fetch_channel(thread_id)
                 if isinstance(channel, discord.Thread):
-                    _ = await channel.edit(locked=True, archived=True)
+                    _ = await channel.edit(locked = True, archived = True)
 
         _ = ACTIVE_APPLICATIONS.pop(self.applicant_id, None)
         save_active_applications()
@@ -222,9 +229,9 @@ class DecisionModal(Modal, title = "Decision Reason"):
 
 class DecisionView(View):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
-    @discord.ui.button(label = "Accept", style = ButtonStyle.success, custom_id="decision:accept")
+    @discord.ui.button(label = "Accept", style = ButtonStyle.success, custom_id = "decision:accept")
     async def accept(self, interaction : discord.Interaction, _ : Button[View]) -> None:
         msg = interaction.message
         if msg is None:
@@ -234,9 +241,12 @@ class DecisionView(View):
             None,
         )
         if not data:
-            __ =await interaction.response.send_message(
-                "This application has already been handled.",
-                ephemeral = True,
+            __ = await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "submit decision",
+                subtitle = "This application has already been handled.",
+                footer   = "Bad request",
             )
             return
 
@@ -249,7 +259,7 @@ class DecisionView(View):
             ),
         )
 
-    @discord.ui.button(label = "Deny", style = ButtonStyle.danger, custom_id="decision:deny")
+    @discord.ui.button(label = "Deny", style = ButtonStyle.danger, custom_id = "decision:deny")
     async def deny(self, interaction : discord.Interaction, _ : Button[View]) -> None:
         msg = interaction.message
         if msg is None:
@@ -259,9 +269,12 @@ class DecisionView(View):
             None,
         )
         if not data:
-            __ = await interaction.response.send_message(
-                "This application has already been handled.",
-                ephemeral = True,
+            __ = await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "submit decision",
+                subtitle = "This application has already been handled.",
+                footer   = "Bad request",
             )
             return
 
@@ -274,7 +287,7 @@ class DecisionView(View):
             ),
         )
 
-    @discord.ui.button(label = "History", style = ButtonStyle.secondary, custom_id="decision:history")
+    @discord.ui.button(label = "History", style = ButtonStyle.secondary, custom_id = "decision:history")
     async def history(self, interaction : discord.Interaction, _ : Button[View]) -> None:
         msg = interaction.message
         if msg is None:
@@ -284,9 +297,12 @@ class DecisionView(View):
             None,
         )
         if not data:
-            __ = await interaction.response.send_message(
-                "This application has already been handled.",
-                ephemeral = True,
+            __ = await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "submit decision",
+                subtitle = "This application has already been handled.",
+                footer   = "Bad request",
             )
             return
 
@@ -297,21 +313,25 @@ class DecisionView(View):
         bot       = cast("commands.Bot", interaction.client)
         cases_cog = cast("Any", bot.cogs.get("CasesCommands"))
         if not cases_cog:
-            __ = await interaction.response.send_message(
-                "Case history is unavailable.",
-                ephemeral = True,
+            __ = await send_custom_message(
+                interaction,
+                msg_type          = "warning",
+                title             = "query applicant cases",
+                subtitle          = "Case history is unavailable.",
+                footer            = "Bad operation",
+                contact_bot_owner = True,
             )
             return
 
         __ = await interaction.response.defer(ephemeral = True)
 
         applicant_id = data["applicant_id"]
-        cases        = cases_cog.cases_manager.get_cases(guild_id=guild.id, user_id=applicant_id)
+        cases        = cases_cog.cases_manager.get_cases(guild_id = guild.id, user_id = applicant_id)
 
         if not cases:
             embed = discord.Embed(
                 description = "This applicant has no recorded cases.",
-                color = COLOR_GREEN,
+                color       = COLOR_GREEN,
             )
             await interaction.followup.send(embed = embed, ephemeral = True)
             return
@@ -349,8 +369,8 @@ class DecisionView(View):
 
             fields.append((f"Case #{case['case_id']}", "\n".join(value_parts)))
 
-        paginator = ModerationListPaginator(title = title, fields=fields, color = COLOR_BLURPLE, context=interaction)
-        await interaction.followup.send(embed = paginator.get_embed(), view=paginator, ephemeral = True)
+        paginator = ModerationListPaginator(title = title, fields = fields, color = COLOR_BLURPLE, context = interaction)
+        await interaction.followup.send(embed = paginator.get_embed(), view = paginator, ephemeral = True)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Questions / State
@@ -451,7 +471,7 @@ class ApplicationSubmitView(View):
         data["reviewing"] = False
         __ = await interaction.response.send_message(
             "Select a question to edit:",
-            view=EditQuestionSelectView(self.user_id),
+            view      = EditQuestionSelectView(self.user_id),
             ephemeral = True,
         )
 
@@ -459,10 +479,12 @@ class ApplicationSubmitView(View):
     async def submit(self, interaction : discord.Interaction, _ : Button[View]) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
-            __ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to submit application!**\n"
-                "This application is no longer active",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "submit application",
+                subtitle = "This application is no longer active.",
+                footer   = "Bad request",
             )
             return
 
@@ -471,7 +493,7 @@ class ApplicationSubmitView(View):
             if isinstance(dm_channel, discord.DMChannel):
                 with contextlib.suppress(discord.NotFound):
                     review_msg = await dm_channel.fetch_message(data["review_message_id"])
-                    __ = await review_msg.edit(view=None)
+                    __ = await review_msg.edit(view = None)
 
         channel = interaction.client.get_channel(APPLICATION_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
@@ -493,30 +515,37 @@ class ApplicationSubmitView(View):
             )
 
         msg = await channel.send(
-            content =f"<@&{DIRECTORS_ROLE_ID}>",
-            embed = embed,
+            content = f"<@&{DIRECTORS_ROLE_ID}>",
+            embed   = embed,
         )
 
-        __ = await msg.edit(view=DecisionView())
+        __ = await msg.edit(view = DecisionView())
 
         thread = await msg.create_thread(
             name = f"{interaction.user.display_name}'s "
                  f"{'Administrator' if data['type'] == 'admin' else 'Moderator'} Application",
         )
 
-        ACTIVE_APPLICATIONS[self.user_id]["thread_id"]    = thread.id
+        ACTIVE_APPLICATIONS[self.user_id]["thread_id"]      = thread.id
         ACTIVE_APPLICATIONS[self.user_id]["log_message_id"] = msg.id
         ACTIVE_APPLICATIONS[self.user_id]["applicant_id"]   = self.user_id
         save_active_applications()
 
-        __ = await interaction.response.send_message("Application submitted.", ephemeral = True)
+        __ = await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "submitted application",
+            subtitle = "Application submitted.",
+        )
 
     @discord.ui.button(label = "Cancel", style = ButtonStyle.danger)
     async def cancel(self, interaction : discord.Interaction, _ : Button[View]) -> None:
         await delete_application_messages(interaction.client, self.user_id)
-        __ = await interaction.response.send_message(
-            "Your application has been cancelled and deleted.",
-            ephemeral = True,
+        __ = await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "cancelled application",
+            subtitle = "Your application has been cancelled and deleted.",
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -525,7 +554,7 @@ class ApplicationSubmitView(View):
 
 class ApplicationComponents(LayoutView):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
         for item in self.walk_children():
             if isinstance(item, Button):
@@ -536,21 +565,22 @@ class ApplicationComponents(LayoutView):
 
     container : Container[LayoutView] = Container(
         TextDisplay(
-            content ="# Staff Applications\n"
-            "Staff applications are reviewed carefully to ensure we select members who are responsible, active, and aligned with the server's values. Take your time when completing the application and ensure all answers are honest and well thought out.\n\n"
-            "- **How to Start:** Fully complete the application form and answer every question to the best of your ability.\n"
-            "- **Detail Matters:** Short, low-effort, or vague responses significantly reduce your chances of acceptance.\n"
-            "- **Honesty Required:** Any form of lying or exaggeration will result in automatic rejection.\n"
-            "- **Professionalism:** Use respectful language and proper grammar throughout your application.\n\n"
-            "After submission, applications will be reviewed by the Directorate team. Do not DM staff for updates, as this will negatively affect your application. Decisions are final (unless stated otherwise), and feedback may not always be provided.\n\n"
-            "**Note:** All applications are and will be taken seriously. Be professional — take your time. You may cancel and delete your application at any point by typing `.cancel`.",
+            content =
+                "# Staff Applications\n"
+                "Staff applications are reviewed carefully to ensure we select members who are responsible, active, and aligned with the server's values. Take your time when completing the application and ensure all answers are honest and well thought out.\n\n"
+                "- **How to Start:** Fully complete the application form and answer every question to the best of your ability.\n"
+                "- **Detail Matters:** Short, low-effort, or vague responses significantly reduce your chances of acceptance.\n"
+                "- **Honesty Required:** Any form of lying or exaggeration will result in automatic rejection.\n"
+                "- **Professionalism:** Use respectful language and proper grammar throughout your application.\n\n"
+                "After submission, applications will be reviewed by the Directorate team. Do not DM staff for updates, as this will negatively affect your application. Decisions are final (unless stated otherwise), and feedback may not always be provided.\n\n"
+                "**Note:** All applications are and will be taken seriously. Be professional — take your time. You may cancel and delete your application at any point by typing `.cancel`.",
         ),
         Separator(
             visible = True,
             spacing = SeparatorSpacing.large,
         ),
         TextDisplay(
-            content ="We look forward to reviewing any and all applications! Sincerely,\n-# The Goobers Directorate team.",
+            content = "We look forward to reviewing any and all applications! Sincerely,\n-# The Goobers Directorate team.",
         ),
         Separator(
             visible = True,
@@ -585,46 +615,56 @@ class ApplicationComponents(LayoutView):
 
 class ApplicationMenuView(View):
     def __init__(self) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
 
     async def handle_mod_application(self, interaction : discord.Interaction) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
-            _ = await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **You have been blacklisted from opening applications!**\n"
-                "You are blacklisted from opening applications. Contact a Director.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "error",
+                title    = "open application",
+                subtitle = "You are blacklisted from opening applications. Contact a Director.",
+                footer   = "Bad request",
             )
             return
 
         if interaction.user.id in ACTIVE_APPLICATIONS:
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "You already have an active application. Please finish or cancel it before starting a new one.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "You already have an active application. Please finish or cancel it before starting a new one.",
+                footer   = "Bad request",
             )
             return
 
         if not APPLICATIONS_OPEN["mod"]:
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "Sorry, Moderator applications are closed right now!",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "Sorry, Moderator applications are closed right now!",
+                footer   = "Bad request",
             )
             return
 
         if not isinstance(interaction.user, discord.Member):
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "This can only be used in a server.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "This can only be used in a server.",
+                footer   = "Bad environment",
             )
             return
 
         if not can_apply(interaction.user, "mod"):
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "You already exist within the Goobers Moderation Team.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "You already exist within the Goobers Moderation Team.",
+                footer   = "Bad request",
             )
             return
 
@@ -651,50 +691,61 @@ class ApplicationMenuView(View):
         data["messages"].append(msg.id)
         save_active_applications()
 
-        _ = await interaction.response.send_message(
-            f"{ACCEPTED_EMOJI_ID} **Successfully opened application.**\n"
-            "The application has been sent to your DMs.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "open application",
+            subtitle = "The application has been sent to your DMs.",
         )
 
     async def handle_admin_application(self, interaction : discord.Interaction) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
-            _ = await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **You have been blacklisted from opening applications!**\n"
-                "You are blacklisted from opening applications. Contact a Director.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "error",
+                title    = "open application",
+                subtitle = "You are blacklisted from opening applications. Contact a Director.",
+                footer   = "Bad request",
             )
             return
 
         if interaction.user.id in ACTIVE_APPLICATIONS:
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "You already have an active application. Please finish or cancel it before starting a new one.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "You already have an active application. Please finish or cancel it before starting a new one.",
+                footer   = "Bad request",
             )
             return
 
         if not APPLICATIONS_OPEN["admin"]:
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "Sorry, Administrator applications are closed right now!",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "Sorry, Administrator applications are closed right now!",
+                footer   = "Bad request",
             )
             return
 
         if not isinstance(interaction.user, discord.Member):
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "This can only be used in a server.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "This can only be used in a server.",
+                footer   = "Bad environment",
             )
             return
 
         if not can_apply(interaction.user, "admin"):
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open application!**\n"
-                "You already exist within the Goobers Administration Team.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open application",
+                subtitle = "You already exist within the Goobers Administration Team.",
+                footer   = "Bad request",
             )
             return
 
@@ -721,10 +772,11 @@ class ApplicationMenuView(View):
         data["messages"].append(msg.id)
         save_active_applications()
 
-        _ = await interaction.response.send_message(
-            f"{ACCEPTED_EMOJI_ID} **Successfully opened application!**\n"
-            "The application has been sent to your DMs.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "open application",
+            subtitle = "The application has been sent to your DMs.",
         )
 
     async def mod_btn(self, interaction : discord.Interaction, _ : Button[View]) -> None:
@@ -739,7 +791,7 @@ class ApplicationMenuView(View):
 
 class EditQuestionSelectView(View):
     def __init__(self, user_id : int) -> None:
-        super().__init__(timeout=120)
+        super().__init__(timeout = 120)
         self.user_id = user_id
 
         data = ACTIVE_APPLICATIONS.get(user_id)
@@ -781,14 +833,16 @@ class EditQuestionSelect(Select[View]):
         data["reviewing"] = False
         save_active_applications()
 
-        _ = await interaction.response.send_message(
-            f"**Editing Question:**\n{data['questions'][data['index']]}",
-            ephemeral = True,
+        _ = await send_custom_message(
+            interaction,
+            msg_type =  "information",
+            title    =  "Editing question",
+            subtitle = f"{data['questions'][data['index']]}",
         )
 
 class ApplicationsSystem(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(ApplicationsSystem(bot))

@@ -339,7 +339,11 @@ class HealthFixView(View):
                 child.disabled = True
 
         _ = await interaction.response.edit_message(view = self)
-        await interaction.followup.send("Applying fixes...", ephemeral = True)
+        await send_custom_message(
+            interaction,
+            msg_type = "information",
+            title    = "Applying fixes",
+        )
 
         checks = await self.cog.run_checks(self.guild)
 
@@ -405,7 +409,7 @@ class HealthFixView(View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class HealthCommands(commands.Cog):
-    def __init__(self, bot: "UtilityBot") -> None:
+    def __init__(self, bot : "UtilityBot") -> None:
         self.bot = bot
 
     def can_use(self, member: discord.Member) -> bool:
@@ -699,5 +703,5 @@ class HealthCommands(commands.Cog):
 
         await interaction.followup.send(embed = embed, view = view, ephemeral = True)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(HealthCommands(cast("UtilityBot", bot)))

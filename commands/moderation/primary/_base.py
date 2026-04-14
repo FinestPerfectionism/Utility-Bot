@@ -170,7 +170,7 @@ class ModerationListPaginator(View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ModerationBase(commands.Cog):
-    def __init__(self, bot: "UtilityBot") -> None:
+    def __init__(self, bot : "UtilityBot") -> None:
         self.bot = bot
 
         if not hasattr(bot, "mod_data"):
@@ -401,7 +401,7 @@ class ModerationBase(commands.Cog):
 
         if not self.check_hierarchy(moderator, target):
             if self.can_quarantine(moderator):
-                return False, "Target user is greater than or equal to your highest role. Use `/quarantine add` instead."
+                return False, "Target user is greater than or equal to your highest role."
             return False, "Target user is greater than or equal to your highest role."
 
         return True, ""

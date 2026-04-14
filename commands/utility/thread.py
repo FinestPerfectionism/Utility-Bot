@@ -13,7 +13,7 @@ from core.permissions import is_director, is_moderator, is_staff_committee
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ThreadCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     def allowed_in_thread(self, ctx : commands.Context[commands.Bot]) -> bool:
@@ -72,5 +72,5 @@ class ThreadCommands(commands.Cog):
 
         _ = await ctx.channel.edit(archived=True)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(ThreadCommands(bot))

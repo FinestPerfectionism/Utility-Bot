@@ -27,7 +27,7 @@ from .remove import run_leave_remove
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class LeaveCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot  = bot
         self.data = load_data()
         _ = self._automation_loop.start()
@@ -256,5 +256,5 @@ class LeaveCommands(commands.Cog):
     ) -> None:
         await run_leave_remove(self.data, interaction, target)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(LeaveCommands(bot))

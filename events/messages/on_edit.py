@@ -32,7 +32,7 @@ WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$"
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MessageEditHandler(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     def is_directorship_channel(self, channel: discord.abc.Messageable) -> bool:
@@ -126,5 +126,5 @@ class MessageEditHandler(commands.Cog):
         _ = await log_channel.send(embed = embed)
         await self.bot.process_commands(after)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(MessageEditHandler(bot))

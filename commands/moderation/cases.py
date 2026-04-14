@@ -1271,5 +1271,5 @@ class CasesCommands(commands.Cog):
             title    = f"set case log channel to {channel.mention}",
         )
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(CasesCommands(cast("UtilityBot", bot)))

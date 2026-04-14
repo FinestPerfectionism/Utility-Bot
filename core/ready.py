@@ -30,7 +30,7 @@ class DiscordLogHandler(logging.Handler):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class Ready(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot                                 = bot
         self._ran                                = False
         self._console_queue : asyncio.Queue[Any] = asyncio.Queue(maxsize=500)
@@ -137,5 +137,5 @@ class Ready(commands.Cog):
         await self.restore_application_views()
         await self.resume_incomplete_applications()
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(Ready(bot))

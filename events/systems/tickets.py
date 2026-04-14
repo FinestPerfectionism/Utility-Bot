@@ -19,14 +19,12 @@ from discord.ui import (
 from typing_extensions import override
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
     COLOR_GREEN,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     MODERATORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
+from core.responses import send_custom_message
 from core.state.blacklist_state import BLACKLIST
 from core.state.ticket_state import (
     ACTIVE_TICKETS,
@@ -47,7 +45,7 @@ from core.state.ticket_state import (
 RESOLUTION_TASKS: dict[int, asyncio.Task[None]] = {}
 _bot_ref: commands.Bot | None = None
 
-def set_bot(bot: commands.Bot) -> None:
+def set_bot(bot : commands.Bot) -> None:
     global _bot_ref
     _bot_ref = bot
 
@@ -150,22 +148,26 @@ class ResolutionView(View):
         if not isinstance(interaction.user, discord.Member):
             return
 
-        channel = interaction.channel
+        channel   = interaction.channel
         opener_id = THREAD_OPENERS.get(channel.id)
 
         if interaction.user.id != opener_id and not _is_staff(interaction.user):
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to respond to resolution check!**"
-                "Only the ticket opener can respond to this.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "respond to resolution check",
+                subtitle = "Only the ticket opener can respond to this.",
             )
             return
 
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
-        _ = await interaction.response.send_message(
-           f"{ACCEPTED_EMOJI_ID} **Understood.**"
-            "Glad your issue was resolved! This ticket will now be archived.",
+        await send_custom_message(
+            interaction,
+            msg_type  = "success",
+            title     = "responded to resolution check",
+            subtitle  = "Glad your issue was resolved! This ticket will now be archived.",
+            ephemeral = False,
         )
         _ = await channel.edit(locked=True, archived=True)
 
@@ -185,17 +187,19 @@ class ResolutionView(View):
         opener_id = THREAD_OPENERS.get(interaction.channel.id)
 
         if interaction.user.id != opener_id:
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to respond to resolution check!**"
-                "Only the ticket opener can respond to this.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "respond to resolution check",
+                subtitle = "Only the ticket opener can respond to this.",
             )
             return
 
-        _ = await interaction.response.send_message(
-           f"{ACCEPTED_EMOJI_ID} **Understood.**"
-            "Understood! We'll check back in with you later.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "responded to resolution check",
+            subtitle = "We'll check back in with you later.",
         )
 
 
@@ -223,10 +227,11 @@ class AddMemberModal(Modal, title = "Add Member to Ticket"):
         try:
             user_id = int(raw)
         except ValueError:
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!**"
-                "Invalid user ID.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "add member to ticket",
+                subtitle = "Invalid user ID.",
             )
             return
 
@@ -237,18 +242,20 @@ class AddMemberModal(Modal, title = "Add Member to Ticket"):
         try:
             member = guild.get_member(user_id) or await guild.fetch_member(user_id)
         except (discord.NotFound, discord.HTTPException):
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!"
-                "User not found in this server.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "add member to ticket",
+                subtitle = "User not found in this server.",
             )
             return
 
         await interaction.channel.add_user(member)
-        _ = await interaction.response.send_message(
-            f"{ACCEPTED_EMOJI_ID} **Successfully added member to ticket.**"
-            f"Added {member.mention} to the ticket.",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "added member to ticket",
+            subtitle = f"Added {member.mention} to the ticket.",
         )
 
 
@@ -313,20 +320,26 @@ class TicketControlPanel(LayoutView):
         if not isinstance(interaction.user, discord.Member):
             return
 
-        channel = interaction.channel
+        channel   = interaction.channel
         opener_id = THREAD_OPENERS.get(channel.id)
 
         if not _is_staff(interaction.user) and interaction.user.id != opener_id:
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to archive ticket!**"
-                "Only the ticket opener or a moderator can archive this ticket.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "archive ticket",
+                subtitle = "Only the ticket opener or a moderator can archive this ticket.",
             )
             return
 
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
-        _ = await interaction.response.send_message("Archiving ticket.")
+        await send_custom_message(
+            interaction,
+            msg_type  = "success",
+            title     = "archived ticket",
+            ephemeral = False,
+        )
         _ = await channel.edit(locked=True, archived=True)
 
     async def _lock(self, interaction : discord.Interaction) -> None:
@@ -336,15 +349,21 @@ class TicketControlPanel(LayoutView):
             return
 
         if not _is_staff(interaction.user):
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to lock ticket!**"
-                "Only moderators can lock this ticket.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "lock ticket",
+                subtitle = "Only moderators can lock this ticket.",
             )
             return
 
         stop_resolution(interaction.channel.id)
-        _ = await interaction.response.send_message("Ticket locked.")
+        await send_custom_message(
+            interaction,
+            msg_type  = "success",
+            title     = "locked ticket",
+            ephemeral = False,
+        )
         _ = await interaction.channel.edit(locked=True)
 
     async def _close(self, interaction : discord.Interaction) -> None:
@@ -354,17 +373,23 @@ class TicketControlPanel(LayoutView):
             return
 
         if not _is_staff(interaction.user):
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to close ticket!**"
-                "Only moderators can close this ticket.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "close ticket",
+                subtitle = "Only moderators can close this ticket.",
             )
             return
 
         channel = interaction.channel
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
-        _ = await interaction.response.send_message("Closing ticket.")
+        await send_custom_message(
+            interaction,
+            msg_type  = "success",
+            title     = "closed ticket",
+            ephemeral = False,
+        )
         _ = await interaction.channel.edit(archived=True)
 
     async def _add_members(self, interaction : discord.Interaction) -> None:
@@ -372,10 +397,11 @@ class TicketControlPanel(LayoutView):
             return
 
         if not _is_staff(interaction.user):
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to add member to ticket!**"
-                "Only moderators can add members to tickets.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "add member to ticket",
+                subtitle = "Only moderators can add members to tickets.",
             )
             return
 
@@ -388,29 +414,34 @@ class TicketControlPanel(LayoutView):
             return
 
         if not _is_staff(interaction.user):
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**"
-                "Only moderators can claim tickets.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "claim ticket",
+                subtitle = "Only moderators can claim tickets.",
             )
             return
 
-        channel = interaction.channel
+        channel            = interaction.channel
         existing_claimer_id = TICKET_CLAIMS.get(channel.id)
 
         if existing_claimer_id == interaction.user.id:
-            _ = await interaction.response.send_message(
-               f"{CONTESTED_EMOJI_ID} **Failed to claim ticket!**"
-                "You have already claimed this ticket.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "claim ticket",
+                subtitle = "You have already claimed this ticket.",
             )
             return
 
         TICKET_CLAIMS[channel.id] = interaction.user.id
         save_ticket_state()
-        _ = await interaction.response.send_message(
-            f"{ACCEPTED_EMOJI_ID} **Successfully claimed ticket.**"
-            f"Ticket claimed by {interaction.user.mention}.",
+        await send_custom_message(
+            interaction,
+            msg_type  = "success",
+            title     = "claimed ticket",
+            subtitle  = f"Ticket claimed by {interaction.user.mention}.",
+            ephemeral = False,
         )
 
 
@@ -474,20 +505,22 @@ class TicketComponents(LayoutView):
 
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
-                "Tickets can only be opened in text channels.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open ticket",
+                subtitle = "Tickets can only be opened in text channels.",
             )
             return
 
         user = interaction.user
 
         if user.id in BLACKLIST["tickets"]:
-            _ = await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **You have been blacklisted from opening tickets!**\n"
-                "You are blacklisted from opening tickets. Contact a Director.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "error",
+                title    = "open ticket",
+                subtitle = "You are blacklisted from opening tickets. Contact a Director.",
             )
             return
 
@@ -499,40 +532,43 @@ class TicketComponents(LayoutView):
         if isinstance(user, discord.Member):
             role_ids = {role.id for role in user.roles}
             if DIRECTORS_ROLE_ID in role_ids:
-                _ = await interaction.response.send_message(
-                   f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
-                    "Directors may not open tickets of any type.",
-                    ephemeral = True,
+                await send_custom_message(
+                    interaction,
+                    msg_type = "warning",
+                    title    = "open ticket",
+                    subtitle = "Directors may not open tickets of any type.",
                 )
                 return
             if STAFF_ROLE_ID in role_ids and ticket_type == "moderator":
-                _ = await interaction.response.send_message(
-                   f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
-                    "Staff members may only open director tickets.",
-                    ephemeral = True,
+                await send_custom_message(
+                    interaction,
+                    msg_type = "warning",
+                    title    = "open ticket",
+                    subtitle = "Staff members may only open director tickets.",
                 )
                 return
 
         if user.id in ACTIVE_TICKETS:
             existing_thread_id = ACTIVE_TICKETS[user.id]
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open ticket!**\n"
-                f"You already have an open ticket: <#{existing_thread_id}>",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open ticket",
+                subtitle = f"You already have an open ticket: <#{existing_thread_id}>",
             )
             return
 
         if ticket_type == "moderator":
-            thread_name = f"ticket · {user.display_name}"[:100]
+            thread_name  = f"ticket · {user.display_name}"[:100]
             ping_role_id = MODERATORS_ROLE_ID
         else:
-            thread_name = f"dir-ticket · {user.display_name}"[:100]
+            thread_name  = f"dir-ticket · {user.display_name}"[:100]
             ping_role_id = DIRECTORS_ROLE_ID
 
         thread = await channel.create_thread(
-            name = thread_name,
-            type=discord.ChannelType.private_thread,
-            invitable=False,
+            name      = thread_name,
+            type      = discord.ChannelType.private_thread,
+            invitable = False,
         )
 
         await thread.add_user(user)
@@ -548,20 +584,21 @@ class TicketComponents(LayoutView):
         bot = _bot_ref
         if bot is not None:
             RESOLUTION_STATE[thread.id] = {
-                "next_ts": time_mod.time() + 15 * 60.0,
-                "interval": 15,
+                "next_ts"  : time_mod.time() + 15 * 60.0,
+                "interval" : 15,
             }
             save_ticket_state()
             start_resolution_task(
-                thread_id=thread.id,
-                user_id=user.id,
-                bot=bot,
+                thread_id = thread.id,
+                user_id   = user.id,
+                bot       = bot,
             )
 
-        _ = await interaction.response.send_message(
-            f"{ACCEPTED_EMOJI_ID} **Successfully opened ticket!**\n"
-            f"Ticket created: {thread.mention}",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "opened ticket",
+            subtitle = f"Ticket created: {thread.mention}",
         )
 
 
@@ -570,7 +607,7 @@ class TicketComponents(LayoutView):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class TicketsSystem(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
     @override
@@ -595,7 +632,7 @@ class TicketsSystem(commands.Cog):
                 continue
 
             remaining = max(0.0, state["next_ts"] - now)
-            interval = state.get("interval", 15)
+            interval  = state.get("interval", 15)
 
             start_resolution_task(
                 thread_id        = thread_id,
@@ -606,5 +643,5 @@ class TicketsSystem(commands.Cog):
             )
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(TicketsSystem(bot))

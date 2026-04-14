@@ -57,7 +57,7 @@ _COGS = [
     ThreadEditCog,
 ]
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     queue = AuditQueue(bot)
     await bot.add_cog(queue)
 

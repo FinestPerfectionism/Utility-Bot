@@ -336,9 +336,13 @@ async def _schedule_leave(
     )
     end_note = _build_end_note_scheduled(parsed_begin, parsed_end, timer_seconds)
 
-    who = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
-    await interaction.followup.send(
-        f"{who} been scheduled for personal leave starting {begin_stamp}{end_note}.",
+    who1 = "you" if target_member.id == interaction.user.id else f"{target_member.mention}"
+    who2 = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
+    await send_custom_message(
+        interaction,
+        msg_type =  "success",
+        title    = f"placed {who1} on leave",
+        subtitle = f"{who2} been scheduled for personal leave starting {begin_stamp}{end_note}.",
         ephemeral = True,
     )
 
@@ -488,10 +492,13 @@ async def _apply_leave(
         }
         save_data(data)
 
-        end_note = _build_end_note_immediate(parsed_end, timer_end_ts)
-        who      = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
-        await interaction.followup.send(
-            f"{who} been placed on personal leave.{end_note}",
+        who1 = "you" if target_member.id == interaction.user.id else f"{target_member.mention}"
+        who2 = "You have" if target_member.id == interaction.user.id else f"{target_member.mention} has"
+        await  send_custom_message(
+            interaction,
+            msg_type =  "success",
+            title    = f"placed {who1} on leave",
+            subtitle = f"{who2} been placed on personal leave.",
             ephemeral = True,
         )
 

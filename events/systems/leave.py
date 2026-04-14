@@ -1,15 +1,16 @@
+from __future__ import annotations
+
 import discord
 from discord import ButtonStyle, SeparatorSpacing
 from discord.ext import commands
 from discord.ui import ActionRow, Button, Container, LayoutView, Separator, TextDisplay
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
     COLOR_GREEN,
-    CONTESTED_EMOJI_ID,
     DIRECTORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
+from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Leave System
@@ -70,7 +71,7 @@ class LeaveComponents(LayoutView):
                 label     = "Open Leave Request",
                 custom_id = "leave:open",
             ),
-           Button(
+            Button(
                 style     = ButtonStyle.primary,
                 label     = "Leave Request Format",
                 custom_id = "leave:format",
@@ -98,10 +99,12 @@ class LeaveComponents(LayoutView):
 
         channel = interaction.channel
         if not isinstance(channel, discord.TextChannel):
-            _ = await interaction.response.send_message(
-                f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
-                "Leave requests can only be opened in text channels.",
-                ephemeral = True,
+            await send_custom_message(
+                interaction,
+                msg_type = "warning",
+                title    = "open leave request",
+                subtitle = "Leave requests can only be opened in text channels.",
+                footer   = "Bad environment",
             )
             return
 
@@ -111,27 +114,36 @@ class LeaveComponents(LayoutView):
             role_ids = {role.id for role in user.roles}
 
             if DIRECTORS_ROLE_ID in role_ids:
-                _ = await interaction.response.send_message(
-                    f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
-                    "Please do not open a leave request as a Director. Instead, contact other Directors in the proper union and use `/leave add` with the proper arguments.",
-                    ephemeral = True,
+                await send_custom_message(
+                    interaction,
+                    msg_type = "warning",
+                    title    = "open leave request",
+                    subtitle = (
+                        "Please do not open a leave request as a Director. "
+                        "Instead, contact other Directors in the proper union and use `/leave add` with the proper arguments."
+                    ),
+                    footer   = "Bad request",
                 )
                 return
 
             if STAFF_ROLE_ID not in role_ids:
-                _ = await interaction.response.send_message(
-                    f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
-                    "Please do not open a leave request while not existing within the Staff team.",
-                    ephemeral = True,
+                await send_custom_message(
+                    interaction,
+                    msg_type = "warning",
+                    title    = "open leave request",
+                    subtitle = "Please do not open a leave request while not existing within the Staff team.",
+                    footer   = "Bad request",
                 )
                 return
 
         for thread in channel.threads:
             if thread.name == f"Leave —— {user.id}" and not thread.archived:
-                _ = await interaction.response.send_message(
-                    f"{CONTESTED_EMOJI_ID} **Failed to open leave request!**\n"
-                    f"Please do not open a leave request while you already have an open leave request: {thread.mention}",
-                    ephemeral = True,
+                await send_custom_message(
+                    interaction,
+                    msg_type = "warning",
+                    title    = "open leave request",
+                    subtitle = f"Please do not open a leave request while you already have an open leave request: {thread.mention}",
+                    footer   = "Bad request",
                 )
                 return
 
@@ -147,15 +159,16 @@ class LeaveComponents(LayoutView):
         if director_role:
             _ = await thread.send(director_role.mention)
 
-        _ = await interaction.response.send_message(
-            f"{ACCEPTED_EMOJI_ID} **Successfully opened leave request.**\n"
-            f"Thread: {thread.mention}",
-            ephemeral = True,
+        await send_custom_message(
+            interaction,
+            msg_type = "success",
+            title    = "open leave request",
+            subtitle = f"Thread: {thread.mention}",
         )
 
 class LeaveSystem(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(LeaveSystem(bot))

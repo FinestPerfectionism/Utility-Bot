@@ -25,7 +25,7 @@ class BotOwnerCommands(
     name        = "bot-owner",
     description = "Bot Owner only —— Bot owner commands.",
 ):
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot : commands.Bot) -> None:
         self.bot            = bot
         self.logger         = logging.getLogger("bot")
         self.restarting_ref = [False]
@@ -267,5 +267,5 @@ class BotOwnerCommands(
             message_id  = reply_id,
         )
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(BotOwnerCommands(bot))

@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 
 import core.responses as cr
-from constants import BOT_OWNER_ID, DENIED_EMOJI_ID, STANDSTILL_EMOJI_ID
+from constants import BOT_OWNER_ID, DENIED_EMOJI_ID
 from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -44,15 +44,17 @@ async def run_restart(
         return
 
     restarting_ref[0] = True
-    confirm_msg = await ctx.send(
-           f"{STANDSTILL_EMOJI_ID} **Restarting bot.**\n"
-            "Restarting bot...",
+    confirm_msg = await send_custom_message(
+        ctx,
+        msg_type = "information",
+        title    = "Restarting bot.",
+        subtitle = "Restarting bot...",
     )
 
     with contextlib.suppress(discord.HTTPException, discord.Forbidden):
         await ctx.message.delete()
 
-    loop = asyncio.get_running_loop()
+    loop         = asyncio.get_running_loop()
     restart_task = loop.create_task(restart_bot(bot, log, restarting_ref, confirm_msg))
     restart_task.add_done_callback(lambda t : t.exception() if not t.cancelled() else None)
 
