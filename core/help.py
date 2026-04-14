@@ -91,14 +91,8 @@ def help_description(
             aliases     = aliases,
         )
 
-        @functools.wraps(func)
-        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T_co:
-            return await func(*args, **kwargs)
-
-        cast("HelpedCallable", wrapper).__help_data__ = data
-        return wrapper
-
-    return decorator
+    cast("HelpedCallable", func).__help_data__ = data
+    return func
 
 def member_has_role(member: discord.Member, role_id : int) -> bool:
     return any(r.id == role_id for r in member.roles)
@@ -114,8 +108,8 @@ def check_access(
     if user_match is not None:
         allowed_channels: list[int] = [] if not user_match.channels else sorted(user_match.channels)
 
-        accessible:   list[str] = []
-        inaccessible: list[str] = []
+        accessible   : list[str] = []
+        inaccessible : list[str] = []
         for arg_name, arg_info in data.arguments.items():
             if not arg_info.roles or member_role_ids.intersection(arg_info.roles):
                 accessible.append(arg_name)
