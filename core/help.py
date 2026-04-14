@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast, runtime_checkable
 
@@ -79,7 +78,7 @@ def help_description(
     arguments = arguments or {}
     aliases   = aliases   or []
 
-    def decorator(func: Callable[P, Coroutine[Any, Any, T_co]]) -> Callable[P, Coroutine[Any, Any, T_co]]:
+    def decorator(func : Callable[P, Coroutine[Any, Any, T_co]]) -> Callable[P, Coroutine[Any, Any, T_co]]:
         data = CommandHelpData(
             desc        = desc,
             prefix      = prefix,
@@ -91,8 +90,8 @@ def help_description(
             aliases     = aliases,
         )
 
-    cast("HelpedCallable", func).__help_data__ = data
-    return func
+        cast("HelpedCallable", func).__help_data__ = data
+        return func
 
 def member_has_role(member: discord.Member, role_id : int) -> bool:
     return any(r.id == role_id for r in member.roles)
