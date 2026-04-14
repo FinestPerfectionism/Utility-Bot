@@ -78,7 +78,7 @@ def help_description(
     arguments = arguments or {}
     aliases   = aliases   or []
 
-    def decorator(func : Callable[P, Coroutine[Any, Any, T_co]]) -> Callable[P, Coroutine[Any, Any, T_co]]:
+    def decorator(func: Callable[P, Coroutine[Any, Any, T_co]]) -> Callable[P, Coroutine[Any, Any, T_co]]:
         data = CommandHelpData(
             desc        = desc,
             prefix      = prefix,
@@ -92,6 +92,8 @@ def help_description(
 
         cast("HelpedCallable", func).__help_data__ = data
         return func
+
+    return decorator
 
 def member_has_role(member: discord.Member, role_id : int) -> bool:
     return any(r.id == role_id for r in member.roles)
