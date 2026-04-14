@@ -47,8 +47,8 @@ class MessageEditHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(
         self,
-        before: discord.Message,
-        after: discord.Message,
+        before : discord.Message,
+        after  : discord.Message,
     ) -> None:
 
         if before.author.bot or before.guild is None:
@@ -81,7 +81,7 @@ class MessageEditHandler(commands.Cog):
             return
 
         before_files = [a.url for a in before.attachments]
-        after_files = [a.url for a in after.attachments]
+        after_files  = [a.url for a in after.attachments]
 
         if before.content == after.content and before_files == after_files:
             return
@@ -106,7 +106,7 @@ class MessageEditHandler(commands.Cog):
             inline = True,
         )
         before_text = before.content or "[No content]"
-        after_text = after.content or "[No content]"
+        after_text  = after.content  or "[No content]"
         n_1024 = 1024
         _ = embed.add_field(
             name   = "Before",
@@ -124,6 +124,18 @@ class MessageEditHandler(commands.Cog):
             inline = True,
         )
         _ = await log_channel.send(embed = embed)
+
+        ctx = await self.bot.get_context(after)
+        if ctx.command and ctx.command.name == "eval":
+            with contextlib.suppress(discord.HTTPException):
+                await after.clear_reactions()
+
+            async for msg in after.channel.history(limit = 5):
+                if msg.author == self.bot.user and msg.reference and msg.reference.message_id == after.id:
+                    with contextlib.suppress(discord.HTTPException):
+                        await msg.delete()
+                    break
+
         await self.bot.process_commands(after)
 
 async def setup(bot : commands.Bot) -> None:

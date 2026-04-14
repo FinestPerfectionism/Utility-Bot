@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal, cast, overload
 
 import discord
-from discord import Interaction
+from discord import Interaction, SeparatorSpacing
 from discord.ext import commands
 from discord.ext.commands import Context  # type: ignore[reportMissingModuleSource]
 from discord.ui import LayoutView, Separator, TextDisplay
@@ -231,7 +231,7 @@ class _MultiCustomMessage:
             if field_index > 0:
                 all_components.append(
                     Separator[LayoutView](
-                        spacing = discord.SeparatorSpacing.large,
+                        spacing = SeparatorSpacing.small,
                         visible = True,
                     ),
                 )

@@ -148,7 +148,7 @@ async def run_eval(
     ctx  : commands.Context[commands.Bot],
     body : str,
 ) -> None:
-    body, silent = _parse_eval_input(body)
+    body, silent = _parse_eval_input(ctx.message.content)
     if ctx.author.id != BOT_OWNER_ID:
         _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
         return

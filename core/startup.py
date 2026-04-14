@@ -74,7 +74,12 @@ from guild_info.hierarchy import (
     HierarchyComponents7,
 )
 from guild_info.partnership_requirements import RequirementComponents1, RequirementComponents2
-from guild_info.partnerships import rebuild_partnership_layout, split_partnerships
+from guild_info.partnerships import (
+    PartnershipComponents1,
+    PartnershipComponents2,
+    rebuild_partnership_layout,
+    split_partnerships,
+)
 from guild_info.rules import RuleComponents1, RuleComponents2
 from guild_info.staff_proposal_info import (
     StaffProposalComponents1,
@@ -341,7 +346,7 @@ class Startup(commands.Cog):
 
     async def _handle_partnership_requirements_layout(self, channel: discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("partnership_requirements")
-        msg_ids: list[int] = raw if isinstance(raw, list) else []
+        msg_ids : list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         n_2 = 2
@@ -385,12 +390,12 @@ class Startup(commands.Cog):
             log.debug("Partnership requirements message_ids=%s", msg_ids)
 
     async def _handle_partnership_layout(self, channel: discord.TextChannel) -> None:
-        data: PartnershipData = load_partnership_data()
-        partnerships = data["partnerships"]
-        header_msg_id = data["header_message_id"]
-        msg_ids = data["message_ids"]
+        data : PartnershipData = load_partnership_data()
+        partnerships     = data["partnerships"]
+        header_msg_id    = data["header_message_id"]
+        msg_ids          = data["message_ids"]
 
-        expected_count = len(split_partnerships(partnerships)) if partnerships else 0
+        expected_count   = len(split_partnerships(partnerships)) if partnerships else 1
 
         all_exist = False
         if header_msg_id is not None and len(msg_ids) == expected_count:
@@ -405,7 +410,21 @@ class Startup(commands.Cog):
         if all_exist:
             log.info("Partnership layout restored")
             log.debug("Partnership header_message_id = %s message_ids=%s", header_msg_id, msg_ids)
+
+            current_timestamp = data.get("timestamp", int(time.time()))
+            self.bot.add_view(PartnershipComponents1(), message_id = header_msg_id)
+
+            groups = split_partnerships(partnerships) if partnerships else [[]]
+            for msg_id, group in zip(msg_ids, groups, strict = False):
+                self.bot.add_view(PartnershipComponents2(group, current_timestamp), message_id = msg_id)
             return
+
+        try:
+            await rebuild_partnership_layout(channel, data)
+            log.info("Partnership layout created")
+            log.debug("Partnership header_message_id = %s message_ids=%s", data["header_message_id"], data["message_ids"])
+        except discord.HTTPException:
+            log.exception("Partnership layout failed")
 
         try:
             await rebuild_partnership_layout(channel, data)
@@ -416,7 +435,7 @@ class Startup(commands.Cog):
 
     async def _handle_hierarchy_layout(self, channel: discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("hierarchy")
-        msg_ids: list[int] = raw if isinstance(raw, list) else []
+        msg_ids : list[int] = raw if isinstance(raw, list) else []
 
         all_exist = False
         n_7 = 7
