@@ -429,7 +429,7 @@ class CaseViewPaginator(View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CasesCommands(commands.Cog):
-    def __init__(self, bot: UtilityBot) -> None:
+    def __init__(self, bot : UtilityBot) -> None:
         self.bot = bot
 
         if not hasattr(bot, "cases_manager"):

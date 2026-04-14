@@ -8,8 +8,8 @@ import discord
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from commands.moderation.cases import CaseType
 from constants import COLOR_GREEN
+from core.cases import CaseType
 from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

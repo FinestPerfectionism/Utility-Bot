@@ -11,8 +11,8 @@ import discord
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from commands.moderation.cases import CaseType
 from constants import COLOR_ORANGE
+from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
 
