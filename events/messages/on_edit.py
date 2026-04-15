@@ -125,18 +125,19 @@ class MessageEditHandler(commands.Cog):
         )
         _ = await log_channel.send(embed = embed)
 
-        ctx = await self.bot.get_context(after)
-        if ctx.command and ctx.command.name == "eval":
+        if ctx.valid and ctx.command and ctx.command.name == "eval":
             with contextlib.suppress(discord.HTTPException):
                 await after.clear_reactions()
-
-            async for msg in after.channel.history(limit = 5):
-                if msg.author == self.bot.user and msg.reference and msg.reference.message_id == after.id:
+            async for msg in after.channel.history(limit = 10):
+                if (msg.author == self.bot.user and
+                    msg.reference and
+                    msg.reference.message_id == after.id):
                     with contextlib.suppress(discord.HTTPException):
                         await msg.delete()
-                    break
 
-        await self.bot.process_commands(after)
+            await self.bot.invoke(ctx)
+        else:
+            await self.bot.process_commands(after)
 
 async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(MessageEditHandler(bot))

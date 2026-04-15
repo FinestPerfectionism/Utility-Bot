@@ -234,7 +234,7 @@ async def run_say(
     typing_delay = min(typing_speed, 10.0)
 
     try:
-        reply_reference: discord.Message | None = None
+        reply_reference : discord.Message | None = None
 
         if message_id:
             try:
