@@ -19,13 +19,17 @@ from core.state.partnership_state import (
 log = logging.getLogger("Utility Bot")
 
 _CHARS_PER_GROUP_LIMIT: int = 3200
-_NO_PINGS = discord.AllowedMentions(users=False)
+_NO_PINGS = discord.AllowedMentions(users = False)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Partnership Views
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class PartnershipComponents1(LayoutView):
+    def __init__(self) -> None:
+        super().__init__(timeout = None)
+        _ = self.add_item(self.container)
+
     container : Container[LayoutView] = Container(
         TextDisplay(
             content =
@@ -38,7 +42,7 @@ class PartnershipComponents1(LayoutView):
     )
 
 class PartnershipComponents2(LayoutView):
-    def __init__(self, partnerships: list[PartnershipEntry], timestamp : int) -> None:
+    def __init__(self, partnerships : list[PartnershipEntry], timestamp : int) -> None:
         super().__init__(timeout = None)
 
         children : list[Any] = [
@@ -93,7 +97,7 @@ class PartnershipComponents2(LayoutView):
 # Helpers
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def _estimate_chars(p: PartnershipEntry) -> int:
+def _estimate_chars(p : PartnershipEntry) -> int:
     return len(
         f"# {p['server_name']}\n"
         "**Description:**\n"
@@ -105,17 +109,17 @@ def _estimate_chars(p: PartnershipEntry) -> int:
 
 
 def split_partnerships(
-    partnerships: list[PartnershipEntry],
+    partnerships : list[PartnershipEntry],
 ) -> list[list[PartnershipEntry]]:
-    groups: list[list[PartnershipEntry]] = []
-    current: list[PartnershipEntry] = []
-    current_chars: int = 0
+    groups        : list[list[PartnershipEntry]] = []
+    current       : list[PartnershipEntry]       = []
+    current_chars : int                          = 0
 
     for p in partnerships:
         p_chars = _estimate_chars(p)
         if current and current_chars + p_chars > _CHARS_PER_GROUP_LIMIT:
             groups.append(current)
-            current = [p]
+            current       = [p]
             current_chars = p_chars
         else:
             current.append(p)
@@ -150,17 +154,17 @@ async def rebuild_partnership_layout(
     header_msg = await channel.send(view = PartnershipComponents1())
 
     partnerships = data["partnerships"]
-    new_message_ids: list[int] = []
+    new_message_ids : list[int] = []
 
     if not partnerships:
         empty_msg = await channel.send(
-            view = PartnershipComponents2([], timestamp),
-            allowed_mentions=_NO_PINGS,
+            view             = PartnershipComponents2([], timestamp),
+            allowed_mentions =_NO_PINGS,
         )
         new_message_ids.append(empty_msg.id)
     else:
         for group in split_partnerships(partnerships):
-            files: list[discord.File] = [
+            files : list[discord.File] = [
                 discord.File(
                     str(IMAGE_DIR / p["image_filename"]),
                     filename = p["image_filename"],
@@ -168,13 +172,13 @@ async def rebuild_partnership_layout(
                 for p in group
             ]
             msg = await channel.send(
-                view = PartnershipComponents2(group, timestamp),
-                files=files,
-                allowed_mentions=_NO_PINGS,
+                view             = PartnershipComponents2(group, timestamp),
+                files            = files,
+                allowed_mentions = _NO_PINGS,
             )
             new_message_ids.append(msg.id)
 
     data["header_message_id"] = header_msg.id
-    data["message_ids"] = new_message_ids
-    data["timestamp"] = timestamp
+    data["message_ids"]       = new_message_ids
+    data["timestamp"]         = timestamp
     save_partnership_data(data)

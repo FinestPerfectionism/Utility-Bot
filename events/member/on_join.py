@@ -1,5 +1,4 @@
 import contextlib
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
 import discord
@@ -7,7 +6,6 @@ from discord.ext import commands
 
 if TYPE_CHECKING:
     from commands.moderation.primary._group_cog import ModerationCommands
-    from events.systems.verification import VerificationHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Join Event
@@ -18,22 +16,7 @@ class MemberJoinHandler(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member) -> None:
-        verification_cog = cast("VerificationHandler", self.bot.get_cog("VerificationHandler"))
-        if not verification_cog:
-            return
-
-        goobers_role = member.guild.get_role(verification_cog.GOOBERS_ROLE_ID)
-        if goobers_role and goobers_role in member.roles:
-            return
-
-        verification_cog.data["unverified"][str(member.id)] = {
-            "joined_at"          : datetime.now(UTC).isoformat(),
-            "warned"             : False,
-            "warning_message_id" : None,
-        }
-        verification_cog.save_data()
-
+    async def on_member_join(self, member : discord.Member) -> None:
         quarantine_cog = cast(
             "ModerationCommands",
             self.bot.get_cog("QuarantineCommands"),

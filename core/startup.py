@@ -32,14 +32,12 @@ from constants import (
     STAFF_LEAVE_CHANNEL_ID,
     STAFF_PROPOSALS_INFO_CHANNEL_ID,
     TICKET_CHANNEL_ID,
-    VERIFICATION_CHANNEL_ID,
 )
 from core.state.layout_state import load_layout_message_ids, save_layout_message_ids
 from core.state.partnership_state import PartnershipData, load_partnership_data
 from events.systems.applications import ApplicationComponents
 from events.systems.leave import LeaveComponents
 from events.systems.tickets import TicketComponents
-from events.systems.verification import VerificationComponents, VerificationHandler
 from guild_info.guidelines.administrator_guidelines import (
     AdministratorComponents1,
     AdministratorComponents2,
@@ -77,6 +75,7 @@ from guild_info.partnership_requirements import RequirementComponents1, Requirem
 from guild_info.partnerships import (
     PartnershipComponents1,
     PartnershipComponents2,
+    PartnershipEntry,
     rebuild_partnership_layout,
     split_partnerships,
 )
@@ -93,20 +92,20 @@ log = logging.getLogger("Utility Bot")
 
 LAYOUT_CONFIG_PATH = Path("data/layout_config.json")
 
-DEFAULT_LAYOUT_CONFIG: dict[str, bool] = {
-    "tickets": True,
-    "applications": True,
-    "leave": True,
-    "verification": True,
-    "rules": True,
-    "staff_proposals": True,
-    "partnership_requirements": True,
-    "partnerships": True,
-    "hierarchy": True,
-    "moderation_guidelines": True,
-    "administrator_guidelines": True,
-    "staff_guidelines": True,
-    "directorate_guidelines": True,
+DEFAULT_LAYOUT_CONFIG : dict[str, bool] = {
+    "tickets"                  : True,
+    "applications"             : True,
+    "leave"                    : True,
+    "verification"             : True,
+    "rules"                    : True,
+    "staff_proposals"          : True,
+    "partnership_requirements" : True,
+    "partnerships"             : True,
+    "hierarchy"                : True,
+    "moderation_guidelines"    : True,
+    "administrator_guidelines" : True,
+    "staff_guidelines"         : True,
+    "directorate_guidelines"   : True,
 }
 
 
@@ -114,7 +113,7 @@ def load_layout_config() -> dict[str, bool]:
     if not LAYOUT_CONFIG_PATH.exists():
         log.warning("layout_config.json not found, writing defaults and enabling all layouts")
         with LAYOUT_CONFIG_PATH.open("w") as f:
-            json.dump(DEFAULT_LAYOUT_CONFIG, f, indent=4)
+            json.dump(DEFAULT_LAYOUT_CONFIG, f, indent = 4)
         return DEFAULT_LAYOUT_CONFIG.copy()
 
     try:
@@ -190,8 +189,7 @@ class Startup(commands.Cog):
             self.bot.add_view(view_cls(), message_id = msg.id)
             save_layout_message_ids(self.layout_message_ids)
 
-        layout_handlers: list[tuple[str, int, Callable[[discord.TextChannel], Coroutine[Any, Any, None]]]] = [
-            ("verification", VERIFICATION_CHANNEL_ID, self._handle_verification_layout),
+        layout_handlers : list[tuple[str, int, Callable[[discord.TextChannel], Coroutine[Any, Any, None]]]] = [
             ("rules", RULES_CHANNEL_ID, self._handle_rules_layout),
             ("staff_proposals", STAFF_PROPOSALS_INFO_CHANNEL_ID, self._handle_staff_proposals_layout),
             ("partnership_requirements", PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, self._handle_partnership_requirements_layout),
@@ -211,42 +209,6 @@ class Startup(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if isinstance(channel, discord.TextChannel):
                 await handler(channel)
-
-    async def _handle_verification_layout(self, channel: discord.TextChannel) -> None:
-        verification_cog = cast(
-            "VerificationHandler",
-            self.bot.get_cog("VerificationHandler"),
-        )
-
-        if not verification_cog:
-            log.error("Verification layout skipped: VerificationHandler not loaded")
-            return
-
-        msg_id = verification_cog.get_verification_message_id()
-        view = VerificationComponents(verification_cog)
-
-        if msg_id:
-            try:
-                _ = await channel.fetch_message(msg_id)
-                self.bot.add_view(view, message_id = msg_id)
-                log.info("Verification layout restored")
-                log.debug("Verification message_id = %s", msg_id)
-                return
-            except discord.NotFound:
-                log.debug("Verification message_id = %s not found", msg_id)
-            except discord.HTTPException:
-                log.exception("Failed restoring verification layout")
-
-        try:
-            message = await channel.send(view = view)
-            verification_cog.set_verification_message_id(message.id)
-            self.bot.add_view(view, message_id = message.id)
-
-            log.info("Verification layout created")
-            log.debug("Verification message_id = %s", message.id)
-
-        except discord.HTTPException:
-            log.exception("Failed creating verification layout")
 
     async def _handle_rules_layout(self, channel: discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("rules")
@@ -414,7 +376,7 @@ class Startup(commands.Cog):
             current_timestamp = data.get("timestamp", int(time.time()))
             self.bot.add_view(PartnershipComponents1(), message_id = header_msg_id)
 
-            groups = split_partnerships(partnerships) if partnerships else [[]]
+            groups : list[list[PartnershipEntry]] = split_partnerships(partnerships) if partnerships else [[]]
             for msg_id, group in zip(msg_ids, groups, strict = False):
                 self.bot.add_view(PartnershipComponents2(group, current_timestamp), message_id = msg_id)
             return

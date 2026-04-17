@@ -108,7 +108,17 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         *,
         include_notes : bool                = True,
     ) -> None:
-        await run_query(self, interaction, user, moderator, case_type, contains, after, before, include_notes)
+        await run_query(
+            self,
+            interaction,
+            user,
+            moderator,
+            case_type,
+            contains,
+            after,
+            before,
+            include_notes = include_notes,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases view Command

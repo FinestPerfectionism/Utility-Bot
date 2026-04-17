@@ -34,8 +34,9 @@ WAPPLE_PATTERN = re.compile(rf"^({'|'.join(map(re.escape, WAPPLE_EMOJIS))}| )+$"
 class MessageEditHandler(commands.Cog):
     def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
+        self.eval_responses : dict[int, int] = {}
 
-    def is_directorship_channel(self, channel: discord.abc.Messageable) -> bool:
+    def is_directorship_channel(self, channel : discord.abc.Messageable) -> bool:
         return (
             isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.StageChannel)
             and channel.category_id == DIRECTORSHIP_CATEGORY_ID
@@ -81,7 +82,7 @@ class MessageEditHandler(commands.Cog):
             return
 
         before_files = [a.url for a in before.attachments]
-        after_files  = [a.url for a in after.attachments]
+        after_files  = [a.url for a in after.attachments ]
 
         if before.content == after.content and before_files == after_files:
             return
@@ -125,19 +126,19 @@ class MessageEditHandler(commands.Cog):
         )
         _ = await log_channel.send(embed = embed)
 
+        ctx = await self.bot.get_context(after)
         if ctx.valid and ctx.command and ctx.command.name == "eval":
             with contextlib.suppress(discord.HTTPException):
                 await after.clear_reactions()
-            async for msg in after.channel.history(limit = 10):
-                if (msg.author == self.bot.user and
-                    msg.reference and
-                    msg.reference.message_id == after.id):
-                    with contextlib.suppress(discord.HTTPException):
-                        await msg.delete()
+
+            response_id = self.eval_responses.pop(after.id, None)
+
+            if response_id:
+                with contextlib.suppress(discord.NotFound, discord.HTTPException):
+                    msg = await after.channel.fetch_message(response_id)
+                    await msg.delete()
 
             await self.bot.invoke(ctx)
-        else:
-            await self.bot.process_commands(after)
 
 async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(MessageEditHandler(bot))

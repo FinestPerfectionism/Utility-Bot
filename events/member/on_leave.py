@@ -1,14 +1,8 @@
-from typing import TYPE_CHECKING, cast
-
 import discord
 from discord.ext import commands
 
-from core.state.application_state import ACTIVE_APPLICATIONS, save_active_applications
-
-if TYPE_CHECKING:
-    from events.systems.verification import VerificationHandler
-
 from constants import APPLICATION_LOG_CHANNEL_ID, COLOR_RED
+from core.state.application_state import ACTIVE_APPLICATIONS, save_active_applications
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # On Leave Event
@@ -19,11 +13,6 @@ class MemberLeaveHandler(commands.Cog):
         self.bot = bot
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member) -> None:
-        verification_cog = cast("VerificationHandler", self.bot.get_cog("VerificationHandler"))
-        if verification_cog:
-            verification_cog.data["unverified"].pop(str(member.id), None)
-            verification_cog.save_data()
-
         data = ACTIVE_APPLICATIONS.get(member.id)
         if not data:
             return
@@ -48,7 +37,7 @@ class MemberLeaveHandler(commands.Cog):
             value = "*Applicant left the server.*",
             inline = False,
         )
-        _ = embed.set_footer(text="Decision Made")
+        _ = embed.set_footer(text = "Decision Made")
         embed.timestamp = discord.utils.utcnow()
         _ = await msg.edit(embed = embed, view = None)
         thread_id = data.get("thread_id")
@@ -56,7 +45,7 @@ class MemberLeaveHandler(commands.Cog):
             try:
                 channel = await self.bot.fetch_channel(thread_id)
                 if isinstance(channel, discord.Thread):
-                    _ = await channel.edit(locked=True, archived=True)
+                    _ = await channel.edit(locked = True, archived = True)
             except discord.NotFound:
                 pass
         _ = ACTIVE_APPLICATIONS.pop(member.id, None)

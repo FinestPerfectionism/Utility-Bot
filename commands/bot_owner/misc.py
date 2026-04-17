@@ -29,6 +29,7 @@ from constants import (
     DENIED_EMOJI_ID,
 )
 from core.responses import send_custom_message
+from events.messages.on_edit import MessageEditHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /bot-owner status Logic
@@ -152,7 +153,7 @@ async def run_eval(
     if ctx.author.id != BOT_OWNER_ID:
         _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
         return
-    env: dict[str, Any] = {
+    env : dict[str, Any] = {
         "bot"      : bot,
         "ctx"      : ctx,
         "channel"  : ctx.channel,
@@ -201,12 +202,19 @@ async def run_eval(
         if silent:
             _ = await ctx.message.delete()
             return
+
         _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
+
+        resp = None
         if ret is None:
             if value:
-                _ = await ctx.send(f"```py\n{value}\n```")
+                resp = await ctx.send(f"```py\n{value}\n```")
         else:
-            _ = await ctx.send(f"```py\n{value}{ret}\n```")
+            resp = await ctx.send(f"```py\n{value}{ret}\n```")
+
+        handler = bot.get_cog("MessageEditHandler")
+        if resp and isinstance(handler, MessageEditHandler):
+            handler.eval_responses[ctx.message.id] = resp.id
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /bot-owner say Logic

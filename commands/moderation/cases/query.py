@@ -56,8 +56,8 @@ async def run_query(
 
     errors = multi_custom_message(interaction)
 
-    after_dt:  datetime | None = None
-    before_dt: datetime | None = None
+    after_dt  : datetime | None = None
+    before_dt : datetime | None = None
 
     if after:
         after_dt = self.parse_dt(after)
@@ -120,8 +120,8 @@ async def run_query(
         filter_text = " and ".join(filters)
         description = f"No cases found{' for ' + filter_text if filter_text else ''}."
 
-        embed = discord.Embed(description=description, color=COLOR_GREEN)
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        embed = discord.Embed(description = description, color = COLOR_GREEN)
+        await interaction.followup.send(embed = embed, ephemeral = True)
         return
 
     title_parts: list[str] = []
@@ -135,4 +135,4 @@ async def run_query(
     title = "Cases " + " ".join(title_parts) if title_parts else "All Cases"
 
     view = CaseQueryPaginator(interaction, cases, title, self.COLOR_MAP)
-    await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
+    await interaction.followup.send(embed = view.get_embed(), view = view, ephemeral = True)
