@@ -48,6 +48,11 @@ async def run_quarantine(
             base,
             "Quarantine",
             "quarantine",
+            precheck_callback = lambda moderator, target: (
+                (False, "Target user is greater than or equal to your highest role.")
+                if not base.check_hierarchy(moderator, target)
+                else (True, "")
+            ),
             execute_callback = lambda i, m, data: _execute_quarantine(
                 base, i, actor, m, str(data["reason"]), data.get("proof"),
             ),
@@ -148,6 +153,13 @@ async def _execute_quarantine(
     quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
     if not quarantine_role:
         return False, "The quarantine role could not be found."
+    bot_member = guild.me
+    if not bot_member or not bot_member.guild_permissions.manage_roles:
+        return False, "I lack permissions to manage member roles: `Manage Roles`"
+    if member.top_role >= bot_member.top_role:
+        return False, "Target user is above or equal to my highest role."
+    if quarantine_role >= bot_member.top_role:
+        return False, "Quarantine role is above or equal to my highest role."
 
     saved_roles = [
         role.id for role in member.roles
@@ -192,15 +204,15 @@ async def _execute_quarantine(
         if proof:
             _ = embed.set_image(url = proof.url)
 
-        if interaction.response.is_done():
-            await interaction.followup.send(embed = embed, ephemeral = True)
-        else:
-            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
-        return True, "ok" # noqa: TRY300
-
     except discord.Forbidden:
         err = "I lack permissions to manage member roles: `Manage Roles`"
         if str(member.id) in quarantined:
             del quarantined[str(member.id)]
             base.save_data()
         return False, err
+    else:
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"

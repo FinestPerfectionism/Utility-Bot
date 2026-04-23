@@ -48,6 +48,7 @@ async def run_kick(
             base,
             "Kick",
             "kick",
+            precheck_callback = base.check_can_moderate_target,
             execute_callback = lambda i, m, data: _execute_kick(
                 base, i, actor, m, str(data["reason"]), data.get("proof"),
             ),
@@ -131,6 +132,11 @@ async def _execute_kick(
     guild = interaction.guild
     if not guild:
         return False, "No guild context."
+    bot_member = guild.me
+    if not bot_member or not bot_member.guild_permissions.kick_members:
+        return False, "I lack permissions to kick members: `Kick Members`"
+    if member.top_role >= bot_member.top_role:
+        return False, "Target user is above or equal to my highest role."
 
     try:
         await member.kick(reason = f"Kicked by {actor}: {reason}")
@@ -167,11 +173,11 @@ async def _execute_kick(
         if proof:
             _ = embed.set_image(url = proof.url)
 
+    except discord.Forbidden:
+        return False, "I lack permissions to kick members: `Kick Members`"
+    else:
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
             _ = await interaction.response.send_message(embed = embed, ephemeral = True)
         return True, "ok" # noqa: TRY300
-
-    except discord.Forbidden:
-        return False, "I lack permissions to kick members: `Kick Members`"

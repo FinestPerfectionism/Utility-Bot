@@ -49,6 +49,7 @@ async def run_ban(
             base,
             "Ban",
             "ban",
+            precheck_callback = base.check_can_moderate_target,
             execute_callback = lambda i, m, data: _execute_ban(
                 base, i, actor, m, data["reason"], delete_messages or 0, data.get("proof"),
             ),
@@ -133,8 +134,14 @@ async def _execute_ban(
     guild = interaction.guild
     if not guild:
         return False, "No guild context."
+    bot_member = guild.me
+    if not bot_member or not guild.me.guild_permissions.ban_members:
+        return False, "I lack permissions to ban members: `Ban Members`"
+    if member.top_role >= bot_member.top_role:
+        return False, "Target user is above or equal to my highest role."
 
-    delete_messages = max(0, min(7, delete_messages or 0))
+    dm_value        = delete_messages
+    delete_messages = max(0, min(7, dm_value))
 
     try:
         await member.ban(
@@ -176,11 +183,11 @@ async def _execute_ban(
         if proof:
             _ = embed.set_image(url = proof.url)
 
+    except discord.Forbidden:
+        return False, "I lack permissions to ban members: `Ban Members`"
+    else:
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
             _ = await interaction.response.send_message(embed = embed, ephemeral = True)
         return True, "ok" # noqa: TRY300
-
-    except discord.Forbidden:
-        return False, "I lack permissions to ban members: `Ban Members`"

@@ -15,6 +15,8 @@ from constants import COLOR_GREEN, CONTESTED_EMOJI_ID
 from core.cases import CaseType
 from core.responses import send_custom_message
 
+from ._base import MemberPickerView
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation unquarantine Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -22,8 +24,8 @@ from core.responses import send_custom_message
 async def run_unquarantine(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member,
-    reason      : str,
+    member      : discord.Member | None,
+    reason      : str | None,
     proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
@@ -45,9 +47,36 @@ async def run_unquarantine(
         await send_custom_message(
             interaction,
             msg_type = "warning",
-            title    = "unquarantine member",
+            title    = "remove member quarantine",
             subtitle = "This command can only be used in a server.",
             footer   = "Bad environment",
+        )
+        return
+
+    if member is None:
+        picker = MemberPickerView(
+            base,
+            "Un-quarantine",
+            "none",
+            precheck_callback = lambda _moderator, target: (
+                (True, "")
+                if (str(target.id) in base.data.get("quarantined", {}) or (guild.get_role(base.QUARANTINE_ROLE_ID) in target.roles if guild.get_role(base.QUARANTINE_ROLE_ID) else False))
+                else (False, "Member is already not quarantined.")
+            ),
+            execute_callback = lambda i, m, data: _execute_unquarantine(
+                base, i, actor, m, str(data["reason"]), data.get("proof"),
+            ),
+        )
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
+        return
+
+    if not reason:
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "remove member quarantine",
+            subtitle = "You must provide a reason.",
+            footer   = "Bad argument",
         )
         return
 
@@ -59,16 +88,46 @@ async def run_unquarantine(
         await send_custom_message(
             interaction,
             msg_type = "warning",
-            title    = "unquarantine member",
+            title    = "remove member quarantine",
             subtitle = f"{member.mention} is already not quarantined.",
             footer   = "Bad argument",
         )
         return
 
     _ = await interaction.response.defer(ephemeral = True)
+    ok, msg = await _execute_unquarantine(base, interaction, actor, member, reason, proof)
+    if not ok:
+        await send_custom_message(
+            interaction,
+            msg_type          = "error",
+            title             = "remove member quarantine",
+            subtitle          = msg,
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
+        )
+
+async def _execute_unquarantine(
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    actor       : discord.Member,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None,
+) -> tuple[bool, str]:
+    guild = interaction.guild
+    if not guild:
+        return False, "No guild context."
+    bot_member = guild.me
+    if not bot_member or not bot_member.guild_permissions.manage_roles:
+        return False, "I lack permissions to manage member roles: `Manage Roles`"
 
     quarantine_data           = base.data.get("quarantined", {}).get(str(member.id))
     saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
+    quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
+    if member.top_role >= bot_member.top_role:
+        return False, "Target user is above or equal to my highest role."
+    if quarantine_role and quarantine_role >= bot_member.top_role:
+        return False, "Quarantine role is above or equal to my highest role."
 
     try:
         if quarantine_role and quarantine_role in member.roles:
@@ -127,14 +186,11 @@ async def run_unquarantine(
         if proof:
             _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed = embed, ephemeral = True)
-
     except discord.Forbidden:
-        await send_custom_message(
-            interaction,
-            msg_type          = "error",
-            title             = "unquarantine members",
-            subtitle          = "I lack permissions to manage member roles: `Manage Roles`",
-            footer            = "Bad configuration",
-            contact_bot_owner = True,
-        )
+        return False, "I lack permissions to manage member roles: `Manage Roles`"
+    else:
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"

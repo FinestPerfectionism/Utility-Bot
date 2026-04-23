@@ -1,3 +1,5 @@
+# pyright: reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownParameterType=false, reportUnusedCallResult=false, reportAttributeAccessIssue=false, reportMissingTypeArgument=false, reportImplicitOverride=false
+
 import asyncio
 import contextlib
 import json
@@ -514,6 +516,7 @@ class MassModerationView(LayoutView):
         action_key        : str,
         *,
         with_duration     : bool = False,
+        precheck_callback : Callable[[discord.Member, discord.Member], tuple[bool, str]] | None = None,
         execute_callback  : Callable[
             [discord.Interaction, discord.Member, dict[str, Any]],
             Awaitable[tuple[bool, str]],
@@ -526,6 +529,7 @@ class MassModerationView(LayoutView):
         self.action_label     = action_label
         self.action_key       = action_key
         self.with_duration    = with_duration
+        self.precheck_callback = precheck_callback
         self.execute_callback = execute_callback
         self.page             = 0
         self.locked           = False
@@ -593,7 +597,7 @@ class MassModerationView(LayoutView):
                 await send_custom_message(
                     interaction,
                     msg_type = "warning",
-                    title    = "mass moderation",
+                    title    = "run mass moderation",
                     subtitle = f"Missing configuration for: {', '.join(missing[:10])}",
                     footer   = "Bad argument",
                 )
@@ -602,9 +606,15 @@ class MassModerationView(LayoutView):
             self.locked = True
             await self.update(interaction)
 
-            results : list[tuple[discord.Member, bool, str]] = []
+            results: list[tuple[discord.Member, bool, str]] = []
 
             for member in self.members:
+                if self.precheck_callback:
+                    can_run, precheck_msg = self.precheck_callback(actor, member)
+                    if not can_run:
+                        results.append((member, False, precheck_msg))
+                        continue
+
                 if self.action_key in {"ban", "kick", "timeout", "quarantine"}:
                     can_proceed, error_msg = self.base.check_rate_limit(str(actor.id), self.action_key)
                     if not can_proceed:
@@ -621,44 +631,40 @@ class MassModerationView(LayoutView):
 
             succeeded = [r for r in results if r[1]]
             failed    = [r for r in results if not r[1]]
-
-            embed = discord.Embed(
-                title     = f"Mass {self.action_label} Complete",
-                color     = discord.Color.green() if not failed else discord.Color.orange(),
-                timestamp = datetime.now(UTC),
-            )
-            _ = embed.add_field(name = "Succeeded", value = str(len(succeeded)), inline = True)
-            _ = embed.add_field(name = "Failed", value = str(len(failed)), inline = True)
-
+            summary = f"Succeeded: **{len(succeeded)}** | Failed: **{len(failed)}**"
             if failed:
-                lines = [f"{m.mention}: {msg}" for m, _ok, msg in failed[:10]]
-                _ = embed.add_field(name = "Failures", value = "\n".join(lines), inline = False)
+                failed_lines = [f"- {m.mention}: {msg}" for m, _ok, msg in failed[:10]]
+                summary = f"{summary}\n" + "\n".join(failed_lines)
 
-            if interaction.response.is_done():
-                await interaction.followup.send(embed = embed, ephemeral = True)
-            else:
-                _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+            msg_type = "success" if not failed else "warning"
+            await send_custom_message(
+                interaction,
+                msg_type = msg_type,
+                title    = f"complete mass {self.action_label.lower()} run",
+                subtitle = summary,
+            )
 
         global_button.callback = global_cb
         run_button.callback    = execute_cb
-        _ = self.add_item(ActionRow(global_button, run_button))
+        self.add_item(ActionRow(global_button, run_button))
 
         max_page = (len(self.members) - 1) // 5
-        first    : Button[LayoutView] = Button(label = "<<", disabled = self.page == 0)
-        previous : Button[LayoutView] = Button(label = "<", disabled = self.page == 0)
-        next_b   : Button[LayoutView] = Button(label = ">", disabled = self.page >= max_page)
-        last     : Button[LayoutView] = Button(label = ">>", disabled = self.page >= max_page)
+        first    = Button(label = "<<", disabled = self.page == 0)
+        previous = Button(label = "<", disabled = self.page == 0)
+        next_b   = Button(label = ">", disabled = self.page >= max_page)
+        last     = Button(label = ">>", disabled = self.page >= max_page)
+
+        first_page_delta = -2
+        last_page_delta  = 2
 
         async def move(interaction : discord.Interaction, value : int) -> None:
-            n_neg2 = -2
-            n_2 = 2
-            if value == n_neg2:
+            if value == first_page_delta:
                 self.page = 0
             elif value == -1 and self.page > 0:
                 self.page -= 1
             elif value == 1 and self.page < max_page:
                 self.page += 1
-            elif value == n_2:
+            elif value == last_page_delta:
                 self.page = max_page
             await self.update(interaction)
 
@@ -684,6 +690,7 @@ class MemberPickerView(View):
         action_key       : str,
         *,
         with_duration    : bool = False,
+        precheck_callback: Callable[[discord.Member, discord.Member], tuple[bool, str]] | None = None,
         execute_callback : Callable[
             [discord.Interaction, discord.Member, dict[str, Any]],
             Awaitable[tuple[bool, str]],
@@ -694,6 +701,7 @@ class MemberPickerView(View):
         self.action_label     = action_label
         self.action_key       = action_key
         self.with_duration    = with_duration
+        self.precheck_callback = precheck_callback
         self.execute_callback = execute_callback
         self.active_view : MassModerationView | None = None
 
@@ -742,6 +750,7 @@ class MemberPickerView(View):
             self.action_label,
             self.action_key,
             with_duration    = self.with_duration,
-            execute_callback = self.execute_callback,
+            precheck_callback = self.precheck_callback,
+            execute_callback  = self.execute_callback,
         )
         _ = await interaction.response.send_message(view = self.active_view, ephemeral = True)

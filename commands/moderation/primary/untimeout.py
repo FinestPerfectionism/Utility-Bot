@@ -12,6 +12,8 @@ from constants import COLOR_GREEN
 from core.cases import CaseType
 from core.responses import send_custom_message
 
+from ._base import MemberPickerView
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation un-timeout Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -19,8 +21,8 @@ from core.responses import send_custom_message
 async def run_untimeout(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member,
-    reason      : str,
+    member      : discord.Member | None,
+    reason      : str | None,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -36,11 +38,38 @@ async def run_untimeout(
         )
         return
 
+    if member is None:
+        picker = MemberPickerView(
+            base,
+            "Un-timeout",
+            "none",
+            precheck_callback = lambda _moderator, target: (
+                (False, "Member is not currently timed out.")
+                if not target.is_timed_out()
+                else (True, "")
+            ),
+            execute_callback = lambda i, m, data: _execute_untimeout(
+                base, i, actor, m, str(data["reason"]),
+            ),
+        )
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
+        return
+
+    if not reason:
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "remove member timeout",
+            subtitle = "You must provide a reason.",
+            footer   = "Bad argument",
+        )
+        return
+
     if not member.is_timed_out():
         await send_custom_message(
             interaction,
             msg_type = "warning",
-            title    = "un-timeout member",
+            title    = "remove member timeout",
             subtitle = f"{member.mention} is not currently timed out.",
             footer   = "Bad argument",
         )
@@ -51,6 +80,31 @@ async def run_untimeout(
     guild = interaction.guild
     if not guild:
         return
+
+    ok, msg = await _execute_untimeout(base, interaction, actor, member, reason)
+    if not ok:
+        await send_custom_message(
+            interaction,
+            msg_type          = "error",
+            title             = "remove member timeout",
+            subtitle          = msg,
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
+        )
+
+async def _execute_untimeout(
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    actor       : discord.Member,
+    member      : discord.Member,
+    reason      : str,
+) -> tuple[bool, str]:
+    guild = interaction.guild
+    if not guild:
+        return False, "No guild context."
+    bot_member = guild.me
+    if not bot_member or not bot_member.guild_permissions.moderate_members:
+        return False, "I lack permissions to timeout members: `Moderate Members`"
 
     try:
         await member.timeout(None, reason = f"Timeout removed by {actor}: {reason}")
@@ -75,14 +129,11 @@ async def run_untimeout(
         _ = embed.add_field(name = "Member",           value = member.mention, inline = True)
         _ = embed.add_field(name = "Senior Moderator", value = actor.mention,  inline = True)
         _ = embed.add_field(name = "Reason",           value = reason,         inline = False)
-        await interaction.followup.send(embed = embed, ephemeral = True)
-
     except discord.Forbidden:
-        await send_custom_message(
-            interaction,
-            msg_type          = "error",
-            title             = "un-timeout members",
-            subtitle          = "I lack permissions to timeout members: `Moderate Members`",
-            footer            = "Bad configuration",
-            contact_bot_owner = True,
-        )
+        return False, "I lack permissions to timeout members: `Moderate Members`"
+    else:
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"

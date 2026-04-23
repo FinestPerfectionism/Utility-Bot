@@ -84,6 +84,7 @@ class ModerationCommands(
     @app_commands.command(name = "un-ban", description = "Un-ban a member from the server.")
     @app_commands.describe(
         user   = "The member ID, username, or tag to un-ban.",
+        users  = "Comma-separated member IDs/tags for mass un-ban.",
         reason = "Reason for the un-ban.",
     )
     @help_description(
@@ -93,17 +94,19 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         has_inverse = "moderation ban",
         arguments   = {
-            "user"   : ArgumentInfo(description = "User ID, username, or tag to unban."),
-            "reason" : ArgumentInfo(required=True, description = "Reason for the unban."),
+            "user"   : ArgumentInfo(required = False, description = "User ID, username, or tag to unban."),
+            "users"  : ArgumentInfo(required = False, description = "Comma-separated users for mass un-ban."),
+            "reason" : ArgumentInfo(required = False, description = "Reason for the unban."),
         },
     )
     async def unban(
         self,
         interaction : discord.Interaction,
-        user        : str,
-        reason      : str,
+        user        : str | None = None,
+        users       : str | None = None,
+        reason      : str | None = None,
     ) -> None:
-        await run_unban(self, interaction, user, reason)
+        await run_unban(self, interaction, user, users, reason)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation bans Command
@@ -195,8 +198,8 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation timeout",
         arguments   = {
-            "member" : ArgumentInfo(description = "Member to un-timeout."),
-            "reason" : ArgumentInfo(required=True, description = "Reason for removing the timeout."),
+            "member" : ArgumentInfo(required = False, description = "Member to un-timeout. Leave empty to open mass moderation."),
+            "reason" : ArgumentInfo(required = False, description = "Reason for removing the timeout. Required for single actions."),
         },
     )
     @app_commands.describe(
@@ -206,8 +209,8 @@ class ModerationCommands(
     async def untimeout(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member,
-        reason      : str,
+        member      : discord.Member | None,
+        reason      : str | None = None,
     ) -> None:
         await run_untimeout(self, interaction, member, reason)
 
@@ -315,9 +318,9 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         has_inverse = "moderation quarantine",
         arguments   = {
-            "member" : ArgumentInfo(description = "Member to unquarantine."),
-            "reason" : ArgumentInfo(required=True, description = "Reason for removing quarantine."),
-            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
+            "member" : ArgumentInfo(required = False, description = "Member to unquarantine. Leave empty to open mass moderation."),
+            "reason" : ArgumentInfo(required = False, description = "Reason for removing quarantine. Required for single actions."),
+            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -328,8 +331,8 @@ class ModerationCommands(
     async def unquarantine(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member,
-        reason      : str,
+        member      : discord.Member | None,
+        reason      : str | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_unquarantine(self, interaction, member, reason, proof)

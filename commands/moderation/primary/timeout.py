@@ -50,6 +50,7 @@ async def run_timeout(
             "Timeout",
             "timeout",
             with_duration = True,
+            precheck_callback = base.check_can_moderate_target,
             execute_callback = lambda i, m, data: _execute_timeout(
                 base,
                 i,
@@ -162,6 +163,11 @@ async def _execute_timeout(
     guild = interaction.guild
     if not guild:
         return False, "No guild context."
+    bot_member = guild.me
+    if not bot_member or not bot_member.guild_permissions.moderate_members:
+        return False, "I lack permissions to timeout members: `Moderate Members`"
+    if member.top_role >= bot_member.top_role:
+        return False, "Target user is above or equal to my highest role."
 
     duration_seconds = base.parse_duration(duration)
     if not duration_seconds:
@@ -210,10 +216,11 @@ async def _execute_timeout(
         if proof:
             _ = embed.set_image(url = proof.url)
 
+    except discord.Forbidden:
+        return False, "I lack permissions to timeout members: `Moderate Members`"
+    else:
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
             _ = await interaction.response.send_message(embed = embed, ephemeral = True)
         return True, "ok" # noqa: TRY300
-    except discord.Forbidden:
-        return False, "I lack permissions to timeout members: `Moderate Members`"

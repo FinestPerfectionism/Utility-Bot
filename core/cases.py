@@ -272,7 +272,7 @@ class CasesManager:
             visibility_level = visibility_level,
         )
 
-    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict[str, Any]) -> None:
+    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict[str, Any]) -> None:  # noqa: PLR0915
         channel_id = self.config.get("log_channel_id")
         if not channel_id:
             return
