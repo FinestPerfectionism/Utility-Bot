@@ -197,6 +197,44 @@ class CasesManager:
 
         return case_id
 
+    async def log_cases(
+        self,
+        guild            : discord.Guild,
+        case_type        : CaseType,
+        moderator        : discord.Member,
+        entries          : list[dict[str, Any]],
+        *,
+        reason           : str                            | None = None,
+        duration         : str                            | None = None,
+        visibility_level : str                                   = "moderators",
+        metadata         : dict[str, Any]                 | None = None,
+    ) -> list[int]:
+        case_ids: list[int] = []
+        total = len(entries)
+
+        for entry in entries:
+            entry_metadata = dict(metadata or {})
+            entry_metadata["mass_total"] = total
+            if entry.get("batch_id"):
+                entry_metadata["batch_id"] = entry["batch_id"]
+            entry_metadata["mass_action"] = True
+
+            case_id = await self.log_case(
+                guild            = guild,
+                case_type        = case_type,
+                moderator        = moderator,
+                reason           = entry.get("reason", reason),
+                target_user      = entry.get("target_user"),
+                duration         = entry.get("duration", duration),
+                content          = entry.get("content"),
+                related_case_id  = entry.get("related_case_id"),
+                visibility_level = entry.get("visibility_level", visibility_level),
+                metadata         = entry_metadata,
+            )
+            case_ids.append(case_id)
+
+        return case_ids
+
     async def add_note(
         self,
         guild            : discord.Guild,
@@ -213,6 +251,23 @@ class CasesManager:
             content          = content,
             target_user      = target_user,
             related_case_id  = related_case_id,
+            visibility_level = visibility_level,
+        )
+
+    async def add_notes_for_users(
+        self,
+        guild            : discord.Guild,
+        moderator        : discord.Member,
+        content          : str,
+        users            : list[discord.User | discord.Member],
+        visibility_level : str = "moderators",
+    ) -> list[int]:
+        entries = [{"target_user" : user, "content" : content} for user in users]
+        return await self.log_cases(
+            guild            = guild,
+            case_type        = CaseType.NOTE,
+            moderator        = moderator,
+            entries          = entries,
             visibility_level = visibility_level,
         )
 

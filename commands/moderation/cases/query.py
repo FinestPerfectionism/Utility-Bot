@@ -35,6 +35,7 @@ async def run_query(
     before        : str  | None,
     *,
     include_notes : bool,
+    mass_only     : bool,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):
@@ -103,6 +104,9 @@ async def run_query(
         before        = before_dt,
         include_notes = include_notes,
     )
+
+    if mass_only:
+        cases = [c for c in cases if (c.get("metadata") or {}).get("mass_action")]
 
     cases = [c for c in cases if self.can_see_case(actor, c)]
 

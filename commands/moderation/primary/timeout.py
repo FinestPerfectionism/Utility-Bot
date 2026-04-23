@@ -15,6 +15,7 @@ from constants import COLOR_YELLOW
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation timeout Logic
@@ -23,9 +24,9 @@ from core.responses import send_custom_message
 async def run_timeout(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member,
+    member      : discord.Member | None,
     duration    : str,
-    reason      : str,
+    reason      : str | None,
     proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
@@ -39,6 +40,36 @@ async def run_timeout(
             title    = "run command",
             subtitle = "You are not authorized to run this command.",
             footer   = "No permissions",
+        )
+        return
+
+    if member is None:
+        picker = MemberPickerView(
+            base,
+            "Timeout",
+            "timeout",
+            with_duration = True,
+            precheck_callback = base.check_can_moderate_target,
+            execute_callback = lambda i, m, data: _execute_timeout(
+                base,
+                i,
+                actor,
+                m,
+                str(data["duration"]),
+                str(data["reason"]),
+                data.get("proof"),
+            ),
+        )
+        await interaction.response.send_message(view = picker, ephemeral = True)
+        return
+
+    if not reason:
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "timeout member",
+            subtitle = "You must provide a reason.",
+            footer   = "Bad argument",
         )
         return
 
@@ -108,6 +139,40 @@ async def run_timeout(
         base.add_rate_limit_entry(str(actor.id), "timeout")
 
     _ = await interaction.response.defer(ephemeral = True)
+    ok, msg = await _execute_timeout(base, interaction, actor, member, duration, reason, proof)
+    if not ok:
+        await send_custom_message(
+            interaction,
+            msg_type          = "error",
+            title             = "timeout member",
+            subtitle          = msg,
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
+        )
+
+async def _execute_timeout(
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    actor       : discord.Member,
+    member      : discord.Member,
+    duration    : str,
+    reason      : str,
+    proof       : discord.Attachment | None,
+) -> tuple[bool, str]:
+    guild = interaction.guild
+    if not guild:
+        return False, "No guild context."
+    bot_member = guild.me
+    if not bot_member or not bot_member.guild_permissions.moderate_members:
+        return False, "I lack permissions to timeout members: `Moderate Members`"
+    if member.top_role >= bot_member.top_role:
+        return False, "Target user is above or equal to my highest role."
+
+    duration_seconds = base.parse_duration(duration)
+    if not duration_seconds:
+        return False, "Invalid duration format."
+    if duration_seconds > 28 * 86400:
+        return False, "Timeout duration cannot exceed 28 days."
 
     try:
         until = discord.utils.utcnow() + timedelta(seconds = duration_seconds)
@@ -142,22 +207,18 @@ async def run_timeout(
             color     = COLOR_YELLOW,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",    value = member.mention,                       inline = True)
-        _ = embed.add_field(name = "Moderator", value = actor.mention,                        inline = True)
-        _ = embed.add_field(name = "Duration",  value = duration,                             inline = True)
-        _ = embed.add_field(name = "Expires",   value = discord.utils.format_dt(until, "R"),  inline = True)
-        _ = embed.add_field(name = "Reason",    value = reason,                               inline = False)
+        _ = embed.add_field(name = "Member",    value = member.mention,                      inline = True)
+        _ = embed.add_field(name = "Moderator", value = actor.mention,                       inline = True)
+        _ = embed.add_field(name = "Duration",  value = duration,                            inline = True)
+        _ = embed.add_field(name = "Expires",   value = discord.utils.format_dt(until, "R"), inline = True)
+        _ = embed.add_field(name = "Reason",    value = reason,                              inline = False)
         if proof:
             _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed = embed, ephemeral = True)
-
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"
     except discord.Forbidden:
-        await send_custom_message(
-            interaction,
-            msg_type          = "error",
-            title             = "timeout members",
-            subtitle          = "I lack permissions to timeout members: `Moderate Members`",
-            footer            = "Bad configuration",
-            contact_bot_owner = True,
-        )
+        return False, "I lack permissions to timeout members: `Moderate Members`"

@@ -199,6 +199,9 @@ class CaseQueryPaginator(View):
 
         if case.get("target_user_name"):
             parts.append(f"**User:** {case['target_user_name']} ({case['target_user_id']})")
+        elif case.get("metadata", {}).get("target_user_ids"):
+            user_ids = case["metadata"]["target_user_ids"]
+            parts.append(f"**Users:** {len(user_ids)} targeted")
 
         parts.append(f"**Moderator:** {case['moderator_name']}")
 
@@ -222,6 +225,10 @@ class CaseQueryPaginator(View):
         vis = case.get("visibility_level", "moderators")
         if vis != "moderators":
             parts.append(f"**Visibility:** {str(vis).replace('_', ' ').title()}")
+
+        metadata: dict[str, Any] = case.get("metadata") or {}
+        if metadata.get("mass_action"):
+            parts.append("**Mass Action:** Yes")
 
         parts.append(f"**Created:** {discord.utils.format_dt(created, 'R')}")
 
@@ -525,6 +532,10 @@ class CasesMixin:
 
         if case.get("related_case_id"):
             _ = embed.add_field(name="Related Case", value=f"#{case['related_case_id']}", inline=True)
+
+        metadata: dict[str, Any] = case.get("metadata") or {}
+        if metadata.get("mass_action"):
+            _ = embed.add_field(name="Mass Action", value="Yes", inline=True)
 
         vis = case.get("visibility_level", "moderators")
         _ = embed.add_field(

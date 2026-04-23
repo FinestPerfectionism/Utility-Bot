@@ -67,10 +67,12 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         after         = "Only cases after this date (ISO format: YYYY-MM-DD).",
         before        = "Only cases before this date (ISO format: YYYY-MM-DD).",
         include_notes = "Include note entries. Default: true.",
+        mass_only     = "Only show cases produced by mass moderation actions.",
     )
     @app_commands.rename(
         case_type     = "type",
         include_notes = "include-notes",
+        mass_only     = "mass-only",
     )
     @help_description(
         desc      = "Staff* only —— Queries moderation cases visible to you.",
@@ -88,6 +90,7 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
             "after"         : ArgumentInfo(required = False, description = "Optional lower date bound in YYYY-MM-DD format."),
             "before"        : ArgumentInfo(required = False, description = "Optional upper date bound in YYYY-MM-DD format."),
             "include-notes" : ArgumentInfo(required = False, description = "Whether note entries should be included."),
+            "mass-only"     : ArgumentInfo(required = False, description = "Only include entries produced by mass moderation."),
         },
     )
     async def cases_query(
@@ -107,6 +110,7 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         before        : str          | None = None,
         *,
         include_notes : bool                = True,
+        mass_only     : bool                = False,
     ) -> None:
         await run_query(
             self,
@@ -118,6 +122,7 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
             after,
             before,
             include_notes = include_notes,
+            mass_only     = mass_only,
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -151,7 +156,8 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     @app_commands.command(name = "add-note", description = "Add a note to a user or case.")
     @app_commands.describe(
         content    = "The note content.",
-        user       = "The user to attach the note to.",
+        user       = "A single user to attach the note to.",
+        users      = "Comma-separated user IDs or mentions for mass user notes.",
         case_id    = "The case ID to attach the note to.",
         visibility = "Visibility restriction level.",
     )
@@ -167,6 +173,7 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         arguments = {
             "content"    : ArgumentInfo(description = "Note content."),
             "user"       : ArgumentInfo(required = False, description = "Optional user to attach the note to."),
+            "users"      : ArgumentInfo(required = False, description = "Optional comma-separated users for mass user notes."),
             "case-id"    : ArgumentInfo(required = False, description = "Optional case ID to attach the note to."),
             "visibility" : ArgumentInfo(
                 required = False,
@@ -180,12 +187,13 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         interaction : discord.Interaction,
         content     : str,
         user        : discord.User | None = None,
+        users       : str          | None = None,
         case_id     : int          | None = None,
         visibility  : Literal[
             "moderators", "senior_moderators", "directors",
         ] = "moderators",
     ) -> None:
-        await run_add_note(self, interaction, content, user, case_id, visibility)
+        await run_add_note(self, interaction, content, user, users, case_id, visibility)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /cases edit-entry Command

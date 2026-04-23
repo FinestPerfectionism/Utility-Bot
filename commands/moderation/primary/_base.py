@@ -9,10 +9,23 @@ from typing import TYPE_CHECKING, Any
 import discord
 from discord import ButtonStyle
 from discord.ext import commands
-from discord.ui import Button, View
+from discord.ui import (
+    ActionRow,
+    Button,
+    FileUpload,
+    Label,
+    LayoutView,
+    Modal,
+    Section,
+    Separator,
+    TextDisplay,
+    TextInput,
+    View,
+)
 from typing_extensions import override
 
 from core.cases import CasesManager, CaseType
+from core.responses import multi_custom_message, send_custom_message
 
 if TYPE_CHECKING:
     from bot import UtilityBot
@@ -443,3 +456,295 @@ class ModerationBase(commands.Cog):
                 )
         except discord.Forbidden:
             pass
+
+
+class MassConfigModal(Modal):
+    def __init__(
+        self,
+        member      : discord.Member | None,
+        parent      : "MassModerationView",
+        *,
+        is_global   : bool = False,
+        with_duration : bool = False,
+    ) -> None:
+        super().__init__(title = "Configure")
+        self.member         = member
+        self.parent         = parent
+        self.is_global      = is_global
+        self.with_duration  = with_duration
+
+        if with_duration:
+            self.duration_input = TextInput(label = "Duration", required = True)
+            self.add_item(self.duration_input)
+
+        self.reason_input = TextInput(
+            label    = "Reason",
+            required = True,
+            style    = discord.TextStyle.paragraph,
+        )
+        self.file_upload = FileUpload(required = False)
+
+        self.add_item(self.reason_input)
+        self.add_item(Label(text = "Proof", component = self.file_upload))
+
+    async def on_submit(self, interaction : discord.Interaction) -> None:
+        payload: dict[str, Any] = {
+            "reason"   : self.reason_input.value,
+            "proof"    : self.file_upload.values[0] if self.file_upload.values else None,
+            "duration" : self.duration_input.value if self.with_duration else None,
+        }
+
+        if self.is_global:
+            for member in self.parent.members:
+                self.parent.values[member.id] = payload
+        elif self.member:
+            self.parent.values[self.member.id] = payload
+
+        await self.parent.update(interaction)
+
+
+class MassModerationView(LayoutView):
+    def __init__(
+        self,
+        base              : ModerationBase,
+        interaction       : discord.Interaction,
+        members           : list[discord.Member],
+        action_label      : str,
+        action_key        : str,
+        *,
+        with_duration     : bool = False,
+        precheck_callback : Callable[[discord.Member, discord.Member], tuple[bool, str]] | None = None,
+        execute_callback  : Callable[
+            [discord.Interaction, discord.Member, dict[str, Any]],
+            Awaitable[tuple[bool, str]],
+        ],
+    ) -> None:
+        super().__init__(timeout = 300)
+        self.base             = base
+        self.oi               = interaction
+        self.members          = members
+        self.action_label     = action_label
+        self.action_key       = action_key
+        self.with_duration    = with_duration
+        self.precheck_callback = precheck_callback
+        self.execute_callback = execute_callback
+        self.page             = 0
+        self.locked           = False
+        self.values           = {
+            member.id : {"reason" : None, "duration" : None, "proof" : None}
+            for member in members
+        }
+        self.build()
+
+    def _is_ready(self, member_id : int) -> bool:
+        data = self.values[member_id]
+        has_reason = bool(data.get("reason"))
+        if self.with_duration:
+            return has_reason and bool(data.get("duration"))
+        return has_reason
+
+    def build(self) -> None:
+        self.clear_items()
+
+        start   = self.page * 5
+        end     = (self.page + 1) * 5
+        sublist = self.members[start:end]
+
+        for member in sublist:
+            data       = self.values[member.id]
+            display    = data["duration"] if self.with_duration else data["reason"]
+            label_text = f"Edit: {display}"[:80] if display else "Set"
+            style      = ButtonStyle.success if self._is_ready(member.id) else ButtonStyle.secondary
+            button     = Button(label = label_text, style = style, disabled = self.locked)
+
+            async def on_click(interaction : discord.Interaction, selected : discord.Member = member) -> None:
+                await interaction.response.send_modal(
+                    MassConfigModal(
+                        selected,
+                        self,
+                        with_duration = self.with_duration,
+                    ),
+                )
+
+            button.callback = on_click
+            self.add_item(Section(TextDisplay(member.mention), accessory = button))
+
+        self.add_item(Separator(visible = True))
+
+        global_button = Button(label = "Global", style = ButtonStyle.primary, disabled = self.locked)
+        run_button    = Button(label = "Execute", style = ButtonStyle.danger, disabled = self.locked)
+
+        async def global_cb(interaction : discord.Interaction) -> None:
+            await interaction.response.send_modal(
+                MassConfigModal(
+                    None,
+                    self,
+                    is_global     = True,
+                    with_duration = self.with_duration,
+                ),
+            )
+
+        async def execute_cb(interaction : discord.Interaction) -> None:
+            actor = interaction.user
+            if not isinstance(actor, discord.Member):
+                return
+
+            missing = [m.mention for m in self.members if not self._is_ready(m.id)]
+            if missing:
+                await send_custom_message(
+                    interaction,
+                    msg_type = "warning",
+                    title    = "run mass moderation",
+                    subtitle = f"Missing configuration for: {', '.join(missing[:10])}",
+                    footer   = "Bad argument",
+                )
+                return
+
+            self.locked = True
+            await self.update(interaction)
+
+            results: list[tuple[discord.Member, bool, str]] = []
+
+            for member in self.members:
+                if self.precheck_callback:
+                    can_run, precheck_msg = self.precheck_callback(actor, member)
+                    if not can_run:
+                        results.append((member, False, precheck_msg))
+                        continue
+
+                if self.action_key in {"ban", "kick", "timeout", "quarantine"}:
+                    can_proceed, error_msg = self.base.check_rate_limit(str(actor.id), self.action_key)
+                    if not can_proceed:
+                        guild = interaction.guild
+                        if guild:
+                            await self.base.auto_quarantine_moderator(actor, guild)
+                        results.append((member, False, f"Rate limited: {error_msg}"))
+                        break
+                    self.base.add_rate_limit_entry(str(actor.id), self.action_key)
+
+                ok, message = await self.execute_callback(interaction, member, self.values[member.id])
+                results.append((member, ok, message))
+                await asyncio.sleep(1.2)
+
+            succeeded = [r for r in results if r[1]]
+            failed    = [r for r in results if not r[1]]
+            summary = f"Succeeded: **{len(succeeded)}** | Failed: **{len(failed)}**"
+            if failed:
+                failed_lines = [f"- {m.mention}: {msg}" for m, _ok, msg in failed[:10]]
+                summary = f"{summary}\n" + "\n".join(failed_lines)
+
+            msg_type = "success" if not failed else "warning"
+            await send_custom_message(
+                interaction,
+                msg_type = msg_type,
+                title    = f"complete mass {self.action_label.lower()} run",
+                subtitle = summary,
+            )
+
+        global_button.callback = global_cb
+        run_button.callback    = execute_cb
+        self.add_item(ActionRow(global_button, run_button))
+
+        max_page = (len(self.members) - 1) // 5
+        first    = Button(label = "<<", disabled = self.page == 0)
+        previous = Button(label = "<", disabled = self.page == 0)
+        next_b   = Button(label = ">", disabled = self.page >= max_page)
+        last     = Button(label = ">>", disabled = self.page >= max_page)
+
+        async def move(interaction : discord.Interaction, value : int) -> None:
+            if value == -2:
+                self.page = 0
+            elif value == -1 and self.page > 0:
+                self.page -= 1
+            elif value == 1 and self.page < max_page:
+                self.page += 1
+            elif value == 2:
+                self.page = max_page
+            await self.update(interaction)
+
+        first.callback    = lambda i: move(i, -2)
+        previous.callback = lambda i: move(i, -1)
+        next_b.callback   = lambda i: move(i, 1)
+        last.callback     = lambda i: move(i, 2)
+        self.add_item(ActionRow(first, previous, next_b, last))
+
+    async def update(self, interaction : discord.Interaction) -> None:
+        self.build()
+        if interaction.response.is_done():
+            await interaction.edit_original_response(view = self)
+        else:
+            await interaction.response.edit_message(view = self)
+
+
+class MemberPickerView(View):
+    def __init__(
+        self,
+        base             : ModerationBase,
+        action_label     : str,
+        action_key       : str,
+        *,
+        with_duration    : bool = False,
+        precheck_callback: Callable[[discord.Member, discord.Member], tuple[bool, str]] | None = None,
+        execute_callback : Callable[
+            [discord.Interaction, discord.Member, dict[str, Any]],
+            Awaitable[tuple[bool, str]],
+        ],
+    ) -> None:
+        super().__init__(timeout = 180)
+        self.base             = base
+        self.action_label     = action_label
+        self.action_key       = action_key
+        self.with_duration    = with_duration
+        self.precheck_callback = precheck_callback
+        self.execute_callback = execute_callback
+        self.active_view : MassModerationView | None = None
+
+    @discord.ui.select(
+        cls         = discord.ui.UserSelect,
+        placeholder = "Select members for mass moderation.",
+        min_values  = 1,
+        max_values  = 10,
+    )
+    async def select_callback(
+        self,
+        interaction : discord.Interaction,
+        selection   : discord.ui.UserSelect,
+    ) -> None:
+        guild = interaction.guild
+        if not guild:
+            return
+
+        members: list[discord.Member] = []
+        errors = multi_custom_message(interaction)
+
+        for user in selection.values:
+            member = guild.get_member(user.id)
+            if not member:
+                _ = errors.add_field(
+                    title     = "mass moderation",
+                    msg_type  = "warning",
+                    subfields = [
+                        errors.add_subfield(
+                            subtitle = f"Could not resolve **{user}** as a guild member.",
+                            footer   = "Bad argument",
+                        ),
+                    ],
+                )
+                continue
+            members.append(member)
+
+        if errors.has_errors():
+            await errors.send()
+            return
+
+        self.active_view = MassModerationView(
+            self.base,
+            interaction,
+            members,
+            self.action_label,
+            self.action_key,
+            with_duration    = self.with_duration,
+            precheck_callback = self.precheck_callback,
+            execute_callback = self.execute_callback,
+        )
+        await interaction.response.send_message(view = self.active_view, ephemeral = True)

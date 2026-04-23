@@ -15,6 +15,7 @@ from constants import COLOR_ORANGE
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation kick Logic
@@ -23,8 +24,8 @@ from core.responses import send_custom_message
 async def run_kick(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member,
-    reason      : str,
+    member      : discord.Member | None,
+    reason      : str | None,
     proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
@@ -38,6 +39,29 @@ async def run_kick(
             title    = "run command",
             subtitle = "You are not authorized to run this command.",
             footer   = "No permissions",
+        )
+        return
+
+    if member is None:
+        picker = MemberPickerView(
+            base,
+            "Kick",
+            "kick",
+            precheck_callback = base.check_can_moderate_target,
+            execute_callback = lambda i, m, data: _execute_kick(
+                base, i, actor, m, str(data["reason"]), data.get("proof"),
+            ),
+        )
+        await interaction.response.send_message(view = picker, ephemeral = True)
+        return
+
+    if not reason:
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "kick member",
+            subtitle = "You must provide a reason.",
+            footer   = "Bad argument",
         )
         return
 
@@ -85,6 +109,33 @@ async def run_kick(
         base.add_rate_limit_entry(str(actor.id), "kick")
 
     _ = await interaction.response.defer(ephemeral = True)
+    ok, msg = await _execute_kick(base, interaction, actor, member, reason, proof)
+    if not ok:
+        await send_custom_message(
+            interaction,
+            msg_type          = "error",
+            title             = "kick members",
+            subtitle          = msg,
+            footer            = "Bad configuration",
+            contact_bot_owner = True,
+        )
+
+async def _execute_kick(
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    actor       : discord.Member,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None,
+) -> tuple[bool, str]:
+    guild = interaction.guild
+    if not guild:
+        return False, "No guild context."
+    bot_member = guild.me
+    if not bot_member or not bot_member.guild_permissions.kick_members:
+        return False, "I lack permissions to kick members: `Kick Members`"
+    if member.top_role >= bot_member.top_role:
+        return False, "Target user is above or equal to my highest role."
 
     try:
         await member.kick(reason = f"Kicked by {actor}: {reason}")
@@ -121,14 +172,11 @@ async def run_kick(
         if proof:
             _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed = embed, ephemeral = True)
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"
 
     except discord.Forbidden:
-        await send_custom_message(
-            interaction,
-            msg_type          = "error",
-            title             = "kick members",
-            subtitle          = "I lack permissions to kick members: `Kick Members`",
-            footer            = "Bad configuration",
-            contact_bot_owner = True,
-        )
+        return False, "I lack permissions to kick members: `Kick Members`"
