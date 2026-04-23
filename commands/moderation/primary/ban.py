@@ -15,6 +15,7 @@ from constants import COLOR_RED
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation ban Logic
@@ -23,8 +24,8 @@ from core.responses import send_custom_message
 async def run_ban(
     base            : ModerationBase,
     interaction     : discord.Interaction,
-    member          : discord.Member,
-    reason          : str,
+    member          : discord.Member | None,
+    reason          : str | None,
     delete_messages : int                | None = 0,
     proof           : discord.Attachment | None = None,
 ) -> None:
@@ -39,6 +40,28 @@ async def run_ban(
             title    = "run command",
             subtitle = "You are not authorized to run this command.",
             footer   = "No permissions",
+        )
+        return
+
+    if member is None:
+        picker = MemberPickerView(
+            base,
+            "Ban",
+            "ban",
+            execute_callback = lambda i, m, data: _execute_ban(
+                base, i, actor, m, data["reason"], delete_messages or 0, data.get("proof"),
+            ),
+        )
+        await interaction.response.send_message(view = picker, ephemeral = True)
+        return
+
+    if not reason:
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "ban member",
+            subtitle = "You must provide a reason.",
+            footer   = "Bad argument",
         )
         return
 
@@ -86,6 +109,29 @@ async def run_ban(
         base.add_rate_limit_entry(str(actor.id), "ban")
 
     _ = await interaction.response.defer(ephemeral = True)
+    ok, msg = await _execute_ban(base, interaction, actor, member, reason, delete_messages or 0, proof)
+    if not ok:
+        await send_custom_message(
+            interaction,
+            msg_type          = "error",
+            title             = "ban member",
+            subtitle          = msg,
+            footer            = "Bad operation",
+            contact_bot_owner = True,
+        )
+
+async def _execute_ban(
+    base            : ModerationBase,
+    interaction     : discord.Interaction,
+    actor           : discord.Member,
+    member          : discord.Member,
+    reason          : str,
+    delete_messages : int,
+    proof           : discord.Attachment | None,
+) -> tuple[bool, str]:
+    guild = interaction.guild
+    if not guild:
+        return False, "No guild context."
 
     dm_value        = delete_messages if delete_messages is not None else 0
     delete_messages = max(0, min(7, dm_value))
@@ -130,14 +176,11 @@ async def run_ban(
         if proof:
             _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed = embed, ephemeral = True)
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"
 
     except discord.Forbidden:
-        await send_custom_message(
-            interaction,
-            msg_type          = "error",
-            title             = "ban members",
-            subtitle          = "I lack permissions to ban members: `Ban Members`",
-            footer            = "Bad configuration",
-            contact_bot_owner = True,
-        )
+        return False, "I lack permissions to ban members: `Ban Members`"
