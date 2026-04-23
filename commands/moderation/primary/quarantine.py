@@ -179,7 +179,7 @@ async def _execute_quarantine(
         await member.remove_roles(*roles_to_remove, reason = f"Quarantined by {actor}")
         await member.add_roles(quarantine_role, reason = f"Quarantined by {actor}: {reason}")
 
-        metadata: dict[str, Any] = {"roles_saved" : len(saved_roles)}
+        metadata : dict[str, Any] = {"roles_saved" : len(saved_roles)}
         if proof:
             metadata["proof_url"] = proof.url
 

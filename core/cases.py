@@ -350,7 +350,7 @@ class CasesManager:
         if case_data.get("related_case_id"):
             _ = embed.add_field(name = "Related Case", value = f"#{case_data['related_case_id']}", inline = True)
 
-        metadata: dict[str, Any] = case_data.get("metadata") or {}
+        metadata : dict[str, Any] = case_data.get("metadata") or {}
 
         if "deleted_messages" in metadata:
             _ = embed.add_field(name = "Messages Deleted", value = str(metadata["deleted_messages"]), inline = True)

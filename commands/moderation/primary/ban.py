@@ -159,7 +159,7 @@ async def _execute_ban(
         }
         base.save_data()
 
-        metadata: dict[str, Any] = {"delete_message_days": delete_messages}
+        metadata : dict[str, Any] = {"delete_message_days": delete_messages}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -190,4 +190,4 @@ async def _execute_ban(
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
             _ = await interaction.response.send_message(embed = embed, ephemeral = True)
-        return True, "ok"
+        return True, "ok" # noqa: TRY300

@@ -149,7 +149,7 @@ async def _execute_kick(
         }
         base.save_data()
 
-        metadata: dict[str, Any] = {}
+        metadata : dict[str, Any] = {}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -180,4 +180,4 @@ async def _execute_kick(
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
             _ = await interaction.response.send_message(embed = embed, ephemeral = True)
-        return True, "ok"
+        return True, "ok" # noqa: TRY300

@@ -476,31 +476,32 @@ class MassConfigModal(Modal):
         self.with_duration  = with_duration
 
         if with_duration:
-            self.duration_input = TextInput(label = "Duration", required = True)
-            self.add_item(self.duration_input)
+            self.duration_input : TextInput[Modal] = TextInput(label = "Duration", required = True)
+            _ = self.add_item(self.duration_input)
 
-        self.reason_input = TextInput(
+        self.reason_input : TextInput[Modal] = TextInput(
             label    = "Reason",
             required = True,
             style    = discord.TextStyle.paragraph,
         )
-        self.file_upload = FileUpload(required = False)
+        self.file_upload : FileUpload[Modal] = FileUpload(required = False)
 
-        self.add_item(self.reason_input)
-        self.add_item(Label(text = "Proof", component = self.file_upload))
+        _ = self.add_item(self.reason_input)
+        _ = self.add_item(Label(text = "Proof", component = self.file_upload))
 
+    @override
     async def on_submit(self, interaction : discord.Interaction) -> None:
         payload: dict[str, Any] = {
             "reason"   : self.reason_input.value,
-            "proof"    : self.file_upload.values[0] if self.file_upload.values else None,
+            "proof"    : self.file_upload.values[0] if self.file_upload.values else None, # noqa: PD011
             "duration" : self.duration_input.value if self.with_duration else None,
         }
 
         if self.is_global:
             for member in self.parent.members:
-                self.parent.values[member.id] = payload
+                self.parent.values[member.id] = payload # noqa: PD011
         elif self.member:
-            self.parent.values[self.member.id] = payload
+            self.parent.values[self.member.id] = payload # noqa: PD011
 
         await self.parent.update(interaction)
 
@@ -545,8 +546,8 @@ class MassModerationView(LayoutView):
             return has_reason and bool(data.get("duration"))
         return has_reason
 
-    def build(self) -> None:  # noqa: PLR0915
-        self.clear_items()
+    def build(self) -> None:
+        _ = self.clear_items()
 
         start   = self.page * 5
         end     = (self.page + 1) * 5
@@ -557,10 +558,10 @@ class MassModerationView(LayoutView):
             display    = data["duration"] if self.with_duration else data["reason"]
             label_text = f"Edit: {display}"[:80] if display else "Set"
             style      = ButtonStyle.success if self._is_ready(member.id) else ButtonStyle.secondary
-            button     = Button(label = label_text, style = style, disabled = self.locked)
+            button : Button["MassModerationView"] = Button(label = label_text, style = style, disabled = self.locked)
 
             async def on_click(interaction : discord.Interaction, selected : discord.Member = member) -> None:
-                await interaction.response.send_modal(
+                _ = await interaction.response.send_modal(
                     MassConfigModal(
                         selected,
                         self,
@@ -569,15 +570,15 @@ class MassModerationView(LayoutView):
                 )
 
             button.callback = on_click
-            self.add_item(Section(TextDisplay(member.mention), accessory = button))
+            _ = self.add_item(Section(TextDisplay(member.mention), accessory = button))
 
-        self.add_item(Separator(visible = True))
+        _ = self.add_item(Separator(visible = True))
 
-        global_button = Button(label = "Global", style = ButtonStyle.primary, disabled = self.locked)
-        run_button    = Button(label = "Execute", style = ButtonStyle.danger, disabled = self.locked)
+        global_button : Button[LayoutView] = Button(label = "Global", style = ButtonStyle.primary, disabled = self.locked)
+        run_button    : Button[LayoutView] = Button(label = "Execute", style = ButtonStyle.danger, disabled = self.locked)
 
         async def global_cb(interaction : discord.Interaction) -> None:
-            await interaction.response.send_modal(
+            _ = await interaction.response.send_modal(
                 MassConfigModal(
                     None,
                     self,
@@ -667,18 +668,18 @@ class MassModerationView(LayoutView):
                 self.page = max_page
             await self.update(interaction)
 
-        first.callback    = lambda i: move(i, first_page_delta)
-        previous.callback = lambda i: move(i, -1)
-        next_b.callback   = lambda i: move(i, 1)
-        last.callback     = lambda i: move(i, last_page_delta)
-        self.add_item(ActionRow(first, previous, next_b, last))
+        first.callback    = lambda interaction : move(interaction, -2)
+        previous.callback = lambda interaction : move(interaction, -1)
+        next_b.callback   = lambda interaction : move(interaction, 1)
+        last.callback     = lambda interaction : move(interaction, 2)
+        _ = self.add_item(ActionRow(first, previous, next_b, last))
 
     async def update(self, interaction : discord.Interaction) -> None:
         self.build()
         if interaction.response.is_done():
-            await interaction.edit_original_response(view = self)
+            _ = await interaction.edit_original_response(view = self)
         else:
-            await interaction.response.edit_message(view = self)
+            _ = await interaction.response.edit_message(view = self)
 
 
 class MemberPickerView(View):
@@ -705,7 +706,7 @@ class MemberPickerView(View):
         self.active_view : MassModerationView | None = None
 
     @discord.ui.select(
-        cls         = discord.ui.UserSelect,
+        cls         = discord.ui.UserSelect["MemberPickerView"],
         placeholder = "Select members for mass moderation.",
         min_values  = 1,
         max_values  = 10,
@@ -713,7 +714,7 @@ class MemberPickerView(View):
     async def select_callback(
         self,
         interaction : discord.Interaction,
-        selection   : discord.ui.UserSelect,
+        selection   : discord.ui.UserSelect["MemberPickerView"],
     ) -> None:
         guild = interaction.guild
         if not guild:
@@ -722,7 +723,7 @@ class MemberPickerView(View):
         members: list[discord.Member] = []
         errors = multi_custom_message(interaction)
 
-        for user in selection.values:
+        for user in selection.values: # noqa: PD011
             member = guild.get_member(user.id)
             if not member:
                 _ = errors.add_field(
@@ -750,6 +751,6 @@ class MemberPickerView(View):
             self.action_key,
             with_duration    = self.with_duration,
             precheck_callback = self.precheck_callback,
-            execute_callback = self.execute_callback,
+            execute_callback  = self.execute_callback,
         )
-        await interaction.response.send_message(view = self.active_view, ephemeral = True)
+        _ = await interaction.response.send_message(view = self.active_view, ephemeral = True)

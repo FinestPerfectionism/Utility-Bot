@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import discord
 
@@ -94,7 +94,7 @@ async def run_query(
 
     _ = await interaction.response.defer(ephemeral=True)
 
-    cases = self.cases_manager.get_cases(
+    cases : list[dict[str, Any]] = self.cases_manager.get_cases(
         guild_id      = guild.id,
         user_id       = user.id if user else None,
         moderator_id  = moderator.id if moderator else None,
