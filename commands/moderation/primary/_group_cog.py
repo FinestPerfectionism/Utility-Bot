@@ -61,17 +61,17 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-ban",
         arguments   = {
-            "member"          : ArgumentInfo(description = "Member to ban."),
-            "reason"          : ArgumentInfo(required=True, description = "Reason for the ban."),
-            "delete-messages" : ArgumentInfo(required=False, description = "Delete messages from the last 1-7 days."),
-            "proof"           : ArgumentInfo(required=False, description = "Proof attachment."),
+            "member"          : ArgumentInfo(required = False, description = "Member to ban. Leave empty to open mass moderation."),
+            "reason"          : ArgumentInfo(required = False, description = "Reason for the ban. Required for single actions."),
+            "delete-messages" : ArgumentInfo(required = False, description = "Delete messages from the last 1-7 days."),
+            "proof"           : ArgumentInfo(required = False, description = "Proof attachment."),
         },
     )
     async def ban(
         self,
         interaction     : discord.Interaction,
-        member          : discord.Member,
-        reason          : str,
+        member          : discord.Member | None,
+        reason          : str | None = None,
         delete_messages : int                | None = 0,
         proof           : discord.Attachment | None = None,
     ) -> None:
@@ -130,9 +130,9 @@ class ModerationCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         arguments = {
-            "member" : ArgumentInfo(description = "Member to kick."),
-            "reason" : ArgumentInfo(required=True, description = "Reason for the kick."),
-            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
+            "member" : ArgumentInfo(required = False, description = "Member to kick. Leave empty to open mass moderation."),
+            "reason" : ArgumentInfo(required = False, description = "Reason for the kick. Required for single actions."),
+            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -143,8 +143,8 @@ class ModerationCommands(
     async def kick(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member,
-        reason      : str,
+        member      : discord.Member | None,
+        reason      : str | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_kick(self, interaction, member, reason, proof)
@@ -161,10 +161,10 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id = MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-timeout",
         arguments   = {
-            "member"   : ArgumentInfo(description = "Member to timeout."),
-            "duration" : ArgumentInfo(description = "Duration (e.g. 30s, 5m, 1h, 2d, 1w)."),
-            "reason"   : ArgumentInfo(required=True, description = "Reason for the timeout."),
-            "proof"    : ArgumentInfo(required=False, description = "Proof attachment."),
+            "member"   : ArgumentInfo(required = False, description = "Member to timeout. Leave empty to open mass moderation."),
+            "duration" : ArgumentInfo(required = False, description = "Duration (e.g. 30s, 5m, 1h, 2d, 1w). Required for single actions."),
+            "reason"   : ArgumentInfo(required = False, description = "Reason for the timeout. Required for single actions."),
+            "proof"    : ArgumentInfo(required = False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -176,9 +176,9 @@ class ModerationCommands(
     async def timeout(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member,
-        duration    : str,
-        reason      : str,
+        member      : discord.Member | None,
+        duration    : str = "5m",
+        reason      : str | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_timeout(self, interaction, member, duration, reason, proof)
@@ -284,9 +284,9 @@ class ModerationCommands(
         run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
         has_inverse = "moderation un-quarantine",
         arguments   = {
-            "member" : ArgumentInfo(description = "Member to quarantine."),
-            "reason" : ArgumentInfo(required=True, description = "Reason for the quarantine."),
-            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
+            "member" : ArgumentInfo(required = False, description = "Member to quarantine. Leave empty to open mass moderation."),
+            "reason" : ArgumentInfo(required = False, description = "Reason for the quarantine. Required for single actions."),
+            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
@@ -297,8 +297,8 @@ class ModerationCommands(
     async def quarantine(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member,
-        reason      : str,
+        member      : discord.Member | None,
+        reason      : str | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_quarantine(self, interaction, member, reason, proof)

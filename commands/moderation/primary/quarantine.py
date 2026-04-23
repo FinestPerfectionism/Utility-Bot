@@ -15,6 +15,7 @@ from constants import COLOR_ORANGE
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # /moderation quarantine Logic
@@ -23,8 +24,8 @@ from core.responses import send_custom_message
 async def run_quarantine(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member,
-    reason      : str,
+    member      : discord.Member | None,
+    reason      : str | None,
     proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
@@ -38,6 +39,28 @@ async def run_quarantine(
             title    = "run command",
             subtitle = "You are not authorized to run this command.",
             footer   = "No permissions",
+        )
+        return
+
+    if member is None:
+        picker = MemberPickerView(
+            base,
+            "Quarantine",
+            "quarantine",
+            execute_callback = lambda i, m, data: _execute_quarantine(
+                base, i, actor, m, str(data["reason"]), data.get("proof"),
+            ),
+        )
+        await interaction.response.send_message(view = picker, ephemeral = True)
+        return
+
+    if not reason:
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "quarantine member",
+            subtitle = "You must provide a reason.",
+            footer   = "Bad argument",
         )
         return
 
@@ -97,18 +120,33 @@ async def run_quarantine(
         base.add_rate_limit_entry(str(actor.id), "quarantine")
 
     _ = await interaction.response.defer(ephemeral = True)
-
-    quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
-    if not quarantine_role:
+    ok, msg = await _execute_quarantine(base, interaction, actor, member, reason, proof)
+    if not ok:
         await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "quarantine member",
-            subtitle          = "The quarantine role could not be found.",
-            footer            = "Invalid IDs",
+            subtitle          = msg,
+            footer            = "Bad configuration",
             contact_bot_owner = True,
         )
-        return
+
+async def _execute_quarantine(
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    actor       : discord.Member,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None,
+) -> tuple[bool, str]:
+    guild = interaction.guild
+    if not guild:
+        return False, "No guild context."
+
+    quarantined = base.ensure_data_section("quarantined")
+    quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
+    if not quarantine_role:
+        return False, "The quarantine role could not be found."
 
     saved_roles = [
         role.id for role in member.roles
@@ -153,17 +191,15 @@ async def run_quarantine(
         if proof:
             _ = embed.set_image(url = proof.url)
 
-        await interaction.followup.send(embed = embed, ephemeral = True)
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"
 
     except discord.Forbidden:
-        await send_custom_message(
-            interaction,
-            msg_type          = "error",
-            title             = "quarantine members",
-            subtitle          = "I lack permissions to manage member roles: `Manage Roles`",
-            footer            = "Bad configuration",
-            contact_bot_owner = True,
-        )
+        err = "I lack permissions to manage member roles: `Manage Roles`"
         if str(member.id) in quarantined:
             del quarantined[str(member.id)]
             base.save_data()
+        return False, err

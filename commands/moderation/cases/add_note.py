@@ -19,6 +19,7 @@ async def run_add_note(
     interaction : discord.Interaction,
     content     : str,
     user        : discord.User | None,
+    users       : str          | None,
     case_id     : int          | None,
     visibility  : Literal["moderators", "senior_moderators", "directors"],
 ) -> None:
@@ -42,13 +43,27 @@ async def run_add_note(
 
     errors = multi_custom_message(interaction)
 
-    if user is None and case_id is None:
+    targets: list[discord.User] = []
+
+    if user is not None:
+        targets.append(user)
+
+    if users:
+        raw_ids = [chunk.strip().strip("<@!>").strip() for chunk in users.split(",")]
+        for raw_id in raw_ids:
+            if not raw_id.isdigit():
+                continue
+            resolved = self.bot.get_user(int(raw_id))
+            if resolved:
+                targets.append(resolved)
+
+    if not targets and case_id is None:
         _ = errors.add_field(
             title     = "add note",
             msg_type  = "warning",
             subfields = [
                 errors.add_subfield(
-                    subtitle = "You must provide either a user or a case ID.",
+                    subtitle = "You must provide either user/users or a case ID.",
                     footer   = "Bad argument",
                 ),
             ],
@@ -70,20 +85,25 @@ async def run_add_note(
         await errors.send()
         return
 
-    new_case_id = await self.cases_manager.add_note(
-        guild            = guild,
-        moderator        = actor,
-        content          = content,
-        target_user      = user,
-        related_case_id  = case_id,
-        visibility_level = visibility,
-    )
-
-    description = (
-        f"added #{new_case_id} note for {user.mention}."
-        if user else
-        f"added #{new_case_id} note to Case **#{case_id}**."
-    )
+    if targets:
+        unique_targets = list({u.id: u for u in targets}.values())
+        case_ids = await self.cases_manager.add_notes_for_users(
+            guild            = guild,
+            moderator        = actor,
+            content          = content,
+            users            = unique_targets,
+            visibility_level = visibility,
+        )
+        description = f"added {len(case_ids)} note case(s) for {len(unique_targets)} user(s)."
+    else:
+        new_case_id = await self.cases_manager.add_note(
+            guild            = guild,
+            moderator        = actor,
+            content          = content,
+            related_case_id  = case_id,
+            visibility_level = visibility,
+        )
+        description = f"added #{new_case_id} note to Case **#{case_id}**."
 
     await send_custom_message(
         interaction,
