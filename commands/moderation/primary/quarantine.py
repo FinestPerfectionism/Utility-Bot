@@ -15,6 +15,7 @@ from constants import COLOR_ORANGE
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+
 from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -51,7 +52,7 @@ async def run_quarantine(
                 base, i, actor, m, str(data["reason"]), data.get("proof"),
             ),
         )
-        await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
         return
 
     if not reason:
@@ -166,7 +167,7 @@ async def _execute_quarantine(
         await member.remove_roles(*roles_to_remove, reason = f"Quarantined by {actor}")
         await member.add_roles(quarantine_role, reason = f"Quarantined by {actor}: {reason}")
 
-        metadata: dict[str, Any] = {"roles_saved" : len(saved_roles)}
+        metadata : dict[str, Any] = {"roles_saved" : len(saved_roles)}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -194,8 +195,8 @@ async def _execute_quarantine(
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
-            await interaction.response.send_message(embed = embed, ephemeral = True)
-        return True, "ok"
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok" # noqa: TRY300
 
     except discord.Forbidden:
         err = "I lack permissions to manage member roles: `Manage Roles`"

@@ -226,7 +226,7 @@ class CaseQueryPaginator(View):
         if vis != "moderators":
             parts.append(f"**Visibility:** {str(vis).replace('_', ' ').title()}")
 
-        metadata: dict[str, Any] = case.get("metadata") or {}
+        metadata : dict[str, Any] = case.get("metadata") or {}
         if metadata.get("mass_action"):
             parts.append("**Mass Action:** Yes")
 
@@ -533,7 +533,7 @@ class CasesMixin:
         if case.get("related_case_id"):
             _ = embed.add_field(name="Related Case", value=f"#{case['related_case_id']}", inline=True)
 
-        metadata: dict[str, Any] = case.get("metadata") or {}
+        metadata : dict[str, Any] = case.get("metadata") or {}
         if metadata.get("mass_action"):
             _ = embed.add_field(name="Mass Action", value="Yes", inline=True)
 

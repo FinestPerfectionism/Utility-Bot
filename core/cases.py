@@ -1,5 +1,6 @@
 import contextlib
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
@@ -259,7 +260,7 @@ class CasesManager:
         guild            : discord.Guild,
         moderator        : discord.Member,
         content          : str,
-        users            : list[discord.User | discord.Member],
+        users            : Sequence[discord.User | discord.Member],
         visibility_level : str = "moderators",
     ) -> list[int]:
         entries = [{"target_user" : user, "content" : content} for user in users]
@@ -349,7 +350,7 @@ class CasesManager:
         if case_data.get("related_case_id"):
             _ = embed.add_field(name = "Related Case", value = f"#{case_data['related_case_id']}", inline = True)
 
-        metadata: dict[str, Any] = case_data.get("metadata") or {}
+        metadata : dict[str, Any] = case_data.get("metadata") or {}
 
         if "deleted_messages" in metadata:
             _ = embed.add_field(name = "Messages Deleted", value = str(metadata["deleted_messages"]), inline = True)

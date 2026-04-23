@@ -94,7 +94,7 @@ async def run_unquarantine(
             del quarantined[str(member.id)]
             base.save_data()
 
-        metadata: dict[str, Any] = {"roles_restored": len(roles_to_add)}
+        metadata : dict[str, Any] = {"roles_restored": len(roles_to_add)}
         if proof:
             metadata["proof_url"] = proof.url
 

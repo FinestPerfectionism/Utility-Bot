@@ -15,6 +15,7 @@ from constants import COLOR_RED
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+
 from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -52,7 +53,7 @@ async def run_ban(
                 base, i, actor, m, data["reason"], delete_messages or 0, data.get("proof"),
             ),
         )
-        await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
         return
 
     if not reason:
@@ -133,8 +134,7 @@ async def _execute_ban(
     if not guild:
         return False, "No guild context."
 
-    dm_value        = delete_messages if delete_messages is not None else 0
-    delete_messages = max(0, min(7, dm_value))
+    delete_messages = max(0, min(7, delete_messages or 0))
 
     try:
         await member.ban(
@@ -152,7 +152,7 @@ async def _execute_ban(
         }
         base.save_data()
 
-        metadata: dict[str, Any] = {"delete_message_days": delete_messages}
+        metadata : dict[str, Any] = {"delete_message_days": delete_messages}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -179,8 +179,8 @@ async def _execute_ban(
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
-            await interaction.response.send_message(embed = embed, ephemeral = True)
-        return True, "ok"
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok" # noqa: TRY300
 
     except discord.Forbidden:
         return False, "I lack permissions to ban members: `Ban Members`"
