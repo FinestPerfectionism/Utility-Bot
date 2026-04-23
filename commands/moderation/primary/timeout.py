@@ -15,6 +15,7 @@ from constants import COLOR_YELLOW
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+
 from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -60,7 +61,7 @@ async def run_timeout(
                 data.get("proof"),
             ),
         )
-        await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
         return
 
     if not reason:
@@ -215,10 +216,11 @@ async def _execute_timeout(
         if proof:
             _ = embed.set_image(url = proof.url)
 
+    except discord.Forbidden:
+        return False, "I lack permissions to timeout members: `Moderate Members`"
+    else:
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
-            await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
         return True, "ok"
-    except discord.Forbidden:
-        return False, "I lack permissions to timeout members: `Moderate Members`"

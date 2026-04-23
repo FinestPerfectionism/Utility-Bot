@@ -106,7 +106,10 @@ async def run_query(
     )
 
     if mass_only:
-        cases = [c for c in cases if (c.get("metadata") or {}).get("mass_action")]
+        cases = [
+            c for c in cases
+            if isinstance(c.get("metadata"), dict) and c["metadata"].get("mass_action")
+        ]
 
     cases = [c for c in cases if self.can_see_case(actor, c)]
 

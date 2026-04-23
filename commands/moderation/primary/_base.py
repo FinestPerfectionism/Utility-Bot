@@ -1,3 +1,5 @@
+# pyright: reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownParameterType=false, reportUnusedCallResult=false, reportAttributeAccessIssue=false, reportMissingTypeArgument=false, reportImplicitOverride=false
+
 import asyncio
 import contextlib
 import json
@@ -543,7 +545,7 @@ class MassModerationView(LayoutView):
             return has_reason and bool(data.get("duration"))
         return has_reason
 
-    def build(self) -> None:
+    def build(self) -> None:  # noqa: PLR0915
         self.clear_items()
 
         start   = self.page * 5
@@ -651,21 +653,24 @@ class MassModerationView(LayoutView):
         next_b   = Button(label = ">", disabled = self.page >= max_page)
         last     = Button(label = ">>", disabled = self.page >= max_page)
 
+        first_page_delta = -2
+        last_page_delta  = 2
+
         async def move(interaction : discord.Interaction, value : int) -> None:
-            if value == -2:
+            if value == first_page_delta:
                 self.page = 0
             elif value == -1 and self.page > 0:
                 self.page -= 1
             elif value == 1 and self.page < max_page:
                 self.page += 1
-            elif value == 2:
+            elif value == last_page_delta:
                 self.page = max_page
             await self.update(interaction)
 
-        first.callback    = lambda i: move(i, -2)
+        first.callback    = lambda i: move(i, first_page_delta)
         previous.callback = lambda i: move(i, -1)
         next_b.callback   = lambda i: move(i, 1)
-        last.callback     = lambda i: move(i, 2)
+        last.callback     = lambda i: move(i, last_page_delta)
         self.add_item(ActionRow(first, previous, next_b, last))
 
     async def update(self, interaction : discord.Interaction) -> None:

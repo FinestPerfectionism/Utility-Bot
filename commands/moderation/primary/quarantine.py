@@ -15,6 +15,7 @@ from constants import COLOR_ORANGE
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+
 from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -56,7 +57,7 @@ async def run_quarantine(
                 base, i, actor, m, str(data["reason"]), data.get("proof"),
             ),
         )
-        await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
         return
 
     if not reason:
@@ -203,15 +204,15 @@ async def _execute_quarantine(
         if proof:
             _ = embed.set_image(url = proof.url)
 
-        if interaction.response.is_done():
-            await interaction.followup.send(embed = embed, ephemeral = True)
-        else:
-            await interaction.response.send_message(embed = embed, ephemeral = True)
-        return True, "ok"
-
     except discord.Forbidden:
         err = "I lack permissions to manage member roles: `Manage Roles`"
         if str(member.id) in quarantined:
             del quarantined[str(member.id)]
             base.save_data()
         return False, err
+    else:
+        if interaction.response.is_done():
+            await interaction.followup.send(embed = embed, ephemeral = True)
+        else:
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        return True, "ok"

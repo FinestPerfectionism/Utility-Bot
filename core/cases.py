@@ -1,5 +1,6 @@
 import contextlib
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
@@ -259,7 +260,7 @@ class CasesManager:
         guild            : discord.Guild,
         moderator        : discord.Member,
         content          : str,
-        users            : list[discord.User | discord.Member],
+        users            : Sequence[discord.User | discord.Member],
         visibility_level : str = "moderators",
     ) -> list[int]:
         entries = [{"target_user" : user, "content" : content} for user in users]
@@ -271,7 +272,7 @@ class CasesManager:
             visibility_level = visibility_level,
         )
 
-    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict[str, Any]) -> None:
+    async def _send_to_log_channel(self, guild: discord.Guild, case_data: dict[str, Any]) -> None:  # noqa: PLR0915
         channel_id = self.config.get("log_channel_id")
         if not channel_id:
             return

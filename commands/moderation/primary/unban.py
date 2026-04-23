@@ -130,8 +130,9 @@ async def _execute_unban(
             reason      = reason,
             target_user = user_to_unban,
         )
-        return True, "ok"
     except discord.NotFound:
         return False, "User is not banned"
     except discord.Forbidden:
         return False, "I lack permissions to unban members: `Ban Members`"
+    else:
+        return True, "ok"

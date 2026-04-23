@@ -566,8 +566,8 @@ class CasesMixin:
 
 
 __all__ = [
-    "CasesMixin",
     "CaseQueryPaginator",
     "CaseViewPaginator",
+    "CasesMixin",
     "ClassificationView",
 ]

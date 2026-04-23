@@ -15,6 +15,7 @@ from constants import COLOR_RED
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
+
 from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -53,7 +54,7 @@ async def run_ban(
                 base, i, actor, m, data["reason"], delete_messages or 0, data.get("proof"),
             ),
         )
-        await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
         return
 
     if not reason:
@@ -139,7 +140,7 @@ async def _execute_ban(
     if member.top_role >= bot_member.top_role:
         return False, "Target user is above or equal to my highest role."
 
-    dm_value        = delete_messages if delete_messages is not None else 0
+    dm_value        = delete_messages
     delete_messages = max(0, min(7, dm_value))
 
     try:
@@ -182,11 +183,11 @@ async def _execute_ban(
         if proof:
             _ = embed.set_image(url = proof.url)
 
+    except discord.Forbidden:
+        return False, "I lack permissions to ban members: `Ban Members`"
+    else:
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
-            await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
         return True, "ok"
-
-    except discord.Forbidden:
-        return False, "I lack permissions to ban members: `Ban Members`"

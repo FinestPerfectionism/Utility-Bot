@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from constants import COLOR_GREEN
 from core.cases import CaseType
 from core.responses import send_custom_message
+
 from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -51,7 +52,7 @@ async def run_untimeout(
                 base, i, actor, m, str(data["reason"]),
             ),
         )
-        await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
         return
 
     if not reason:
@@ -128,11 +129,11 @@ async def _execute_untimeout(
         _ = embed.add_field(name = "Member",           value = member.mention, inline = True)
         _ = embed.add_field(name = "Senior Moderator", value = actor.mention,  inline = True)
         _ = embed.add_field(name = "Reason",           value = reason,         inline = False)
+    except discord.Forbidden:
+        return False, "I lack permissions to timeout members: `Moderate Members`"
+    else:
         if interaction.response.is_done():
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
-            await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
         return True, "ok"
-
-    except discord.Forbidden:
-        return False, "I lack permissions to timeout members: `Moderate Members`"
