@@ -615,13 +615,16 @@ class MassModerationView(LayoutView):
                         results.append((member, False, precheck_msg))
                         continue
 
-                if self.action_key in {"ban", "kick", "timeout", "quarantine"}:
+                if self.action_key in {"ban", "kick", "timeout", "quarantine"} and not is_director(actor):
                     can_proceed, error_msg = self.base.check_rate_limit(str(actor.id), self.action_key)
                     if not can_proceed:
                         guild = interaction.guild
                         if guild:
                             await self.base.auto_quarantine_moderator(actor, guild)
                         results.append((member, False, f"Rate limited: {error_msg}"))
+                        current_index = self.members.index(member)
+                        for skipped_member in self.members[current_index + 1:]:
+                            results.append((skipped_member, False, "Skipped: mass run stopped due to rate limit"))
                         break
                     self.base.add_rate_limit_entry(str(actor.id), self.action_key)
 

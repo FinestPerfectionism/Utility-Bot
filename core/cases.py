@@ -212,27 +212,47 @@ class CasesManager:
     ) -> list[int]:
         case_ids: list[int] = []
         total = len(entries)
+        pending_cases: list[dict[str, Any]] = []
 
-        for entry in entries:
+        for index, entry in enumerate(entries, start = 1):
             entry_metadata = dict(metadata or {})
             entry_metadata["mass_total"] = total
+            entry_metadata["mass_index"] = index
             if entry.get("batch_id"):
                 entry_metadata["batch_id"] = entry["batch_id"]
             entry_metadata["mass_action"] = True
 
-            case_id = await self.log_case(
-                guild            = guild,
-                case_type        = case_type,
-                moderator        = moderator,
-                reason           = entry.get("reason", reason),
-                target_user      = entry.get("target_user"),
-                duration         = entry.get("duration", duration),
-                content          = entry.get("content"),
-                related_case_id  = entry.get("related_case_id"),
-                visibility_level = entry.get("visibility_level", visibility_level),
-                metadata         = entry_metadata,
-            )
+            case_id = self.data["next_case_id"]
+            self.data["next_case_id"] += 1
+
+            case_data: dict[str, Any] = {
+                "case_id"            : case_id,
+                "type"               : case_type.value,
+                "guild_id"           : guild.id,
+                "moderator_id"       : moderator.id,
+                "moderator_name"     : str(moderator),
+                "target_user_id"     : entry.get("target_user").id   if entry.get("target_user") else None,
+                "target_user_name"   : str(entry.get("target_user")) if entry.get("target_user") else None,
+                "reason"             : entry.get("reason", reason),
+                "content"            : entry.get("content"),
+                "duration"           : entry.get("duration", duration),
+                "related_case_id"    : entry.get("related_case_id"),
+                "visibility_level"   : entry.get("visibility_level", visibility_level),
+                "pending_visibility" : None,
+                "created_at"         : datetime.now(UTC).isoformat(),
+                "edited_at"          : None,
+                "metadata"           : entry_metadata,
+            }
+
+            pending_cases.append(case_data)
             case_ids.append(case_id)
+
+        self.data["cases"].extend(pending_cases)
+        self.save_data()
+
+        if self.config.get("log_channel_id"):
+            for case_data in pending_cases:
+                await self._send_to_log_channel(guild, case_data)
 
         return case_ids
 
