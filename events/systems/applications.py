@@ -315,7 +315,7 @@ class DecisionView(View):
         if not cases_cog:
             __ = await send_custom_message(
                 interaction,
-                msg_type          = "warning",
+                msg_type          = "errror",
                 title             = "query applicant cases",
                 subtitle          = "Case history is unavailable.",
                 footer            = "Bad operation",
@@ -343,7 +343,7 @@ class DecisionView(View):
 
         title = f"Case History — {applicant if applicant else applicant_id}"
 
-        fields: list[tuple[str, str]] = []
+        fields : list[tuple[str, str]] = []
 
         for case in cases:
             case_type_display = case["type"].replace("_", " ").title()
@@ -416,7 +416,7 @@ MOD_QUESTIONS = [
     "What does creating a 'safe place for everyone' mean to you in practice?",
 ]
 
-async def delete_application_messages(client: discord.Client, user_id : int) -> None:
+async def delete_application_messages(client : discord.Client, user_id : int) -> None:
     data = ACTIVE_APPLICATIONS.get(user_id)
     if not data:
         return
@@ -441,7 +441,7 @@ async def delete_application_messages(client: discord.Client, user_id : int) -> 
 # Role Gate Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def can_apply(member: discord.Member, app_type: str) -> bool:
+def can_apply(member : discord.Member, app_type : str) -> bool:
     role_ids = {r.id for r in member.roles}
     is_admin = bool(role_ids & ADMIN_ROLE_IDS)
     is_mod   = bool(role_ids & MOD_ROLE_IDS)
@@ -499,7 +499,7 @@ class ApplicationSubmitView(View):
         if not isinstance(channel, discord.TextChannel):
             return
 
-        type_map = {"admin": "Administrator", "mod": "Moderator"}
+        type_map = {"admin" : "Administrator", "mod" : "Moderator"}
 
         embed = discord.Embed(
             title = f"{interaction.user} — {type_map.get(data['type'], data['type'].capitalize())} Application",

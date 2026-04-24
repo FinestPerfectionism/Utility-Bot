@@ -161,17 +161,17 @@ class CasesManager:
         guild            : discord.Guild,
         case_type        : CaseType,
         moderator        : discord.Member,
-        reason           : str                             | None = None,
-        target_user      : discord.User   | discord.Member | None = None,
-        duration         : str                             | None = None,
-        content          : str                             | None = None,
-        related_case_id  : int                             | None = None,
-        visibility_level : str                                    = "moderators",
-        metadata         : dict[str, Any]                  | None = None,
+        reason           : str                           | None = None,
+        target_user      : discord.User | discord.Member | None = None,
+        duration         : str                           | None = None,
+        content          : str                           | None = None,
+        related_case_id  : int                           | None = None,
+        visibility_level : str                                  = "moderators",
+        metadata         : dict[str, Any]                | None = None,
     ) -> int:
         case_id = self.get_next_case_id()
 
-        case_data: dict[str, Any] = {
+        case_data : dict[str, Any] = {
             "case_id"            : case_id,
             "type"               : case_type.value,
             "guild_id"           : guild.id,
@@ -231,8 +231,8 @@ class CasesManager:
                 "guild_id"           : guild.id,
                 "moderator_id"       : moderator.id,
                 "moderator_name"     : str(moderator),
-                "target_user_id"     : entry.get("target_user").id   if entry.get("target_user") else None,
-                "target_user_name"   : str(entry.get("target_user")) if entry.get("target_user") else None,
+                "target_user_id"     : entry["target_user"].id if (user := entry.get("target_user")) else None,
+                "target_user_name"   : str(user) if user else None,
                 "reason"             : entry.get("reason", reason),
                 "content"            : entry.get("content"),
                 "duration"           : entry.get("duration", duration),

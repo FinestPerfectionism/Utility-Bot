@@ -1,5 +1,3 @@
-# pyright: reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownParameterType=false, reportUnusedCallResult=false, reportAttributeAccessIssue=false, reportMissingTypeArgument=false, reportImplicitOverride=false
-
 import asyncio
 import contextlib
 import json
@@ -596,17 +594,17 @@ class MassModerationView(LayoutView):
             if missing:
                 await send_custom_message(
                     interaction,
-                    msg_type = "warning",
-                    title    = "run mass moderation",
+                    msg_type =  "warning",
+                    title    =  "run mass moderation",
                     subtitle = f"Missing configuration for: {', '.join(missing[:10])}",
-                    footer   = "Bad argument",
+                    footer   =  "Bad argument",
                 )
                 return
 
             self.locked = True
             await self.update(interaction)
 
-            results: list[tuple[discord.Member, bool, str]] = []
+            results : list[tuple[discord.Member, bool, str]] = []
 
             for member in self.members:
                 if self.precheck_callback:
@@ -623,8 +621,9 @@ class MassModerationView(LayoutView):
                             await self.base.auto_quarantine_moderator(actor, guild)
                         results.append((member, False, f"Rate limited: {error_msg}"))
                         current_index = self.members.index(member)
-                        for skipped_member in self.members[current_index + 1:]:
-                            results.append((skipped_member, False, "Skipped: mass run stopped due to rate limit"))
+
+                        results.extend([(m, False, "Skipped: mass run stopped due to rate limit") for m in self.members[current_index + 1:]])
+
                         break
                     self.base.add_rate_limit_entry(str(actor.id), self.action_key)
 
@@ -634,10 +633,10 @@ class MassModerationView(LayoutView):
 
             succeeded = [r for r in results if r[1]]
             failed    = [r for r in results if not r[1]]
-            summary = f"Succeeded: **{len(succeeded)}** | Failed: **{len(failed)}**"
+            summary   = f"Succeeded: **{len(succeeded)}** | Failed: **{len(failed)}**"
             if failed:
                 failed_lines = [f"- {m.mention}: {msg}" for m, _ok, msg in failed[:10]]
-                summary = f"{summary}\n" + "\n".join(failed_lines)
+                summary      = f"{summary}\n" + "\n".join(failed_lines)
 
             msg_type = "success" if not failed else "warning"
             await send_custom_message(
@@ -649,13 +648,13 @@ class MassModerationView(LayoutView):
 
         global_button.callback = global_cb
         run_button.callback    = execute_cb
-        self.add_item(ActionRow(global_button, run_button))
+        _ = self.add_item(ActionRow(global_button, run_button))
 
         max_page = (len(self.members) - 1) // 5
-        first    = Button(label = "<<", disabled = self.page == 0)
-        previous = Button(label = "<", disabled = self.page == 0)
-        next_b   = Button(label = ">", disabled = self.page >= max_page)
-        last     = Button(label = ">>", disabled = self.page >= max_page)
+        first    : Button["MassModerationView"] = Button(label = "<<", disabled = self.page == 0)
+        previous : Button["MassModerationView"] = Button(label = "<", disabled = self.page == 0)
+        next_b   : Button["MassModerationView"] = Button(label = ">", disabled = self.page >= max_page)
+        last     : Button["MassModerationView"] = Button(label = ">>", disabled = self.page >= max_page)
 
         first_page_delta = -2
         last_page_delta  = 2
@@ -700,12 +699,12 @@ class MemberPickerView(View):
         ],
     ) -> None:
         super().__init__(timeout = 180)
-        self.base             = base
-        self.action_label     = action_label
-        self.action_key       = action_key
-        self.with_duration    = with_duration
+        self.base              = base
+        self.action_label      = action_label
+        self.action_key        = action_key
+        self.with_duration     = with_duration
         self.precheck_callback = precheck_callback
-        self.execute_callback = execute_callback
+        self.execute_callback  = execute_callback
         self.active_view : MassModerationView | None = None
 
     @discord.ui.select(
@@ -752,7 +751,7 @@ class MemberPickerView(View):
             members,
             self.action_label,
             self.action_key,
-            with_duration    = self.with_duration,
+            with_duration     = self.with_duration,
             precheck_callback = self.precheck_callback,
             execute_callback  = self.execute_callback,
         )

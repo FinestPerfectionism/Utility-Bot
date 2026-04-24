@@ -68,7 +68,7 @@ async def run_unban(
 
     _ = await interaction.response.defer(ephemeral = True)
 
-    results: list[tuple[str, bool, str]] = []
+    results : list[tuple[str, bool, str]] = []
     for identifier in identifiers:
         ok, msg = await _execute_unban(base, guild, actor, identifier, reason)
         results.append((identifier, ok, msg))

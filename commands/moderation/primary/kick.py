@@ -180,4 +180,4 @@ async def _execute_kick(
             await interaction.followup.send(embed = embed, ephemeral = True)
         else:
             _ = await interaction.response.send_message(embed = embed, ephemeral = True)
-        return True, "ok" # noqa: TRY300
+        return True, "ok"
