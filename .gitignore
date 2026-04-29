@@ -1,11 +1,14 @@
 __pycache__/
 *.py[cod]
 .replit
-venv/
+.venv/
 .env
-data/*
-storage/*
+data/
+build/
+storage/
 !data/runtime/.gitkeep
 !storage/.gitkeep
 *.log
 *.json
+utility_bot.egg-info/
+uv.lock

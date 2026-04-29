@@ -68,7 +68,7 @@ class PartnershipComponents2(LayoutView):
             for i, p in enumerate(partnerships):
                 children.append(
                     Section(
-                        TextDisplay(
+                        TextDisplay[LayoutView](
                             content =
                                 f"# {p['server_name']}\n"
                                 "**Description:**\n"

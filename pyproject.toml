@@ -1,70 +1,70 @@
 [project]
-name = "Utility Bot"
-version = "0.1.0"
-description = "Development for Utility Bot"
+name            = "utility-bot"
+version         = "0.1.0"
+description     = "Development for the discord Utility Bot"
 requires-python = ">=3.11"
-dependencies = [
+dependencies    = [
     "discord.py",
+    "basedpyright",
 ]
 
-[tool.pyright]
-venvPath = "."
-venv = ".venv"
-pythonVersion = "3.11"
-include = ["."]
-typeCheckingMode = "strict"
+[tool.uv]
+package = false
 
-reportMissingParameterType = "error"
-reportMissingReturnType = "error"
-reportUnknownMemberType = "error"
-reportUnknownVariableType = "error"
-reportUnknownArgumentType = "error"
-reportPrivateUsage = "error"
-reportUnnecessaryCast = "error"
-reportUnknownParameterType = "error"
-reportUnnecessaryIsInstance = "error"
-reportUnusedImport = "error"
-reportUnusedClass = "error"
-reportUnusedFunction = "error"
-reportUnusedVariable = "error"
-reportUntypedFunctionDecorator = "error"
-reportUntypedClassDecorator = "error"
-reportUntypedBaseClass = "error"
-reportAny = "error" 
-reportPropertyTypeMismatch = "error"
-reportIncompatibleMethodOverride = "error"
-reportIncompatibleVariableOverride = "error"
-reportOverlappingOverload = "error"
-reportUnnecessaryComparison = "error"
-reportAssertAlwaysTrue = "error"
-reportInvalidStringEscapeSequence = "error"
-reportShadowedVariable = "error"
+[tool.basedpyright]
+typeCheckingMode = "all"
+venvPath         = "."
+venv             = ".venv"
+pythonVersion    = "3.11"
+include          = ["."]
+
+reportAny                           = "error"
+reportExplicitAny                   = "error"
+reportInvalidCast                   = "error"
+reportUnannotatedClassAttribute     = "error"
+reportIgnoreCommentWithoutRule      = "error"
+reportMissingParameterType          = "error"
+reportUnknownMemberType             = "error"
+reportUnknownVariableType           = "error"
+reportUnknownArgumentType           = "error"
+reportPrivateUsage                  = "error"
+reportUnnecessaryCast               = "error"
+reportUnknownParameterType          = "error"
+reportUnnecessaryIsInstance         = "error"
+reportUnusedImport                  = "error"
+reportUnusedClass                   = "error"
+reportUnusedFunction                = "error"
+reportUnusedVariable                = "error"
+reportUntypedFunctionDecorator      = "error"
+reportUntypedClassDecorator         = "error"
+reportUntypedBaseClass              = "error"
+reportPropertyTypeMismatch          = "error"
+reportIncompatibleMethodOverride    = "error"
+reportIncompatibleVariableOverride  = "error"
+reportOverlappingOverload           = "error"
+reportUnnecessaryComparison         = "error"
+reportAssertAlwaysTrue              = "error"
+reportInvalidStringEscapeSequence   = "error"
 reportUninitializedInstanceVariable = "error"
-reportCallInDefaultInitializer = "error"
-reportUnnecessaryContains = "error"
-reportUnusedExpression = "error"
-strictListInference = true
-strictDictionaryInference = true
-strictSetInference = true
-analyzeUnannotatedFunctions = true
-strictParameterNoneValue = true
-
-enableTypeIgnoreComments = true 
-reportUnnecessaryTypeIgnoreComment = "error"
-
-reportImplicitOverride = "error"
-reportUnusedCallResult = "error"
-reportMissingTypeStubs = "error"
-reportIncompleteInstanceVariables = "error"
-reportMatchNotExhaustive = "error"
-reportCastAny = "error"
-reportSelfClash = "error"
-
-useLibraryCodeForTypes = false
+reportCallInDefaultInitializer      = "error"
+reportUnnecessaryContains           = "error"
+reportUnusedExpression              = "error"
+strictListInference                 = true
+strictDictionaryInference           = true
+strictSetInference                  = true
+analyzeUnannotatedFunctions         = true
+strictParameterNoneValue            = true
+enableTypeIgnoreComments            = true 
+reportUnnecessaryTypeIgnoreComment  = "error"
+reportImplicitOverride              = "error"
+reportUnusedCallResult              = "error"
+reportMissingTypeStubs              = "error"
+reportMatchNotExhaustive            = "error"
+useLibraryCodeForTypes              = false
 
 [tool.ruff]
 target-version = "py311"
-line-length = 100
+line-length    = 100
 extend-exclude = [".cache"]
 
 [tool.ruff.lint]
@@ -80,13 +80,16 @@ ignore = [
 max-complexity = 50
 
 [tool.ruff.lint.pylint]
-max-args = 50
+max-args     = 50
 max-branches = 50
-max-returns = 50
+max-returns  = 50
 
 [tool.ruff.lint.flake8-annotations]
-allow-star-arg-any = false
+allow-star-arg-any      = false
 suppress-none-returning = false
 
 [tool.ruff.lint.pyupgrade]
 keep-runtime-typing = true
+
+[tool.setuptools]
+packages = ["core", "data", "events", "commands", "guild_info"]

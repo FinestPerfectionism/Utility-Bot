@@ -10,6 +10,7 @@ from typing import (
     Any,
     cast,
 )
+from inspect import cleandoc
 
 import discord
 from discord import app_commands
@@ -172,10 +173,12 @@ async def run_eval(
     except Exception as e:  # noqa: BLE001
         if silent:
             _   = await ctx.message.delete()
-            msg = await ctx.send(
-                "```py\n"
-               f"{e.__class__.__name__}: {e}\n"
-                "```",
+            msg = await ctx.send(cleandoc(f"""
+                    ```py\n
+                    {e.__class__.__name__}: {e}\n
+                    ```
+                    """
+                )
             )
             await sleep(5)
             await msg.delete()

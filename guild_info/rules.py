@@ -1,5 +1,6 @@
 from discord import ButtonStyle, SeparatorSpacing
 from discord.ui import Button, Container, LayoutView, Section, Separator, TextDisplay
+from inspect import cleandoc
 
 from constants import STANDSTILL_EMOJI_ID
 
@@ -7,10 +8,12 @@ from constants import STANDSTILL_EMOJI_ID
 class RuleComponents1(LayoutView):
     container : Container[LayoutView] = Container(
         TextDisplay(
-            content =
-                "# Welcome to The Goobers!\n"
-                "A server for dumbassery and gaming.\n"
-                "-# **Note:** It is within moderators' discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here.",
+            content = cleandoc("""
+                # Welcome to The Goobers!\n
+                A server for dumbassery and gaming.\n
+                -# **Note:** It is within moderators' discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here.
+                """
+            ),
         ),
     )
 
@@ -18,7 +21,7 @@ class RuleComponents2(LayoutView):
     def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
         self.container : Container[LayoutView] = Container(
-            Section(
+            Section[LayoutView](
                 TextDisplay(
                     content =
                         "# Rules",
@@ -31,10 +34,12 @@ class RuleComponents2(LayoutView):
                 ),
             ),
             TextDisplay(
-                content =
-                   f"Rules last updated <t:{timestamp}:D>.\n"
-                    "-# All below is subject to change at any time based on Directorate decision or structural updates.\n"
-                    "-# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n",
+                content = cleandoc(f"""
+                    Rules last updated <t:{timestamp}:D>.\n
+                    -# All below is subject to change at any time based on Directorate decision or structural updates.\n
+                    -# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n
+                    """
+                ),
             ),
             Separator(
                 visible = False,

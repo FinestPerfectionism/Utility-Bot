@@ -18,7 +18,7 @@ class RequirementComponents2(LayoutView):
     def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
         self.container : Container[LayoutView] = Container(
-            Section(
+            Section[LayoutView](
                 TextDisplay(
                     content =
                         "# Partnership Requirements",

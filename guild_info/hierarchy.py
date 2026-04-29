@@ -16,7 +16,7 @@ class HierarchyComponents2(LayoutView):
     def __init__(self, timestamp : int) -> None:
         super().__init__(timeout = None)
         self.container : Container[LayoutView] = Container(
-            TextDisplay(
+            TextDisplay[LayoutView](
                 content =
                     "# Hierarchy\n"
                    f"Hierarchy last updated <t:{timestamp}:D>.\n"
