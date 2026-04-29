@@ -56,7 +56,7 @@ async def run_purge(
     base        : ModerationBase,
     interaction : discord.Interaction,
     amount      : int,
-    reason      : str | None,
+    reason      : str                | None,
     member      : discord.Member     | None = None,
     proof       : discord.Attachment | None = None,
 ) -> None:
