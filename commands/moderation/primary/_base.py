@@ -291,8 +291,8 @@ class ModerationBase(commands.Cog):
         now = datetime.now(UTC)
         self._ensure_rate_limit_entry(user_id)
 
-        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
-        rl: dict[str, list[str]] = rate_limits[user_id]
+        rate_limits : dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        rl          : dict[str, list[str]] = rate_limits[user_id]
 
         for key in ("ban_hourly", "kick_hourly", "timeout_hourly", "quarantine_hourly", "severe_hourly"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
@@ -302,8 +302,8 @@ class ModerationBase(commands.Cog):
     def check_rate_limit(self, user_id: str, action: str) -> tuple[bool, str]:
         self.clean_old_rate_limits(user_id)
 
-        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
-        rl: dict[str, list[str]] = rate_limits[user_id]
+        rate_limits : dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        rl          : dict[str, list[str]] = rate_limits[user_id]
 
         if len(rl["severe_hourly"]) >= self.SEVERE_HOURLY_LIMIT:
             return False, f"Severe action hourly limit exceeded ({self.SEVERE_HOURLY_LIMIT} bans/kicks/quarantines per hour)"
@@ -466,10 +466,10 @@ class ModerationBase(commands.Cog):
 class MassConfigModal(Modal):
     def __init__(
         self,
-        member      : discord.Member | None,
-        parent      : "MassModerationView",
+        member        : discord.Member | None,
+        parent        : "MassModerationView",
         *,
-        is_global   : bool = False,
+        is_global     : bool = False,
         with_duration : bool = False,
     ) -> None:
         super().__init__(title = "Configure")
@@ -494,7 +494,7 @@ class MassConfigModal(Modal):
 
     @override
     async def on_submit(self, interaction : discord.Interaction) -> None:
-        payload: dict[str, Any] = {
+        payload : dict[str, Any] = {
             "reason"   : self.reason_input.value,
             "proof"    : self.file_upload.values[0] if self.file_upload.values else None, # noqa: PD011
             "duration" : self.duration_input.value if self.with_duration else None,
@@ -526,17 +526,17 @@ class MassModerationView(LayoutView):
         ],
     ) -> None:
         super().__init__(timeout = 300)
-        self.base             = base
-        self.oi               = interaction
-        self.members          = members
-        self.action_label     = action_label
-        self.action_key       = action_key
-        self.with_duration    = with_duration
+        self.base              = base
+        self.oi                = interaction
+        self.members           = members
+        self.action_label      = action_label
+        self.action_key        = action_key
+        self.with_duration     = with_duration
         self.precheck_callback = precheck_callback
-        self.execute_callback = execute_callback
-        self.page             = 0
-        self.locked           = False
-        self.values           = {
+        self.execute_callback  = execute_callback
+        self.page              = 0
+        self.locked            = False
+        self.values            = {
             member.id : {"reason" : None, "duration" : None, "proof" : None}
             for member in members
         }
