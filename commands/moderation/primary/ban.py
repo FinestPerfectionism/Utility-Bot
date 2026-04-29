@@ -49,7 +49,7 @@ async def run_ban(
             base,
             "Ban",
             "ban",
-            precheck_callback = base.check_can_moderate_target,
+            precheck_callback = lambda moderator, target: base.check_can_moderate_target(moderator, target, "ban"),
             execute_callback = lambda i, m, data: _execute_ban(
                 base, i, actor, m, data["reason"], delete_messages or 0, data.get("proof"),
             ),
@@ -77,7 +77,7 @@ async def run_ban(
         )
         return
 
-    can_moderate, error_msg = base.check_can_moderate_target(actor, member)
+    can_moderate, error_msg = base.check_can_moderate_target(actor, member, "ban")
     if not can_moderate:
         await send_custom_message(
             interaction,

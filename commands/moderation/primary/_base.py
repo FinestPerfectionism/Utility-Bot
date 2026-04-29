@@ -406,8 +406,13 @@ class ModerationBase(commands.Cog):
         highest_target_role = max(target_roles, key=lambda r: r.position)
         return moderator.top_role.position > highest_target_role.position
 
-    def check_can_moderate_target(self, moderator: discord.Member, target: discord.Member) -> tuple[bool, str]:
-        if self.has_protected_role(target):
+    def check_can_moderate_target(
+        self,
+        moderator  : discord.Member,
+        target     : discord.Member,
+        action_key : str = "",
+    ) -> tuple[bool, str]:
+        if self.has_protected_role(target) and not (action_key == "ban" and is_director(moderator)):
             if self.can_quarantine(moderator):
                 return False, "You cannot ban/kick/timeout staff members. Use `/moderation quarantine` instead."
             return False, "You cannot ban/kick/timeout staff members."
@@ -709,7 +714,7 @@ class MemberPickerView(View):
 
     @discord.ui.select(
         cls         = discord.ui.UserSelect["MemberPickerView"],
-        placeholder = "Select members for mass moderation.",
+        placeholder = "Select members to mass moderate...",
         min_values  = 1,
         max_values  = 10,
     )
@@ -729,7 +734,7 @@ class MemberPickerView(View):
             member = guild.get_member(user.id)
             if not member:
                 _ = errors.add_field(
-                    title     = "mass moderation",
+                    title     = "moderate members",
                     msg_type  = "warning",
                     subfields = [
                         errors.add_subfield(
@@ -739,6 +744,24 @@ class MemberPickerView(View):
                     ],
                 )
                 continue
+
+            if self.precheck_callback:
+                actor = interaction.user
+                if isinstance(actor, discord.Member):
+                    can_run, precheck_msg = self.precheck_callback(actor, member)
+                    if not can_run:
+                        _ = errors.add_field(
+                            title     = "moderate members",
+                            msg_type  = "warning",
+                            subfields = [
+                                errors.add_subfield(
+                                    subtitle = f"Cannot moderate {member.mention}: {precheck_msg}",
+                                    footer   = "Bad argument",
+                                ),
+                            ],
+                        )
+                        continue
+
             members.append(member)
 
         if errors.has_errors():
