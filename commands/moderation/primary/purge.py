@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 from constants import COLOR_BLURPLE
 from core.cases import CaseType
 from core.responses import send_custom_message
+from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Purge Helpers
@@ -55,7 +56,7 @@ async def run_purge(
     base        : ModerationBase,
     interaction : discord.Interaction,
     amount      : int,
-    reason      : str,
+    reason      : str                | None,
     member      : discord.Member     | None = None,
     proof       : discord.Attachment | None = None,
 ) -> None:
@@ -70,6 +71,28 @@ async def run_purge(
             title    = "run command",
             subtitle = "You are not authorized to run this command.",
             footer   = "No permissions",
+        )
+        return
+
+    if member is None:
+        picker = MemberPickerView(
+            base,
+            "Purge",
+            "purge",
+            execute_callback = lambda i, m, data: _execute_mass_purge(
+                base, i, amount, m, str(data["reason"]), data.get("proof"),
+            ),
+        )
+        _ = await interaction.response.send_message(view=picker, ephemeral=True)
+        return
+
+    if not reason:
+        await send_custom_message(
+            interaction,
+            msg_type = "warning",
+            title    = "purge messages",
+            subtitle = "You must provide a reason.",
+            footer   = "Bad argument",
         )
         return
 
@@ -151,3 +174,15 @@ async def run_purge(
             footer            = "Bad configuration",
             contact_bot_owner = True,
         )
+
+
+async def _execute_mass_purge(
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    amount      : int,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None,
+) -> tuple[bool, str]:
+    await run_purge(base, interaction, amount, reason, member, proof)
+    return True, "ok"

@@ -291,8 +291,8 @@ class ModerationBase(commands.Cog):
         now = datetime.now(UTC)
         self._ensure_rate_limit_entry(user_id)
 
-        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
-        rl: dict[str, list[str]] = rate_limits[user_id]
+        rate_limits : dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        rl          : dict[str, list[str]] = rate_limits[user_id]
 
         for key in ("ban_hourly", "kick_hourly", "timeout_hourly", "quarantine_hourly", "severe_hourly"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
@@ -302,8 +302,8 @@ class ModerationBase(commands.Cog):
     def check_rate_limit(self, user_id: str, action: str) -> tuple[bool, str]:
         self.clean_old_rate_limits(user_id)
 
-        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
-        rl: dict[str, list[str]] = rate_limits[user_id]
+        rate_limits : dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        rl          : dict[str, list[str]] = rate_limits[user_id]
 
         if len(rl["severe_hourly"]) >= self.SEVERE_HOURLY_LIMIT:
             return False, f"Severe action hourly limit exceeded ({self.SEVERE_HOURLY_LIMIT} bans/kicks/quarantines per hour)"
@@ -406,8 +406,13 @@ class ModerationBase(commands.Cog):
         highest_target_role = max(target_roles, key=lambda r: r.position)
         return moderator.top_role.position > highest_target_role.position
 
-    def check_can_moderate_target(self, moderator: discord.Member, target: discord.Member) -> tuple[bool, str]:
-        if self.has_protected_role(target):
+    def check_can_moderate_target(
+        self,
+        moderator  : discord.Member,
+        target     : discord.Member,
+        action_key : str = "",
+    ) -> tuple[bool, str]:
+        if self.has_protected_role(target) and not (action_key == "ban" and is_director(moderator)):
             if self.can_quarantine(moderator):
                 return False, "You cannot ban/kick/timeout staff members. Use `/moderation quarantine` instead."
             return False, "You cannot ban/kick/timeout staff members."
@@ -461,10 +466,10 @@ class ModerationBase(commands.Cog):
 class MassConfigModal(Modal):
     def __init__(
         self,
-        member      : discord.Member | None,
-        parent      : "MassModerationView",
+        member        : discord.Member | None,
+        parent        : "MassModerationView",
         *,
-        is_global   : bool = False,
+        is_global     : bool = False,
         with_duration : bool = False,
     ) -> None:
         super().__init__(title = "Configure")
@@ -489,7 +494,7 @@ class MassConfigModal(Modal):
 
     @override
     async def on_submit(self, interaction : discord.Interaction) -> None:
-        payload: dict[str, Any] = {
+        payload : dict[str, Any] = {
             "reason"   : self.reason_input.value,
             "proof"    : self.file_upload.values[0] if self.file_upload.values else None, # noqa: PD011
             "duration" : self.duration_input.value if self.with_duration else None,
@@ -521,17 +526,17 @@ class MassModerationView(LayoutView):
         ],
     ) -> None:
         super().__init__(timeout = 300)
-        self.base             = base
-        self.oi               = interaction
-        self.members          = members
-        self.action_label     = action_label
-        self.action_key       = action_key
-        self.with_duration    = with_duration
+        self.base              = base
+        self.oi                = interaction
+        self.members           = members
+        self.action_label      = action_label
+        self.action_key        = action_key
+        self.with_duration     = with_duration
         self.precheck_callback = precheck_callback
-        self.execute_callback = execute_callback
-        self.page             = 0
-        self.locked           = False
-        self.values           = {
+        self.execute_callback  = execute_callback
+        self.page              = 0
+        self.locked            = False
+        self.values            = {
             member.id : {"reason" : None, "duration" : None, "proof" : None}
             for member in members
         }
@@ -709,7 +714,7 @@ class MemberPickerView(View):
 
     @discord.ui.select(
         cls         = discord.ui.UserSelect["MemberPickerView"],
-        placeholder = "Select members for mass moderation.",
+        placeholder = "Select members to mass moderate...",
         min_values  = 1,
         max_values  = 10,
     )
@@ -722,14 +727,14 @@ class MemberPickerView(View):
         if not guild:
             return
 
-        members: list[discord.Member] = []
+        members : list[discord.Member] = []
         errors = multi_custom_message(interaction)
 
         for user in selection.values: # noqa: PD011
             member = guild.get_member(user.id)
             if not member:
                 _ = errors.add_field(
-                    title     = "mass moderation",
+                    title     = "moderate members",
                     msg_type  = "warning",
                     subfields = [
                         errors.add_subfield(
@@ -739,6 +744,24 @@ class MemberPickerView(View):
                     ],
                 )
                 continue
+
+            if self.precheck_callback:
+                actor = interaction.user
+                if isinstance(actor, discord.Member):
+                    can_run, precheck_msg = self.precheck_callback(actor, member)
+                    if not can_run:
+                        _ = errors.add_field(
+                            title     = "moderate members",
+                            msg_type  = "warning",
+                            subfields = [
+                                errors.add_subfield(
+                                    subtitle = f"Cannot moderate {member.mention}: {precheck_msg}",
+                                    footer   = "Bad argument",
+                                ),
+                            ],
+                        )
+                        continue
+
             members.append(member)
 
         if errors.has_errors():

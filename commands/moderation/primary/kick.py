@@ -48,7 +48,7 @@ async def run_kick(
             base,
             "Kick",
             "kick",
-            precheck_callback = base.check_can_moderate_target,
+            precheck_callback = lambda moderator, target: base.check_can_moderate_target(moderator, target, "kick"),
             execute_callback = lambda i, m, data: _execute_kick(
                 base, i, actor, m, str(data["reason"]), data.get("proof"),
             ),
@@ -76,7 +76,7 @@ async def run_kick(
         )
         return
 
-    can_moderate, error_msg = base.check_can_moderate_target(actor, member)
+    can_moderate, error_msg = base.check_can_moderate_target(actor, member, "kick")
     if not can_moderate:
         await send_custom_message(
             interaction,

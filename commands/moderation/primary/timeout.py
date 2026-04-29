@@ -50,7 +50,7 @@ async def run_timeout(
             "Timeout",
             "timeout",
             with_duration = True,
-            precheck_callback = base.check_can_moderate_target,
+            precheck_callback = lambda moderator, target: base.check_can_moderate_target(moderator, target, "timeout"),
             execute_callback = lambda i, m, data: _execute_timeout(
                 base,
                 i,
@@ -84,7 +84,7 @@ async def run_timeout(
         )
         return
 
-    can_moderate, error_msg = base.check_can_moderate_target(actor, member)
+    can_moderate, error_msg = base.check_can_moderate_target(actor, member, "timeout")
     if not can_moderate:
         await send_custom_message(
             interaction,

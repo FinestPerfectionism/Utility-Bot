@@ -70,8 +70,8 @@ class ModerationCommands(
     async def ban(
         self,
         interaction     : discord.Interaction,
-        member          : discord.Member | None,
-        reason          : str | None = None,
+        member          : discord.Member     | None,
+        reason          : str                | None = None,
         delete_messages : int                | None = 0,
         proof           : discord.Attachment | None = None,
     ) -> None:
@@ -146,8 +146,8 @@ class ModerationCommands(
     async def kick(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
-        reason      : str | None = None,
+        member      : discord.Member     | None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_kick(self, interaction, member, reason, proof)
@@ -179,9 +179,9 @@ class ModerationCommands(
     async def timeout(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
+        member      : discord.Member     | None,
         duration    : str = "5m",
-        reason      : str | None = None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_timeout(self, interaction, member, duration, reason, proof)
@@ -210,7 +210,7 @@ class ModerationCommands(
         self,
         interaction : discord.Interaction,
         member      : discord.Member | None,
-        reason      : str | None = None,
+        reason      : str            | None = None,
     ) -> None:
         await run_untimeout(self, interaction, member, reason)
 
@@ -239,27 +239,27 @@ class ModerationCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID)],
         arguments = {
-            "amount" : ArgumentInfo(description = "Number of messages to delete."),
-            "reason" : ArgumentInfo(required=True, description = "Reason for the purge."),
-            "member" : ArgumentInfo(required=False, description = "Only delete messages from this member."),
+            "amount" : ArgumentInfo(required=False, description = "Number of messages to delete. Required for single-user purge."),
+            "reason" : ArgumentInfo(required=False, description = "Reason for the purge. Required for single-user purge."),
+            "member" : ArgumentInfo(required=False, description = "Only delete messages from this member. Leave empty to open mass moderation."),
             "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(
-        amount = "Number of messages to delete.",
+        amount = "Number of messages to delete (1-100).",
         reason = "Reason for the purge.",
-        member = "Only delete messages from this member.",
+        member = "Only delete messages from this member. Leave empty for mass moderation.",
         proof  = "Optional proof attachment.",
     )
     async def purge(
         self,
         interaction : discord.Interaction,
-        amount      : int,
-        reason      : str,
+        amount      : int                | None = 25,
+        reason      : str                | None = None,
         member      : discord.Member     | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
-        await run_purge(self, interaction, amount, reason, member, proof)
+        await run_purge(self, interaction, amount or 25, reason, member, proof)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation quarantines Command
@@ -300,8 +300,8 @@ class ModerationCommands(
     async def quarantine(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
-        reason      : str | None = None,
+        member      : discord.Member     | None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_quarantine(self, interaction, member, reason, proof)
@@ -331,8 +331,8 @@ class ModerationCommands(
     async def unquarantine(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
-        reason      : str | None = None,
+        member      : discord.Member     | None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_unquarantine(self, interaction, member, reason, proof)
