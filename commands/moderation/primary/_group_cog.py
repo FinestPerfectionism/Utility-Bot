@@ -70,8 +70,8 @@ class ModerationCommands(
     async def ban(
         self,
         interaction     : discord.Interaction,
-        member          : discord.Member | None,
-        reason          : str | None = None,
+        member          : discord.Member     | None,
+        reason          : str                | None = None,
         delete_messages : int                | None = 0,
         proof           : discord.Attachment | None = None,
     ) -> None:
@@ -146,8 +146,8 @@ class ModerationCommands(
     async def kick(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
-        reason      : str | None = None,
+        member      : discord.Member     | None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_kick(self, interaction, member, reason, proof)
@@ -179,9 +179,9 @@ class ModerationCommands(
     async def timeout(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
+        member      : discord.Member     | None,
         duration    : str = "5m",
-        reason      : str | None = None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_timeout(self, interaction, member, duration, reason, proof)
@@ -210,7 +210,7 @@ class ModerationCommands(
         self,
         interaction : discord.Interaction,
         member      : discord.Member | None,
-        reason      : str | None = None,
+        reason      : str            | None = None,
     ) -> None:
         await run_untimeout(self, interaction, member, reason)
 
@@ -254,8 +254,8 @@ class ModerationCommands(
     async def purge(
         self,
         interaction : discord.Interaction,
-        amount      : int | None = 25,
-        reason      : str | None = None,
+        amount      : int                | None = 25,
+        reason      : str                | None = None,
         member      : discord.Member     | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
@@ -300,8 +300,8 @@ class ModerationCommands(
     async def quarantine(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
-        reason      : str | None = None,
+        member      : discord.Member     | None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_quarantine(self, interaction, member, reason, proof)
@@ -331,8 +331,8 @@ class ModerationCommands(
     async def unquarantine(
         self,
         interaction : discord.Interaction,
-        member      : discord.Member | None,
-        reason      : str | None = None,
+        member      : discord.Member     | None,
+        reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
         await run_unquarantine(self, interaction, member, reason, proof)
