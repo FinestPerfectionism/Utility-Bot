@@ -177,12 +177,12 @@ async def run_purge(
 
 
 async def _execute_mass_purge(
-    base: ModerationBase,
-    interaction: discord.Interaction,
-    amount: int,
-    member: discord.Member,
-    reason: str,
-    proof: discord.Attachment | None,
+    base        : ModerationBase,
+    interaction : discord.Interaction,
+    amount      : int,
+    member      : discord.Member,
+    reason      : str,
+    proof       : discord.Attachment | None,
 ) -> tuple[bool, str]:
     await run_purge(base, interaction, amount, reason, member, proof)
     return True, "ok"
