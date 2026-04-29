@@ -93,7 +93,7 @@ class ClassificationView(View):
         else:
             _ = await interaction.response.send_message(
                 f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**",
-                ephemeral=True,
+                ephemeral = True,
             )
 
         for child in self.children:
@@ -150,7 +150,7 @@ class ClassificationView(View):
         else:
             _ = await interaction.response.send_message(
                 f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**",
-                ephemeral=True,
+                ephemeral = True,
             )
 
         for child in self.children:

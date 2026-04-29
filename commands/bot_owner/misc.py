@@ -7,13 +7,12 @@ import traceback
 from asyncio import sleep
 from typing import (
     TYPE_CHECKING,
-    Any,
     cast,
 )
 from inspect import cleandoc
 
 import discord
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext import commands
 
 if TYPE_CHECKING:
@@ -29,7 +28,7 @@ from constants import (
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 )
-from core.responses import send_custom_message
+from core.responses import send_custom_message, multi_custom_message
 from events.messages.on_edit import MessageEditHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -154,15 +153,18 @@ async def run_eval(
     if ctx.author.id != BOT_OWNER_ID:
         _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
         return
-    env : dict[str, Any] = {
-        "bot"      : bot,
-        "ctx"      : ctx,
-        "channel"  : ctx.channel,
-        "author"   : ctx.author,
-        "guild"    : ctx.guild,
-        "message"  : ctx.message,
-        "discord"  : discord,
-        "commands" : commands,
+    env : dict[str, object] = {
+        "bot"                  : bot,
+        "ctx"                  : ctx,
+        "channel"              : ctx.channel,
+        "author"               : ctx.author,
+        "guild"                : ctx.guild,
+        "message"              : ctx.message,
+        "discord"              : discord,
+        "commands"             : commands,
+        "ui"                   : ui,
+        "send_custom_message"  : send_custom_message,
+        "multi_custom_message" : multi_custom_message,
     }
     body       = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
     stdout     = io.StringIO()
@@ -186,7 +188,7 @@ async def run_eval(
         _ = await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
         _ = await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
         return
-    func = cast("Callable[[], Awaitable[Any]]", env["func"])
+    func = cast("Callable[[], Awaitable[object]]", env["func"])
     try:
         with contextlib.redirect_stdout(stdout):
             ret = await func()

@@ -261,7 +261,7 @@ class ProposalCommands(
         arguments={
             "status": ArgumentInfo(description = "Decision to apply.", choices=["accepted", "contested", "denied", "standstill"]),
             "reason": ArgumentInfo(description = "Approved reason for that decision."),
-            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
+            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -414,7 +414,7 @@ class ProposalCommands(
         arguments = {
             "tag": ArgumentInfo(description = "Process tag to modify.", choices=["needs_revision", "needs_implementation", "owner_action", "sdirector_action"]),
             "enabled": ArgumentInfo(description = "Whether the tag should be present after running the command."),
-            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
+            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -566,7 +566,7 @@ class ProposalCommands(
         run_roles=[RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments={
             "reason": ArgumentInfo(description = "Reason for finalization."),
-            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
+            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -697,7 +697,7 @@ class ProposalCommands(
         run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments = {
             "reason": ArgumentInfo(description = "Reason for unlocking."),
-            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
+            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()
@@ -780,7 +780,7 @@ class ProposalCommands(
         run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
         arguments = {
             "reason": ArgumentInfo(description = "Reason for removing standstill."),
-            "notes": ArgumentInfo(required=False, description = "Optional additional notes."),
+            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
         },
     )
     @main_guild_only()

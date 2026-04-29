@@ -92,7 +92,7 @@ async def run_query(
         await errors.send()
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     cases : list[dict[str, Any]] = self.cases_manager.get_cases(
         guild_id      = guild.id,

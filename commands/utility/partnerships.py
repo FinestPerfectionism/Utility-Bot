@@ -271,11 +271,11 @@ class PartnershipCommands(commands.Cog):
         run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         arguments = {
             "server_name"        : ArgumentInfo(description = "Existing partner server name to update."),
-            "server_picture"     : ArgumentInfo(required=False, description = "Optional replacement image attachment."),
-            "new_server_name"    : ArgumentInfo(required=False, description = "Optional replacement server name."),
-            "server_description" : ArgumentInfo(required=False, description = "Optional replacement description."),
-            "server_owner"       : ArgumentInfo(required=False, description = "Optional replacement server owner."),
-            "server_link"        : ArgumentInfo(required=False, description = "Optional replacement Discord invite URL."),
+            "server_picture"     : ArgumentInfo(required = False, description = "Optional replacement image attachment."),
+            "new_server_name"    : ArgumentInfo(required = False, description = "Optional replacement server name."),
+            "server_description" : ArgumentInfo(required = False, description = "Optional replacement description."),
+            "server_owner"       : ArgumentInfo(required = False, description = "Optional replacement server owner."),
+            "server_link"        : ArgumentInfo(required = False, description = "Optional replacement Discord invite URL."),
         },
     )
     @directors_only()

@@ -82,8 +82,8 @@ class NominationCommands(commands.Cog):
         aliases   = ["nom"],
         arguments = {
             "action": ArgumentInfo(description="Use `/action trigger`, `/action accept`, or `/action deny`.", is_flag=True),
-            "user"  : ArgumentInfo(required=False, description="Target member for the nomination trigger.", is_flag=True),
-            "id"    : ArgumentInfo(required=False, description="Nomination case ID used by trigger, accept, and deny.", is_flag=True),
+            "user"  : ArgumentInfo(required = False, description="Target member for the nomination trigger.", is_flag=True),
+            "id"    : ArgumentInfo(required = False, description="Nomination case ID used by trigger, accept, and deny.", is_flag=True),
         },
     )
     async def nomination(

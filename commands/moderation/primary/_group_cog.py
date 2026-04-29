@@ -239,10 +239,10 @@ class ModerationCommands(
         slash     = True,
         run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID)],
         arguments = {
-            "amount" : ArgumentInfo(required=False, description = "Number of messages to delete. Required for single-user purge."),
-            "reason" : ArgumentInfo(required=False, description = "Reason for the purge. Required for single-user purge."),
-            "member" : ArgumentInfo(required=False, description = "Only delete messages from this member. Leave empty to open mass moderation."),
-            "proof"  : ArgumentInfo(required=False, description = "Proof attachment."),
+            "amount" : ArgumentInfo(required = False, description = "Number of messages to delete. Required for single-user purge."),
+            "reason" : ArgumentInfo(required = False, description = "Reason for the purge. Required for single-user purge."),
+            "member" : ArgumentInfo(required = False, description = "Only delete messages from this member. Leave empty to open mass moderation."),
+            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
         },
     )
     @app_commands.describe(

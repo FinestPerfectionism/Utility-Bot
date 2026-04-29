@@ -214,10 +214,10 @@ class LeaveCommands(commands.Cog):
         run_roles=[RoleConfig(role_id = DIRECTORS_ROLE_ID)],
         arguments={
             "type": ArgumentInfo(description = "Leave mode to apply.", choices=["none", "soft_clean", "hard_clean"]),
-            "target": ArgumentInfo(required=False, description = "Staff member to place on leave; defaults to yourself."),
-            "begin-date": ArgumentInfo(required=False, description = "Optional future start date in YYYY-MM-DD format."),
-            "end-date": ArgumentInfo(required=False, description = "Optional future end date in YYYY-MM-DD format."),
-            "timer": ArgumentInfo(required=False, description = "Optional duration such as 1w2d3h4m."),
+            "target": ArgumentInfo(required = False, description = "Staff member to place on leave; defaults to yourself."),
+            "begin-date": ArgumentInfo(required = False, description = "Optional future start date in YYYY-MM-DD format."),
+            "end-date": ArgumentInfo(required = False, description = "Optional future end date in YYYY-MM-DD format."),
+            "timer": ArgumentInfo(required = False, description = "Optional duration such as 1w2d3h4m."),
         },
     )
     async def leave_add(
@@ -243,7 +243,7 @@ class LeaveCommands(commands.Cog):
         slash=True,
         run_roles=[RoleConfig(role_id = STAFF_ROLE_ID)],
         arguments={"target": ArgumentInfo(
-                required=False,
+                required = False,
                 description = "Staff member whose leave should be removed; defaults to yourself.",
                 roles=[DIRECTORS_ROLE_ID],
             ),

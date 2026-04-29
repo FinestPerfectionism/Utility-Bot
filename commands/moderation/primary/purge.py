@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import (
-    TYPE_CHECKING,
-    Any,
-)
+from typing import TYPE_CHECKING
 
 import discord
 
@@ -83,7 +80,7 @@ async def run_purge(
                 base, i, amount, m, str(data["reason"]), data.get("proof"),
             ),
         )
-        _ = await interaction.response.send_message(view=picker, ephemeral=True)
+        _ = await interaction.response.send_message(view = picker, ephemeral = True)
         return
 
     if not reason:
@@ -127,29 +124,30 @@ async def run_purge(
 
     try:
         n_14 = 14
-        if member:
-            target_id = member.id
-            cutoff    = datetime.now(tz = UTC)
-            deleted   = await channel.purge(
-                limit  = amount,
-                check  = lambda m: (
-                    m.author.id == target_id
-                    and (cutoff - m.created_at).days < n_14
-                ),
-                before = interaction.created_at,
-                bulk   = True,
-            )
-        else:
-            deleted = await channel.purge(
-                limit  = amount,
-                before = interaction.created_at,
-                bulk   = True,
-            )
+        cutoff = datetime.now(tz = UTC)
 
-        metadata : dict[str, Any] = {
+        deleted = await channel.purge(
+            limit  = amount,
+            check  = lambda m: (
+                m.author.id == member.id 
+                and (cutoff - m.created_at).days < n_14
+            ),
+            before = interaction.created_at,
+            bulk   = True,
+        )
+
+        from typing import TypedDict
+
+        class PurgeMetadata(TypedDict, total=False):
+            deleted_messages : int
+            channel_id       : int
+            proof_url        : str
+
+        metadata : PurgeMetadata = {
             "deleted_messages" : len(deleted),
             "channel_id"       : channel.id,
         }
+        
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -159,7 +157,7 @@ async def run_purge(
             moderator   = actor,
             reason      = reason,
             target_user = member if member else None,
-            metadata    = metadata,
+            metadata    = dict(metadata),
         )
 
         embed = _build_purge_embed(len(deleted), actor, member, proof)

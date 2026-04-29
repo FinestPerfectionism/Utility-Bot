@@ -107,8 +107,8 @@ async def restart_bot(
             if hasattr(handler, "flush"):
                 handler.flush()
 
-        sys.stdout.flush()
-        sys.stderr.flush()
+        _ = sys.stdout.flush()
+        _ = sys.stderr.flush()
 
         os.execv(sys.executable, [sys.executable, *sys.argv]) # noqa: S606
 

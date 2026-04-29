@@ -38,7 +38,7 @@ async def run_view(
     if not guild:
         return
 
-    _ = await interaction.response.defer(ephemeral=True)
+    _ = await interaction.response.defer(ephemeral = True)
 
     case = self.cases_manager.get_case_by_id(case_id)
 
@@ -68,8 +68,8 @@ async def run_view(
     visible_notes = [n for n in notes if self.can_see_case(actor, n)]
 
     if not visible_notes:
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        await interaction.followup.send(embed=embed, ephemeral = True)
         return
 
     view = CaseViewPaginator(interaction, embed, visible_notes)
-    await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral=True)
+    await interaction.followup.send(embed=view.get_embed(), view=view, ephemeral = True)
