@@ -727,7 +727,7 @@ class MemberPickerView(View):
         if not guild:
             return
 
-        members: list[discord.Member] = []
+        members : list[discord.Member] = []
         errors = multi_custom_message(interaction)
 
         for user in selection.values: # noqa: PD011
