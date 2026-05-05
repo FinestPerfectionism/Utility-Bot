@@ -17,7 +17,7 @@ class IntegrationsCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_integrations_update(self, guild: discord.Guild) -> None:
+    async def on_guild_integrations_update(self, guild : discord.Guild) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return

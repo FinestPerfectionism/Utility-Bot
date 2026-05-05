@@ -1,17 +1,14 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import (
-    TYPE_CHECKING,
-    Any,
-)
+from typing import TYPE_CHECKING, cast
 
 import discord
 
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from constants import COLOR_RED
+from constants import COLOR_BLACK
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
@@ -25,8 +22,8 @@ from ._base import MemberPickerView
 async def run_ban(
     base            : ModerationBase,
     interaction     : discord.Interaction,
-    member          : discord.Member | None,
-    reason          : str | None,
+    member          : discord.Member     | None,
+    reason          : str                | None,
     delete_messages : int                | None = 0,
     proof           : discord.Attachment | None = None,
 ) -> None:
@@ -49,9 +46,15 @@ async def run_ban(
             base,
             "Ban",
             "ban",
-            precheck_callback = lambda moderator, target: base.check_can_moderate_target(moderator, target, "ban"),
+            precheck_callback = lambda moderator, target : base.check_can_moderate_target(moderator, target, "ban"),
             execute_callback = lambda i, m, data: _execute_ban(
-                base, i, actor, m, data["reason"], delete_messages or 0, data.get("proof"),
+                base, 
+                i, 
+                actor, 
+                m, 
+                str(cast(object, data.get("reason"))) if data.get("reason") is not None else "No reason provided",
+                delete_messages or 0, 
+                cast(discord.Attachment, data.get("proof")) if data.get("proof") is not None else None,
             ),
         )
         _ = await interaction.response.send_message(view = picker, ephemeral = True)
@@ -159,7 +162,13 @@ async def _execute_ban(
         }
         base.save_data()
 
-        metadata : dict[str, Any] = {"delete_message_days": delete_messages}
+        from typing import TypedDict
+
+        class BanMetadata(TypedDict, total=False):
+            delete_message_days: int
+            proof_url: str
+            
+        metadata : BanMetadata = {"delete_message_days": delete_messages}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -169,12 +178,12 @@ async def _execute_ban(
             moderator   = actor,
             reason      = reason,
             target_user = member,
-            metadata    = metadata,
+            metadata    = cast(dict[str, object], cast(object, metadata)),
         )
 
         embed = discord.Embed(
             title     = "Member Banned",
-            color     = COLOR_RED,
+            color     = COLOR_BLACK,
             timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)

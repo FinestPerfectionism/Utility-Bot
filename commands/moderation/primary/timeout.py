@@ -25,9 +25,9 @@ from ._base import MemberPickerView
 async def run_timeout(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member | None,
+    member      : discord.Member     | None,
     duration    : str,
-    reason      : str | None,
+    reason      : str                | None,
     proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user

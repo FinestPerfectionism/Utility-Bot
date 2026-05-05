@@ -423,7 +423,7 @@ class ModerationBase(commands.Cog):
             return False, "Target user is greater than or equal to your highest role."
 
         return True, ""
-    async def auto_quarantine_moderator(self, moderator: discord.Member, guild: discord.Guild) -> None:
+    async def auto_quarantine_moderator(self, moderator: discord.Member, guild : discord.Guild) -> None:
         if not guild or not self.bot.user:
             return
 

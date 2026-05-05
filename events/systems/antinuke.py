@@ -99,8 +99,8 @@ class AntiNukeSystem(commands.Cog):
 
     async def track_action(
         self,
-        guild: discord.Guild,
-        user: discord.User | discord.Member,
+        guild : discord.Guild,
+        user : discord.User | discord.Member,
         action_type: str,
         details: str = "",
     ) -> bool:
@@ -146,8 +146,8 @@ class AntiNukeSystem(commands.Cog):
 
     async def quarantine_offender(
         self,
-        guild: discord.Guild,
-        user: discord.User | discord.Member,
+        guild : discord.Guild,
+        user : discord.User | discord.Member,
         action_type: str,
         hourly_count: int,
         daily_count: int,
@@ -200,8 +200,8 @@ class AntiNukeSystem(commands.Cog):
 
     async def send_warning(
         self,
-        guild: discord.Guild,
-        user: discord.User | discord.Member,
+        guild : discord.Guild,
+        user : discord.User | discord.Member,
         action_type: str,
         hourly_count: int,
         daily_count: int,
@@ -232,7 +232,7 @@ class AntiNukeSystem(commands.Cog):
 
     async def send_quarantine_alert(
         self,
-        guild: discord.Guild,
+        guild : discord.Guild,
         member: discord.Member,
         action_type: str,
         hourly_count: int,
@@ -293,7 +293,7 @@ class AntiNukeSystem(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener()
-    async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel) -> None:
+    async def on_guild_channel_delete(self, channel : discord.abc.GuildChannel) -> None:
         guild = channel.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_delete):
@@ -311,7 +311,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel: discord.abc.GuildChannel) -> None:
+    async def on_guild_channel_create(self, channel : discord.abc.GuildChannel) -> None:
         guild = channel.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create):

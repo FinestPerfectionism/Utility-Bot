@@ -22,7 +22,7 @@ async def run_untimeout(
     base        : ModerationBase,
     interaction : discord.Interaction,
     member      : discord.Member | None,
-    reason      : str | None,
+    reason      : str            | None,
 ) -> None:
     actor = interaction.user
     if not isinstance(actor, discord.Member):

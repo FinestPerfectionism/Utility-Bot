@@ -21,7 +21,7 @@ class MessageDeleteHandler(commands.Cog):
     def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
-    def is_directorship_channel(self, channel: discord.abc.Messageable) -> bool:
+    def is_directorship_channel(self, channel : discord.abc.Messageable) -> bool:
         return (
             isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.StageChannel)
             and channel.category_id == DIRECTORSHIP_CATEGORY_ID

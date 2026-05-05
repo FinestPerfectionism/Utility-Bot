@@ -63,7 +63,7 @@ class NominationCommands(commands.Cog):
     def _is_director(self, member: discord.Member) -> bool:
         return any(role.id == DIRECTORS_ROLE_ID for role in member.roles)
 
-    def _get_directors(self, guild: discord.Guild) -> list[discord.Member]:
+    def _get_directors(self, guild : discord.Guild) -> list[discord.Member]:
         role = guild.get_role(DIRECTORS_ROLE_ID)
         if role is None:
             return []

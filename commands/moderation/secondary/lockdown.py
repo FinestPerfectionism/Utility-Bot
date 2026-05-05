@@ -78,7 +78,7 @@ class LockdownCommands(commands.Cog):
     def can_manage_lockdown(self, member: discord.Member) -> bool:
         return is_director(member)
 
-    def is_channel_exempt(self, channel: discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel) -> bool:
+    def is_channel_exempt(self, channel : discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel) -> bool:
         return (
             channel.id in self.EXEMPT_CHANNELS
             or (channel.category_id is not None and channel.category_id in self.EXEMPT_CATEGORIES)

@@ -210,7 +210,7 @@ class Startup(commands.Cog):
             if isinstance(channel, discord.TextChannel):
                 await handler(channel)
 
-    async def _handle_rules_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_rules_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("rules")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -255,7 +255,7 @@ class Startup(commands.Cog):
             log.info("Rules layout restored")
             log.debug("Rules message_ids=%s", msg_ids)
 
-    async def _handle_staff_proposals_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_staff_proposals_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("staff_proposals")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -306,7 +306,7 @@ class Startup(commands.Cog):
             log.info("Staff proposals layout restored")
             log.debug("Staff proposals message_ids=%s", msg_ids)
 
-    async def _handle_partnership_requirements_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_partnership_requirements_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("partnership_requirements")
         msg_ids : list[int] = raw if isinstance(raw, list) else []
 
@@ -351,7 +351,7 @@ class Startup(commands.Cog):
             log.info("Partnership requirements layout restored")
             log.debug("Partnership requirements message_ids=%s", msg_ids)
 
-    async def _handle_partnership_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_partnership_layout(self, channel : discord.TextChannel) -> None:
         data : PartnershipData = load_partnership_data()
         partnerships     = data["partnerships"]
         header_msg_id    = data["header_message_id"]
@@ -395,7 +395,7 @@ class Startup(commands.Cog):
         except discord.HTTPException:
             log.exception("Partnership layout failed")
 
-    async def _handle_hierarchy_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_hierarchy_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("hierarchy")
         msg_ids : list[int] = raw if isinstance(raw, list) else []
 
@@ -450,7 +450,7 @@ class Startup(commands.Cog):
             log.info("Hierarchy layout restored")
             log.debug("Hierarchy message_ids=%s", msg_ids)
 
-    async def _handle_moderation_guidelines_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_moderation_guidelines_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("moderation_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -497,7 +497,7 @@ class Startup(commands.Cog):
             log.info("Moderation guidelines layout restored")
             log.debug("Moderation guidelines message_ids=%s", msg_ids)
 
-    async def _handle_administrator_guidelines_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_administrator_guidelines_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("administrator_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -546,7 +546,7 @@ class Startup(commands.Cog):
             log.info("Administrator guidelines layout restored")
             log.debug("Administrator guidelines message_ids=%s", msg_ids)
 
-    async def _handle_staff_guidelines_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_staff_guidelines_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("staff_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -595,7 +595,7 @@ class Startup(commands.Cog):
             log.info("Staff guidelines layout restored")
             log.debug("Staff guidelines message_ids=%s", msg_ids)
 
-    async def _handle_directorate_guidelines_layout(self, channel: discord.TextChannel) -> None:
+    async def _handle_directorate_guidelines_layout(self, channel : discord.TextChannel) -> None:
         raw = self.layout_message_ids.get("directorate_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 

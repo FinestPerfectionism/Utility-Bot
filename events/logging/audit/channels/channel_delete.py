@@ -15,7 +15,7 @@ class ChannelDeleteCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_channel_delete(self, channel: discord.abc.GuildChannel) -> None:
+    async def on_guild_channel_delete(self, channel : discord.abc.GuildChannel) -> None:
         if self.is_directorship_channel(channel):
             return
 

@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import (
     TYPE_CHECKING,
-    Any,
+    TypedDict,
+    cast,
 )
 
 import discord
@@ -11,7 +12,7 @@ import discord
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from constants import COLOR_ORANGE
+from constants import COLOR_RED
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
@@ -25,8 +26,8 @@ from ._base import MemberPickerView
 async def run_kick(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member | None,
-    reason      : str | None,
+    member      : discord.Member     | None,
+    reason      : str                | None,
     proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user
@@ -48,9 +49,14 @@ async def run_kick(
             base,
             "Kick",
             "kick",
-            precheck_callback = lambda moderator, target: base.check_can_moderate_target(moderator, target, "kick"),
+            precheck_callback = lambda moderator, target : base.check_can_moderate_target(moderator, target, "kick"),
             execute_callback = lambda i, m, data: _execute_kick(
-                base, i, actor, m, str(data["reason"]), data.get("proof"),
+                base, 
+                i, 
+                actor, 
+                m, 
+                str(cast(object, data.get("reason"))) if data.get("reason") is not None else "No reason provided", 
+                cast(discord.Attachment, data.get("proof")) if data.get("proof") is not None else None,
             ),
         )
         _ = await interaction.response.send_message(view = picker, ephemeral = True)
@@ -149,7 +155,10 @@ async def _execute_kick(
         }
         base.save_data()
 
-        metadata : dict[str, Any] = {}
+        class KickMetadata(TypedDict, total = False):
+            proof_url : str
+
+        metadata : KickMetadata = {}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -159,12 +168,12 @@ async def _execute_kick(
             moderator   = actor,
             reason      = reason,
             target_user = member,
-            metadata    = metadata if metadata else None,
+            metadata    = cast(dict[str, object], cast(object, metadata)) if metadata else None,
         )
 
         embed = discord.Embed(
             title     = "Member Kicked",
-            color     = COLOR_ORANGE,
+            color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
         _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)

@@ -79,7 +79,7 @@ class RoleCommands(
             mark  : str = ACCEPTED_EMOJI_ID if value else DENIED_EMOJI_ID
             lines.append(f"- {label} {mark}")
 
-        embed: discord.Embed = discord.Embed(
+        embed : discord.Embed = discord.Embed(
             title       = f"Permissions for {role.name}",
             description = f"**{role.name}:**\n" + "\n".join(lines) if lines else "No permissions match this filter.",
             color       = COLOR_BLURPLE,
@@ -144,7 +144,7 @@ class RoleCommands(
                 diffs_role1.append(f"- {label} {mark1}")
                 diffs_role2.append(f"- {label} {mark2}")
 
-        embed: discord.Embed = discord.Embed(
+        embed : discord.Embed = discord.Embed(
             title = f"Permission Differences for {role1.name} and {role2.name}",
             color = COLOR_BLURPLE,
         )
@@ -260,7 +260,7 @@ class RoleCommands(
 
         formatted : str = "\n".join(f"- {m.display_name}" for m in filtered) if filtered else "No members found."
 
-        embed: discord.Embed = discord.Embed(
+        embed : discord.Embed = discord.Embed(
             title       = f"Members for {role.name}",
             description = formatted,
             color       = COLOR_BLURPLE,

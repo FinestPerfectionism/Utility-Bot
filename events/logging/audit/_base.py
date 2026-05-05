@@ -16,7 +16,7 @@ _SEND_INTERVAL = 1.0
 class AuditQueue(commands.Cog):
     def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
-        self._queue: asyncio.Queue[tuple[discord.abc.Messageable, discord.Embed]] = asyncio.Queue()
+        self._queue : asyncio.Queue[tuple[discord.abc.Messageable, discord.Embed]] = asyncio.Queue()
         _ = self._queue_worker.start()
 
     @override
@@ -43,7 +43,7 @@ class AuditQueue(commands.Cog):
     async def _before_queue_worker(self) -> None:
         await self.bot.wait_until_ready()
 
-    async def enqueue(self, channel: discord.abc.Messageable, embed: discord.Embed) -> None:
+    async def enqueue(self, channel : discord.abc.Messageable, embed : discord.Embed) -> None:
         await self._queue.put((channel, embed))
 
 
@@ -57,17 +57,17 @@ class AuditCog(commands.Cog):
         self.log_channel_id = CHANGE_LOG_CHANNEL_ID
         self._queue = queue
 
-    async def _enqueue(self, channel: discord.abc.Messageable, embed: discord.Embed) -> None:
+    async def _enqueue(self, channel : discord.abc.Messageable, embed : discord.Embed) -> None:
         await self._queue.enqueue(channel, embed)
 
-    async def get_log_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
+    async def get_log_channel(self, guild : discord.Guild) -> discord.TextChannel | None:
         channel = guild.get_channel(self.log_channel_id)
         if not isinstance(channel, discord.TextChannel):
             log.warning("Logging channel %s not found in %s", self.log_channel_id, guild.name)
             return None
         return channel
 
-    def is_directorship_channel(self, channel: discord.abc.GuildChannel) -> bool:
+    def is_directorship_channel(self, channel : discord.abc.GuildChannel) -> bool:
         return (
             (hasattr(channel, "category_id") and channel.category_id == DIRECTORSHIP_CATEGORY_ID) or
             (hasattr(channel, "category") and channel.category is not None and channel.category.id == DIRECTORSHIP_CATEGORY_ID)

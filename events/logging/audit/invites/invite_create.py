@@ -19,11 +19,11 @@ class InviteCreateCog(AuditCog):
         if not isinstance(invite.guild, discord.Guild):
             return
 
-        log_channel: discord.TextChannel | None = await self.get_log_channel(invite.guild)
+        log_channel : discord.TextChannel | None = await self.get_log_channel(invite.guild)
         if not log_channel:
             return
 
-        embed: discord.Embed = discord.Embed(
+        embed : discord.Embed = discord.Embed(
             title     = "Invite Created",
             color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),

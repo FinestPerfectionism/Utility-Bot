@@ -465,7 +465,7 @@ class UserCommands(commands.Cog):
                 )
                 return
 
-            target_user: discord.Member | None = None
+            target_user : discord.Member | None = None
             for member in ctx.guild.members:
                 if (
                     member.name.lower() == user.name.lower()

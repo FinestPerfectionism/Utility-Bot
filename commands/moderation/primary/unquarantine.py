@@ -24,8 +24,8 @@ from ._base import MemberPickerView
 async def run_unquarantine(
     base        : ModerationBase,
     interaction : discord.Interaction,
-    member      : discord.Member | None,
-    reason      : str | None,
+    member      : discord.Member     | None,
+    reason      : str                | None,
     proof       : discord.Attachment | None = None,
 ) -> None:
     actor = interaction.user

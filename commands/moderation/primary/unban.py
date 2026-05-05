@@ -79,12 +79,15 @@ async def run_unban(
     if fail:
         subtitle += "\n" + "\n".join(f"- `{ident}`: {msg}" for ident, _ok, msg in fail[:10])
 
+    is_mass_run = len(identifiers) > 1
+
     await send_custom_message(
         interaction,
-        msg_type = "success" if not fail else "warning",
-        title    = "complete mass un-ban run" if len(identifiers) > 1 else "remove member ban",
+        msg_type = "warning" if fail else "success",
+        title    = f"{'mass un-ban run' if is_mass_run else 'remove member ban'} {'(failed)' if fail else 'completed'}",
         subtitle = subtitle,
     )
+
 
 async def _execute_unban(
     base        : ModerationBase,

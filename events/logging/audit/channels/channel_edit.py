@@ -19,7 +19,7 @@ class ChannelEditCog(AuditCog):
         if self.is_directorship_channel(after):
             return
 
-        log_channel: discord.TextChannel | None = await self.get_log_channel(after.guild)
+        log_channel : discord.TextChannel | None = await self.get_log_channel(after.guild)
         if not log_channel:
             return
 
@@ -93,7 +93,7 @@ class ChannelEditCog(AuditCog):
 
         executor: discord.Member | None = await self.get_executor(after.guild, discord.AuditLogAction.channel_update, after.id)
 
-        embed: discord.Embed = discord.Embed(
+        embed : discord.Embed = discord.Embed(
             title = "Channel Updated",
             color = COLOR_BLURPLE,
             timestamp = datetime.now(UTC),

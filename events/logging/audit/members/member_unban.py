@@ -15,7 +15,7 @@ class MemberUnbanCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_member_unban(self, guild: discord.Guild, user: discord.User) -> None:
+    async def on_member_unban(self, guild : discord.Guild, user : discord.User) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return

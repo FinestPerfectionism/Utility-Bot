@@ -105,7 +105,7 @@ async def _save_json_file(path: str, data: dict[str, Any]) -> None:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class HealthFixView(View):
-    def __init__(self, guild: discord.Guild, fixable: list[str], cog: "HealthCommands") -> None:
+    def __init__(self, guild : discord.Guild, fixable: list[str], cog: "HealthCommands") -> None:
         super().__init__(timeout = 300)
         self.guild   = guild
         self.fixable = fixable
@@ -415,7 +415,7 @@ class HealthCommands(commands.Cog):
     def can_use(self, member: discord.Member) -> bool:
         return is_director(member)
 
-    def _checks_bot(self, guild: discord.Guild) -> list[dict[str, Any]]:
+    def _checks_bot(self, guild : discord.Guild) -> list[dict[str, Any]]:
         bot_member   = guild.get_member(self.bot.user.id) if self.bot.user else None
         bot_has_admin = bool(bot_member and bot_member.guild_permissions.administrator)
 
@@ -443,7 +443,7 @@ class HealthCommands(commands.Cog):
             },
         ]
 
-    def _checks_permissions(self, guild: discord.Guild) -> list[dict[str, Any]]:
+    def _checks_permissions(self, guild : discord.Guild) -> list[dict[str, Any]]:
         everyone = guild.default_role
 
         everyone_bad_role_perms = [
@@ -501,7 +501,7 @@ class HealthCommands(commands.Cog):
             },
         ]
 
-    def _checks_quarantine(self, guild: discord.Guild) -> list[dict[str, Any]]:
+    def _checks_quarantine(self, guild : discord.Guild) -> list[dict[str, Any]]:
         quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
         qr_has_perms    = quarantine_role is not None and quarantine_role.permissions.value != 0
 
@@ -544,7 +544,7 @@ class HealthCommands(commands.Cog):
             },
         ]
 
-    def _checks_server_security(self, guild: discord.Guild) -> list[dict[str, Any]]:
+    def _checks_server_security(self, guild : discord.Guild) -> list[dict[str, Any]]:
         verification_ok = (
             guild.verification_level.value
             >= discord.VerificationLevel.medium.value
@@ -601,7 +601,7 @@ class HealthCommands(commands.Cog):
             },
         ]
 
-    async def run_checks(self, guild: discord.Guild) -> list[dict[str, Any]]:
+    async def run_checks(self, guild : discord.Guild) -> list[dict[str, Any]]:
         checks: list[dict[str, Any]] = []
         checks.extend(self._checks_bot(guild))
         checks.extend(self._checks_permissions(guild))

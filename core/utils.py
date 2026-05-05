@@ -31,7 +31,7 @@ __all__ = (
 # Channel Display Helper
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def channel_display(channel: discord.abc.Messageable | discord.abc.GuildChannel) -> str:
+def channel_display(channel : discord.abc.Messageable | discord.abc.GuildChannel) -> str:
     if isinstance(channel, Thread):
         parent = channel.parent
         if isinstance(parent, ForumChannel):
