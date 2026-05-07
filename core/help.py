@@ -28,8 +28,8 @@ if TYPE_CHECKING:
         Sequence,
     )
 
-    from discord import SeparatorSpacing
     from discord.app_commands import Group as AppGroup
+    from discord import SeparatorSpacing
 
 
 from constants import (
@@ -41,7 +41,6 @@ from constants import (
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 )
-
 
 @runtime_checkable
 class _AppCommand(Protocol):
@@ -296,7 +295,7 @@ def _build_arg_block(name: str, info: ArgumentInfo) -> str:
 
     if info.shown_as_optional:
         lines.append(
-            "-# **Why is this argument shown as required if it's shown as optional?** The command is initialized this way to allow for mass moderation through leaving the argument empty. Internal command logic is shown in the arguments code block. External command logic is shown in the argument descriptions.",
+            "-# **Why is this argument shown as required if it's shown as optional?** The command is initialized this way to allow for mass moderation through leaving the argument empty. Internal command logic is shown in the arguments code block. External command logic is shown in the argument descriptions."
         )
 
     if info.empty_behavior is not None:
@@ -328,8 +327,8 @@ def _build_authority_section(data : CommandHelpData, member: discord.Member) -> 
         text   = (
             f"## Authority\n"
             f"{ACCEPTED_EMOJI_ID} **Authorized.**\n"
-             "You have the necessary permissions to run this command.\n"
-             "-# Valid permissions."
+             "You are authorized to to run this command.\n"
+             "-# Full permissions."
         )
 
     elif status == "none":
@@ -351,8 +350,7 @@ def _build_authority_section(data : CommandHelpData, member: discord.Member) -> 
         text = (
             "## Authority\n"
             f"{CONTESTED_EMOJI_ID} **Partially Authorized.**\n"
-            "You have the necessary permissions to run this command, "
-            "but not all of its arguments or channels are available to you."
+            "You are authorized to run this command, but not all of its arguments or channels are available to you."
             f"{channel_detail}\n"
             "-# Partial permissions."
         )
@@ -380,12 +378,12 @@ def _collect_user_nodes(node : AccessNode) -> list[UserNode]:
     return []
 
 def _build_authorized_section(data : CommandHelpData) -> str:
-    lines: list[str] = ["## Authorized"]
+    lines : list[str] = ["## Authorized"]
 
-    user_nodes: list[UserNode] = (
+    user_nodes : list[UserNode] = (
         _collect_user_nodes(data.access_node) if data.access_node is not None else []
     )
-    role_nodes: list[RoleNode] = (
+    role_nodes : list[RoleNode] = (
         _collect_role_nodes(data.access_node) if data.access_node is not None else []
     )
 
@@ -395,9 +393,8 @@ def _build_authorized_section(data : CommandHelpData) -> str:
             lines.append(f"<@{un.user_id}>")
         lines.append(_NOTICE_LOGICAL_OR)
     else:
-        lines.append("Not applicable as users are not authorized to run this command.**\\***\n")
-        lines.append("-# **\\***All users with the role(s) below are authorized to run the command with the respective advanced restrictions (if applicable).\n")
-        lines.append(f"{_NOTICE_LOGICAL_OR}")
+        lines.append("Not applicable.")
+        lines.append(_NOTICE_LOGICAL_OR.strip())
 
     lines.append("### Roles")
     if role_nodes:
@@ -405,11 +402,12 @@ def _build_authorized_section(data : CommandHelpData) -> str:
             lines.append(f"<@&{rn.role_id}>")
         if len(role_nodes) > 1:
             op = "AND" if isinstance(data.access_node, AndNode) else "OR"
-            lines.append(f"-# Multiple roles are governed by the **Logical {op}** operator.\n")
+            lines.append(f"-# Multiple roles are governed by the **Logical {op}** operator.")
         else:
             lines.append(_NOTICE_LOGICAL_OR)
     else:
-        lines.append(f"No role restriction.\n{_NOTICE_LOGICAL_OR}")
+        lines.append(f"Not applicable.")
+        lines.append(_NOTICE_LOGICAL_OR.strip())
 
     lines.append("### Advanced Restrictions")
     if data.channel_rules:
@@ -417,10 +415,10 @@ def _build_authorized_section(data : CommandHelpData) -> str:
             channels_str = " ".join(f"<#{cid}>" for cid in rule.channels)
             lines.append(f"- {describe_access_node(rule.node)} → {channels_str}")
         lines.append(
-            "-# **What are advanced restrictions?** Advanced Restrictions provide a logic specification detailing how command behavior behaves across different contexts. This framework is intended to explain the interdependent relationships between users, roles, and environments (such as specific channels) when working with arguments, sub-arguments, and nested-arguments when they may be accessible or restricted depending on a user's unique permission profile.",
+            "-# **What are advanced restrictions?** Advanced Restrictions provide a logic specification detailing how command behavior behaves across different contexts. This framework is intended to explain the interdependent relationships between users, roles, and environments (such as specific channels) when working with arguments, sub-arguments, and nested-arguments when they may be accessible or restricted depending on a user's unique permission profile."
         )
     else:
-        lines.append("Not applicable.\n")
+        lines.append("Not applicable.")
         lines.append("-# **What are advanced restrictions?** Advanced Restrictions provide a logic specification detailing how command behavior behaves across different contexts. This framework is intended to explain the interdependent relationships between users, roles, and environments (such as specific channels) when working with arguments, sub-arguments, and nested-arguments when they may be accessible or restricted depending on a user's unique permission profile.")
 
     return "\n".join(lines)
@@ -477,9 +475,9 @@ def build_help_view(
         f"{inverse_line}"
     )
 
-    authority_text, accent_colour   = _build_authority_section(data, member)
-    authorized_text                 = _build_authorized_section(data)
-    arguments_text                  = _build_arguments_section(command_name, data)
+    authority_text, _ = _build_authority_section(data, member)
+    authorized_text   = _build_authorized_section(data)
+    arguments_text    = _build_arguments_section(command_name, data)
 
     spacing : SeparatorSpacing = discord.SeparatorSpacing.large
 
@@ -500,7 +498,6 @@ def build_help_view(
             _authorized_td,
             _sep_3,
             _arguments_td,
-            accent_color = accent_colour,
         )
 
     return HelpView()
@@ -604,6 +601,7 @@ async def run_help(
                     description = "\n".join(lines),
                     color       = COLOR_BLURPLE,
                 ),
+                allowed_mentions = discord.AllowedMentions.none(),
             )
         else:
             _ = await respond("No documented commands found.", ephemeral = True)

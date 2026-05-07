@@ -41,7 +41,10 @@ class ModerationCommands(
     # /moderation ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "ban", description = "Ban a member from the server.")
+    @app_commands.command(
+        name        = "ban",
+        description = "Ban a member from the server.",
+    )
     @app_commands.describe(
         member          = "The member to ban.",
         reason          = "Reason for the ban.",
@@ -100,7 +103,10 @@ class ModerationCommands(
     # /moderation un-ban Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "un-ban", description = "Un-ban a member from the server.")
+    @app_commands.command(
+        name        = "un-ban",
+        description = "Un-ban a member from the server.",
+    )
     @app_commands.describe(
         user   = "The member ID, username, or tag to un-ban.",
         users  = "Comma-separated member IDs/tags for mass un-ban.",
@@ -119,7 +125,10 @@ class ModerationCommands(
     # /moderation bans Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "bans", description = "View all banned members.")
+    @app_commands.command(
+        name        = "bans",
+        description = "View all banned members.",
+    )
     async def bans(self, interaction : discord.Interaction) -> None:
         await run_bans(self, interaction)
 
@@ -127,7 +136,10 @@ class ModerationCommands(
     # /moderation kick Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "kick", description = "Kick a member from the server.")
+    @app_commands.command(
+        name        = "kick",
+        description = "Kick a member from the server.",
+    )
     @app_commands.describe(
         member = "The member to kick.",
         reason = "Reason for the kick.",
@@ -146,7 +158,10 @@ class ModerationCommands(
     # /moderation timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "timeout", description = "Timeout a member.")
+    @app_commands.command(
+        name        = "timeout",
+        description = "Timeout a member.",
+    )
     @app_commands.describe(
         member   = "The member to timeout.",
         duration = "Duration (e.g. 30s, 5m, 1h, 2d, 1w).",
@@ -167,7 +182,10 @@ class ModerationCommands(
     # /moderation un-timeout Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "un-timeout", description = "Un-timeout a member.")
+    @app_commands.command(
+        name        = "un-timeout",
+        description = "Un-timeout a member.",
+    )
     @app_commands.describe(
         member = "The member to un-timeout.",
         reason = "Reason for the un-timeout.",
@@ -184,7 +202,10 @@ class ModerationCommands(
     # /moderation timeouts Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "timeouts", description = "View all timed out members.")
+    @app_commands.command(
+        name        = "timeouts",
+        description = "View all timed out members.",
+    )
     async def timeouts(self, interaction : discord.Interaction) -> None:
         await run_timeouts(self, interaction)
 
@@ -192,7 +213,10 @@ class ModerationCommands(
     # /moderation purge Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "purge", description = "Delete a specified number of messages.")
+    @app_commands.command(
+        name        = "purge",
+        description = "Delete a specified number of messages.",
+    )
     @app_commands.describe(
         amount = "Number of messages to delete (1-100).",
         reason = "Reason for the purge.",
@@ -213,7 +237,10 @@ class ModerationCommands(
     # /moderation quarantines Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "quarantines", description = "View all quarantined members.")
+    @app_commands.command(
+        name        = "quarantines",
+        description = "View all quarantined members.",
+    )
     async def quarantines(self, interaction : discord.Interaction) -> None:
         await run_quarantines(self, interaction)
 
@@ -221,7 +248,10 @@ class ModerationCommands(
     # /moderation quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "quarantine", description = "Quarantine a member.")
+    @app_commands.command(
+        name        = "quarantine",
+        description = "Quarantine a member.",
+    )
     @app_commands.describe(
         member = "The member to quarantine.",
         reason = "Reason for the quarantine.",
@@ -240,7 +270,10 @@ class ModerationCommands(
     # /moderation un-quarantine Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "un-quarantine", description = "Un-quarantine a member.")
+    @app_commands.command(
+        name        = "un-quarantine",
+        description = "Un-quarantine a member.",
+    )
     @app_commands.describe(
         member = "The member to un-quarantine.",
         reason = "Reason for the un-quarantine.",
