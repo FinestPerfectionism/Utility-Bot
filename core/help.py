@@ -403,7 +403,7 @@ def _build_authorized_section(data : CommandHelpData) -> str:
             op = "AND" if isinstance(data.access_node, AndNode) else "OR"
             lines.append(f"-# Multiple roles are governed by the **Logical {op}** operator.")
         else:
-            lines.append(_NOTICE_LOGICAL_OR)
+            lines.append(_NOTICE_LOGICAL_OR.strip())
     else:
         lines.append(f"Not applicable.")
         lines.append(_NOTICE_LOGICAL_OR.strip())
