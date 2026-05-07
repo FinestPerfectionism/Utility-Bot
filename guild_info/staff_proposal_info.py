@@ -1,9 +1,10 @@
+from inspect import cleandoc
+
 import discord
 from discord import ButtonStyle, SeparatorSpacing
 from discord.ui import ActionRow, Button, Container, LayoutView, Separator, TextDisplay
 from typing_extensions import override
 
-from inspect import cleandoc
 
 class AdministratorsRolesComponents(LayoutView):
     container : Container[LayoutView] = Container(
@@ -14,7 +15,7 @@ class AdministratorsRolesComponents(LayoutView):
                 **Tasks**\n
                 > *To implement proposals raised by Staff that have reached Accepted status.*\n\n
                 When a proposal is accepted, an Administrator(s) is expected to implement its proposand. If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, Administrators may place the proposal into Needs Revision, Standstill, or otherwise delay implementation until it becomes feasible.
-                """
+                """,
             ),
         ),
         Separator(
@@ -37,7 +38,7 @@ class ModeratorsRolesComponents(LayoutView):
                 **Tasks**\n
                 > *To vote on and raise proposals that improve The Goobers server and its community.*\n\n
                 All Moderators may raise Staff Proposals and vote on them. Senior Moderators+ may assist in directing or reviewing proposands for clarity or practicality. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.
-                """
+                """,
             ),
         ),
         Separator(
@@ -330,7 +331,7 @@ class StaffProposalComponents3(LayoutView):
                 - The situation is too mixed to evaluate.\n
                 - The Staff Committee explicitly determines that normal evaluation cannot proceed.\n
                 A proposal must exit Standstill before any final status (Accepted, Contested, Denied) is applied.
-                """
+                """,
             ),
         ),
     )
@@ -363,7 +364,7 @@ class StaffProposalComponents4(LayoutView):
                 - Its result is final **and**\n
                 - The proposand has been implemented.\n
                 Staff may still send messages, but a Locked proposal shouldn't be changed or reopened unless more discussion on the topic is necessary or new issues have arisen.
-                """
+                """,
             ),
         ),
     )

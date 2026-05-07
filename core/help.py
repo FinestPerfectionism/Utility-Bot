@@ -1,16 +1,36 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast, runtime_checkable
+from enum import Enum
+from typing import (
+    TYPE_CHECKING,
+    ParamSpec,
+    Protocol,
+    TypeVar,
+    cast,
+    runtime_checkable,
+)
 
 import discord
 from discord.ext import commands
-from discord.ui import Container, LayoutView, TextDisplay
+from discord.ui import (
+    Container,
+    LayoutView,
+    Separator,
+    TextDisplay,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable, Coroutine
+    from collections.abc import (
+        Awaitable,
+        Callable,
+        Coroutine,
+        Sequence,
+    )
 
+    from discord import SeparatorSpacing
     from discord.app_commands import Group as AppGroup
+
 
 from constants import (
     ACCEPTED_EMOJI_ID,
@@ -22,288 +42,473 @@ from constants import (
     DENIED_EMOJI_ID,
 )
 
-P    = ParamSpec("P")
-T_co = TypeVar("T_co", covariant=True)
 
 @runtime_checkable
-class HelpCallback(Protocol[P, T_co]):
-    __help_data__: CommandHelpData
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Awaitable[T_co]: ...
+class _AppCommand(Protocol):
+    name           : str
+    qualified_name : str
+    callback       : object
+    commands       : list[object]
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Help Management
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+P    = ParamSpec("P")
+T_co = TypeVar("T_co", covariant = True)
+
+class AccessNode:
+    pass
 
 @dataclass
-class RoleConfig:
-    role_id  : int
-    channels : list[int] = field(default_factory=list)
+class RoleNode(AccessNode):
+    role_id : int
 
 @dataclass
-class UserConfig:
-    user_id  : int
-    channels : list[int] = field(default_factory=list)
+class UserNode(AccessNode):
+    user_id : int
+
+@dataclass
+class AndNode(AccessNode):
+    children : list[AccessNode]
+
+@dataclass
+class OrNode(AccessNode):
+    children : list[AccessNode]
+
+@dataclass
+class NotNode(AccessNode):
+    child: AccessNode
+
+def evaluate_access(node : AccessNode, member : discord.Member) -> bool:
+    member_role_ids = {r.id for r in member.roles}
+
+    if isinstance(node, RoleNode):
+        return node.role_id in member_role_ids
+    if isinstance(node, UserNode):
+        return node.user_id == member.id
+    if isinstance(node, AndNode):
+        return all(evaluate_access(c, member) for c in node.children)
+    if isinstance(node, OrNode):
+        return any(evaluate_access(c, member) for c in node.children)
+    if isinstance(node, NotNode):
+        return not evaluate_access(node.child, member)
+    return False
+
+def describe_access_node(node : AccessNode) -> str:
+    if isinstance(node, RoleNode):
+        return f"<@&{node.role_id}>"
+    if isinstance(node, UserNode):
+        return f"<@{node.user_id}>"
+    if isinstance(node, AndNode):
+        parts = [describe_access_node(c) for c in node.children]
+        return " **AND** ".join(parts)
+    if isinstance(node, OrNode):
+        parts = [describe_access_node(c) for c in node.children]
+        return " **OR** ".join(parts)
+    if isinstance(node, NotNode):
+        return f"**NOT** {describe_access_node(node.child)}"
+    return "Unknown"
+
+class ArgType(Enum):
+    Integer       = "Integer"
+    Text          = "Text Input"
+    Attachment    = "Attachment"
+    Boolean       = "Boolean"
+    Number        = "Number"
+    ChannelSelect = "Channel Select"
+    RoleSelect    = "Role Select"
+    MemberSelect  = "Member Select"
+    UserSelect    = "User Select"
+    StringSelect  = "String Select"
+
+@dataclass
+class ArgDependency:
+    argument : str
+    negate   : bool = False
 
 @dataclass
 class ArgumentInfo:
-    roles       : list[int]  = field(default_factory=list)
-    required    : bool       = True
-    description : str | None = None
-    is_flag     : bool       = False
-    choices     : list[str]  = field(default_factory=list)
+    arg_type          : ArgType
+    arg_type_detail   : str        | None   = None
+    description       : str                 = ""
+    required          : bool                = True
+    shown_as_optional : bool                = False
+    default           : str        | None   = None
+    empty_behavior    : str        | None   = None
+    choices           : list[str]           = field(default_factory = list)
+    is_flag           : bool                = False
+    depends_on        : list[ArgDependency] = field(default_factory = list)
+    access_node       : AccessNode | None   = None
+    extra_notes       : list[str]           = field(default_factory = list)
+
+@dataclass
+class ChannelRestriction:
+    node     : AccessNode
+    channels : list[int]
 
 @dataclass
 class CommandHelpData:
-    desc        : str
-    prefix      : bool
-    slash       : bool
-    run_roles   : list[RoleConfig]
-    run_users   : list[UserConfig]
-    has_inverse : bool | str
-    arguments   : dict[str, ArgumentInfo] = field(default_factory=dict)
-    aliases     : list[str]               = field(default_factory=list)
+    desc          : str
+    prefix        : bool
+    slash         : bool
+    command_name  : str        | None        = None
+    access_node   : AccessNode | None        = None
+    channel_rules : list[ChannelRestriction] = field(default_factory = list)
+    has_inverse   : bool       | str         = False
+    arguments     : dict[str, ArgumentInfo]  = field(default_factory = dict)
+    aliases       : list[str]                = field(default_factory = list)
+
+@runtime_checkable
+class HelpCallback(Protocol[P, T_co]):
+    __help_data__ : CommandHelpData
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Coroutine[None, None, T_co]: ...
 
 class HelpedCallable:
-    __help_data__: CommandHelpData = field(init=False)
+    __help_data__: CommandHelpData = cast("CommandHelpData", cast(object, None))
 
 def help_description(
-    desc        :                           str,
+    desc          : str,
     *,
-    prefix      :                           bool = False,
-    slash       :                           bool = True,
-    run_roles   :        list[RoleConfig] | None = None,
-    run_users   :        list[UserConfig] | None = None,
-    has_inverse :                    bool | str  = False,
-    arguments   : dict[str, ArgumentInfo] | None = None,
-    aliases     :               list[str] | None = None,
-) -> Callable[[Callable[P, Coroutine[Any, Any, T_co]]], Callable[P, Coroutine[Any, Any, T_co]]]:
-    run_roles = run_roles or []
-    run_users = run_users or []
-    arguments = arguments or {}
-    aliases   = aliases   or []
+    command_name  : str                       | None = None,
+    prefix        : bool                             = False,
+    slash         : bool                             = True,
+    access_node   : AccessNode                | None = None,
+    channel_rules : list[ChannelRestriction]  | None = None,
+    has_inverse   : bool                      | str  = False,
+    arguments     : dict[str, ArgumentInfo]   | None = None,
+    aliases       : list[str]                 | None = None,
+) -> Callable[[Callable[P, Coroutine[None, None, T_co]]], Callable[P, Coroutine[None, None, T_co]]]:
+    _channel_rules = channel_rules or []
+    _arguments     = arguments     or {}
+    _aliases       = aliases       or []
 
-    def decorator(func: Callable[P, Coroutine[Any, Any, T_co]]) -> Callable[P, Coroutine[Any, Any, T_co]]:
+    def decorator(func : Callable[P, Coroutine[None, None, T_co]]) -> Callable[P, Coroutine[None, None, T_co]]:
         data = CommandHelpData(
-            desc        = desc,
-            prefix      = prefix,
-            slash       = slash,
-            run_roles   = run_roles,
-            run_users   = run_users,
-            has_inverse = has_inverse,
-            arguments   = arguments,
-            aliases     = aliases,
+            desc          = desc,
+            prefix        = prefix,
+            slash         = slash,
+            command_name  = command_name,
+            access_node   = access_node,
+            channel_rules = _channel_rules,
+            has_inverse   = has_inverse,
+            arguments     = _arguments,
+            aliases       = _aliases,
         )
-
         cast("HelpedCallable", func).__help_data__ = data
         return func
 
     return decorator
 
-def member_has_role(member: discord.Member, role_id : int) -> bool:
-    return any(r.id == role_id for r in member.roles)
-
 def check_access(
-    member      : discord.Member,
-    data        : CommandHelpData,
-    _channel_id : int | None = None,
+    member : discord.Member,
+    data   : CommandHelpData,
 ) -> tuple[str, list[str], list[str], list[int]]:
-    member_role_ids = {r.id for r in member.roles}
-
-    user_match = next((uc for uc in data.run_users if uc.user_id == member.id), None)
-    if user_match is not None:
-        allowed_channels: list[int] = [] if not user_match.channels else sorted(user_match.channels)
-
-        accessible   : list[str] = []
-        inaccessible : list[str] = []
+    if data.access_node is None:
+        accessible_args   : list[str] = []
+        inaccessible_args : list[str] = []
         for arg_name, arg_info in data.arguments.items():
-            if not arg_info.roles or member_role_ids.intersection(arg_info.roles):
-                accessible.append(arg_name)
+            if arg_info.access_node is None or evaluate_access(arg_info.access_node, member):
+                accessible_args.append(arg_name)
             else:
-                inaccessible.append(arg_name)
+                inaccessible_args.append(arg_name)
 
-        if inaccessible or allowed_channels:
-            return "partial", accessible, inaccessible, allowed_channels
-        return "full", accessible, inaccessible, allowed_channels
+        if inaccessible_args:
+            return "partial", accessible_args, inaccessible_args, []
+        return "full", accessible_args, inaccessible_args, []
 
-    if data.run_roles:
-        matching = [rc for rc in data.run_roles if rc.role_id in member_role_ids]
-        if not matching:
-            return "none", [], list(data.arguments.keys()), []
+    has_access = evaluate_access(data.access_node, member)
+    if not has_access:
+        return "none", [], list(data.arguments.keys()), []
 
-        unrestricted = any(not rc.channels for rc in matching)
-        if unrestricted:
-            allowed_channels = []
-        else:
-            seen: set[int] = set()
-            for rc in matching:
-                seen.update(rc.channels)
-            allowed_channels = sorted(seen)
-    else:
-        allowed_channels = []
-
-    accessible   = []
-    inaccessible = []
+    accessible_args   = []
+    inaccessible_args = []
     for arg_name, arg_info in data.arguments.items():
-        if not arg_info.roles or member_role_ids.intersection(arg_info.roles):
-            accessible.append(arg_name)
+        if arg_info.access_node is None or evaluate_access(arg_info.access_node, member):
+            accessible_args.append(arg_name)
         else:
-            inaccessible.append(arg_name)
+            inaccessible_args.append(arg_name)
 
-    channel_restricted = bool(allowed_channels)
-    if inaccessible or channel_restricted:
-        return "partial", accessible, inaccessible, allowed_channels
-    return "full", accessible, inaccessible, allowed_channels
+    allowed_channels: list[int] = []
+    for rule in data.channel_rules:
+        if evaluate_access(rule.node, member):
+            allowed_channels = sorted(set(allowed_channels) | set(rule.channels))
 
-def build_argument_line(name: str, info: ArgumentInfo) -> str:
+    if inaccessible_args or allowed_channels:
+        return "partial", accessible_args, inaccessible_args, allowed_channels
+    return "full", accessible_args, inaccessible_args, allowed_channels
+
+async def resolve_command_ref(bot: commands.Bot, data : CommandHelpData) -> str:
+    name = data.command_name
+    if name is None:
+        return ""
+
+    if not data.slash:
+        return f"`{name}`"
+
+    parts = name.strip().split()
+
+    fetched = await bot.tree.fetch_commands()
+    parent  = next((c for c in fetched if c.name == parts[0]), None)
+
+    if parent is None:
+        return f"`{name}`"
+
+    if len(parts) == 1:
+        return f"</{parts[0]}:{parent.id}>"
+
+    tail = " ".join(parts[1:])
+    return f"</{tail}:{parent.id}>"
+
+_NOTICE_LOGICAL_OR = (
+    "-# In the absence of advanced restrictions, multiple listings are governed by the **Logical OR** operator.\n"
+)
+
+def _format_arg_type(info : ArgumentInfo) -> str:
+    if info.arg_type_detail is not None:
+        return f"{info.arg_type.value} ({info.arg_type_detail})"
+    return info.arg_type.value
+
+def build_argument_line(name : str, info : ArgumentInfo) -> str:
+    display_required = info.required and not info.shown_as_optional
+
     if info.choices:
         choices_str = "|".join(info.choices)
-        inner = f"{name}: {choices_str}"
-        return f"{{{inner}}}" if info.required else f"[{inner}]"
+        inner       = f"{name}: {choices_str}"
+        return f"{{{inner}}}" if display_required else f"[{inner}]"
 
     if info.is_flag:
         inner = f"/{name}: {{{name}}}"
-        return inner if info.required else f"[{inner}]"
+        return inner if display_required else f"[{inner}]"
 
-    return f"{{{name}}}" if info.required else f"[{name}]"
+    return f"{{{name}}}" if display_required else f"[{name}]"
 
-def build_help_view(
-    command_name : str,
-    data         : CommandHelpData,
-    member       : discord.Member,
-) -> LayoutView:
+def _build_arg_block(name: str, info: ArgumentInfo) -> str:
+    bracket = build_argument_line(name, info)
+    lines : list[str] = [f"### {bracket.capitalize()}"]
+    lines.append(f"-# **Type:** {_format_arg_type(info)}")
 
-    arg_tokens = " ".join(
-        build_argument_line(n, i) for n, i in data.arguments.items()
+    if info.description:
+        lines.append(info.description)
+
+    if info.required:
+        lines.append("- **Required**")
+
+    if info.shown_as_optional:
+        lines.append(
+            "-# **Why is this argument shown as required if it's shown as optional?** The command is initialized this way to allow for mass moderation through leaving the argument empty. Internal command logic is shown in the arguments code block. External command logic is shown in the argument descriptions.",
+        )
+
+    if info.empty_behavior is not None:
+        lines.append(f"- **Empty argument:** {info.empty_behavior}")
+
+    if info.default is not None:
+        lines.append(f"- **Default:** {info.default}")
+
+    for dep in info.depends_on:
+        dep_bracket = f"**[{dep.argument}]**"
+        if dep.negate:
+            lines.append(f"- Usable only if the {dep_bracket} argument is **not** chosen.")
+        else:
+            lines.append(f"- Usable only if the {dep_bracket} argument is chosen.")
+
+    if info.access_node is not None:
+        lines.append(f"- Restricted to: {describe_access_node(info.access_node)}")
+
+    for note in info.extra_notes:
+        lines.append(note)
+
+    return "\n".join(lines)
+
+def _build_authority_section(data : CommandHelpData, member: discord.Member) -> tuple[str, int]:
+    status, _, _, allowed_channels = check_access(member, data)
+
+    if status == "full":
+        colour = COLOR_GREEN
+        text   = (
+            f"## Authority\n"
+            f"{ACCEPTED_EMOJI_ID} **Authorized.**\n"
+             "You have the necessary permissions to run this command.\n"
+             "-# Valid permissions."
+        )
+
+    elif status == "none":
+        colour = COLOR_RED
+        text   = (
+             "## Authority\n"
+            f"{DENIED_EMOJI_ID} **Unauthorized!**\n"
+             "You are not authorized to run this command.\n"
+             "-# No permissions."
+        )
+
+    else:
+        colour         = COLOR_YELLOW
+        channel_detail = ""
+        if allowed_channels:
+            channels_str   = " ".join(f"<#{cid}>" for cid in allowed_channels)
+            channel_detail = f"\nYou may only use this command in: {channels_str}"
+
+        text = (
+            "## Authority\n"
+            f"{CONTESTED_EMOJI_ID} **Partially Authorized.**\n"
+            "You have the necessary permissions to run this command, "
+            "but not all of its arguments or channels are available to you."
+            f"{channel_detail}\n"
+            "-# Partial permissions."
+        )
+
+    return text, int(colour)
+
+def _collect_role_nodes(node : AccessNode) -> list[RoleNode]:
+    if isinstance(node, RoleNode):
+        return [node]
+    if isinstance(node, OrNode | AndNode):
+        result : list[RoleNode] = []
+        for child in node.children:
+            result.extend(_collect_role_nodes(child))
+        return result
+    return []
+
+def _collect_user_nodes(node : AccessNode) -> list[UserNode]:
+    if isinstance(node, UserNode):
+        return [node]
+    if isinstance(node, OrNode | AndNode):
+        result : list[UserNode] = []
+        for child in node.children:
+            result.extend(_collect_user_nodes(child))
+        return result
+    return []
+
+def _build_authorized_section(data : CommandHelpData) -> str:
+    lines: list[str] = ["## Authorized"]
+
+    user_nodes: list[UserNode] = (
+        _collect_user_nodes(data.access_node) if data.access_node is not None else []
+    )
+    role_nodes: list[RoleNode] = (
+        _collect_role_nodes(data.access_node) if data.access_node is not None else []
     )
 
-    usage_lines: list[str] = []
+    lines.append("### Users")
+    if user_nodes:
+        for un in user_nodes:
+            lines.append(f"<@{un.user_id}>")
+        lines.append(_NOTICE_LOGICAL_OR)
+    else:
+        lines.append("Not applicable as users are not authorized to run this command.**\\***\n")
+        lines.append("-# **\\***All users with the role(s) below are authorized to run the command with the respective advanced restrictions (if applicable).\n")
+        lines.append(f"{_NOTICE_LOGICAL_OR}")
+
+    lines.append("### Roles")
+    if role_nodes:
+        for rn in role_nodes:
+            lines.append(f"<@&{rn.role_id}>")
+        if len(role_nodes) > 1:
+            op = "AND" if isinstance(data.access_node, AndNode) else "OR"
+            lines.append(f"-# Multiple roles are governed by the **Logical {op}** operator.\n")
+        else:
+            lines.append(_NOTICE_LOGICAL_OR)
+    else:
+        lines.append(f"No role restriction.\n{_NOTICE_LOGICAL_OR}")
+
+    lines.append("### Advanced Restrictions")
+    if data.channel_rules:
+        for rule in data.channel_rules:
+            channels_str = " ".join(f"<#{cid}>" for cid in rule.channels)
+            lines.append(f"- {describe_access_node(rule.node)} → {channels_str}")
+        lines.append(
+            "-# **What are advanced restrictions?** Advanced Restrictions provide a logic specification detailing how command behavior behaves across different contexts. This framework is intended to explain the interdependent relationships between users, roles, and environments (such as specific channels) when working with arguments, sub-arguments, and nested-arguments when they may be accessible or restricted depending on a user's unique permission profile.",
+        )
+    else:
+        lines.append("Not applicable.\n")
+        lines.append("-# **What are advanced restrictions?** Advanced Restrictions provide a logic specification detailing how command behavior behaves across different contexts. This framework is intended to explain the interdependent relationships between users, roles, and environments (such as specific channels) when working with arguments, sub-arguments, and nested-arguments when they may be accessible or restricted depending on a user's unique permission profile.")
+
+    return "\n".join(lines)
+
+def _build_arguments_section(command_name: str, data : CommandHelpData) -> str:
+    arg_tokens  = " ".join(build_argument_line(n, i) for n, i in data.arguments.items())
+    usage_lines : list[str] = []
     if data.prefix:
         usage_lines.append(f".{command_name} {arg_tokens}".strip())
     if data.slash:
         usage_lines.append(f"/{command_name} {arg_tokens}".strip())
     usage_block = "\n".join(usage_lines)
 
-    arg_details_lines: list[str] = []
-    for arg_name, arg_info in data.arguments.items():
-        if arg_info.choices:
-            choices_str = "|".join(arg_info.choices)
-            bracket = f"{{{arg_name}: {choices_str}}}" if arg_info.required else f"[{arg_name}: {choices_str}]"
-        elif arg_info.is_flag:
-            bracket = f"{arg_name}: {{{arg_name}}}" if arg_info.required else f"[{arg_name}: {arg_name}]"
-        else:
-            bracket = f"{{{arg_name}}}" if arg_info.required else f"[{arg_name}]"
+    arg_blocks = "\n".join(_build_arg_block(n, i) for n, i in data.arguments.items())
 
-        line = f"**{bracket.capitalize()}**"
-        if arg_info.is_flag:
-            line += " [Flag]"
-        if arg_info.choices:
-            line += " [Choices]"
-        if arg_info.roles:
-            roles_str = " ".join(f"<@&{rid}>" for rid in arg_info.roles)
-            line += f" [Roles: {roles_str}]"
-        if arg_info.description:
-            line += f"\n{arg_info.description}"
-        arg_details_lines.append(line)
-    arg_details = ("\n".join(arg_details_lines) + "\n") if arg_details_lines else ""
+    return (
+        f"## Arguments\n"
+        f"```\n"
+        f"{usage_block}\n"
+        f"```\n"
+         "{...} denotes a required argument.\n"
+         "[...] denotes an optional argument.\n"
+        f"{arg_blocks}"
+    )
+
+def build_help_view(
+    command_name : str,
+    data         : CommandHelpData,
+    member       : discord.Member,
+    command_ref  : str,
+) -> LayoutView:
+    display_name = command_ref or f"`/{command_name}`"
 
     prefix_emoji = ACCEPTED_EMOJI_ID if data.prefix else DENIED_EMOJI_ID
     slash_emoji  = ACCEPTED_EMOJI_ID if data.slash  else DENIED_EMOJI_ID
 
     aliases_line = ""
     if data.aliases:
-        formatted = ", ".join(f"`{a}`" for a in data.aliases)
+        formatted    = ", ".join(f"`{a}`" for a in data.aliases)
         aliases_line = f"\n**Aliases:** {formatted}"
 
     inverse_line = ""
     if data.has_inverse and isinstance(data.has_inverse, str):
         inverse_line = f"\nThis command has an inverse, **{data.has_inverse}**."
 
-    roles_lines: list[str] = []
-    if data.run_roles:
-        for rc in data.run_roles:
-            role_mention = f"<@&{rc.role_id}>"
-            if rc.channels:
-                channels_str = " ".join(f"<#{cid}>" for cid in rc.channels)
-                roles_lines.append(f"- {role_mention} *(channels: {channels_str})*")
-            else:
-                roles_lines.append(f"- {role_mention}")
-
-    if data.run_users:
-        for uc in data.run_users:
-            user_mention = f"<@{uc.user_id}>"
-            if uc.channels:
-                channels_str = " ".join(f"<#{cid}>" for cid in uc.channels)
-                roles_lines.append(f"- {user_mention} *(channels: {channels_str})*")
-            else:
-                roles_lines.append(f"- {user_mention}")
-
-    roles_block = "\n".join(roles_lines) if roles_lines else "- No role restriction."
-
-    main_text = (
-        f'# "{command_name}" Command\n'
-        f"## Description:\n{data.desc}\n"
-        f"## Required Roles:\n{roles_block}\n"
-         "## Arguments:\n"
-        f"```python\n{usage_block}\n```\n"
-         "-# {{…}} denotes a required argument\n"
-         "-# […] denotes an optional argument\n\n"
-        f"{arg_details}"
-         "## Variants:\n"
+    header_text = (
+        f"# {display_name} Command\n"
+         "## Description\n"
+        f"{data.desc}\n"
+         "## Variants\n"
         f"- {prefix_emoji} **Prefix**\n"
-        f"- {slash_emoji} **Slash**"
+        f"- {slash_emoji} **Application**"
         f"{aliases_line}"
         f"{inverse_line}"
     )
 
-    status, accessible_args, _, allowed_channels = check_access(member, data)
+    authority_text, accent_colour   = _build_authority_section(data, member)
+    authorized_text                 = _build_authorized_section(data)
+    arguments_text                  = _build_arguments_section(command_name, data)
 
-    if status == "full":
-        perm_colour = COLOR_GREEN
-        perm_text = (
-            f"### {ACCEPTED_EMOJI_ID} Authorized.\n"
-             "-# Valid permissions.\n"
-             "You have the necessary permissions to run this command."
-        )
+    spacing : SeparatorSpacing = discord.SeparatorSpacing.large
 
-    elif status == "none":
-        perm_colour = COLOR_RED
-        perm_text = (
-            f"### {DENIED_EMOJI_ID} Unauthorized!\n"
-             "-# Invalid permissions.\n"
-             "You are not authorized to run this command."
-        )
-
-    else:
-        perm_colour = COLOR_YELLOW
-
-        if not accessible_args:
-            args_detail = "None —— You lack access to all of this command's arguments."
-        else:
-            args_detail = ", ".join(f"`{a}`" for a in accessible_args)
-
-        channel_detail = ""
-        if allowed_channels:
-            channels_str = " ".join(f"<#{cid}>" for cid in allowed_channels)
-            channel_detail = f"\nYou may only use this command in: {channels_str}"
-
-        perm_text = (
-            f"### {CONTESTED_EMOJI_ID} Partially Authorized.\n"
-             "-# Partially valid permissions.\n"
-             "You have the necessary permissions to run this command, "
-             "but not all of its arguments. Specifically, you have access "
-            f"to these arguments:\n- {args_detail}"
-            f"{channel_detail}"
-        )
+    _header_td     : TextDisplay[LayoutView] = TextDisplay(content = header_text)
+    _sep_1         : Separator[LayoutView]   = Separator(spacing = spacing)
+    _authority_td  : TextDisplay[LayoutView] = TextDisplay(content = authority_text)
+    _sep_2         : Separator[LayoutView]   = Separator(spacing = spacing)
+    _authorized_td : TextDisplay[LayoutView] = TextDisplay(content = authorized_text)
+    _sep_3         : Separator[LayoutView]   = Separator(spacing = spacing)
+    _arguments_td  : TextDisplay[LayoutView] = TextDisplay(content = arguments_text)
 
     class HelpView(LayoutView):
-        container1: Container[LayoutView] = Container(
-            TextDisplay(content = main_text),
-            accent_color = COLOR_BLURPLE,
-        )
-        container2: Container[LayoutView] = Container(
-            TextDisplay(content = perm_text),
-            accent_color = perm_colour,
+        container : Container[LayoutView] = Container(
+            _header_td,
+            _sep_1,
+            _authority_td,
+            _sep_2,
+            _authorized_td,
+            _sep_3,
+            _arguments_td,
+            accent_color = accent_colour,
         )
 
     return HelpView()
 
-def resolve_command(bot : commands.Bot, name: str) -> Callable[..., Awaitable[Any]] | None:
+def member_has_role(member : discord.Member, role_id : int) -> bool:
+    return any(r.id == role_id for r in member.roles)
+
+def resolve_command(bot : commands.Bot, name : str) -> Callable[..., Awaitable[object]] | None:
     cmd = bot.get_command(name)
     if cmd:
         return cmd.callback
@@ -314,8 +519,8 @@ def resolve_command(bot : commands.Bot, name: str) -> Callable[..., Awaitable[An
 
     return None
 
-def find_nested_command(bot : commands.Bot, parts: list[str]) -> object | None:
-    full = " ".join(parts)
+def find_nested_command(bot : commands.Bot, parts : list[str]) -> object | None:
+    full   = " ".join(parts)
     result = resolve_command(bot, full)
     if result:
         return result
@@ -338,30 +543,30 @@ def find_nested_command(bot : commands.Bot, parts: list[str]) -> object | None:
 
     return getattr(node, "callback", None)
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Help Management
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
 def collect_slash_commands(
-    app_commands_list : list[Any],
+    app_commands_list : Sequence[_AppCommand],
     seen_callbacks    : set[int],
     lines             : list[str],
 ) -> None:
     for app_cmd in app_commands_list:
-        cb = getattr(app_cmd, "callback", None)
-        if cb and hasattr(cb, "__help_data__") and id(cb) not in seen_callbacks:
+        cb = app_cmd.callback
+        if hasattr(cb, "__help_data__") and id(cb) not in seen_callbacks:
             seen_callbacks.add(id(cb))
-            qualified = getattr(app_cmd, "qualified_name", app_cmd.name)
+            qualified = app_cmd.qualified_name or app_cmd.name
             lines.append(f"`/{qualified}` — {cast('HelpedCallable', cb).__help_data__.desc}")
 
-        sub_commands = getattr(app_cmd, "commands", None)
+        sub_commands = app_cmd.commands
         if sub_commands:
-            collect_slash_commands(sub_commands, seen_callbacks, lines)
+            collect_slash_commands(
+                [c for c in sub_commands if isinstance(c, _AppCommand)],
+                seen_callbacks,
+                lines,
+            )
 
 async def run_help(
     bot          : commands.Bot,
     ctx_or_inter : commands.Context[commands.Bot] | discord.Interaction,
-    command_name :                            str | None,
+    command_name : str                            | None,
 ) -> None:
     if isinstance(ctx_or_inter, commands.Context):
         if not isinstance(ctx_or_inter.author, discord.Member):
@@ -380,8 +585,8 @@ async def run_help(
         respond = ctx_or_inter.response.send_message
 
     if not command_name:
-        seen_callbacks: set[int] = set()
-        lines: list[str] = []
+        seen_callbacks : set[int] = set()
+        lines          : list[str] = []
 
         for cmd in bot.commands:
             cb = cast("HelpedCallable", cmd.callback)
@@ -389,7 +594,8 @@ async def run_help(
                 seen_callbacks.add(id(cb))
                 lines.append(f"`{cmd.name}` — {cb.__help_data__.desc}")
 
-        collect_slash_commands(bot.tree.get_commands(), seen_callbacks, lines)
+        app_cmds = [c for c in bot.tree.get_commands() if isinstance(c, _AppCommand)]
+        collect_slash_commands(app_cmds, seen_callbacks, lines)
 
         if lines:
             _ = await respond(
@@ -413,11 +619,13 @@ async def run_help(
         )
         return
 
-    data = cast("HelpedCallable", callback).__help_data__
+    data        = cast("HelpedCallable", callback).__help_data__
+    command_ref = await resolve_command_ref(bot, data)
 
     view = build_help_view(
         command_name = " ".join(parts),
         data         = data,
         member       = member,
+        command_ref  = command_ref,
     )
     _ = await respond(view = view)

@@ -234,7 +234,7 @@ class CasesManager:
             await self._send_to_log_channel(guild, case_data)
 
         return case_id
-        
+
     async def log_cases(
         self,
         guild            : discord.Guild,
@@ -321,7 +321,7 @@ class CasesManager:
         visibility_level : str = "moderators",
     ) -> list[int]:
         entries: list[dict[str, object]] = [
-            {"target_user": user, "content": content} 
+            {"target_user": user, "content": content}
             for user in users
         ]
         return await self.log_cases(

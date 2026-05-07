@@ -48,12 +48,12 @@ async def run_ban(
             "ban",
             precheck_callback = lambda moderator, target : base.check_can_moderate_target(moderator, target, "ban"),
             execute_callback = lambda i, m, data: _execute_ban(
-                base, 
-                i, 
-                actor, 
-                m, 
+                base,
+                i,
+                actor,
+                m,
                 str(cast(object, data.get("reason"))) if data.get("reason") is not None else "No reason provided",
-                delete_messages or 0, 
+                delete_messages or 0,
                 cast(discord.Attachment, data.get("proof")) if data.get("proof") is not None else None,
             ),
         )
@@ -167,7 +167,7 @@ async def _execute_ban(
         class BanMetadata(TypedDict, total=False):
             delete_message_days: int
             proof_url: str
-            
+
         metadata : BanMetadata = {"delete_message_days": delete_messages}
         if proof:
             metadata["proof_url"] = proof.url

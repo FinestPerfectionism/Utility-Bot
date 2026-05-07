@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from constants import COLOR_BLURPLE
 from core.cases import CaseType
 from core.responses import send_custom_message
+
 from ._base import MemberPickerView
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -129,7 +130,7 @@ async def run_purge(
         deleted = await channel.purge(
             limit  = amount,
             check  = lambda m: (
-                m.author.id == member.id 
+                m.author.id == member.id
                 and (cutoff - m.created_at).days < n_14
             ),
             before = interaction.created_at,
@@ -147,7 +148,7 @@ async def run_purge(
             "deleted_messages" : len(deleted),
             "channel_id"       : channel.id,
         }
-        
+
         if proof:
             metadata["proof_url"] = proof.url
 

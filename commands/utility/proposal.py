@@ -11,7 +11,6 @@ from discord import app_commands
 from discord.ext import commands
 
 from constants import (
-    DIRECTORS_ROLE_ID,
     EMOJI_FORUM_ID,
     EMOJI_FORUM_LOCK_ID,
     EMOJI_STATUS,
@@ -21,7 +20,6 @@ from constants import (
     TAG_SPECIAL,
     TAG_STATUS,
 )
-from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import has_director_role, main_guild_only
 from core.responses import multi_custom_message, send_custom_message
 from core.utils import (
@@ -220,24 +218,24 @@ class ProposalCommands(
     # /proposal status Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    REASON_WHITELISTS: ClassVar[dict[str, set[str]]] = {
-        "accepted":   {"Committee accepted."},
-        "contested":  {"Committee contested.", "Proposand unimplementable.", "Out of scope."},
-        "denied":     {"Committee denied.", "Veto.", "Proposand unimplementable.", "Out of scope."},
-        "standstill": {"Unique circumstances."},
+    REASON_WHITELISTS : ClassVar[dict[str, set[str]]] = {
+        "accepted"   : {"Committee accepted."},
+        "contested"  : {"Committee contested.", "Proposand unimplementable.", "Out of scope."},
+        "denied"     : {"Committee denied.", "Veto.", "Proposand unimplementable.", "Out of scope."},
+        "standstill" : {"Unique circumstances."},
     }
 
     @app_commands.command(
-        name = "status",
+        name        = "status",
         description = "Set the official Staff Committee decision for this proposal.",
     )
     @app_commands.describe(
-        status="The formal decision to apply.",
+        status = "The formal decision to apply.",
         reason = "Reason for this decision.",
-        notes="Additional notes.",
+        notes  = "Additional notes.",
     )
     @app_commands.choices(
-        status=[
+        status = [
             app_commands.Choice(name = "Accepted",   value = "accepted"),
             app_commands.Choice(name = "Contested",  value = "contested"),
             app_commands.Choice(name = "Denied",     value = "denied"),
@@ -253,24 +251,13 @@ class ProposalCommands(
             app_commands.Choice(name = "Veto.",                      value = "Veto."),
         ],
     )
-    @help_description(
-        desc="Staff Committee only —— Sets the official proposal decision for the current proposal thread.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
-        arguments={
-            "status": ArgumentInfo(description = "Decision to apply.", choices=["accepted", "contested", "denied", "standstill"]),
-            "reason": ArgumentInfo(description = "Approved reason for that decision."),
-            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
-        },
-    )
     @main_guild_only()
     async def status(
         self,
         interaction : discord.Interaction,
-        status:      app_commands.Choice[str],
-        reason:      app_commands.Choice[str],
-        notes:       str | None = None,
+        status      : app_commands.Choice[str],
+        reason      : app_commands.Choice[str],
+        notes       : str | None = None,
     ) -> None:
         member = interaction.guild.get_member(interaction.user.id) if interaction.guild else None
         if member is None or not is_committee(member):
@@ -405,17 +392,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Owner Action",         value = "owner_action"),
             app_commands.Choice(name = "S. Director Action",   value = "sdirector_action"),
         ],
-    )
-    @help_description(
-        desc      = "Staff Committee only —— Applies or removes a process tag on the current proposal thread.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
-        arguments = {
-            "tag": ArgumentInfo(description = "Process tag to modify.", choices=["needs_revision", "needs_implementation", "owner_action", "sdirector_action"]),
-            "enabled": ArgumentInfo(description = "Whether the tag should be present after running the command."),
-            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
-        },
     )
     @main_guild_only()
     async def tag(
@@ -559,16 +535,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Issue resolved.",        value = "Issue resolved."),
         ],
     )
-    @help_description(
-        desc="Staff Committee only —— Finalizes and locks the current proposal thread after final resolution.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
-        arguments={
-            "reason": ArgumentInfo(description = "Reason for finalization."),
-            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
-        },
-    )
     @main_guild_only()
     async def finalize(
         self,
@@ -690,16 +656,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Further discussion needed.", value = "Further discussion needed."),
         ],
     )
-    @help_description(
-        desc      = "Staff Committee only —— Unlocks a finalized proposal thread.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
-        arguments = {
-            "reason": ArgumentInfo(description = "Reason for unlocking."),
-            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
-        },
-    )
     @main_guild_only()
     async def unlock_thread(
         self,
@@ -773,16 +729,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Committee direction established.", value = "Committee direction established."),
         ],
     )
-    @help_description(
-        desc      = "Staff Committee only —— Removes the standstill status from the current proposal thread.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = STAFF_COMMITTEE_ROLE_ID)],
-        arguments = {
-            "reason": ArgumentInfo(description = "Reason for removing standstill."),
-            "notes": ArgumentInfo(required = False, description = "Optional additional notes."),
-        },
-    )
     @main_guild_only()
     async def unstandstill(
         self,
@@ -854,13 +800,6 @@ class ProposalCommands(
     @commands.command(
         name    = "delete",
         aliases = ["d", "del"],
-    )
-    @help_description(
-        desc      = "Directors only —— Ddeletes the current staff proposal thread.",
-        prefix    = True,
-        slash     = False,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        aliases   = ["d", "del"],
     )
     @has_director_role()
     async def delete_thread(self, ctx : commands.Context[commands.Bot]) -> None:

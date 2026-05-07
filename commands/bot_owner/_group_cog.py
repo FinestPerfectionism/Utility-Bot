@@ -4,9 +4,6 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import BOT_OWNER_ID
-from core.help import ArgumentInfo, UserConfig, help_description
-
 from ._base import cog_autocomplete, get_cogs
 from .cogs.load import run_load
 from .cogs.pull_reload import run_pull_reload
@@ -43,12 +40,6 @@ class BotOwnerCommands(
         name        = "pull-reload",
         description = "Pull from main, then reload all cogs.",
     )
-    @help_description(
-        desc      = "Bot Owner only —— Pulls the latest code from github and reloads all cogs.",
-        prefix    = False,
-        slash     = True,
-        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
-    )
     async def pull_reload(self, interaction : discord.Interaction) -> None:
         await run_pull_reload(self.bot, interaction, get_cogs())
 
@@ -63,14 +54,7 @@ class BotOwnerCommands(
     @app_commands.describe(
         cog = "The cog to reload. Leave empty to reload all cogs.",
     )
-    @app_commands.autocomplete(cog=cog_autocomplete)
-    @help_description(
-        desc      = "Bot Owner only —— Reloads a cog or all cogs.",
-        prefix    = False,
-        slash     = True,
-        run_users = [UserConfig(user_id=BOT_OWNER_ID)],
-        arguments = {"cog": ArgumentInfo(required = False, description = "Cog name to reload. Omittion reloads all cogs.")},
-    )
+    @app_commands.autocomplete(cog = cog_autocomplete)
     async def reload(self, interaction : discord.Interaction, cog: str | None = None) -> None:
         await run_reload(self.bot, interaction, cog, get_cogs())
 
@@ -86,13 +70,6 @@ class BotOwnerCommands(
         cog = "The cog to load.",
     )
     @app_commands.autocomplete(cog = cog_autocomplete)
-    @help_description(
-        desc      = "Bot Owner only —— Loads a cog",
-        prefix    = False,
-        slash     = True,
-        run_users = [UserConfig(user_id=BOT_OWNER_ID)],
-        arguments = {"cog": ArgumentInfo(description = "Cog name to load.")},
-    )
     async def load(self, interaction : discord.Interaction, cog: str) -> None:
         await run_load(self.bot, interaction, cog, get_cogs())
 
@@ -108,28 +85,14 @@ class BotOwnerCommands(
         cog = "The cog to unload.",
     )
     @app_commands.autocomplete(cog = cog_autocomplete)
-    @help_description(
-        desc      = "Bot Owner only —— Unloads a cog",
-        prefix    = False,
-        slash     = True,
-        run_users = [UserConfig(user_id=BOT_OWNER_ID)],
-        arguments = {"cog": ArgumentInfo(description = "Cog name to unload.")},
-    )
-    async def unload(self, interaction : discord.Interaction, cog: str) -> None:
+    async def unload(self, interaction : discord.Interaction, cog : str) -> None:
         await run_unload(self.bot, interaction, cog, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .shutdown/.shut Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "shutdown", aliases=["shut"])
-    @help_description(
-        desc      = "Bot Owner only —— Shutdown the bot.",
-        prefix    = True,
-        slash     = False,
-        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
-        aliases   = ["shut"],
-    )
+    @commands.command(name = "shutdown", aliases = ["shut"])
     async def shutdown(self, ctx : commands.Context[commands.Bot]) -> None:
         await run_shutdown(self.bot, ctx)
 
@@ -137,14 +100,7 @@ class BotOwnerCommands(
     # .restart/.r Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "restart", aliases=["r"])
-    @help_description(
-        desc      = "Bot Owner only —— Restarts the bot",
-        prefix    = True,
-        slash     = False,
-        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
-        aliases   = ["r"],
-    )
+    @commands.command(name = "restart", aliases = ["r"])
     async def restart(self, ctx : commands.Context[commands.Bot]) -> None:
         await run_restart(self.bot, ctx, self.restarting_ref, self.logger)
 
@@ -164,18 +120,6 @@ class BotOwnerCommands(
     )
     @app_commands.rename(
         activity_type = "type",
-    )
-    @help_description(
-        desc      = "Bot Owner only —— Sets the bot's presence status.",
-        prefix    = False,
-        slash     = True,
-        run_users = [UserConfig(user_id=BOT_OWNER_ID)],
-        arguments = {
-            "type"  : ArgumentInfo(description = "Presence activity type.", choices = ["playing", "watching", "listening", "competing", "streaming", "custom"]),
-            "text"  : ArgumentInfo(description = "Status text to display."),
-            "state" : ArgumentInfo(required = False, description = "Optional online status.", choices = ["online", "idle", "dnd", "invisible"]),
-            "url"   : ArgumentInfo(required = False, description = "Optional Twitch URL used for streaming status."),
-        },
     )
     @app_commands.choices(
         activity_type = [
@@ -208,13 +152,6 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name = "eval")
-    @help_description(
-        desc      = "Bot Owner only —— Evaluate python code.",
-        prefix    = True,
-        slash     = False,
-        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
-        arguments = {"body" : ArgumentInfo(description = "Python code to evaluate.")},
-    )
     async def _eval(
         self,
         ctx  : commands.Context[commands.Bot],
@@ -228,17 +165,6 @@ class BotOwnerCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "say", description = "Make the bot say something.")
-    @help_description(
-        desc      = "Bot Owner only —— Make the bot say something.",
-        prefix    = False,
-        slash     = True,
-        run_users = [UserConfig(user_id = BOT_OWNER_ID)],
-        arguments = {
-            "text"           : ArgumentInfo(description = "The text to send."),
-            "target-channel" : ArgumentInfo(description = "The channel to send the message in."),
-            "reply-id"       : ArgumentInfo(description = "The ID of the message to reply to." ),
-        },
-    )
     @app_commands.describe(
         message        = "The text to send.",
         target_channel = "The channel to send the message in.",

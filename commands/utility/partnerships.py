@@ -10,8 +10,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import core.responses as cr
-from constants import DIRECTORS_ROLE_ID, PARTNERSHIPS_CHANNEL_ID
-from core.help import ArgumentInfo, RoleConfig, help_description
+from constants import PARTNERSHIPS_CHANNEL_ID
 from core.permissions import directors_only
 from core.responses import send_custom_message
 from core.state.partnership_state import (
@@ -82,19 +81,6 @@ class PartnershipCommands(commands.Cog):
         server_owner       = "The server's owner.",
         server_link        = "The server's invite link. Must be a valid Discord invite of the form `https://discord.gg/example`.",
     )
-    @help_description(
-        desc      = "Directors only —— Adds a partnership entry and rebuilds the partnerships channel layout.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {
-            "server_picture"     : ArgumentInfo(description = "Image attachment shown for the partner server."),
-            "server_name"        : ArgumentInfo(description = "Partner server name."),
-            "server_description" : ArgumentInfo(description = "Partner server description."),
-            "server_owner"       : ArgumentInfo(description = "Discord user who owns the partner server."),
-            "server_link"        : ArgumentInfo(description = "Discord invite URL for the partner server."),
-        },
-    )
     @directors_only()
     async def partnership_add(
         self,
@@ -121,7 +107,7 @@ class PartnershipCommands(commands.Cog):
         if channel is None:
             return
 
-        IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+        IMAGE_DIR.mkdir(parents = True, exist_ok = True)
 
         suffix     = Path(server_picture.filename).suffix or ".png"
         filename   = f"{uuid.uuid4()}{suffix}"
@@ -191,13 +177,6 @@ class PartnershipCommands(commands.Cog):
 
     @partnership.command(name = "remove", description = "Remove a server partnership.")
     @app_commands.describe(server_name = "The name of the server to remove.")
-    @help_description(
-        desc      = "Directors only —— Removes a partnership entry and rebuilds the partnerships channel layout.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {"server_name" : ArgumentInfo(description = "Exact partner server name to remove.")},
-    )
     @directors_only()
     async def partnership_remove(
         self,
@@ -264,20 +243,6 @@ class PartnershipCommands(commands.Cog):
         server_link        = "The server's new invite link. Must be a valid Discord invite of the form `https://discord.gg/example`.",
     )
     @app_commands.autocomplete(server_name = _server_name_autocomplete)
-    @help_description(
-        desc      = "Directors only —— Updates an existing partnership entry and rebuilds the partnerships channel layout.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {
-            "server_name"        : ArgumentInfo(description = "Existing partner server name to update."),
-            "server_picture"     : ArgumentInfo(required = False, description = "Optional replacement image attachment."),
-            "new_server_name"    : ArgumentInfo(required = False, description = "Optional replacement server name."),
-            "server_description" : ArgumentInfo(required = False, description = "Optional replacement description."),
-            "server_owner"       : ArgumentInfo(required = False, description = "Optional replacement server owner."),
-            "server_link"        : ArgumentInfo(required = False, description = "Optional replacement Discord invite URL."),
-        },
-    )
     @directors_only()
     async def partnership_update(
         self,

@@ -6,8 +6,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 from typing_extensions import override
 
-from constants import DIRECTORS_ROLE_ID, PERSONAL_LEAVE_ROLE_ID, STAFF_ROLE_ID
-from core.help import ArgumentInfo, RoleConfig, help_description
+from constants import PERSONAL_LEAVE_ROLE_ID
 
 from ._base import (
     ALL_STAFF_ROLE_IDS,
@@ -206,28 +205,15 @@ class LeaveCommands(commands.Cog):
             app_commands.Choice(name = "Hard Clean", value = "hard_clean"),
         ],
     )
-    @app_commands.rename(leave_type="type", begin_date="begin-date", end_date="end-date")
-    @help_description(
-        desc="Directors only —— Adds personal leave to yourself or another staff member, with optional scheduling and leave types.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments={
-            "type": ArgumentInfo(description = "Leave mode to apply.", choices=["none", "soft_clean", "hard_clean"]),
-            "target": ArgumentInfo(required = False, description = "Staff member to place on leave; defaults to yourself."),
-            "begin-date": ArgumentInfo(required = False, description = "Optional future start date in YYYY-MM-DD format."),
-            "end-date": ArgumentInfo(required = False, description = "Optional future end date in YYYY-MM-DD format."),
-            "timer": ArgumentInfo(required = False, description = "Optional duration such as 1w2d3h4m."),
-        },
-    )
+    @app_commands.rename(leave_type = "type", begin_date = "begin-date", end_date = "end-date")
     async def leave_add(
         self,
         interaction : discord.Interaction,
-        leave_type:  str,
-        target:      discord.Member | None = None,
-        begin_date:             str | None = None,
-        end_date:               str | None = None,
-        timer:                  str | None = None,
+        leave_type  : str,
+        target      : discord.Member | None = None,
+        begin_date  : str            | None = None,
+        end_date    : str            | None = None,
+        timer       : str            | None = None,
     ) -> None:
         await run_leave_add(self.data, interaction, leave_type, target, begin_date, end_date, timer)
 
@@ -237,18 +223,6 @@ class LeaveCommands(commands.Cog):
 
     @leave_group.command(name = "remove", description = "Remove personal leave from yourself or another user.")
     @app_commands.describe(target="The user to remove personal leave from.")
-    @help_description(
-        desc="Staff only —— Removes personal leave from yourself or another staff member. Self-removal also works for your own scheduled leave entry.",
-        prefix=False,
-        slash=True,
-        run_roles=[RoleConfig(role_id = STAFF_ROLE_ID)],
-        arguments={"target": ArgumentInfo(
-                required = False,
-                description = "Staff member whose leave should be removed; defaults to yourself.",
-                roles=[DIRECTORS_ROLE_ID],
-            ),
-        },
-    )
     async def leave_remove(
         self,
         interaction : discord.Interaction,

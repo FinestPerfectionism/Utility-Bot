@@ -51,11 +51,11 @@ async def run_kick(
             "kick",
             precheck_callback = lambda moderator, target : base.check_can_moderate_target(moderator, target, "kick"),
             execute_callback = lambda i, m, data: _execute_kick(
-                base, 
-                i, 
-                actor, 
-                m, 
-                str(cast(object, data.get("reason"))) if data.get("reason") is not None else "No reason provided", 
+                base,
+                i,
+                actor,
+                m,
+                str(cast(object, data.get("reason"))) if data.get("reason") is not None else "No reason provided",
                 cast(discord.Attachment, data.get("proof")) if data.get("proof") is not None else None,
             ),
         )

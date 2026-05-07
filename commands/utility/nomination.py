@@ -12,7 +12,6 @@ from constants import (
     DIRECTORS_ROLE_ID,
     SUPPORTING_DIRECTORS_ROLE_ID,
 )
-from core.help import ArgumentInfo, RoleConfig, help_description
 from core.responses import send_custom_message
 
 NOMINATION_DATA_FILE = "nomination_data.json"
@@ -47,8 +46,8 @@ def extract_name(nickname: str) -> str:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class NominationFlags(commands.FlagConverter, prefix="/", delimiter=" "):
-    action  : str                    = commands.flag(aliases=["a"])
-    user    : discord.Member | None  = commands.flag(aliases=["u"], default=None)
+    action  : str                    = commands.flag(aliases = ["a"])
+    user    : discord.Member | None  = commands.flag(aliases = ["u"], default=None)
     case_id : str            | None  = commands.flag(name="id", default=None)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -73,19 +72,7 @@ class NominationCommands(commands.Cog):
     # .nomination/.nom Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name="nomination", aliases=["nom"])
-    @help_description(
-        desc      = "Directors only —— Triggrs, accepts, or denies supporting-director nominations.",
-        prefix    = True,
-        slash     = False,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        aliases   = ["nom"],
-        arguments = {
-            "action": ArgumentInfo(description="Use `/action trigger`, `/action accept`, or `/action deny`.", is_flag=True),
-            "user"  : ArgumentInfo(required = False, description="Target member for the nomination trigger.", is_flag=True),
-            "id"    : ArgumentInfo(required = False, description="Nomination case ID used by trigger, accept, and deny.", is_flag=True),
-        },
-    )
+    @commands.command(name = "nomination", aliases = ["nom"])
     async def nomination(
         self,
         ctx   : commands.Context[commands.Bot],

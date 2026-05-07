@@ -8,7 +8,6 @@ from constants import (
     STAFF_ROLE_ID,
     TICKET_CHANNEL_ID,
 )
-from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only, main_guild_only
 from core.responses import send_custom_message
 from core.state.blacklist_state import BLACKLIST, save_blacklist
@@ -57,16 +56,6 @@ class TicketsCommands(
                 value = "remove",
             ),
         ],
-    )
-    @help_description(
-        desc      = "Directors only —— Add or remove a user from the ticket blacklist.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {
-            "action": ArgumentInfo(description = "Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
-            "user":   ArgumentInfo(description = "User to blacklist or unblacklist from tickets."),
-        },
     )
     @main_guild_only()
     @directors_only()
@@ -150,12 +139,6 @@ class TicketsCommands(
         name    = "archive",
         aliases = ["a"],
     )
-    @help_description(
-        desc    = "Moderators only —— Archives the current ticket thread. Only the ticket opener or a moderator can use it inside a ticket thread.",
-        prefix  = True,
-        slash   = False,
-        aliases = ["a"],
-    )
     async def archive(self, ctx : commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
@@ -214,11 +197,6 @@ class TicketsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name = "claim")
-    @help_description(
-        desc   = "Moderators only —— Claims the current ticket thread.",
-        prefix = True,
-        slash  = False,
-    )
     async def claim(self, ctx : commands.Context[commands.Bot]) -> None:
         channel = ctx.channel
 
@@ -292,12 +270,6 @@ class TicketsCommands(
 
     @commands.command(
         name    = "escalate",
-        aliases = ["e", "esc"],
-    )
-    @help_description(
-        desc    = "Moderators only —— Escalates the current ticket thread to Directors.",
-        prefix  = True,
-        slash   = False,
         aliases = ["e", "esc"],
     )
     async def escalate(self, ctx : commands.Context[commands.Bot]) -> None:

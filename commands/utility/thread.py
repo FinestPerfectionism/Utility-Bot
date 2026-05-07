@@ -44,7 +44,7 @@ class ThreadCommands(commands.Cog):
 
     @commands.command(
         name = "lock",
-        aliases=["l"],
+        aliases = ["l"],
     )
     async def lock(self, ctx : commands.Context[commands.Bot]) -> None:
         if not self.allowed_in_thread(ctx):
@@ -61,7 +61,7 @@ class ThreadCommands(commands.Cog):
 
     @commands.command(
         name = "close",
-        aliases=["c"],
+        aliases = ["c"],
     )
     async def close(self, ctx : commands.Context[commands.Bot]) -> None:
         if not self.allowed_in_thread(ctx):

@@ -2,8 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import ACCEPTED_EMOJI_ID, COLOR_BLURPLE, DENIED_EMOJI_ID, DIRECTORS_ROLE_ID
-from core.help import ArgumentInfo, RoleConfig, help_description
+from constants import ACCEPTED_EMOJI_ID, COLOR_BLURPLE, DENIED_EMOJI_ID
 from core.permissions import directors_only
 from core.responses import send_custom_message
 
@@ -39,26 +38,6 @@ class RoleCommands(
             app_commands.Choice(name = "Enabled",  value = "enabled"),
             app_commands.Choice(name = "Disabled", value = "disabled"),
         ],
-    )
-    @help_description(
-        desc        = "Directors only —— Lists all permissions for a selected role.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        has_inverse = False,
-        arguments   = {
-            "role": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = True,
-                description = "The role to list permissions for.",
-            ),
-            "filter": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = False,
-                description = "Whether to show enabled, disabled, or all permissions.",
-                choices     = ["All", "Enabled", "Disabled"],
-            ),
-        },
     )
     @directors_only()
     async def rolepermissions(
@@ -102,25 +81,6 @@ class RoleCommands(
     @app_commands.describe(
         role1 = "The first role to compare.",
         role2 = "The second role to compare.",
-    )
-    @help_description(
-        desc        = "Directors only —— Lists all differing permissions for two selected roles.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        has_inverse = False,
-        arguments   = {
-            "role-1": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = True,
-                description = "The first role to compare.",
-            ),
-            "role-2": ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                required    = True,
-                description = "The second role to compare.",
-            ),
-        },
     )
     @directors_only()
     async def rolepermissionscompare(
@@ -207,25 +167,6 @@ class RoleCommands(
                 value = "both",
             ),
         ],
-    )
-    @help_description(
-        desc      = "Directors only —— Lists members by whether they have a role and whether they are humans, bots, or both.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {
-            "role"         : ArgumentInfo(roles = [DIRECTORS_ROLE_ID], description = "Role to inspect."),
-            "role-filter"  : ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                description = "Whether to list members who have or do not have the role.",
-                choices     = ["Who has", "Who doesnt have"],
-            ),
-            "person-filter" : ArgumentInfo(
-                roles       = [DIRECTORS_ROLE_ID],
-                description = "Whether to list humans, bots, or both.",
-                choices     = ["Humans", "Bots", "Both"],
-            ),
-        },
     )
     @directors_only()
     async def members(

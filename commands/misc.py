@@ -5,7 +5,6 @@ from discord.ui import LayoutView, Separator, TextDisplay
 
 import core.responses as cr
 from constants import BOT_OWNER_ID, HOLY_FATHER_ID
-from core.help import help_description
 from core.responses import send_custom_message
 
 
@@ -33,8 +32,10 @@ class Ping(LayoutView):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MiscCommands(commands.Cog):
+    bot : commands.Bot
+
     def __init__(self, bot : commands.Bot) -> None:
-        _ = self.bot = bot
+        self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /femboy Command
@@ -43,11 +44,6 @@ class MiscCommands(commands.Cog):
     @app_commands.command(
         name        = "femboy",
         description = "Such a good little utility kitten.",
-    )
-    @help_description(
-        desc   = "Mreow!",
-        prefix = False,
-        slash  = True,
     )
     async def femboy(self, interaction : discord.Interaction) -> None:
         _ = await interaction.response.defer()
@@ -88,11 +84,6 @@ class MiscCommands(commands.Cog):
     @app_commands.command(
         name        = "roulette",
         description = "Have fun...",
-    )
-    @help_description(
-        desc   = "Russian roulette... have fun.",
-        prefix = False,
-        slash  = True,
     )
     async def roulette(self, interaction : discord.Interaction) -> None:
         guild  = interaction.guild
@@ -144,15 +135,7 @@ class MiscCommands(commands.Cog):
     # .ping Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(
-        name = "bot-ping",
-    )
-    @help_description(
-        desc        = "Displays the bot's current latency in milliseconds.",
-        prefix      = True,
-        slash       = False,
-        has_inverse = False,
-    )
+    @commands.command(name = "bot-ping")
     async def ping(self, ctx : commands.Context[commands.Bot]) -> None:
         latency_ms = round(self.bot.latency * 1000)
         _ = await ctx.send(view = Ping(latency_ms))

@@ -16,7 +16,6 @@ from constants import (
     SENIOR_MODERATORS_ROLE_ID,
 )
 from core.cases import CasesManager
-from core.help import ArgumentInfo, RoleConfig, help_description
 
 from ._base import CasesMixin, ClassificationView
 from .add_note import run_add_note
@@ -74,25 +73,6 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         include_notes = "include-notes",
         mass_only     = "mass-only",
     )
-    @help_description(
-        desc      = "Staff* only —— Queries moderation cases visible to you.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [
-            RoleConfig(role_id = MODERATORS_ROLE_ID),
-            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
-        ],
-        arguments = {
-            "user"          : ArgumentInfo(required = False, description = "Optional target user filter."),
-            "moderator"     : ArgumentInfo(required = False, description = "Optional moderator filter."),
-            "type"          : ArgumentInfo(required = False, description = "Optional case type filter."),
-            "contains"      : ArgumentInfo(required = False, description = "Optional text search over reason or content."),
-            "after"         : ArgumentInfo(required = False, description = "Optional lower date bound in YYYY-MM-DD format."),
-            "before"        : ArgumentInfo(required = False, description = "Optional upper date bound in YYYY-MM-DD format."),
-            "include-notes" : ArgumentInfo(required = False, description = "Whether note entries should be included."),
-            "mass-only"     : ArgumentInfo(required = False, description = "Only include entries produced by mass moderation."),
-        },
-    )
     async def cases_query(
         self          : CasesCommands,
         interaction   : discord.Interaction,
@@ -132,16 +112,6 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     @app_commands.command(name = "view", description = "View a single case with its related notes.")
     @app_commands.describe(case_id = "The case ID to view.")
     @app_commands.rename(case_id = "case-id")
-    @help_description(
-        desc      = "Staff* only —— Views a single case and any visible related notes.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [
-            RoleConfig(role_id = MODERATORS_ROLE_ID),
-            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
-        ],
-        arguments = {"case-id" : ArgumentInfo(description = "Case ID to view.")},
-    )
     async def cases_view(
         self        : CasesCommands,
         interaction : discord.Interaction,
@@ -162,26 +132,6 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         visibility = "Visibility restriction level.",
     )
     @app_commands.rename(case_id = "case-id")
-    @help_description(
-        desc      = "Staff* only —— Adds a note to a user or an existing case.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [
-            RoleConfig(role_id = MODERATORS_ROLE_ID),
-            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
-        ],
-        arguments = {
-            "content"    : ArgumentInfo(description = "Note content."),
-            "user"       : ArgumentInfo(required = False, description = "Optional user to attach the note to."),
-            "users"      : ArgumentInfo(required = False, description = "Optional comma-separated users for mass user notes."),
-            "case-id"    : ArgumentInfo(required = False, description = "Optional case ID to attach the note to."),
-            "visibility" : ArgumentInfo(
-                required = False,
-                description = "Visibility restriction level.",
-                choices=["moderators", "senior_moderators", "directors"],
-            ),
-        },
-    )
     async def cases_add_note(
         self        : CasesCommands,
         interaction : discord.Interaction,
@@ -205,19 +155,6 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         content = "The updated note content.",
     )
     @app_commands.rename(case_id = "case-id")
-    @help_description(
-        desc      = "Staff* only —— Edits a note entry.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [
-            RoleConfig(role_id = MODERATORS_ROLE_ID),
-            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
-        ],
-        arguments = {
-            "case-id" : ArgumentInfo(description = "Note case ID to edit."),
-            "content" : ArgumentInfo(description = "Replacement note content."),
-        },
-    )
     async def cases_edit_entry(
         self        : CasesCommands,
         interaction : discord.Interaction,
@@ -233,13 +170,6 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     @app_commands.command(name = "delete-entry", description = "Delete a case entry.")
     @app_commands.describe(case_id = "The case ID to delete.")
     @app_commands.rename(case_id = "case-id")
-    @help_description(
-        desc      = "Directors only —— Delete a case entry. Use strictly for deleting test cases.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {"case-id" : ArgumentInfo(description = "Case ID to delete.")},
-    )
     async def cases_delete_entry(
         self        : CasesCommands,
         interaction : discord.Interaction,
@@ -260,22 +190,6 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
         case_id    = "case-id",
         visibility = "level",
     )
-    @help_description(
-        desc      = "Staff* only —— Changes or requests a change to a case's visibility classification.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [
-            RoleConfig(role_id = MODERATORS_ROLE_ID),
-            RoleConfig(role_id = ADMINISTRATORS_ROLE_ID),
-        ],
-        arguments = {
-            "case-id" : ArgumentInfo(description = "Case ID to classify."),
-            "level"   : ArgumentInfo(
-                description = "Requested visibility level.",
-                choices=["moderators", "senior_moderators", "directors"],
-            ),
-        },
-    )
     async def cases_classify(
         self        : CasesCommands,
         interaction : discord.Interaction,
@@ -290,13 +204,6 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
 
     @app_commands.command(name = "configure", description = "Configure the cases log channel.")
     @app_commands.describe(channel="The channel where case logs will be sent.")
-    @help_description(
-        desc      = "Directors only —— Configures the channel used for case logs",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {"channel" : ArgumentInfo(description = "Text channel that should receive case logs.")},
-    )
     async def cases_configure(
         self        : CasesCommands,
         interaction : discord.Interaction,

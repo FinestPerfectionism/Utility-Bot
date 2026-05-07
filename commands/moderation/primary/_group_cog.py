@@ -7,13 +7,8 @@ from discord.ext import commands
 if TYPE_CHECKING:
     from bot import UtilityBot
 
-from constants import (
-    ADMINISTRATORS_ROLE_ID,
-    DIRECTORS_ROLE_ID,
-    MODERATORS_ROLE_ID,
-    SENIOR_MODERATORS_ROLE_ID,
-)
-from core.help import ArgumentInfo, RoleConfig, help_description
+from constants import SENIOR_MODERATORS_ROLE_ID
+from core.help import ArgDependency, ArgType, ArgumentInfo, OrNode, RoleNode, help_description
 
 from ._base import ModerationBase
 from .ban import run_ban
@@ -53,18 +48,42 @@ class ModerationCommands(
         delete_messages = "Delete messages from the last 1-7 days.",
         proof           = "Optional proof attachment.",
     )
-    @app_commands.rename(delete_messages="delete-messages")
+    @app_commands.rename(delete_messages = "delete-messages")
     @help_description(
-        desc        = "Senior Moderators only —— Bans a member from the server.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
-        has_inverse = "moderation un-ban",
+        desc         = "Bans a member from the server.",
+        command_name = "moderation ban",
+        prefix       = False,
+        slash        = True,
+        access_node  = OrNode(children = [RoleNode(role_id = SENIOR_MODERATORS_ROLE_ID)]),
         arguments   = {
-            "member"          : ArgumentInfo(required = False, description = "Member to ban. Leave empty to open mass moderation."),
-            "reason"          : ArgumentInfo(required = False, description = "Reason for the ban. Required for single actions."),
-            "delete-messages" : ArgumentInfo(required = False, description = "Delete messages from the last 1-7 days."),
-            "proof"           : ArgumentInfo(required = False, description = "Proof attachment."),
+            "member"          : ArgumentInfo(
+                arg_type          = ArgType.MemberSelect,
+                description       = "Member to ban.",
+                required          = True,
+                shown_as_optional = True,
+                empty_behavior    = "Mass Moderation — See `.help mm` for help",
+            ),
+            "reason"          : ArgumentInfo(
+                arg_type          = ArgType.Text,
+                description       = "Reason for the ban.",
+                required          = True,
+                shown_as_optional = True,
+                depends_on        = [ArgDependency(argument = "member")],
+            ),
+            "delete-messages" : ArgumentInfo(
+                arg_type        = ArgType.Integer,
+                arg_type_detail = "1-7",
+                description     = "Delete messages from the last 1-7 days.",
+                required        = False,
+                default         = "7",
+                depends_on      = [ArgDependency(argument = "member")],
+            ),
+            "proof"           : ArgumentInfo(
+                arg_type    = ArgType.Attachment,
+                description = "File proof.",
+                required    = False,
+                depends_on  = [ArgDependency(argument = "member")],
+            ),
         },
     )
     async def ban(
@@ -72,7 +91,7 @@ class ModerationCommands(
         interaction     : discord.Interaction,
         member          : discord.Member     | None,
         reason          : str                | None = None,
-        delete_messages : int                | None = 0,
+        delete_messages : int                | None = 7,
         proof           : discord.Attachment | None = None,
     ) -> None:
         await run_ban(self, interaction, member, reason, delete_messages, proof)
@@ -86,18 +105,6 @@ class ModerationCommands(
         user   = "The member ID, username, or tag to un-ban.",
         users  = "Comma-separated member IDs/tags for mass un-ban.",
         reason = "Reason for the un-ban.",
-    )
-    @help_description(
-        desc        = "Unbans a user from the server.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        has_inverse = "moderation ban",
-        arguments   = {
-            "user"   : ArgumentInfo(required = False, description = "User ID, username, or tag to unban."),
-            "users"  : ArgumentInfo(required = False, description = "Comma-separated users for mass un-ban."),
-            "reason" : ArgumentInfo(required = False, description = "Reason for the unban."),
-        },
     )
     async def unban(
         self,
@@ -113,12 +120,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "bans", description = "View all banned members.")
-    @help_description(
-        desc      = "Staff* only —— Lists all currently banned users.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID), RoleConfig(role_id = ADMINISTRATORS_ROLE_ID)],
-    )
     async def bans(self, interaction : discord.Interaction) -> None:
         await run_bans(self, interaction)
 
@@ -127,17 +128,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "kick", description = "Kick a member from the server.")
-    @help_description(
-        desc      = "Senior Moderators only —— Kicks a member from the server.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
-        arguments = {
-            "member" : ArgumentInfo(required = False, description = "Member to kick. Leave empty to open mass moderation."),
-            "reason" : ArgumentInfo(required = False, description = "Reason for the kick. Required for single actions."),
-            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
-        },
-    )
     @app_commands.describe(
         member = "The member to kick.",
         reason = "Reason for the kick.",
@@ -157,19 +147,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "timeout", description = "Timeout a member.")
-    @help_description(
-        desc        = "Moderators only —— Times out a member for a given duration.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = MODERATORS_ROLE_ID)],
-        has_inverse = "moderation un-timeout",
-        arguments   = {
-            "member"   : ArgumentInfo(required = False, description = "Member to timeout. Leave empty to open mass moderation."),
-            "duration" : ArgumentInfo(required = False, description = "Duration (e.g. 30s, 5m, 1h, 2d, 1w). Required for single actions."),
-            "reason"   : ArgumentInfo(required = False, description = "Reason for the timeout. Required for single actions."),
-            "proof"    : ArgumentInfo(required = False, description = "Proof attachment."),
-        },
-    )
     @app_commands.describe(
         member   = "The member to timeout.",
         duration = "Duration (e.g. 30s, 5m, 1h, 2d, 1w).",
@@ -191,17 +168,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "un-timeout", description = "Un-timeout a member.")
-    @help_description(
-        desc        = "Senior Moderators only —— Removes an active timeout from a member.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
-        has_inverse = "moderation timeout",
-        arguments   = {
-            "member" : ArgumentInfo(required = False, description = "Member to un-timeout. Leave empty to open mass moderation."),
-            "reason" : ArgumentInfo(required = False, description = "Reason for removing the timeout. Required for single actions."),
-        },
-    )
     @app_commands.describe(
         member = "The member to un-timeout.",
         reason = "Reason for the un-timeout.",
@@ -219,12 +185,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "timeouts", description = "View all timed out members.")
-    @help_description(
-        desc      = "Staff* only —— Lists all currently timed out members.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID), RoleConfig(role_id = ADMINISTRATORS_ROLE_ID)],
-    )
     async def timeouts(self, interaction : discord.Interaction) -> None:
         await run_timeouts(self, interaction)
 
@@ -233,18 +193,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "purge", description = "Delete a specified number of messages.")
-    @help_description(
-        desc      = "Moderators only —— Bulk deletes recent messages, optionally filtered to a single member.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID)],
-        arguments = {
-            "amount" : ArgumentInfo(required = False, description = "Number of messages to delete. Required for single-user purge."),
-            "reason" : ArgumentInfo(required = False, description = "Reason for the purge. Required for single-user purge."),
-            "member" : ArgumentInfo(required = False, description = "Only delete messages from this member. Leave empty to open mass moderation."),
-            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
-        },
-    )
     @app_commands.describe(
         amount = "Number of messages to delete (1-100).",
         reason = "Reason for the purge.",
@@ -266,12 +214,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "quarantines", description = "View all quarantined members.")
-    @help_description(
-        desc      = "Staff\\* only —— Lists all currently quarantined members.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = MODERATORS_ROLE_ID), RoleConfig(role_id = ADMINISTRATORS_ROLE_ID)],
-    )
     async def quarantines(self, interaction : discord.Interaction) -> None:
         await run_quarantines(self, interaction)
 
@@ -280,18 +222,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "quarantine", description = "Quarantine a member.")
-    @help_description(
-        desc        = "Senior Moderators only —— Places a member into quarantine.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = SENIOR_MODERATORS_ROLE_ID)],
-        has_inverse = "moderation un-quarantine",
-        arguments   = {
-            "member" : ArgumentInfo(required = False, description = "Member to quarantine. Leave empty to open mass moderation."),
-            "reason" : ArgumentInfo(required = False, description = "Reason for the quarantine. Required for single actions."),
-            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
-        },
-    )
     @app_commands.describe(
         member = "The member to quarantine.",
         reason = "Reason for the quarantine.",
@@ -311,18 +241,6 @@ class ModerationCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @app_commands.command(name = "un-quarantine", description = "Un-quarantine a member.")
-    @help_description(
-        desc        = "Directors only —— Removes a member from quarantine.",
-        prefix      = False,
-        slash       = True,
-        run_roles   = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        has_inverse = "moderation quarantine",
-        arguments   = {
-            "member" : ArgumentInfo(required = False, description = "Member to unquarantine. Leave empty to open mass moderation."),
-            "reason" : ArgumentInfo(required = False, description = "Reason for removing quarantine. Required for single actions."),
-            "proof"  : ArgumentInfo(required = False, description = "Proof attachment."),
-        },
-    )
     @app_commands.describe(
         member = "The member to un-quarantine.",
         reason = "Reason for the un-quarantine.",

@@ -5,10 +5,8 @@ from discord import app_commands
 from discord.ext import commands
 
 from constants import (
-    DIRECTORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
-from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import directors_only, main_guild_only
 from core.responses import send_custom_message
 from core.state.application_state import APPLICATIONS_OPEN, save_application_state
@@ -51,16 +49,6 @@ class ApplicationsCommands(
                 value = "remove",
             ),
         ],
-    )
-    @help_description(
-        desc      = "Directors only —— Add or remove a user from the applications blacklist.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {
-            "action" : ArgumentInfo(description = "Choose whether to add or remove the blacklist entry.", choices=["Add", "Remove"]),
-            "user"   : ArgumentInfo(description = "User to blacklist or unblacklist from applications."),
-        },
     )
     @main_guild_only()
     @directors_only()
@@ -170,16 +158,6 @@ class ApplicationsCommands(
             ),
         ],
     )
-    @help_description(
-        desc      = "Directors only —— Open or close moderator or administrator applications.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id=DIRECTORS_ROLE_ID)],
-        arguments = {
-            "application" : ArgumentInfo(description = "Application type to modify.", choices=["Moderators", "Administrators"]),
-            "state"       : ArgumentInfo(description = "Whether that application should be open or closed.", choices=["Open", "Closed"]),
-        },
-    )
     @directors_only()
     async def appmodify(
         self,
@@ -214,11 +192,6 @@ class ApplicationsCommands(
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name = "cancel")
-    @help_description(
-        desc   = "Cancels your active application. This command only works in DMs while you have an active application.",
-        prefix = True,
-        slash  = False,
-    )
     async def cancel(self, ctx : commands.Context[commands.Bot]) -> None:
         if ctx.guild is not None:
             await send_custom_message(

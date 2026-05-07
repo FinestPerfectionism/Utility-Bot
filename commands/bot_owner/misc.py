@@ -5,11 +5,11 @@ import re
 import textwrap
 import traceback
 from asyncio import sleep
+from inspect import cleandoc
 from typing import (
     TYPE_CHECKING,
     cast,
 )
-from inspect import cleandoc
 
 import discord
 from discord import app_commands, ui
@@ -28,7 +28,7 @@ from constants import (
     CONTESTED_EMOJI_ID,
     DENIED_EMOJI_ID,
 )
-from core.responses import send_custom_message, multi_custom_message
+from core.responses import multi_custom_message, send_custom_message
 from events.messages.on_edit import MessageEditHandler
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -179,8 +179,8 @@ async def run_eval(
                     ```py\n
                     {e.__class__.__name__}: {e}\n
                     ```
-                    """
-                )
+                    """,
+                ),
             )
             await sleep(5)
             await msg.delete()

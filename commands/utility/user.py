@@ -11,7 +11,6 @@ from discord.ui import Button, View
 from typing_extensions import override
 
 from constants import BOT_ID
-from core.help import ArgumentInfo, help_description
 from core.responses import send_custom_message
 
 TIMEZONE_FILE = "user_timezones.json"
@@ -337,34 +336,7 @@ class UserCommands(commands.Cog):
             description = "View time for a timezone. Usage: /@ {timezone}",
         )
 
-    @commands.command(name = "timezone", aliases=["ti"])
-    @help_description(
-        desc        = "The timezone command allows users to set and view their timezone, or view the current time in a specific timezone. It also allows users to view the current time of other users if they have set their timezone.",
-        prefix      = True,
-        slash       = False,
-        has_inverse = False,
-        aliases     = ["ti"],
-        arguments   = {
-            "s": ArgumentInfo(
-                roles       = [],
-                required    = False,
-                description = "Set timezone for yourself or a user.",
-                is_flag     = True,
-            ),
-            "user": ArgumentInfo(
-                roles       = [],
-                required    = False,
-                description = "The user to view the timezone of.",
-                is_flag     = False,
-            ),
-            "tz": ArgumentInfo(
-                roles       = [],
-                required    = False,
-                description = "The timezone to view or set to.",
-                is_flag     = True,
-            ),
-        },
-    )
+    @commands.command(name = "timezone", aliases = ["ti"])
     async def timezone(
         self,
         ctx  : commands.Context[commands.Bot],
@@ -657,13 +629,6 @@ class UserCommands(commands.Cog):
             _ = await interaction.response.edit_message(content = self.get_page_content(), view = self)
 
     @commands.command(name = "userinfo", aliases = ["ui"])
-    @help_description(
-        desc        = "The userinfo command displays information about a user, including their username, display name, guild nickname, time (if set by the user), roles, time, join date, and account creation date.",
-        prefix      = True,
-        slash       = False,
-        has_inverse = False,
-        aliases     = ["ui"],
-    )
     async def userinfo(self, ctx: commands.Context[commands.Bot], *, user: str | None = None) -> None:
         if ctx.guild is None:
             return

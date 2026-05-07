@@ -1,7 +1,7 @@
+from inspect import cleandoc
+
 from discord import SeparatorSpacing
 from discord.ui import Container, LayoutView, Separator, TextDisplay
-
-from inspect import cleandoc
 
 
 class AdministratorComponents1(LayoutView):
@@ -11,7 +11,7 @@ class AdministratorComponents1(LayoutView):
                 # Welcome to Administrator Guidelines!\n
                 Internal guidelines for the Goobers Administration Team.\n
                 -# **Note:** These guidelines are staff-only and may be revised at any time by Directorate decision. Sharing internal administration policy outside staff spaces is prohibited.
-                """
+                """,
             ),
         ),
     )
@@ -26,7 +26,7 @@ class AdministratorComponents2(LayoutView):
                     Administrator guidelines last updated <t:{timestamp}:D>.\n
                     -# All below is subject to change at any time based on Directorate decision or structural updates.\n
                     -# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n
-                    """
+                    """,
                 ),
             ),
             Separator(
@@ -59,7 +59,7 @@ class AdministratorComponents2(LayoutView):
                     If a proposand is not technically feasible, cannot be executed with current resources, or requires additional refinement, an Administrator must flag this immediately. The proposal may be placed into NEEDS REVISION, Standstill, or otherwise delayed. Do not silently leave an accepted proposal unimplemented.\n\n
                     ### §2.3 Owner and Director Action Tags\n
                     Some proposals carry OWNER ACTION or S. DIRECTOR ACTION tags, indicating that only the Owner or a Supporting Director can carry out implementation. Do not attempt to implement these independently — flag them to the appropriate party.
-                    """
+                    """,
                 ),
             ),
         )
@@ -81,7 +81,7 @@ class AdministratorComponents3(LayoutView):
                 Junior Administrators may create events. Senior Administrators may additionally manage or edit existing events. All events must be sanctioned by the Directorate or correspond to an accepted proposal.\n\n
                 ### §3.5 Nicknames\n
                 Junior Administrators may manage member nicknames where necessary for structural or organizational purposes. Nickname changes must not be used as an enforcement action — defer to the Moderation Team for anything conduct-related.
-                """
+                """,
             ),
         ),
     )
@@ -122,7 +122,7 @@ class AdministratorComponents4(LayoutView):
                 When an infrastructure change may affect moderation workflows — such as modifying ticket channels, alert channels, or bot command access — notify the Moderation Team in advance where practical. Changes that disrupt active moderation operations without prior notice are disruptive and should be avoided.\n\n
                 ### §7.5 Rollback and Errors\n
                 If a change produces an unintended result, report it to the Directorate immediately and document what changed and what went wrong. Do not silently correct mistakes through further undocumented changes. Transparency in errors is expected and will not be penalized unless the error resulted from negligence or acting outside authorized scope.
-                """
+                """,
             ),
         ),
     )

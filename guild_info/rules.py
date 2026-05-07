@@ -1,6 +1,7 @@
+from inspect import cleandoc
+
 from discord import ButtonStyle, SeparatorSpacing
 from discord.ui import Button, Container, LayoutView, Section, Separator, TextDisplay
-from inspect import cleandoc
 
 from constants import STANDSTILL_EMOJI_ID
 
@@ -12,7 +13,7 @@ class RuleComponents1(LayoutView):
                 # Welcome to The Goobers!\n
                 A server for dumbassery and gaming.\n
                 -# **Note:** It is within moderators' discretion as to whether you are breaking rules regardless of if the rules they find you to be breaking are listed here.
-                """
+                """,
             ),
         ),
     )
@@ -38,7 +39,7 @@ class RuleComponents2(LayoutView):
                     Rules last updated <t:{timestamp}:D>.\n
                     -# All below is subject to change at any time based on Directorate decision or structural updates.\n
                     -# Assembled by the Directorate team. Primarily written by <@1311394031640776716>.\n
-                    """
+                    """,
                 ),
             ),
             Separator(
@@ -91,8 +92,8 @@ class RuleComponents2(LayoutView):
                     All content must follow the designated purpose of each channel. Off-topic content is prohibited.\n
                     **Example:**\n
                     > *Ear-rape*
-                    """
-                )
+                    """,
+                ),
             ),
         )
         _ = self.add_item(self.container)

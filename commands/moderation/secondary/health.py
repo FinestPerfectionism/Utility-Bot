@@ -27,7 +27,6 @@ from constants import (
 if TYPE_CHECKING:
     from bot import UtilityBot
 
-from core.help import RoleConfig, help_description
 from core.permissions import is_director
 from core.responses import send_custom_message
 
@@ -613,12 +612,6 @@ class HealthCommands(commands.Cog):
     @app_commands.command(
         name        = "health",
         description = "View server health and run automated fixes.",
-    )
-    @help_description(
-        desc      = "Directors only —— Views a server health report and runs automated fixes if any issues are found.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
     )
     async def health(self, interaction : discord.Interaction) -> None:
         actor = interaction.user

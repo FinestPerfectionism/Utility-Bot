@@ -15,11 +15,9 @@ from constants import (
     COLOR_GREEN,
     COLOR_RED,
     CONTESTED_EMOJI_ID,
-    DIRECTORS_ROLE_ID,
     STAFF_ROLE_ID,
 )
 from core.cases import CasesManager, CaseType
-from core.help import ArgumentInfo, RoleConfig, help_description
 from core.permissions import is_director
 from core.responses import send_custom_message
 
@@ -93,12 +91,6 @@ class LockdownCommands(commands.Cog):
         name        = "status",
         description = "View the current lockdown status.",
     )
-    @help_description(
-        desc      = "Directors only —— Views the current lockdown state and summary.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-    )
     async def lockdown_status(self, interaction : discord.Interaction) -> None:
         member = interaction.user
         if not isinstance(member, discord.Member):
@@ -164,13 +156,6 @@ class LockdownCommands(commands.Cog):
         description = "Activate server lockdown.",
     )
     @app_commands.describe(reason = "Reason for lockdown.")
-    @help_description(
-        desc      = "Directors only —— Activates lockdown across the server.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
-        arguments = {"reason": ArgumentInfo(description = "Reason for engaging lockdown.")},
-    )
     async def lockdown_activate(
         self,
         interaction : discord.Interaction,
@@ -296,12 +281,6 @@ class LockdownCommands(commands.Cog):
     @lockdown_group.command(
         name        = "lift",
         description = "Lift server lockdown.",
-    )
-    @help_description(
-        desc      = "Directors only —— Lifs an active server lockdown and restores saved permissions.",
-        prefix    = False,
-        slash     = True,
-        run_roles = [RoleConfig(role_id = DIRECTORS_ROLE_ID)],
     )
     async def lockdown_lift(self, interaction : discord.Interaction) -> None:
         actor = interaction.user
