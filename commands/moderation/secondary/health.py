@@ -411,7 +411,7 @@ class HealthCommands(commands.Cog):
     def __init__(self, bot : "UtilityBot") -> None:
         self.bot = bot
 
-    def can_use(self, member: discord.Member) -> bool:
+    def can_use(self, member : discord.Member) -> bool:
         return is_director(member)
 
     def _checks_bot(self, guild : discord.Guild) -> list[dict[str, Any]]:

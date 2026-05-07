@@ -40,20 +40,20 @@ class LeaveCommands(commands.Cog):
     async def cog_unload(self) -> None:
         self._automation_loop.cancel()
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes = 1)
     async def _automation_loop(self) -> None:
         now_ts = datetime.now(tz = UTC).timestamp()
         today  = datetime.now(tz = UTC).date()
 
-        to_begin: list[tuple[str, dict[str, Any]]] = []
-        to_end:   list[tuple[str, dict[str, Any]]] = []
+        to_begin : list[tuple[str, dict[str, Any]]] = []
+        to_end   : list[tuple[str, dict[str, Any]]] = []
 
         for user_id_str, raw in list(self.data.items()):
             entry = normalize_entry(raw)
 
-            begin_str:   str | None = entry.get("begin_date")
-            end_str:     str | None = entry.get("end_date")
-            timer_end: float | None = entry.get("timer_end")
+            begin_str : str   | None = entry.get("begin_date")
+            end_str   : str   | None = entry.get("end_date")
+            timer_end : float | None = entry.get("timer_end")
 
             if begin_str:
                 begin_date = parse_date(begin_str)
@@ -78,7 +78,7 @@ class LeaveCommands(commands.Cog):
     async def _before_automation_loop(self) -> None:
         await self.bot.wait_until_ready()
 
-    async def _automation_apply_leave(self, user_id_str: str, entry: dict[str, Any]) -> None:
+    async def _automation_apply_leave(self, user_id_str : str, entry : dict[str, Any]) -> None:
         guild = next(iter(self.bot.guilds), None)
         if guild is None:
             return
@@ -140,7 +140,7 @@ class LeaveCommands(commands.Cog):
         self.data[user_id_str] = entry
         save_data(self.data)
 
-    async def _automation_remove_leave(self, user_id_str: str, entry: dict[str, Any]) -> None:
+    async def _automation_remove_leave(self, user_id_str : str, entry : dict[str, Any]) -> None:
         guild = next(iter(self.bot.guilds), None)
         if guild is None:
             return
@@ -156,7 +156,7 @@ class LeaveCommands(commands.Cog):
             return
 
         stored_name:     str       = entry.get("original_nick") or member.display_name
-        leave_type_str:  str       = entry.get("leave_type", LeaveType.none.value)
+        leave_type_str :  str       = entry.get("leave_type", LeaveType.none.value)
         stored_role_ids: list[int] = entry.get("removed_roles", [])
 
         roles_to_restore: list[discord.Role] = []

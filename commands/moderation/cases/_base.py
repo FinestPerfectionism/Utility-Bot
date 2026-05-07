@@ -438,17 +438,17 @@ class CasesMixin:
         CaseType.NOTE.value              : "Note Added",
     }
 
-    def can_view(self, member: discord.Member) -> bool:
+    def can_view(self, member : discord.Member) -> bool:
         return (
             is_director(member)
             or is_administrator(member)
             or is_moderator(member)
         )
 
-    def can_configure(self, member: discord.Member) -> bool:
+    def can_configure(self, member : discord.Member) -> bool:
         return is_director(member)
 
-    def _visibility_level(self, member: discord.Member) -> int:
+    def _visibility_level(self, member : discord.Member) -> int:
         if is_director(member):
             return 3
         if is_senior_moderator(member):
@@ -457,7 +457,7 @@ class CasesMixin:
             return 1
         return 0
 
-    def can_see_case(self, member: discord.Member, case: dict[str, Any]) -> bool:
+    def can_see_case(self, member : discord.Member, case: dict[str, Any]) -> bool:
         vis   = case.get("visibility_level", "moderators")
         level = self._visibility_level(member)
         if vis == "directors":
@@ -468,7 +468,7 @@ class CasesMixin:
             return level >= n_2
         return level >= 1
 
-    def can_edit_entry(self, member: discord.Member, case: dict[str, Any]) -> bool:
+    def can_edit_entry(self, member : discord.Member, case: dict[str, Any]) -> bool:
         return (
             member.id == case["moderator_id"]
             or is_senior_moderator(member)

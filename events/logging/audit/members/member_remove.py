@@ -19,7 +19,7 @@ class MemberRemoveCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member) -> None:
+    async def on_member_remove(self, member : discord.Member) -> None:
         log_channel = await self.get_log_channel(member.guild)
         if not log_channel:
             return

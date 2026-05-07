@@ -142,7 +142,7 @@ class PartnershipCommands(commands.Cog):
         data        = load_partnership_data()
         description = server_description.replace("\\n", "\n")
 
-        entry: PartnershipEntry = {
+        entry : PartnershipEntry = {
             "server_name"        : server_name,
             "server_description" : description,
             "server_owner_id"    : server_owner.id,

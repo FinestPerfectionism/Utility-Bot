@@ -73,7 +73,7 @@ class LockdownCommands(commands.Cog):
         with Path(self.data_file).open("w") as f:
             json.dump(self.data, f, indent=4)
 
-    def can_manage_lockdown(self, member: discord.Member) -> bool:
+    def can_manage_lockdown(self, member : discord.Member) -> bool:
         return is_director(member)
 
     def is_channel_exempt(self, channel : discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel) -> bool:
@@ -382,7 +382,7 @@ class LockdownCommands(commands.Cog):
         await interaction.followup.send(embed = embed, ephemeral = True)
 
     @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member) -> None:
+    async def on_member_join(self, member : discord.Member) -> None:
         if not self.data["active"]:
             return
 

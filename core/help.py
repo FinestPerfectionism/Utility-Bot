@@ -77,7 +77,7 @@ class OrNode(AccessNode):
 
 @dataclass
 class NotNode(AccessNode):
-    child: AccessNode
+    child : AccessNode
 
 def evaluate_access(node : AccessNode, member : discord.Member) -> bool:
     member_role_ids = {r.id for r in member.roles}
@@ -94,19 +94,38 @@ def evaluate_access(node : AccessNode, member : discord.Member) -> bool:
         return not evaluate_access(node.child, member)
     return False
 
-def describe_access_node(node : AccessNode) -> str:
+def describe_access_node(node : AccessNode, *, _parent : type[AndNode | OrNode] | None = None) -> str:
     if isinstance(node, RoleNode):
         return f"<@&{node.role_id}>"
     if isinstance(node, UserNode):
         return f"<@{node.user_id}>"
     if isinstance(node, AndNode):
-        parts = [describe_access_node(c) for c in node.children]
-        return " **AND** ".join(parts)
+        parts : list[str] = []
+        for child in node.children:
+            desc = describe_access_node(child, _parent = AndNode)
+            if isinstance(child, OrNode):
+                desc = f"({desc})"
+            parts.append(desc)
+        result = " **AND** ".join(parts)
+        if _parent is OrNode:
+            return f"({result})"
+        return result
     if isinstance(node, OrNode):
-        parts = [describe_access_node(c) for c in node.children]
-        return " **OR** ".join(parts)
+        parts = []
+        for child in node.children:
+            desc = describe_access_node(child, _parent = OrNode)
+            if isinstance(child, AndNode):
+                desc = f"({desc})"
+            parts.append(desc)
+        result = " **OR** ".join(parts)
+        if _parent is AndNode:
+            return f"({result})"
+        return result
     if isinstance(node, NotNode):
-        return f"**NOT** {describe_access_node(node.child)}"
+        inner = describe_access_node(node.child)
+        if isinstance(node.child, AndNode | OrNode):
+            return f"**NOT** ({inner})"
+        return f"**NOT** {inner}"
     return "Unknown"
 
 class ArgType(Enum):
@@ -161,10 +180,10 @@ class CommandHelpData:
 @runtime_checkable
 class HelpCallback(Protocol[P, T_co]):
     __help_data__ : CommandHelpData
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Coroutine[None, None, T_co]: ...
+    def __call__(self, *args : P.args, **kwargs : P.kwargs) -> Coroutine[None, None, T_co]: ...
 
 class HelpedCallable:
-    __help_data__: CommandHelpData = cast("CommandHelpData", cast(object, None))
+    __help_data__ : CommandHelpData = cast("CommandHelpData", cast(object, None))
 
 def help_description(
     desc          : str,
@@ -255,12 +274,10 @@ async def resolve_command_ref(bot : commands.Bot, data : CommandHelpData) -> str
 
     if len(parts) == 1:
         return f"</{parts[0]}:{parent.id}>"
-        
+
     return f"</{name}:{parent.id}>"
 
-_NOTICE_LOGICAL_OR = (
-    "-# In the absence of advanced restrictions, multiple listings are governed by the **Logical OR** operator.\n"
-)
+_NOTICE_LOGICAL_OR = "-# In the absence of advanced restrictions, multiple listings are governed by the **Logical OR** operator.\n"
 
 def _format_arg_type(info : ArgumentInfo) -> str:
     if info.arg_type_detail is not None:
@@ -318,7 +335,7 @@ def _build_arg_block(name: str, info: ArgumentInfo) -> str:
 
     return "\n".join(lines)
 
-def _build_authority_section(data : CommandHelpData, member: discord.Member) -> tuple[str, int]:
+def _build_authority_section(data : CommandHelpData, member : discord.Member) -> tuple[str, int]:
     status, _, _, allowed_channels = check_access(member, data)
 
     if status == "full":
@@ -356,54 +373,56 @@ def _build_authority_section(data : CommandHelpData, member: discord.Member) -> 
 
     return text, int(colour)
 
-def _collect_role_nodes(node : AccessNode) -> list[RoleNode]:
+def _collect_role_nodes(node : AccessNode, *, negated : bool = False) -> list[tuple[RoleNode, bool]]:
     if isinstance(node, RoleNode):
-        return [node]
+        return [(node, negated)]
+    if isinstance(node, NotNode):
+        return _collect_role_nodes(node.child, negated = not negated)
     if isinstance(node, OrNode | AndNode):
-        result : list[RoleNode] = []
+        result : list[tuple[RoleNode, bool]] = []
         for child in node.children:
-            result.extend(_collect_role_nodes(child))
+            result.extend(_collect_role_nodes(child, negated = negated))
         return result
     return []
 
-def _collect_user_nodes(node : AccessNode) -> list[UserNode]:
+def _collect_user_nodes(node : AccessNode, *, negated : bool = False) -> list[tuple[UserNode, bool]]:
     if isinstance(node, UserNode):
-        return [node]
+        return [(node, negated)]
+    if isinstance(node, NotNode):
+        return _collect_user_nodes(node.child, negated = not negated)
     if isinstance(node, OrNode | AndNode):
-        result : list[UserNode] = []
+        result : list[tuple[UserNode, bool]] = []
         for child in node.children:
-            result.extend(_collect_user_nodes(child))
+            result.extend(_collect_user_nodes(child, negated = negated))
         return result
     return []
 
 def _build_authorized_section(data : CommandHelpData) -> str:
     lines : list[str] = ["## Authorized"]
 
-    user_nodes : list[UserNode] = (
+    user_entries : list[tuple[UserNode, bool]] = (
         _collect_user_nodes(data.access_node) if data.access_node is not None else []
     )
-    role_nodes : list[RoleNode] = (
+    role_entries : list[tuple[RoleNode, bool]] = (
         _collect_role_nodes(data.access_node) if data.access_node is not None else []
     )
 
     lines.append("### Users")
-    if user_nodes:
-        for un in user_nodes:
-            lines.append(f"<@{un.user_id}>")
+    if user_entries:
+        for un, negated in user_entries:
+            prefix = "**NOT** " if negated else ""
+            lines.append(f"{prefix}<@{un.user_id}>")
         lines.append(_NOTICE_LOGICAL_OR.strip())
     else:
         lines.append("Not applicable.")
         lines.append(_NOTICE_LOGICAL_OR.strip())
 
     lines.append("### Roles")
-    if role_nodes:
-        for rn in role_nodes:
-            lines.append(f"<@&{rn.role_id}>")
-        if len(role_nodes) > 1:
-            op = "AND" if isinstance(data.access_node, AndNode) else "OR"
-            lines.append(f"-# Multiple roles are governed by the **Logical {op}** operator.")
-        else:
-            lines.append(_NOTICE_LOGICAL_OR.strip())
+    if role_entries:
+        for rn, negated in role_entries:
+            prefix = "**NOT** " if negated else ""
+            lines.append(f"{prefix}<@&{rn.role_id}>")
+        lines.append(_NOTICE_LOGICAL_OR.strip())
     else:
         lines.append(f"Not applicable.")
         lines.append(_NOTICE_LOGICAL_OR.strip())

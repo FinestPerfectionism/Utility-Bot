@@ -12,7 +12,7 @@ class MemberLeaveHandler(commands.Cog):
     def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
     @commands.Cog.listener()
-    async def on_member_remove(self, member: discord.Member) -> None:
+    async def on_member_remove(self, member : discord.Member) -> None:
         data = ACTIVE_APPLICATIONS.get(member.id)
         if not data:
             return

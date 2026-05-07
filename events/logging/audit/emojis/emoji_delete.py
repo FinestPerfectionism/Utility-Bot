@@ -16,7 +16,7 @@ class EmojiDeleteCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_emojis_update(self, guild : discord.Guild, before: Sequence[discord.Emoji], after: Sequence[discord.Emoji]) -> None:
+    async def on_guild_emojis_update(self, guild : discord.Guild, before: Sequence[discord.Emoji], after : Sequence[discord.Emoji]) -> None:
         after_ids = {emoji.id for emoji in after}
         removed = [emoji for emoji in before if emoji.id not in after_ids]
 

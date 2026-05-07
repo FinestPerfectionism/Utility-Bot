@@ -77,7 +77,7 @@ class AntiNukeSystem(commands.Cog):
         with Path(self.config_file).open("w") as f:
             json.dump(self.config, f, indent=4)
 
-    def is_director(self, member: discord.Member) -> bool:
+    def is_director(self, member : discord.Member) -> bool:
         return any(role.id == self.DIRECTORS_ROLE_ID for role in member.roles)
 
     def clean_old_actions(self, user_id : int, action_type: str) -> None:
@@ -233,7 +233,7 @@ class AntiNukeSystem(commands.Cog):
     async def send_quarantine_alert(
         self,
         guild : discord.Guild,
-        member: discord.Member,
+        member : discord.Member,
         action_type: str,
         hourly_count: int,
         daily_count: int,
@@ -329,7 +329,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_channel_update(self, before: discord.abc.GuildChannel, after: discord.abc.GuildChannel) -> None:
+    async def on_guild_channel_update(self, before: discord.abc.GuildChannel, after : discord.abc.GuildChannel) -> None:
         if before.name == after.name:
             return
 
@@ -386,7 +386,7 @@ class AntiNukeSystem(commands.Cog):
                 break
 
     @commands.Cog.listener()
-    async def on_guild_role_update(self, before: discord.Role, after: discord.Role) -> None:
+    async def on_guild_role_update(self, before: discord.Role, after : discord.Role) -> None:
         if before.name == after.name:
             return
 

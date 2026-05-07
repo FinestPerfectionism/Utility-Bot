@@ -15,7 +15,7 @@ class MemberEditCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_member_update(self, before: discord.Member, after: discord.Member) -> None:
+    async def on_member_update(self, before: discord.Member, after : discord.Member) -> None:
         if before.nick != after.nick:
             log_channel = await self.get_log_channel(after.guild)
             if not log_channel:

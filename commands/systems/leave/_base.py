@@ -113,10 +113,10 @@ def parse_date(value: str) -> date_type | None:
         return datetime.strptime(value.strip(), DATE_FMT).replace(tzinfo=UTC).date()
     return None
 
-def entry_has_automation(entry: dict[str, Any]) -> bool:
+def entry_has_automation(entry : dict[str, Any]) -> bool:
     return bool(entry.get("begin_date") or entry.get("end_date") or entry.get("timer_end"))
 
-def describe_automation(entry: dict[str, Any]) -> str:
+def describe_automation(entry : dict[str, Any]) -> str:
     parts: list[str] = []
     if entry.get("begin_date"):
         parts.append(f"scheduled to **begin** on `{entry['begin_date']}`")

@@ -81,7 +81,7 @@ def resolve_forum_tags(
 
 _TIME_REGEX = re.compile(r"(\d+)\s*(mo|d|h|m|s)", re.IGNORECASE)
 
-def parse_duration(input_str: str) -> timedelta | None:
+def parse_duration(input_str : str) -> timedelta | None:
     matches = _TIME_REGEX.findall(input_str)
     if not matches:
         return None

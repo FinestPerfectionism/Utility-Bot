@@ -15,7 +15,7 @@ class ServerEditCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_update(self, before: discord.Guild, after: discord.Guild) -> None:
+    async def on_guild_update(self, before: discord.Guild, after : discord.Guild) -> None:
         log_channel = await self.get_log_channel(after)
         if not log_channel:
             return

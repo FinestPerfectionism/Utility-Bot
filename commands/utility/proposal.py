@@ -81,7 +81,7 @@ def _validate_transition(
 
 _COMMITTEE_ROLE_IDS: frozenset[int] = frozenset({STAFF_COMMITTEE_ROLE_ID})
 
-def is_committee(member: discord.Member) -> bool:
+def is_committee(member : discord.Member) -> bool:
     return any(r.id in _COMMITTEE_ROLE_IDS for r in member.roles)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

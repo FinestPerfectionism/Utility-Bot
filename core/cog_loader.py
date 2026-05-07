@@ -8,7 +8,7 @@ import pkgutil
 
 log = logging.getLogger("Utility Bot")
 
-def discover_cogs(*package_names: str, priority: list[str] | None = None) -> list[str]:
+def discover_cogs(*package_names : str, priority : list[str] | None = None) -> list[str]:
     seen : set[str]  = set()
     cogs : list[str] = []
 

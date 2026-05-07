@@ -15,7 +15,7 @@ class ThreadEditCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_thread_update(self, before: discord.Thread, after: discord.Thread) -> None:
+    async def on_thread_update(self, before: discord.Thread, after : discord.Thread) -> None:
         if after.parent and self.is_directorship_channel(after.parent):
             return
 

@@ -59,7 +59,7 @@ class NominationCommands(commands.Cog):
         self.bot  = bot
         self.data : dict[str, NominationCase] = load_nomination_data()
 
-    def _is_director(self, member: discord.Member) -> bool:
+    def _is_director(self, member : discord.Member) -> bool:
         return any(role.id == DIRECTORS_ROLE_ID for role in member.roles)
 
     def _get_directors(self, guild : discord.Guild) -> list[discord.Member]:

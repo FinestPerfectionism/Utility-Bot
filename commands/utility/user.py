@@ -33,7 +33,7 @@ class UserCommands(commands.Cog):
         with Path(TIMEZONE_FILE).open("w") as f:
             json.dump(data, f, indent=2)
 
-    def resolve_timezone(self, tz_str: str) -> pytz.BaseTzInfo | list[str] | None:
+    def resolve_timezone(self, tz_str : str) -> pytz.BaseTzInfo | list[str] | None:
         abbrev_map = {
             "EST"     : "America/New_York",
             "EDT"     : "America/New_York",

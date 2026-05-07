@@ -250,7 +250,7 @@ class ModerationBase(commands.Cog):
             self.data[section] = {}
         return self.data[section]
 
-    def parse_duration(self, duration_str: str) -> int | None:
+    def parse_duration(self, duration_str : str) -> int | None:
         duration_str = duration_str.lower().strip()
         try:
             if duration_str.endswith("s"):
@@ -359,10 +359,10 @@ class ModerationBase(commands.Cog):
 
         self.save_data()
 
-    def has_protected_role(self, member: discord.Member) -> bool:
+    def has_protected_role(self, member : discord.Member) -> bool:
         return any(has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
 
-    def can_view_moderation(self, member: discord.Member) -> bool:
+    def can_view_moderation(self, member : discord.Member) -> bool:
         return (
             is_director(member) or
             is_senior_moderator(member) or
@@ -370,25 +370,25 @@ class ModerationBase(commands.Cog):
             is_moderator(member)
         )
 
-    def can_apply_standard_actions(self, member: discord.Member) -> bool:
+    def can_apply_standard_actions(self, member : discord.Member) -> bool:
         return is_moderator(member)
 
-    def can_untimeout(self, member: discord.Member) -> bool:
+    def can_untimeout(self, member : discord.Member) -> bool:
         return is_director(member) or is_senior_moderator(member)
 
-    def can_reverse_actions(self, member: discord.Member) -> bool:
+    def can_reverse_actions(self, member : discord.Member) -> bool:
         return is_director(member)
 
-    def can_quarantine(self, member: discord.Member) -> bool:
+    def can_quarantine(self, member : discord.Member) -> bool:
         return self.can_apply_standard_actions(member)
 
-    def can_view(self, member: discord.Member) -> bool:
+    def can_view(self, member : discord.Member) -> bool:
         return self.can_view_moderation(member)
 
-    def can_moderate(self, member: discord.Member) -> bool:
+    def can_moderate(self, member : discord.Member) -> bool:
         return self.can_apply_standard_actions(member)
 
-    def can_unban_untimeout(self, member: discord.Member) -> bool:
+    def can_unban_untimeout(self, member : discord.Member) -> bool:
         return self.can_reverse_actions(member)
 
     def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:

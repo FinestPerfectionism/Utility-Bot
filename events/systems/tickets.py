@@ -49,7 +49,7 @@ def set_bot(bot : commands.Bot) -> None:
     global _bot_ref
     _bot_ref = bot
 
-def _is_staff(member: discord.Member) -> bool:
+def _is_staff(member : discord.Member) -> bool:
     role_ids = {r.id for r in member.roles}
     return MODERATORS_ROLE_ID in role_ids or DIRECTORS_ROLE_ID in role_ids
 

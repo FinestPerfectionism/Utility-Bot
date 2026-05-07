@@ -15,7 +15,7 @@ class RoleEditCog(AuditCog):
         super().__init__(bot, queue)
 
     @commands.Cog.listener()
-    async def on_guild_role_update(self, before: discord.Role, after: discord.Role) -> None:
+    async def on_guild_role_update(self, before: discord.Role, after : discord.Role) -> None:
         log_channel = await self.get_log_channel(after.guild)
         if not log_channel:
             return

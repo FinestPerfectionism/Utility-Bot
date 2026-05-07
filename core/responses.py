@@ -144,7 +144,7 @@ async def send_custom_message(
 ) -> None:
     allow_contact = contact_bot_owner if msg_type in ("warning", "error") else False
 
-    lines: list[str] = [_build_header(msg_type, title)]
+    lines : list[str] = [_build_header(msg_type, title)]
     if subtitle:
         lines.append(subtitle)
     footer_text = _build_footer_text(footer, contact_bot_owner = allow_contact)
