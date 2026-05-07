@@ -151,7 +151,7 @@ def _build_control_content(
     )
 
 async def _find_control_message(
-    thread: discord.Thread,
+    thread : discord.Thread,
     bot_id : int,
 ) -> discord.Message | None:
     try:
@@ -164,15 +164,15 @@ async def _find_control_message(
     return None
 
 async def _update_control_message(
-    thread:       discord.Thread,
-    bot:          commands.Bot,
-    applied_tags: list[discord.ForumTag],
-    actor:        discord.Member,
+    thread       : discord.Thread,
+    bot          : commands.Bot,
+    applied_tags : list[discord.ForumTag],
+    actor        : discord.Member,
     *,
-    set_decision:       bool = False,
-    set_implementation: bool = False,
-    set_finalization:   bool = False,
-    clear_finalization: bool = False,
+    set_decision       : bool = False,
+    set_implementation : bool = False,
+    set_finalization   : bool = False,
+    clear_finalization : bool = False,
 ) -> None:
     if bot.user is None:
         return
@@ -207,7 +207,7 @@ async def _update_control_message(
 
 class ProposalCommands(
     commands.GroupCog,
-    name = "proposal",
+    name        = "proposal",
     description = "Staff Committee only —— Proposal commands.",
 ):
     def __init__(self, bot : commands.Bot) -> None:

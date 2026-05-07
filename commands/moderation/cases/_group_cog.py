@@ -31,7 +31,7 @@ from .view import run_view
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description = "Moderators only —— Cases management."):
-    def __init__(self, bot: UtilityBot) -> None:
+    def __init__(self, bot : UtilityBot) -> None:
         self.bot = bot
 
         if not hasattr(bot, "cases_manager"):
@@ -57,7 +57,10 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     # /cases query Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "query", description = "Query the moderation case history.")
+    @app_commands.command(
+        name        = "query",
+        description = "Query the moderation case history.",
+    )
     @app_commands.describe(
         user          = "Filter by user.",
         moderator     = "Filter by moderator.",
@@ -109,7 +112,10 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     # /cases view Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "view", description = "View a single case with its related notes.")
+    @app_commands.command(
+        name        = "view",
+        description = "View a single case with its related notes.",
+    )
     @app_commands.describe(case_id = "The case ID to view.")
     @app_commands.rename(case_id = "case-id")
     async def cases_view(
@@ -123,7 +129,10 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     # /cases add-note Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "add-note", description = "Add a note to a user or case.")
+    @app_commands.command(
+        name        = "add-note",
+        description = "Add a note to a user or case.",
+    )
     @app_commands.describe(
         content    = "The note content.",
         user       = "A single user to attach the note to.",
@@ -149,7 +158,10 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     # /cases edit-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "edit-entry", description = "Edit a note entry.")
+    @app_commands.command(
+        name        = "edit-entry",
+        description = "Edit a note entry.",
+    )
     @app_commands.describe(
         case_id = "The case ID of the note to edit.",
         content = "The updated note content.",
@@ -167,7 +179,10 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     # /cases delete-entry Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "delete-entry", description = "Delete a case entry.")
+    @app_commands.command(
+        name        = "delete-entry",
+        description = "Delete a case entry.",
+    )
     @app_commands.describe(case_id = "The case ID to delete.")
     @app_commands.rename(case_id = "case-id")
     async def cases_delete_entry(
@@ -181,7 +196,10 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     # /cases classify Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "classify", description = "Classify a case entry's visibility.")
+    @app_commands.command(
+        name        = "classify",
+        description = "Classify a case entry's visibility.",
+    )
     @app_commands.describe(
         case_id    = "The case ID to classify.",
         visibility = "The visibility restriction to apply or request.",
@@ -202,8 +220,11 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     # /cases configure Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @app_commands.command(name = "configure", description = "Configure the cases log channel.")
-    @app_commands.describe(channel="The channel where case logs will be sent.")
+    @app_commands.command(
+        name        = "configure",
+        description = "Configure the cases log channel.",
+    )
+    @app_commands.describe(channel = "The channel where case logs will be sent.")
     async def cases_configure(
         self        : CasesCommands,
         interaction : discord.Interaction,
@@ -211,5 +232,5 @@ class CasesCommands(CasesMixin, commands.GroupCog, name = "cases", description =
     ) -> None:
         await run_configure(self, interaction, channel)
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(CasesCommands(cast("UtilityBot", bot)))

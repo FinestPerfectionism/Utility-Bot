@@ -228,7 +228,7 @@ def check_access(
         else:
             inaccessible_args.append(arg_name)
 
-    allowed_channels: list[int] = []
+    allowed_channels : list[int] = []
     for rule in data.channel_rules:
         if evaluate_access(rule.node, member):
             allowed_channels = sorted(set(allowed_channels) | set(rule.channels))
@@ -237,7 +237,7 @@ def check_access(
         return "partial", accessible_args, inaccessible_args, allowed_channels
     return "full", accessible_args, inaccessible_args, allowed_channels
 
-async def resolve_command_ref(bot: commands.Bot, data : CommandHelpData) -> str:
+async def resolve_command_ref(bot : commands.Bot, data : CommandHelpData) -> str:
     name = data.command_name
     if name is None:
         return ""
@@ -255,9 +255,8 @@ async def resolve_command_ref(bot: commands.Bot, data : CommandHelpData) -> str:
 
     if len(parts) == 1:
         return f"</{parts[0]}:{parent.id}>"
-
-    tail = " ".join(parts[1:])
-    return f"</{tail}:{parent.id}>"
+        
+    return f"</{name}:{parent.id}>"
 
 _NOTICE_LOGICAL_OR = (
     "-# In the absence of advanced restrictions, multiple listings are governed by the **Logical OR** operator.\n"
@@ -391,7 +390,7 @@ def _build_authorized_section(data : CommandHelpData) -> str:
     if user_nodes:
         for un in user_nodes:
             lines.append(f"<@{un.user_id}>")
-        lines.append(_NOTICE_LOGICAL_OR)
+        lines.append(_NOTICE_LOGICAL_OR.strip())
     else:
         lines.append("Not applicable.")
         lines.append(_NOTICE_LOGICAL_OR.strip())
@@ -626,4 +625,7 @@ async def run_help(
         member       = member,
         command_ref  = command_ref,
     )
-    _ = await respond(view = view)
+    _ = await respond(
+        view             = view,
+        allowed_mentions = discord.AllowedMentions.none(),
+    )
