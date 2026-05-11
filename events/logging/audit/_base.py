@@ -52,7 +52,7 @@ class AuditQueue(commands.Cog):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class AuditCog(commands.Cog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
+    def __init__(self, bot : commands.Bot, queue : AuditQueue) -> None:
         self.bot = bot
         self.log_channel_id = CHANGE_LOG_CHANNEL_ID
         self._queue = queue

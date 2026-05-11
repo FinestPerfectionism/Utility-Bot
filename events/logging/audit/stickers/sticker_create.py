@@ -11,13 +11,25 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class StickerAddCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_stickers_update(self, guild : discord.Guild, before: list[discord.GuildSticker], after : list[discord.GuildSticker]) -> None:
+    @commands.Cog.listener("on_guild_stickers_update")
+    async def on_guild_stickers_update(
+        self,
+        guild  : discord.Guild,
+        before : list[discord.GuildSticker],
+        after  : list[discord.GuildSticker],
+    ) -> None:
         before_ids = {sticker.id for sticker in before}
-        added = [sticker for sticker in after if sticker.id not in before_ids]
+        added      = [sticker for sticker in after if sticker.id not in before_ids]
 
         if not added:
             return
@@ -26,7 +38,10 @@ class StickerAddCog(AuditCog):
         if not log_channel:
             return
 
-        executor = await self.get_executor(guild, discord.AuditLogAction.sticker_create)
+        executor = await self.get_executor(
+            guild,
+            discord.AuditLogAction.sticker_create,
+        )
 
         embed = discord.Embed(
             title     = "Sticker Added",
@@ -48,4 +63,7 @@ class StickerAddCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

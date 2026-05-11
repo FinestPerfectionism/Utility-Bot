@@ -9,9 +9,12 @@ from core.state.application_state import ACTIVE_APPLICATIONS, save_active_applic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberLeaveHandler(commands.Cog):
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot = bot
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_member_remove")
     async def on_member_remove(self, member : discord.Member) -> None:
         data = ACTIVE_APPLICATIONS.get(member.id)
         if not data:

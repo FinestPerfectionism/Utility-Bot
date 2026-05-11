@@ -67,7 +67,7 @@ def save_data(data: dict[str, Any]) -> None:
     with Path(DATA_FILE).open("w") as f:
         json.dump(data, f, indent=2)
 
-def extract_name(nickname: str) -> str:
+def extract_name(nickname : str) -> str:
     if "|" in nickname:
         return nickname.split("|")[-1].strip()
     return nickname
@@ -129,7 +129,7 @@ def describe_automation(entry : dict[str, Any]) -> str:
         parts.append(f"on a **timer** expiring {stamp}")
     return ", ".join(parts) if parts else "unknown automation"
 
-def build_leave_nick(name: str) -> str | None:
+def build_leave_nick(name : str) -> str | None:
     long_nick = f"P. Leave | {name}"
     n_32 = 32
     if len(long_nick) <= n_32:

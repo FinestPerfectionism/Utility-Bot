@@ -23,10 +23,10 @@ if TYPE_CHECKING:
 
 import core.responses as cr
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     BOT_OWNER_ID,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
+    CONTESTED_EMOJI,
+    DENIED_EMOJI,
 )
 from core.responses import multi_custom_message, send_custom_message
 from events.messages.on_edit import MessageEditHandler
@@ -151,7 +151,7 @@ async def run_eval(
 ) -> None:
     body, silent = _parse_eval_input(ctx.message.content)
     if ctx.author.id != BOT_OWNER_ID:
-        _ = await ctx.message.add_reaction(DENIED_EMOJI_ID)
+        _ = await ctx.message.add_reaction(DENIED_EMOJI)
         return
     env : dict[str, object] = {
         "bot"                  : bot,
@@ -185,7 +185,7 @@ async def run_eval(
             await sleep(5)
             await msg.delete()
             return
-        _ = await ctx.message.add_reaction(f"{DENIED_EMOJI_ID}")
+        _ = await ctx.message.add_reaction(f"{DENIED_EMOJI}")
         _ = await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
         return
     func = cast("Callable[[], Awaitable[object]]", env["func"])
@@ -200,7 +200,7 @@ async def run_eval(
             await sleep(5)
             await msg.delete()
             return
-        _ = await ctx.message.add_reaction(f"{CONTESTED_EMOJI_ID}")
+        _ = await ctx.message.add_reaction(f"{CONTESTED_EMOJI}")
         _ = await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
     else:
         value = stdout.getvalue()
@@ -208,7 +208,7 @@ async def run_eval(
             _ = await ctx.message.delete()
             return
 
-        _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI_ID}")
+        _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI}")
 
         resp = None
         if ret is None:

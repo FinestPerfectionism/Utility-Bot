@@ -11,7 +11,7 @@ import discord
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from constants import COLOR_GREEN, CONTESTED_EMOJI_ID
+from constants import COLOR_GREEN, CONTESTED_EMOJI
 from core.cases import CaseType
 from core.responses import send_custom_message
 
@@ -178,7 +178,7 @@ async def _execute_unquarantine(
 
         if roles_not_found:
             _ = embed.add_field(
-                name   = f"{CONTESTED_EMOJI_ID} Roles Not Found",
+                name   = f"{CONTESTED_EMOJI} Roles Not Found",
                 value  = f"{len(roles_not_found)} role(s) no longer exist and could not be restored.",
                 inline = False,
             )

@@ -15,11 +15,11 @@ import discord
 from discord.ext import commands
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     COLOR_BLURPLE,
     COUNTING_CHANNEL_ID,
     COUNTING_FAILED_ROLE_ID,
-    DENIED_EMOJI_ID,
+    DENIED_EMOJI,
     DIRECTOR_TASKS_CHANNEL_ID,
     DIRECTORS_ROLE_ID,
     HOLY_FATHER_ID,
@@ -214,7 +214,10 @@ TEXACKERS_GUILD_ID = 846677253290983444
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MessageSendHandler(commands.Cog):
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot   = bot
         self.state = _load_state()
 
@@ -227,7 +230,11 @@ class MessageSendHandler(commands.Cog):
         self.state["last_message_id"] = None
         self._save()
 
-    async def _assign_failed_role(self, guild : discord.Guild, new_id : int) -> None:
+    async def _assign_failed_role(
+        self,
+        guild  : discord.Guild,
+        new_id : int,
+    ) -> None:
         role = guild.get_role(COUNTING_FAILED_ROLE_ID)
         if role is None:
             return
@@ -253,17 +260,20 @@ class MessageSendHandler(commands.Cog):
         count_at_failure : int,
     ) -> None:
         with contextlib.suppress(discord.HTTPException):
-            await message.add_reaction(DENIED_EMOJI_ID)
+            await message.add_reaction(DENIED_EMOJI)
         _ = await message.channel.send(
-           f"{DENIED_EMOJI_ID} **{message.author.mention} ruined the chain at {count_at_failure}!**\n"
+           f"{DENIED_EMOJI} **{message.author.mention} ruined the chain at {count_at_failure}!**\n"
             "Start again at 1!",
         )
         if message.guild:
             await self._assign_failed_role(message.guild, message.author.id)
         self._reset()
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message) -> None:
+    @commands.Cog.listener("on_message")
+    async def on_message(
+        self,
+        message : discord.Message,
+    ) -> None:
         if message.author.bot:
             return
 
@@ -311,7 +321,7 @@ class MessageSendHandler(commands.Cog):
             self._save()
 
             with contextlib.suppress(discord.HTTPException):
-                await message.add_reaction(ACCEPTED_EMOJI_ID)
+                await message.add_reaction(ACCEPTED_EMOJI)
             return
 
         if isinstance(message.channel, discord.Thread):
@@ -323,7 +333,7 @@ class MessageSendHandler(commands.Cog):
                         _ = await committee_forum.create_thread(
                             name             = f"SCR: {thread.name}",
                             content          = (
-                                f"{ACCEPTED_EMOJI_ID} **A new proposal has been posted: {thread.mention}**\n"
+                                f"{ACCEPTED_EMOJI} **A new proposal has been posted: {thread.mention}**\n"
                                 f"<@&{STAFF_COMMITTEE_ROLE_ID}>\n"
                             ),
                             allowed_mentions = discord.AllowedMentions(roles=True),

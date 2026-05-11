@@ -11,11 +11,22 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ThreadEditCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_thread_update(self, before: discord.Thread, after : discord.Thread) -> None:
+    @commands.Cog.listener("on_thread_update")
+    async def on_thread_update(
+        self,
+        before : discord.Thread,
+        after  : discord.Thread,
+    ) -> None:
         if after.parent and self.is_directorship_channel(after.parent):
             return
 
@@ -23,7 +34,7 @@ class ThreadEditCog(AuditCog):
         if not log_channel:
             return
 
-        changes: list[
+        changes : list[
             tuple[
                 str,
                 str | int | None,
@@ -72,4 +83,7 @@ class ThreadEditCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

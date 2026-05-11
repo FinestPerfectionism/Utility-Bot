@@ -618,7 +618,7 @@ class TicketsSystem(commands.Cog):
         self.bot.add_view(TicketControlPanel())
         self.bot.add_view(ResolutionView())
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_ready")
     async def on_ready(self) -> None:
         now = time_mod.time()
         for thread_id, state in list(RESOLUTION_STATE.items()):

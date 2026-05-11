@@ -9,10 +9,10 @@ from discord.ext.commands import Context  # type: ignore[reportMissingModuleSour
 from discord.ui import LayoutView, Separator, TextDisplay
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     BOT_OWNER_ID,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
+    CONTESTED_EMOJI,
+    DENIED_EMOJI,
     STANDSTILL_EMOJI_ID,
 )
 
@@ -56,13 +56,13 @@ class _Field:
 def _emoji(msg_type : MessageType | SubMessageType) -> str:
     match msg_type:
         case "success":
-            return f"{ACCEPTED_EMOJI_ID}"
+            return f"{ACCEPTED_EMOJI}"
         case "information":
             return f"{STANDSTILL_EMOJI_ID}"
         case "warning":
-            return f"{CONTESTED_EMOJI_ID}"
+            return f"{CONTESTED_EMOJI}"
         case "error":
-            return f"{DENIED_EMOJI_ID}"
+            return f"{DENIED_EMOJI}"
 
 def _type_prefix(msg_type : MessageType | SubMessageType) -> str:
     match msg_type:

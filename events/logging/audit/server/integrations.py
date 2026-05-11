@@ -13,22 +13,32 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class IntegrationsCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_integrations_update(self, guild : discord.Guild) -> None:
+    @commands.Cog.listener("on_guild_integrations_update")
+    async def on_guild_integrations_update(
+        self,
+        guild : discord.Guild,
+    ) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
 
-        executor    : discord.User           | discord.Member | None = None
-        action_type : discord.AuditLogAction                  | None = None
-        target_name : str                                     | None = None
+        executor    : discord.User | discord.Member | None = None
+        action_type : discord.AuditLogAction        | None = None
+        target_name : str                           | None = None
 
         try:
             await asyncio.sleep(0.5)
-            async for entry in guild.audit_logs(limit=5):
+            async for entry in guild.audit_logs(limit = 5):
                 if entry.action in [
                     discord.AuditLogAction.integration_create,
                     discord.AuditLogAction.integration_update,
@@ -69,7 +79,11 @@ class IntegrationsCog(AuditCog):
         )
 
         if target_name:
-            _ = embed.add_field(name = "Integration", value = f"`{target_name}`", inline = False)
+            _ = embed.add_field(
+                name   = "Integration",
+                value  = f"`{target_name}`",
+                inline = False,
+            )
 
         if executor:
             _ = embed.add_field(
@@ -78,4 +92,7 @@ class IntegrationsCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

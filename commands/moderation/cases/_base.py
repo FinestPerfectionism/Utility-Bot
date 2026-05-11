@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from bot import UtilityBot
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     COLOR_BLACK,
     COLOR_BLURPLE,
     COLOR_GREEN,
@@ -21,7 +21,7 @@ from constants import (
     COLOR_ORANGE,
     COLOR_RED,
     COLOR_YELLOW,
-    DENIED_EMOJI_ID,
+    DENIED_EMOJI,
 )
 from core.cases import CasesManager, CaseType
 from core.permissions import (
@@ -38,7 +38,7 @@ from core.responses import send_custom_message
 
 class ClassificationView(View):
     def __init__(self, case_id: int, cases_manager: CasesManager) -> None:
-        super().__init__(timeout=None)
+        super().__init__(timeout = None)
         self.case_id       = case_id
         self.cases_manager = cases_manager
 
@@ -48,7 +48,7 @@ class ClassificationView(View):
     @discord.ui.button(
         label     =  "Accept",
         style     = ButtonStyle.success,
-        emoji     = f"{ACCEPTED_EMOJI_ID}",
+        emoji     = f"{ACCEPTED_EMOJI}",
         custom_id =  "classify:accept:0",
     )
     async def accept_button(
@@ -86,13 +86,13 @@ class ClassificationView(View):
         thread = interaction.channel
         if isinstance(thread, discord.Thread):
             _ = await interaction.response.send_message(
-                f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**",
+                f"{ACCEPTED_EMOJI} **Classification request accepted by {actor.mention}.**",
             )
             with contextlib.suppress(discord.HTTPException):
                 _ = await thread.edit(locked=True, archived=True)
         else:
             _ = await interaction.response.send_message(
-                f"{ACCEPTED_EMOJI_ID} **Classification request accepted by {actor.mention}.**",
+                f"{ACCEPTED_EMOJI} **Classification request accepted by {actor.mention}.**",
                 ephemeral = True,
             )
 
@@ -105,7 +105,7 @@ class ClassificationView(View):
     @discord.ui.button(
         label     = "Deny",
         style     = ButtonStyle.danger,
-        emoji     = f"{DENIED_EMOJI_ID}",
+        emoji     = f"{DENIED_EMOJI}",
         custom_id = "classify:deny:0",
     )
     async def deny_button(
@@ -143,13 +143,13 @@ class ClassificationView(View):
         thread = interaction.channel
         if isinstance(thread, discord.Thread):
             _ = await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**",
+                f"{DENIED_EMOJI} **Classification request denied by {actor.mention}.**",
             )
             with contextlib.suppress(discord.HTTPException):
                 _ = await thread.edit(locked=True, archived=True)
         else:
             _ = await interaction.response.send_message(
-                f"{DENIED_EMOJI_ID} **Classification request denied by {actor.mention}.**",
+                f"{DENIED_EMOJI} **Classification request denied by {actor.mention}.**",
                 ephemeral = True,
             )
 
@@ -171,7 +171,7 @@ class CaseQueryPaginator(View):
         title       : str,
         color_map   : dict[str, discord.Color],
     ) -> None:
-        super().__init__(timeout=120)
+        super().__init__(timeout = 120)
         self.interaction = interaction
         self.cases       = cases
         self.title       = title
@@ -309,7 +309,7 @@ class CaseViewPaginator(View):
         case_embed  : discord.Embed,
         notes       : list[dict[str, Any]],
     ) -> None:
-        super().__init__(timeout=120)
+        super().__init__(timeout = 120)
         self.interaction = interaction
         self.case_embed  = case_embed
         self.notes       = notes

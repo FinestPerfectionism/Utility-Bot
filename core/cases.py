@@ -72,8 +72,8 @@ class CasesManager:
         self.bot         = bot
         self.data_file   = "cases_data.json"
         self.config_file = "cases_config.json"
-        self.data         = self.load_data()
-        self.config       = self.load_config()
+        self.data        = self.load_data()
+        self.config      = self.load_config()
         self._auto_migrate_notes()
 
     def load_data(self) -> CasesDataFile:

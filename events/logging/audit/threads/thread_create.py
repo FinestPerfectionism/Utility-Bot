@@ -11,11 +11,21 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ThreadCreateCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_thread_create(self, thread: discord.Thread) -> None:
+    @commands.Cog.listener("on_thread_create")
+    async def on_thread_create(
+        self,
+        thread : discord.Thread,
+    ) -> None:
         if thread.parent and self.is_directorship_channel(thread.parent):
             return
 
@@ -57,4 +67,7 @@ class ThreadCreateCog(AuditCog):
             inline = True,
         )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

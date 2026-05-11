@@ -12,13 +12,25 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EmojiDeleteCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_emojis_update(self, guild : discord.Guild, before: Sequence[discord.Emoji], after : Sequence[discord.Emoji]) -> None:
+    @commands.Cog.listener("on_guild_emojis_update")
+    async def on_guild_emojis_update(
+        self,
+        guild  : discord.Guild,
+        before : Sequence[discord.Emoji],
+        after  : Sequence[discord.Emoji],
+    ) -> None:
         after_ids = {emoji.id for emoji in after}
-        removed = [emoji for emoji in before if emoji.id not in after_ids]
+        removed   = [emoji for emoji in before if emoji.id not in after_ids]
 
         if not removed:
             return
@@ -27,26 +39,32 @@ class EmojiDeleteCog(AuditCog):
         if not log_channel:
             return
 
-        executor = await self.get_executor(guild, discord.AuditLogAction.emoji_delete)
+        executor = await self.get_executor(
+            guild,
+            discord.AuditLogAction.emoji_delete,
+        )
 
         embed = discord.Embed(
-            title = "Emoji Deleted",
-            color = COLOR_RED,
+            title     = "Emoji Deleted",
+            color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
 
         for emoji in removed:
             _ = embed.add_field(
-                name = "Emoji",
-                value = f"`{emoji.name}`\n`{emoji.id}`",
+                name   = "Emoji",
+                value  = f"`{emoji.name}`\n`{emoji.id}`",
                 inline = True,
             )
 
         if executor:
             _ = embed.add_field(
-                name = "Deleted By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Deleted By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

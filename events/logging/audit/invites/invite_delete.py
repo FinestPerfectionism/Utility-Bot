@@ -11,12 +11,25 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class InviteDeleteCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_invite_delete(self, invite: discord.Invite) -> None:
-        if not isinstance(invite.guild, discord.Guild):
+    @commands.Cog.listener("on_invite_delete")
+    async def on_invite_delete(
+        self,
+        invite : discord.Invite,
+    ) -> None:
+        if not isinstance(
+            invite.guild,
+            discord.Guild,
+        ):
             return
 
         log_channel : discord.TextChannel | None = await self.get_log_channel(invite.guild)
@@ -29,10 +42,24 @@ class InviteDeleteCog(AuditCog):
             timestamp = datetime.now(UTC),
         )
 
-        _ = embed.add_field(name = "Code", value = f"`{invite.code}`", inline = True)
+        _ = embed.add_field(
+            name   = "Code",
+            value  = f"`{invite.code}`",
+            inline = True,
+        )
 
-        channel_name: str = getattr(invite.channel, "name", "Unknown Channel")
-        channel_id: str = str(getattr(invite.channel, "id", "Unknown ID"))
+        channel_name : str = getattr(
+            invite.channel,
+            "name",
+            "Unknown Channel",
+        )
+        channel_id   : str = str(
+            getattr(
+                invite.channel,
+                "id",
+                "Unknown ID",
+            ),
+        )
 
         _ = embed.add_field(
             name   = "Channel",
@@ -41,6 +68,13 @@ class InviteDeleteCog(AuditCog):
         )
 
         if invite.uses is not None:
-            _ = embed.add_field(name = "Uses", value = str(invite.uses), inline = True)
+            _ = embed.add_field(
+                name   = "Uses",
+                value  = str(invite.uses),
+                inline = True,
+            )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

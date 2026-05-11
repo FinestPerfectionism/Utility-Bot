@@ -5,7 +5,7 @@ from discord.ext import commands
 
 from constants import (
     COLOR_RED,
-    CONTESTED_EMOJI_ID,
+    CONTESTED_EMOJI,
     COUNTING_CHANNEL_ID,
     DIRECTORSHIP_CATEGORY_ID,
     MESSAGE_DELETE_LOG_CHANNEL_ID,
@@ -21,7 +21,10 @@ class MessageDeleteHandler(commands.Cog):
     def __init__(self, bot : commands.Bot) -> None:
         self.bot = bot
 
-    def is_directorship_channel(self, channel : discord.abc.Messageable) -> bool:
+    def is_directorship_channel(
+        self,
+        channel : discord.abc.Messageable,
+    ) -> bool:
         return (
             isinstance(channel, discord.TextChannel | discord.VoiceChannel | discord.StageChannel)
             and channel.category_id == DIRECTORSHIP_CATEGORY_ID
@@ -30,7 +33,7 @@ class MessageDeleteHandler(commands.Cog):
             and getattr(channel.parent, "category_id", None) == DIRECTORSHIP_CATEGORY_ID
         )
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_message_delete")
     async def on_message_delete(self, message: discord.Message) -> None:
         if message.guild is None:
             return
@@ -42,7 +45,7 @@ class MessageDeleteHandler(commands.Cog):
                 last_id : int | None = counting_cog.state["last_message_id"]
                 if last_id is not None and message.id == last_id:
                     _ = await message.channel.send(
-                        f"{CONTESTED_EMOJI_ID} **Warning!**\n"
+                        f"{CONTESTED_EMOJI} **Warning!**\n"
                         f"{message.author.name} has deleted their message. The next number is {counting_cog.state['count'] + 1}.",
                     )
             return

@@ -29,7 +29,7 @@ from constants import (
     COLOR_BLURPLE,
     COLOR_GREEN,
     COLOR_RED,
-    DENIED_EMOJI_ID,
+    DENIED_EMOJI,
     DIRECTORS_ROLE_ID,
     JUNIOR_ADMINISTRATORS_ROLE_ID,
     JUNIOR_MODERATORS_ROLE_ID,
@@ -157,13 +157,13 @@ class DecisionModal(Modal, title = "Decision Reason"):
 
             with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                 _ = await user.send(
-                    f"{DENIED_EMOJI_ID} **Application Denied!**"
+                    f"{DENIED_EMOJI} **Application Denied!**"
                     f"-# **Notes:** {self.notes.value}",
                 )
         else:
             with contextlib.suppress(discord.Forbidden, discord.HTTPException):
                 _ = await user.send(
-                    f"{DENIED_EMOJI_ID} **Application Denied!**"
+                    f"{DENIED_EMOJI} **Application Denied!**"
                     f"-# **Notes:** {self.notes.value}",
                 )
 

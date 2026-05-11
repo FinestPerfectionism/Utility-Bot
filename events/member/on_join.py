@@ -12,11 +12,17 @@ if TYPE_CHECKING:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberJoinHandler(commands.Cog):
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member : discord.Member) -> None:
+    @commands.Cog.listener("on_member_join")
+    async def on_member_join(
+        self,
+        member : discord.Member,
+    ) -> None:
         quarantine_cog = cast(
             "ModerationCommands",
             self.bot.get_cog("QuarantineCommands"),

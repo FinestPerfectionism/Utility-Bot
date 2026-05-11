@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 from constants import (
     COLOR_GREEN,
     COLOR_RED,
-    CONTESTED_EMOJI_ID,
+    CONTESTED_EMOJI,
     STAFF_ROLE_ID,
 )
 from core.cases import CasesManager, CaseType
@@ -374,15 +374,18 @@ class LockdownCommands(commands.Cog):
 
         if channels_not_found > 0:
             _ = embed.add_field(
-                name   = f"{CONTESTED_EMOJI_ID} Channels Not Found",
+                name   = f"{CONTESTED_EMOJI} Channels Not Found",
                 value  = f"{channels_not_found} channel(s) no longer exist and could not be restored.",
                 inline = False,
             )
 
         await interaction.followup.send(embed = embed, ephemeral = True)
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member : discord.Member) -> None:
+    @commands.Cog.listener("on_member_join")
+    async def on_member_join(
+        self,
+        member : discord.Member,
+    ) -> None:
         if not self.data["active"]:
             return
 

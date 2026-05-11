@@ -11,11 +11,22 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class RoleEditCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_role_update(self, before: discord.Role, after : discord.Role) -> None:
+    @commands.Cog.listener("on_guild_role_update")
+    async def on_guild_role_update(
+        self,
+        before : discord.Role,
+        after  : discord.Role,
+    ) -> None:
         log_channel = await self.get_log_channel(after.guild)
         if not log_channel:
             return
@@ -59,7 +70,11 @@ class RoleEditCog(AuditCog):
         if not changes:
             return
 
-        executor = await self.get_executor(after.guild, discord.AuditLogAction.role_update, after.id)
+        executor = await self.get_executor(
+            after.guild,
+            discord.AuditLogAction.role_update,
+            after.id,
+        )
 
         embed = discord.Embed(
             title     = "Role Updated",
@@ -97,4 +112,7 @@ class RoleEditCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

@@ -11,16 +11,30 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class RoleCreateCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_role_create(self, role: discord.Role) -> None:
+    @commands.Cog.listener("on_guild_role_create")
+    async def on_guild_role_create(
+        self,
+        role : discord.Role,
+    ) -> None:
         log_channel = await self.get_log_channel(role.guild)
         if not log_channel:
             return
 
-        executor = await self.get_executor(role.guild, discord.AuditLogAction.role_create, role.id)
+        executor = await self.get_executor(
+            role.guild,
+            discord.AuditLogAction.role_create,
+            role.id,
+        )
 
         embed = discord.Embed(
             title     = "Role Created",
@@ -33,10 +47,26 @@ class RoleCreateCog(AuditCog):
             value  = f"`{role.name}`\n`{role.id}`",
             inline = True,
         )
-        _ = embed.add_field(name = "Color", value = str(role.color), inline = True)
-        _ = embed.add_field(name = "Position", value = str(role.position), inline = True)
-        _ = embed.add_field(name = "Hoisted", value = str(role.hoist), inline = True)
-        _ = embed.add_field(name = "Mentionable", value = str(role.mentionable), inline = True)
+        _ = embed.add_field(
+            name   = "Color",
+            value  = str(role.color),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Position",
+            value  = str(role.position),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Hoisted",
+            value  = str(role.hoist),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Mentionable",
+            value  = str(role.mentionable),
+            inline = True,
+        )
 
         if executor:
             _ = embed.add_field(
@@ -49,6 +79,13 @@ class RoleCreateCog(AuditCog):
         n_1024 = 1024
         if len(permissions_text) > n_1024:
             permissions_text = permissions_text[:1021] + "..."
-        _ = embed.add_field(name = "Permissions", value = permissions_text, inline = False)
+        _ = embed.add_field(
+            name   = "Permissions",
+            value  = permissions_text,
+            inline = False,
+        )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

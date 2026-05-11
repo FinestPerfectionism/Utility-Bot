@@ -11,11 +11,21 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ChannelDeleteCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_channel_delete(self, channel : discord.abc.GuildChannel) -> None:
+    @commands.Cog.listener("on_guild_channel_delete")
+    async def on_guild_channel_delete(
+        self,
+        channel : discord.abc.GuildChannel,
+    ) -> None:
         if self.is_directorship_channel(channel):
             return
 
@@ -23,34 +33,45 @@ class ChannelDeleteCog(AuditCog):
         if not log_channel:
             return
 
-        executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_delete, channel.id)
+        executor = await self.get_executor(
+            channel.guild,
+            discord.AuditLogAction.channel_delete,
+            channel.id,
+        )
 
         embed = discord.Embed(
-            title = "Channel Deleted",
-            color = COLOR_RED,
+            title     = "Channel Deleted",
+            color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
 
         channel_type = str(channel.type).replace("_", " ").title()
         _ = embed.add_field(
-            name = "Channel",
-            value = f"`{channel.name}`\n`{channel.id}`",
+            name   = "Channel",
+            value  = f"`{channel.name}`\n`{channel.id}`",
             inline = True,
         )
-        _ = embed.add_field(name = "Type", value = channel_type, inline = True)
+        _ = embed.add_field(
+            name   = "Type",
+            value  = channel_type,
+            inline = True,
+        )
 
         if hasattr(channel, "category") and channel.category:
             _ = embed.add_field(
-                name = "Category",
-                value = f"`{channel.category.name}`\n`{channel.category.id}`",
+                name   = "Category",
+                value  = f"`{channel.category.name}`\n`{channel.category.id}`",
                 inline = True,
             )
 
         if executor:
             _ = embed.add_field(
-                name = "Deleted By",
-                value = f"`{executor}`\n`{executor.id}`",
+                name   = "Deleted By",
+                value  = f"`{executor}`\n`{executor.id}`",
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

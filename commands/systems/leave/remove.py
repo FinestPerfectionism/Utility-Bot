@@ -4,7 +4,7 @@ from typing import Any
 
 import discord
 
-from constants import DENIED_EMOJI_ID, PERSONAL_LEAVE_ROLE_ID
+from constants import DENIED_EMOJI, PERSONAL_LEAVE_ROLE_ID
 from core.permissions import is_staff
 from core.responses import send_custom_message
 
@@ -120,7 +120,7 @@ async def run_leave_remove(
     if is_scheduled and not is_active:
         automation_desc = describe_automation(entry)
         warning_text = (
-            f"### {DENIED_EMOJI_ID} Scheduled Leave,\n"
+            f"### {DENIED_EMOJI} Scheduled Leave,\n"
             f"{target_member.mention} has a pending scheduled leave entry ({automation_desc}).\n\n"
             "Confirming will cancel this scheduled leave before it applies."
         )
@@ -158,7 +158,7 @@ async def run_leave_remove(
     if entry_has_automation(entry):
         automation_desc = describe_automation(entry)
         warning_text = (
-            f"### {DENIED_EMOJI_ID} Warning,\n"
+            f"### {DENIED_EMOJI} Warning,\n"
             f"{target_member.mention} currently has an active automation entry ({automation_desc}).\n\n"
             "Running `/leave remove` now will override and clear that automation. Proceed?"
         )

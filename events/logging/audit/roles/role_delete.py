@@ -11,16 +11,30 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class RoleDeleteCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_role_delete(self, role: discord.Role) -> None:
+    @commands.Cog.listener("on_guild_role_delete")
+    async def on_guild_role_delete(
+        self,
+        role : discord.Role,
+    ) -> None:
         log_channel = await self.get_log_channel(role.guild)
         if not log_channel:
             return
 
-        executor = await self.get_executor(role.guild, discord.AuditLogAction.role_delete, role.id)
+        executor = await self.get_executor(
+            role.guild,
+            discord.AuditLogAction.role_delete,
+            role.id,
+        )
 
         embed = discord.Embed(
             title     = "Role Deleted",
@@ -33,8 +47,16 @@ class RoleDeleteCog(AuditCog):
             value  = f"`{role.name}`\n`{role.id}`",
             inline = True,
         )
-        _ = embed.add_field(name = "Color", value = str(role.color), inline = True)
-        _ = embed.add_field(name = "Position", value = str(role.position), inline = True)
+        _ = embed.add_field(
+            name   = "Color",
+            value  = str(role.color),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Position",
+            value  = str(role.position),
+            inline = True,
+        )
 
         if executor:
             _ = embed.add_field(
@@ -43,4 +65,7 @@ class RoleDeleteCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

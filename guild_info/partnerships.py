@@ -42,7 +42,11 @@ class PartnershipComponents1(LayoutView):
     )
 
 class PartnershipComponents2(LayoutView):
-    def __init__(self, partnerships : list[PartnershipEntry], timestamp : int) -> None:
+    def __init__(
+        self,
+        partnerships : list[PartnershipEntry],
+        timestamp    : int,
+    ) -> None:
         super().__init__(timeout = None)
 
         children : list[Any] = [
@@ -61,7 +65,8 @@ class PartnershipComponents2(LayoutView):
         if not partnerships:
             children.append(
                 TextDisplay(
-                    content ="Looks like this server has no partnerships! :[",
+                    content =
+                        "Looks like this server has no partnerships! :[",
                 ),
             )
         else:

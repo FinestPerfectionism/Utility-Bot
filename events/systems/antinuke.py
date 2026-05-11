@@ -12,7 +12,7 @@ from constants import (
     BOT_OWNER_ID,
     COLOR_ORANGE,
     COLOR_RED,
-    DENIED_EMOJI_ID,
+    DENIED_EMOJI,
     DIRECTORS_ROLE_ID,
     QUARANTINE_ROLE_ID,
 )
@@ -283,7 +283,7 @@ class AntiNukeSystem(commands.Cog):
 
         with contextlib.suppress(discord.Forbidden):
             _ = await log_channel.send(
-                f"{DENIED_EMOJI_ID} **Failed to quarantine {member.mention}!**\n"
+                f"{DENIED_EMOJI} **Failed to quarantine {member.mention}!**\n"
                 "I lack the necessary permissions to quarantine members."
                 "-# Contact the owner.",
             )
@@ -292,11 +292,17 @@ class AntiNukeSystem(commands.Cog):
     # Event Listeners
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
-    async def on_guild_channel_delete(self, channel : discord.abc.GuildChannel) -> None:
+    @commands.Cog.listener("on_guild_channel_delete")
+    async def on_guild_channel_delete(
+        self,
+        channel : discord.abc.GuildChannel,
+    ) -> None:
         guild = channel.guild
 
-        async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_delete):
+        async for entry in guild.audit_logs(
+            limit  = 1,
+            action = discord.AuditLogAction.channel_delete,
+        ):
             if (
                 entry.target
                 and entry.target.id == channel.id
@@ -310,8 +316,11 @@ class AntiNukeSystem(commands.Cog):
                 )
                 break
 
-    @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel : discord.abc.GuildChannel) -> None:
+    @commands.Cog.listener("on_guild_channel_create")
+    async def on_guild_channel_create(
+        self,
+        channel : discord.abc.GuildChannel,
+    ) -> None:
         guild = channel.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create):
@@ -328,14 +337,21 @@ class AntiNukeSystem(commands.Cog):
                 )
                 break
 
-    @commands.Cog.listener()
-    async def on_guild_channel_update(self, before: discord.abc.GuildChannel, after : discord.abc.GuildChannel) -> None:
+    @commands.Cog.listener("on_guild_channel_update")
+    async def on_guild_channel_update(
+        self,
+        before : discord.abc.GuildChannel,
+        after  : discord.abc.GuildChannel,
+    ) -> None:
         if before.name == after.name:
             return
 
         guild = after.guild
 
-        async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_update):
+        async for entry in guild.audit_logs(
+            limit  = 1,
+            action = discord.AuditLogAction.channel_update,
+        ):
             if (
                 entry.target
                 and entry.target.id == after.id
@@ -349,11 +365,17 @@ class AntiNukeSystem(commands.Cog):
                 )
                 break
 
-    @commands.Cog.listener()
-    async def on_guild_role_delete(self, role: discord.Role) -> None:
+    @commands.Cog.listener("on_guild_role_delete")
+    async def on_guild_role_delete(
+        self,
+        role : discord.Role,
+    ) -> None:
         guild = role.guild
 
-        async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.role_delete):
+        async for entry in guild.audit_logs(
+            limit = 1,
+            action = discord.AuditLogAction.role_delete,
+        ):
             if (
                 entry.target
                 and entry.target.id == role.id
@@ -367,8 +389,11 @@ class AntiNukeSystem(commands.Cog):
                 )
                 break
 
-    @commands.Cog.listener()
-    async def on_guild_role_create(self, role: discord.Role) -> None:
+    @commands.Cog.listener("on_guild_role_create")
+    async def on_guild_role_create(
+        self,
+        role : discord.Role,
+    ) -> None:
         guild = role.guild
 
         async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.role_create):
@@ -385,8 +410,12 @@ class AntiNukeSystem(commands.Cog):
                 )
                 break
 
-    @commands.Cog.listener()
-    async def on_guild_role_update(self, before: discord.Role, after : discord.Role) -> None:
+    @commands.Cog.listener("on_guild_role_update")
+    async def on_guild_role_update(
+        self,
+        before : discord.Role,
+        after  : discord.Role,
+    ) -> None:
         if before.name == after.name:
             return
 

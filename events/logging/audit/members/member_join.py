@@ -11,11 +11,21 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberJoinCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member : discord.Member) -> None:
+    @commands.Cog.listener("on_member_join")
+    async def on_member_join(
+        self,
+        member : discord.Member,
+    ) -> None:
         log_channel = await self.get_log_channel(member.guild)
         if not log_channel:
             return
@@ -33,8 +43,14 @@ class MemberJoinCog(AuditCog):
         )
         _ = embed.add_field(
             name   = "Account Created",
-            value  = discord.utils.format_dt(member.created_at, style = "R"),
+            value  = discord.utils.format_dt(
+                member.created_at,
+                style = "R",
+            ),
             inline = True,
         )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

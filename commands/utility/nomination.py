@@ -35,7 +35,7 @@ def save_nomination_data(data: dict[str, NominationCase]) -> None:
         json.dump(data, f, indent=2)
 
 
-def extract_name(nickname: str) -> str:
+def extract_name(nickname : str) -> str:
     if nickname and "|" in nickname:
         return nickname.split("|")[-1].strip()
     return nickname

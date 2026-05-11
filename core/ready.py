@@ -8,7 +8,7 @@ from discord.ext import commands
 from typing_extensions import override
 
 from bot import bot
-from constants import ACCEPTED_EMOJI_ID, APPLICATION_LOG_CHANNEL_ID, BOT_CONSOLE_CHANNEL_ID
+from constants import ACCEPTED_EMOJI, APPLICATION_LOG_CHANNEL_ID, BOT_CONSOLE_CHANNEL_ID
 from core.state.application_state import ACTIVE_APPLICATIONS, load_active_applications
 from core.state.automod_state import load_automod_strikes, save_automod_strikes
 from events.systems.applications import DecisionView
@@ -16,7 +16,7 @@ from events.systems.applications import DecisionView
 log = logging.getLogger("Utility Bot")
 
 class DiscordLogHandler(logging.Handler):
-    def __init__(self, queue: asyncio.Queue[Any]) -> None:
+    def __init__(self, queue : asyncio.Queue[Any]) -> None:
         super().__init__()
         self.queue = queue
 
@@ -97,7 +97,7 @@ class Ready(commands.Cog):
                 continue
             question = data["questions"][data["index"]]
             _ = await dm.send(
-                f"**{ACCEPTED_EMOJI_ID} Successfully resumed application after restart.**\n"
+                f"**{ACCEPTED_EMOJI} Successfully resumed application after restart.**\n"
                 f"{question}",
             )
 
@@ -116,7 +116,7 @@ class Ready(commands.Cog):
             if msg.components:
                 self.bot.add_view(DecisionView(), message_id = msg.id)
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_ready")
     async def on_ready(self) -> None:
         if self._ran:
             return

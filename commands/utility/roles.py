@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from constants import ACCEPTED_EMOJI_ID, COLOR_BLURPLE, DENIED_EMOJI_ID
+from constants import ACCEPTED_EMOJI, COLOR_BLURPLE, DENIED_EMOJI
 from core.permissions import directors_only
 from core.responses import send_custom_message
 
@@ -55,7 +55,7 @@ class RoleCommands(
             if perm_filter == "disabled" and value:
                 continue
             label : str = perm_name.replace("_", " ").title()
-            mark  : str = ACCEPTED_EMOJI_ID if value else DENIED_EMOJI_ID
+            mark  : str = ACCEPTED_EMOJI if value else DENIED_EMOJI
             lines.append(f"- {label} {mark}")
 
         embed : discord.Embed = discord.Embed(
@@ -98,8 +98,8 @@ class RoleCommands(
             value2: bool = getattr(role2.permissions, perm_name)
             if value1 != value2:
                 label : str = perm_name.replace("_", " ").title()
-                mark1 : str = ACCEPTED_EMOJI_ID if value1 else DENIED_EMOJI_ID
-                mark2 : str = ACCEPTED_EMOJI_ID if value2 else DENIED_EMOJI_ID
+                mark1 : str = ACCEPTED_EMOJI if value1 else DENIED_EMOJI
+                mark2 : str = ACCEPTED_EMOJI if value2 else DENIED_EMOJI
 
                 diffs_role1.append(f"- {label} {mark1}")
                 diffs_role2.append(f"- {label} {mark2}")

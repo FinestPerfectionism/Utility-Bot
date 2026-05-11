@@ -1,10 +1,8 @@
-import re
 from asyncio import Queue
-from datetime import timedelta
 
 import discord
 from discord import ForumChannel, TextChannel, Thread
-from discord.abc import GuildChannel, Messageable
+from discord.ui import LayoutView, Separator
 
 from constants import STAFF_PROPOSALS_CHANNEL_ID
 
@@ -13,19 +11,42 @@ from constants import STAFF_PROPOSALS_CHANNEL_ID
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Layout Helpers
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class VLSeparator(Separator[LayoutView]):
+    def __init__(self):
+        super().__init__(
+            visible = True,
+            spacing = discord.SeparatorSpacing.large,
+        )
+
+class VSSeparator(Separator[LayoutView]):
+    def __init__(self):
+        super().__init__(
+            visible = True,
+            spacing = discord.SeparatorSpacing.small,
+        )
+
+class LSeparator(Separator[LayoutView]):
+    def __init__(self):
+        super().__init__(
+            visible = False,
+            spacing = discord.SeparatorSpacing.large,
+        )
+
+class SSeparator(Separator[LayoutView]):
+    def __init__(self):
+        super().__init__(
+            visible = False,
+            spacing = discord.SeparatorSpacing.small,
+        )
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Queue Helper
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-MESSAGE_LOG_QUEUE: Queue[discord.Embed] = Queue()
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Messageable Helper
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-__all__ = (
-    "GuildChannel",
-    "Messageable",
-)
+MESSAGE_LOG_QUEUE : Queue[discord.Embed] = Queue()
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Channel Display Helper
@@ -49,15 +70,13 @@ def channel_display(channel : discord.abc.Messageable | discord.abc.GuildChannel
 # Format Attachments Helper
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-def format_attachments(
-    attachments: list[discord.Attachment],
-) -> str:
+def format_attachments(attachments : list[discord.Attachment]) -> str:
     if not attachments:
         return "None"
     return "\n".join(f"- {a.filename} ({a.url})" for a in attachments)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Resolve Forum Tags Helper
+# Proposal Helpers
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 def resolve_forum_tags(
@@ -75,43 +94,7 @@ def resolve_forum_tags(
 
     return resolved
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Parse Duration Helper
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-_TIME_REGEX = re.compile(r"(\d+)\s*(mo|d|h|m|s)", re.IGNORECASE)
-
-def parse_duration(input_str : str) -> timedelta | None:
-    matches = _TIME_REGEX.findall(input_str)
-    if not matches:
-        return None
-
-    total_seconds = 0
-
-    for raw_value, raw_unit in matches:
-        value = int(raw_value)
-        unit  = raw_unit.lower()
-
-        if unit == "mo":
-            total_seconds += value * 2419200
-        elif unit == "d":
-            total_seconds += value * 86400
-        elif unit == "h":
-            total_seconds += value * 3600
-        elif unit == "m":
-            total_seconds += value * 60
-        elif unit == "s":
-            total_seconds += value
-
-    return timedelta(seconds = total_seconds)
-
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Proposal Helpers
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-def assert_forum_thread(
-    interaction : discord.Interaction,
-) -> tuple[discord.Thread, discord.ForumChannel]:
+def assert_forum_thread(interaction : discord.Interaction) -> tuple[discord.Thread, discord.ForumChannel]:
     if not isinstance(interaction.channel, discord.Thread):
         string = "This command must be used inside a staff proposal thread."
         raise TypeError(string)
@@ -129,9 +112,9 @@ def assert_forum_thread(
     return thread, thread.parent
 
 def resolve_single_tag(
-    forum: discord.ForumChannel,
+    forum  : discord.ForumChannel,
     tag_id : int,
-    label: str,
+    label  : str,
 ) -> discord.ForumTag:
     try:
         return resolve_forum_tags(forum, [tag_id])[0]

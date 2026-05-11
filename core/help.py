@@ -28,19 +28,20 @@ if TYPE_CHECKING:
         Sequence,
     )
 
-    from discord.app_commands import Group as AppGroup
     from discord import SeparatorSpacing
+    from discord.app_commands import Group as AppGroup
 
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     COLOR_BLURPLE,
     COLOR_GREEN,
     COLOR_RED,
     COLOR_YELLOW,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
+    CONTESTED_EMOJI,
+    DENIED_EMOJI,
 )
+
 
 @runtime_checkable
 class _AppCommand(Protocol):
@@ -298,7 +299,7 @@ def build_argument_line(name : str, info : ArgumentInfo) -> str:
 
     return f"{{{name}}}" if display_required else f"[{name}]"
 
-def _build_arg_block(name: str, info: ArgumentInfo) -> str:
+def _build_arg_block(name : str, info : ArgumentInfo) -> str:
     bracket = build_argument_line(name, info)
     lines : list[str] = [f"### {bracket.capitalize()}"]
     lines.append(f"-# **Type:** {_format_arg_type(info)}")
@@ -311,7 +312,7 @@ def _build_arg_block(name: str, info: ArgumentInfo) -> str:
 
     if info.shown_as_optional:
         lines.append(
-            "-# **Why is this argument shown as required if it's shown as optional?** The command is initialized this way to allow for mass moderation through leaving the argument empty. Internal command logic is shown in the arguments code block. External command logic is shown in the argument descriptions."
+            "-# **Why is this argument shown as required if it's shown as optional?** The command is initialized this way to allow for empty argument behavior where other arguments may depend on it.",
         )
 
     if info.empty_behavior is not None:
@@ -342,7 +343,7 @@ def _build_authority_section(data : CommandHelpData, member : discord.Member) ->
         colour = COLOR_GREEN
         text   = (
             f"## Authority\n"
-            f"{ACCEPTED_EMOJI_ID} **Authorized.**\n"
+            f"{ACCEPTED_EMOJI} **Authorized.**\n"
              "You are authorized to to run this command.\n"
              "-# Full permissions."
         )
@@ -351,7 +352,7 @@ def _build_authority_section(data : CommandHelpData, member : discord.Member) ->
         colour = COLOR_RED
         text   = (
              "## Authority\n"
-            f"{DENIED_EMOJI_ID} **Unauthorized!**\n"
+            f"{DENIED_EMOJI} **Unauthorized.**\n"
              "You are not authorized to run this command.\n"
              "-# No permissions."
         )
@@ -365,7 +366,7 @@ def _build_authority_section(data : CommandHelpData, member : discord.Member) ->
 
         text = (
             "## Authority\n"
-            f"{CONTESTED_EMOJI_ID} **Partially Authorized.**\n"
+            f"{CONTESTED_EMOJI} **Partially Authorized.**\n"
             "You are authorized to run this command, but not all of its arguments or channels are available to you."
             f"{channel_detail}\n"
             "-# Partial permissions."
@@ -424,7 +425,7 @@ def _build_authorized_section(data : CommandHelpData) -> str:
             lines.append(f"{prefix}<@&{rn.role_id}>")
         lines.append(_NOTICE_LOGICAL_OR.strip())
     else:
-        lines.append(f"Not applicable.")
+        lines.append("Not applicable.")
         lines.append(_NOTICE_LOGICAL_OR.strip())
 
     lines.append("### Advanced Restrictions")
@@ -433,7 +434,7 @@ def _build_authorized_section(data : CommandHelpData) -> str:
             channels_str = " ".join(f"<#{cid}>" for cid in rule.channels)
             lines.append(f"- {describe_access_node(rule.node)} → {channels_str}")
         lines.append(
-            "-# **What are advanced restrictions?** Advanced Restrictions provide a logic specification detailing how command behavior behaves across different contexts. This framework is intended to explain the interdependent relationships between users, roles, and environments (such as specific channels) when working with arguments, sub-arguments, and nested-arguments when they may be accessible or restricted depending on a user's unique permission profile."
+            "-# **What are advanced restrictions?** Advanced Restrictions provide a logic specification detailing how command behavior behaves across different contexts. This framework is intended to explain the interdependent relationships between users, roles, and environments (such as specific channels) when working with arguments, sub-arguments, and nested-arguments when they may be accessible or restricted depending on a user's unique permission profile.",
         )
     else:
         lines.append("Not applicable.")
@@ -470,8 +471,8 @@ def build_help_view(
 ) -> LayoutView:
     display_name = command_ref or f"`/{command_name}`"
 
-    prefix_emoji = ACCEPTED_EMOJI_ID if data.prefix else DENIED_EMOJI_ID
-    slash_emoji  = ACCEPTED_EMOJI_ID if data.slash  else DENIED_EMOJI_ID
+    prefix_emoji = ACCEPTED_EMOJI if data.prefix else DENIED_EMOJI
+    slash_emoji  = ACCEPTED_EMOJI if data.slash  else DENIED_EMOJI
 
     aliases_line = ""
     if data.aliases:

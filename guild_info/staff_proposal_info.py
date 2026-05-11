@@ -87,7 +87,10 @@ class AdministratorsRoles(Button[LayoutView]):
         )
 
     @override
-    async def callback(self, interaction : discord.Interaction) -> None:
+    async def callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         _ = await interaction.response.send_message(
             view      = AdministratorsRolesComponents(),
             ephemeral = True,
@@ -102,7 +105,10 @@ class ModeratorsRoles(Button[LayoutView]):
         )
 
     @override
-    async def callback(self, interaction : discord.Interaction) -> None:
+    async def callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         _ = await interaction.response.send_message(
             view      = ModeratorsRolesComponents(),
             ephemeral = True,
@@ -117,7 +123,10 @@ class TrusteeRoles(Button[LayoutView]):
         )
 
     @override
-    async def callback(self, interaction : discord.Interaction) -> None:
+    async def callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         _ = await interaction.response.send_message(
             view      = TrusteeRolesComponents(),
             ephemeral = True,
@@ -132,7 +141,10 @@ class CommitteeRoles(Button[LayoutView]):
         )
 
     @override
-    async def callback(self, interaction : discord.Interaction) -> None:
+    async def callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         _ = await interaction.response.send_message(
             view      = CommitteeRolesComponents(),
             ephemeral = True,

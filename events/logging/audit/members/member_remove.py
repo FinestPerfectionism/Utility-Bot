@@ -15,23 +15,36 @@ from events.logging.audit._base import AuditCog, AuditQueue
 log = logging.getLogger("Utility Bot")
 
 class MemberRemoveCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_member_remove(self, member : discord.Member) -> None:
+    @commands.Cog.listener("on_member_remove")
+    async def on_member_remove(
+        self,
+        member : discord.Member,
+    ) -> None:
         log_channel = await self.get_log_channel(member.guild)
         if not log_channel:
             return
 
-        executor = None
+        executor   = None
         was_kicked = False
 
         try:
             await asyncio.sleep(0.5)
-            async for entry in member.guild.audit_logs(limit=5, action=discord.AuditLogAction.kick):
+            async for entry in member.guild.audit_logs(
+                limit  = 5,
+                action = discord.AuditLogAction.kick,
+            ):
                 if entry.target is not None and entry.target.id == member.id:
-                    executor = entry.user
+                    executor   = entry.user
                     was_kicked = True
                     break
         except discord.HTTPException:
@@ -51,8 +64,11 @@ class MemberRemoveCog(AuditCog):
 
         if member.joined_at:
             _ = embed.add_field(
-                name  = "Joined Server",
-                value = discord.utils.format_dt(member.joined_at, style = "R"),
+                name   = "Joined Server",
+                value  = discord.utils.format_dt(
+                    member.joined_at,
+                    style = "R",
+                ),
                 inline = True,
             )
 
@@ -63,4 +79,7 @@ class MemberRemoveCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

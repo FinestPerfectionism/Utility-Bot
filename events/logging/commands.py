@@ -15,7 +15,7 @@ class CommandLogger(commands.Cog):
     # Application Command Handling
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_app_command_application")
     async def on_app_command_completion(
         self,
         interaction : discord.Interaction,
@@ -72,8 +72,11 @@ class CommandLogger(commands.Cog):
     # Prefix Command Handling
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
-    async def on_command_completion(self, ctx : commands.Context[commands.Bot]) -> None:
+    @commands.Cog.listener("on_command_completion")
+    async def on_command_completion(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return

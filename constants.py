@@ -9,12 +9,12 @@ import discord
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 COLOR_BLURPLE = discord.Color(0x5765F2)
-COLOR_GREEN = discord.Color(0x3BA562)
-COLOR_YELLOW = discord.Color(0xF1B133)
-COLOR_ORANGE = discord.Color(0xEE773E)
-COLOR_RED = discord.Color(0xEB3D48)
-COLOR_GREY = discord.Color(0xABABAB)
-COLOR_BLACK = discord.Color(0x000000)
+COLOR_GREEN   = discord.Color(0x3BA562)
+COLOR_YELLOW  = discord.Color(0xF1B133)
+COLOR_ORANGE  = discord.Color(0xEE773E)
+COLOR_RED     = discord.Color(0xEB3D48)
+COLOR_GREY    = discord.Color(0xABABAB)
+COLOR_BLACK   = discord.Color(0x000000)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Role IDs
@@ -69,8 +69,6 @@ DIRECTORSHIP_CATEGORY_ID = 1437524579932176385
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Channel IDs
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
-VERIFICATION_CHANNEL_ID = 1436046265841614858
 
 HIERARCHY_CHANNEL_ID = 1446622094484836592
 RULES_CHANNEL_ID = 1385654745355653120
@@ -127,9 +125,9 @@ ANGRY_UTILITY_BOT_EMOJI_ID = "<:AngryUtilityBot:1477402859128750080>"
 EMOJI_FORUM_ID = "<:forum:1435423893887127562>"
 EMOJI_FORUM_LOCK_ID = "<:forum_lc:1435423872739442699>"
 
-ACCEPTED_EMOJI_ID = "<:accepted:1433910623586095255>"
-CONTESTED_EMOJI_ID = "<:contested:1438163284997046283>"
-DENIED_EMOJI_ID = "<:denied:1433910544032858324>"
+ACCEPTED_EMOJI = "<:accepted:1433910623586095255>"
+CONTESTED_EMOJI = "<:contested:1438163284997046283>"
+DENIED_EMOJI = "<:denied:1433910544032858324>"
 STANDSTILL_EMOJI_ID = "<:standstill:1442307018647142582>"
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -137,26 +135,26 @@ STANDSTILL_EMOJI_ID = "<:standstill:1442307018647142582>"
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 TAG_STATUS = {
-    "accepted": 1433586899296981126,
-    "contested": 1434860598793076847,
-    "denied": 1433586850337132574,
-    "standstill": 1444408668542996500,
+    "accepted"   : 1433586899296981126,
+    "contested"  : 1434860598793076847,
+    "denied"     : 1433586850337132574,
+    "standstill" : 1444408668542996500,
 }
 
 TAG_ACTION = {
-    "owner_action": 1433819235120976023,
-    "sdirector_action": 1433819201759481978,
+    "owner_action"     : 1433819235120976023,
+    "sdirector_action" : 1433819201759481978,
 }
 
 TAG_SPECIAL = {
-    "needs_implementation": 1438525819533263058,
-    "needs_revision": 1433587078008012932,
-    "locked": 1433819271716147391,
+    "needs_implementation" : 1438525819533263058,
+    "needs_revision"       : 1433587078008012932,
+    "locked"               : 1433819271716147391,
 }
 
 EMOJI_STATUS = {
-    "accepted": "<:accepted:1433910623586095255>",
-    "contested": "<:contested:1438163284997046283>",
-    "denied": "<:denied:1433910544032858324>",
-    "standstill": "<:standstill:1442307018647142582>",
+    "accepted"   : "<:accepted:1433910623586095255>",
+    "contested"  : "<:contested:1438163284997046283>",
+    "denied"     : "<:denied:1433910544032858324>",
+    "standstill" : "<:standstill:1442307018647142582>",
 }

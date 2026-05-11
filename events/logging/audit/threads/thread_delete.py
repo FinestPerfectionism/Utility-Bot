@@ -11,11 +11,21 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ThreadDeleteCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_thread_delete(self, thread: discord.Thread) -> None:
+    @commands.Cog.listener("on_thread_delete")
+    async def on_thread_delete(
+        self,
+        thread : discord.Thread,
+    ) -> None:
         if thread.parent and self.is_directorship_channel(thread.parent):
             return
 
@@ -35,12 +45,12 @@ class ThreadDeleteCog(AuditCog):
             inline = True,
         )
 
-        parent_name: str = "Unknown Channel"
-        parent_id: str = "Unknown ID"
+        parent_name : str = "Unknown Channel"
+        parent_id   : str = "Unknown ID"
 
         if thread.parent:
             parent_name = thread.parent.name
-            parent_id = str(thread.parent.id)
+            parent_id   = str(thread.parent.id)
 
         _ = embed.add_field(
             name   = "Parent Channel",
@@ -48,4 +58,7 @@ class ThreadDeleteCog(AuditCog):
             inline = True,
         )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

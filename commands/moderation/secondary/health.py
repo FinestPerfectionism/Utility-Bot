@@ -10,14 +10,14 @@ from discord.ext import commands
 from discord.ui import Button, Select, View
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     COLOR_BLACK,
     COLOR_GREEN,
     COLOR_ORANGE,
     COLOR_RED,
     COLOR_YELLOW,
-    CONTESTED_EMOJI_ID,
-    DENIED_EMOJI_ID,
+    CONTESTED_EMOJI,
+    DENIED_EMOJI,
     DIRECTORS_ROLE_ID,
     QUARANTINE_ROLE_ID,
     STANDSTILL_EMOJI_ID,
@@ -65,10 +65,10 @@ NATIVE_MOD_PERMS: list[str] = [
     "moderate_members",
 ]
 
-def _perm_value(perms: discord.Permissions, name: str) -> bool:
+def _perm_value(perms: discord.Permissions, name : str) -> bool:
     return bool(getattr(perms, name, False))
 
-def _overwrite_value(overwrite: discord.PermissionOverwrite, name: str) -> bool | None:
+def _overwrite_value(overwrite: discord.PermissionOverwrite, name : str) -> bool | None:
     return getattr(overwrite, name, None)
 
 def _get_health_color(score: float) -> discord.Color:
@@ -318,14 +318,14 @@ class HealthFixView(View):
         if fixed:
             _ = embed.add_field(
                 name   = "Successfully Fixed",
-                value  = "\n".join(f"{ACCEPTED_EMOJI_ID} {item}" for item in fixed),
+                value  = "\n".join(f"{ACCEPTED_EMOJI} {item}" for item in fixed),
                 inline = False,
             )
 
         if failed:
             _ = embed.add_field(
                 name   = "Failed to Fix",
-                value  = "\n".join(f"{DENIED_EMOJI_ID} {item}" for item in failed),
+                value  = "\n".join(f"{DENIED_EMOJI} {item}" for item in failed),
                 inline = False,
             )
 
@@ -379,7 +379,7 @@ class HealthFixView(View):
                 fail_label   : str        = str(check.get("fail_label", label))
                 detail       : str | None = check.get("detail")
 
-                icon = f"{ACCEPTED_EMOJI_ID}" if check_passed else f"{DENIED_EMOJI_ID}"
+                icon = f"{ACCEPTED_EMOJI}" if check_passed else f"{DENIED_EMOJI}"
                 text = label if check_passed else fail_label
                 line = f"{icon} {text}"
 
@@ -663,7 +663,7 @@ class HealthCommands(commands.Cog):
                 check = check_map.get(check_id)
                 if not check:
                     continue
-                icon = f"{ACCEPTED_EMOJI_ID}" if check["passed"] else f"{DENIED_EMOJI_ID}"
+                icon = f"{ACCEPTED_EMOJI}" if check["passed"] else f"{DENIED_EMOJI}"
                 text = check["label"] if check["passed"] else check.get("fail_label", check["label"])
                 line = f"{icon} {text}"
                 if not check["passed"] and check.get("detail"):
@@ -681,7 +681,7 @@ class HealthCommands(commands.Cog):
         ]
         if manual_fixes:
             _ = embed.add_field(
-                name  = f"{CONTESTED_EMOJI_ID}  Manual Action Required",
+                name  = f"{CONTESTED_EMOJI}  Manual Action Required",
                 value = "\n".join(
                     f"**{c['label']}**\n-# ↳ {c['manual_note']}"
                     for c in manual_fixes

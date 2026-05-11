@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 
 import core.responses as cr
-from constants import BOT_OWNER_ID, DENIED_EMOJI_ID
+from constants import BOT_OWNER_ID, DENIED_EMOJI
 from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -120,7 +120,7 @@ async def restart_bot(
             with contextlib.suppress(Exception):
                 _ = await confirm_msg.edit(
                     content =
-                   f"{DENIED_EMOJI_ID} **Failed to restart bot!**\n"
+                   f"{DENIED_EMOJI} **Failed to restart bot!**\n"
                     "Restart failed:\n"
                     "```py\n"
                    f"{e}\n"

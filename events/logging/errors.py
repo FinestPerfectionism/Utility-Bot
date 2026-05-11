@@ -175,7 +175,7 @@ class ErrorLogger(commands.Cog):
     # Discord Event Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_error")
     async def on_error(self, event : str, *_args: str, **_kwargs : int) -> None:
         if event in {"on_command_error", "on_interaction"}:
             return
@@ -208,7 +208,7 @@ class ErrorLogger(commands.Cog):
     # Prefix Command Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_command_error")
     async def on_command_error(self, ctx : commands.Context[commands.Bot], error: commands.CommandError) -> None:
         if hasattr(ctx.command, "on_error"):
             return
@@ -307,8 +307,12 @@ class ErrorLogger(commands.Cog):
     # Extension Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
-    async def on_extension_error(self, extension: str, error: commands.ExtensionError) -> None:
+    @commands.Cog.listener("")
+    async def on_extension_error(
+        self,
+        extension : str,
+        error     : commands.ExtensionError,
+    ) -> None:
         tb_text = "".join(
             traceback.format_exception(type(error), error, error.__traceback__),
         )
@@ -323,8 +327,11 @@ class ErrorLogger(commands.Cog):
     # HTTP Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
-    async def on_socket_raw_receive(self, payload: dict[str, Any]) -> None:
+    @commands.Cog.listener("on_socket_raw_receive")
+    async def on_socket_raw_receive(
+        self,
+        payload : dict[str, Any],
+    ) -> None:
         if payload.get("t") == "INVALID_SESSION":
             await self.send_info(title = "Invalid Gateway Session")
 
@@ -356,7 +363,7 @@ class ErrorLogger(commands.Cog):
     # Task Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    def create_task(self, coro: Coroutine[Any, Any, Any], *, name: str) -> asyncio.Task[Any]:
+    def create_task(self, coro: Coroutine[Any, Any, Any], *, name : str) -> asyncio.Task[Any]:
         task = asyncio.create_task(coro, name = name)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
@@ -399,36 +406,36 @@ class ErrorLogger(commands.Cog):
     # Shard Errors / Logging
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_disconnect")
     async def on_disconnect(self) -> None:
         await self.send_info(title = "Gateway Disconnected")
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_resumed")
     async def on_resumed(self) -> None:
         await self.send_info(title = "Gateway Resumed")
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_shard_disconnect")
     async def on_shard_disconnect(self, shard_id : int) -> None:
         await self.send_info(
             title       = "Shard Disconnected",
             description = f"Shard {shard_id}",
         )
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_shard_connect")
     async def on_shard_connect(self, shard_id : int) -> None:
         await self.send_info(
             title       = "Shard Connected",
             description = f"Shard {shard_id}",
         )
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_shard_ready")
     async def on_shard_ready(self, shard_id : int) -> None:
         await self.send_info(
             title       = "Shard Ready",
             description = f"Shard {shard_id}",
         )
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_shard_resumed")
     async def on_shard_resumed(self, shard_id : int) -> None:
         await self.send_info(
             title       = "Shard Resumed",
@@ -439,7 +446,11 @@ class ErrorLogger(commands.Cog):
     # Loop Exception Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    def loop_exception_handler(self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]) -> None:
+    def loop_exception_handler(
+        self,
+        loop    : asyncio.AbstractEventLoop,
+        context : dict[str, Any],
+    ) -> None:
         if loop.is_closed():
             return
         exc = context.get("exception")

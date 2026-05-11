@@ -11,16 +11,31 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class MemberUnbanCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_member_unban(self, guild : discord.Guild, user : discord.User) -> None:
+    @commands.Cog.listener("on_member_unban")
+    async def on_member_unban(
+        self,
+        guild : discord.Guild,
+        user  : discord.User,
+    ) -> None:
         log_channel = await self.get_log_channel(guild)
         if not log_channel:
             return
 
-        executor = await self.get_executor(guild, discord.AuditLogAction.unban, user.id)
+        executor = await self.get_executor(
+            guild,
+            discord.AuditLogAction.unban,
+            user.id,
+        )
 
         embed = discord.Embed(
             title     = "Member Unbanned",
@@ -41,4 +56,7 @@ class MemberUnbanCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

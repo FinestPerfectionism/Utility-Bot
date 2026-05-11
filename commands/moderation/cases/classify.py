@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from ._group_cog import CasesCommands
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     DIRECTOR_TASKS_CHANNEL_ID,
     DIRECTORS_ROLE_ID,
 )
@@ -119,7 +119,7 @@ async def run_classify(
     view           = ClassificationView(case_id, self.cases_manager)
     thread_name    = f"DR: Classification Request by {actor.display_name}"
     thread_content = (
-        f"{ACCEPTED_EMOJI_ID} **A new classification to {label} request has been made affecting case #{case_id}.**\n"
+        f"{ACCEPTED_EMOJI} **A new classification to {label} request has been made affecting case #{case_id}.**\n"
         f"<@&{DIRECTORS_ROLE_ID}>"
     )
 

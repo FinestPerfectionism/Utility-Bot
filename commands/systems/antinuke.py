@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from constants import (
-    ACCEPTED_EMOJI_ID,
+    ACCEPTED_EMOJI,
     COLOR_GREEN,
     COLOR_ORANGE,
     COLOR_RED,
@@ -112,7 +112,7 @@ class AntiNukeCommands(commands.Cog):
         status = "enabled" if self.config["enabled"] else "disabled"
 
         embed = discord.Embed(
-            title       = f"{ACCEPTED_EMOJI_ID} Anti-Nuke {status.title()}",
+            title       = f"{ACCEPTED_EMOJI} Anti-Nuke {status.title()}",
             description = f"Anti-nuke protection has been {status}.",
             color       = COLOR_GREEN if self.config["enabled"] else COLOR_ORANGE,
             timestamp   = datetime.now(UTC),
@@ -196,7 +196,7 @@ class AntiNukeCommands(commands.Cog):
         self.save_config()
 
         embed = discord.Embed(
-            title       = f"{ACCEPTED_EMOJI_ID} Limit Updated",
+            title       = f"{ACCEPTED_EMOJI} Limit Updated",
             description = f"Updated limits for {action.replace('_', ' ')}.",
             color       = COLOR_GREEN,
             timestamp   = datetime.now(UTC),

@@ -2,17 +2,18 @@ import contextlib
 import re
 
 import discord
+from discord.abc import Messageable
 from discord.ext import commands
 
 from constants import (
     COLOR_GREY,
-    CONTESTED_EMOJI_ID,
+    CONTESTED_EMOJI,
     COUNTING_CHANNEL_ID,
     DIRECTORSHIP_CATEGORY_ID,
     MESSAGE_EDIT_LOG_CHANNEL_ID,
     WAPPLE_CHAIN_CHANNEL_ID,
 )
-from core.utils import Messageable, channel_display, format_attachments
+from core.utils import channel_display, format_attachments
 
 WAPPLE_EMOJIS = [
     "<:Wapple:1474915842071335098>",
@@ -45,7 +46,7 @@ class MessageEditHandler(commands.Cog):
             and getattr(channel.parent, "category_id", None) == DIRECTORSHIP_CATEGORY_ID
         )
 
-    @commands.Cog.listener()
+    @commands.Cog.listener("on_message_edit")
     async def on_message_edit(
         self,
         before : discord.Message,
@@ -66,7 +67,7 @@ class MessageEditHandler(commands.Cog):
                     and before.content != after.content
                 ):
                     _ = await after.channel.send(
-                        f"{CONTESTED_EMOJI_ID} **Warning!**\n"
+                        f"{CONTESTED_EMOJI} **Warning!**\n"
                         f"{before.author.name} has edited their message. The next number is {counting_cog.state['count'] + 1}.",
                     )
             return

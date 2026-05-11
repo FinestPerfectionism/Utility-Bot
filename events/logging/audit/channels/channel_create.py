@@ -11,11 +11,21 @@ from events.logging.audit._base import AuditCog, AuditQueue
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ChannelCreateCog(AuditCog):
-    def __init__(self, bot : commands.Bot, queue: AuditQueue) -> None:
-        super().__init__(bot, queue)
+    def __init__(
+        self,
+        bot   : commands.Bot,
+        queue : AuditQueue,
+    ) -> None:
+        super().__init__(
+            bot,
+            queue,
+        )
 
-    @commands.Cog.listener()
-    async def on_guild_channel_create(self, channel : discord.abc.GuildChannel) -> None:
+    @commands.Cog.listener("on_guild_channel_create")
+    async def on_guild_channel_create(
+        self,
+        channel : discord.abc.GuildChannel,
+    ) -> None:
         if self.is_directorship_channel(channel):
             return
 
@@ -23,7 +33,11 @@ class ChannelCreateCog(AuditCog):
         if not log_channel:
             return
 
-        executor = await self.get_executor(channel.guild, discord.AuditLogAction.channel_create, channel.id)
+        executor = await self.get_executor(
+            channel.guild,
+            discord.AuditLogAction.channel_create,
+            channel.id,
+        )
 
         embed = discord.Embed(
             title     = "Channel Created",
@@ -37,7 +51,11 @@ class ChannelCreateCog(AuditCog):
             value  = f"`{channel.name}`\n`{channel.id}`",
             inline = True,
         )
-        _ = embed.add_field(name = "Type", value = channel_type, inline = True)
+        _ = embed.add_field(
+            name   = "Type",
+            value  = channel_type,
+            inline = True,
+        )
 
         if hasattr(channel, "category") and channel.category:
             _ = embed.add_field(
@@ -47,7 +65,11 @@ class ChannelCreateCog(AuditCog):
             )
 
         if hasattr(channel, "position"):
-            _ = embed.add_field(name = "Position", value = str(channel.position), inline = True)
+            _ = embed.add_field(
+                name   = "Position",
+                value  = str(channel.position),
+                inline = True,
+            )
 
         if executor:
             _ = embed.add_field(
@@ -56,4 +78,7 @@ class ChannelCreateCog(AuditCog):
                 inline = False,
             )
 
-        await self._enqueue(log_channel, embed)
+        await self._enqueue(
+            log_channel,
+            embed,
+        )

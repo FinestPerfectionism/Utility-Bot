@@ -9,7 +9,7 @@ from typing import Any
 import discord
 
 from constants import (
-    DENIED_EMOJI_ID,
+    DENIED_EMOJI,
     LEADING_DIRECTOR_ROLE_ID,
     PERSONAL_LEAVE_ROLE_ID,
 )
@@ -259,7 +259,7 @@ async def _validate_permissions(
         if entry_has_automation(existing_entry):
             automation_desc = describe_automation(existing_entry)
             warning_text    = (
-                f"### {DENIED_EMOJI_ID} Warning,\n"
+                f"### {DENIED_EMOJI} Warning,\n"
                 f"{target_member.mention} currently has an active automation entry ({automation_desc}).\n\n"
                 "Running `/leave add` now will override and clear that automation. Proceed?"
             )
@@ -594,7 +594,7 @@ async def run_leave_add(
 
         role_list    = ", ".join(r.mention for r in roles_to_remove)
         warning_text = (
-            f"### {DENIED_EMOJI_ID} Warning,\n"
+            f"### {DENIED_EMOJI} Warning,\n"
             f"This will remove all {len(roles_to_remove)} staff role(s) from {target_member.mention} and **cannot be undone** via `/leave remove`.\n\n"
             f"**Roles to remove:**\n {role_list}\n\n"
             "This action is a **demotional action** and will require manual intervention to restore. Proceed?"
