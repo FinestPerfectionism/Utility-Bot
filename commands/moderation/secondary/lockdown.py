@@ -2,7 +2,7 @@ import contextlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
 import discord
 from discord import app_commands
@@ -21,68 +21,85 @@ from core.cases import CasesManager, CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
 
+EXEMPT_CATEGORIES = [
+    1433851234661695609,
+    1442891409584820416,
+    1385654682197819573,
+    1435770165626277908,
+    1437524579932176385,
+    1386359981271421059,
+    1460736720202109075,
+    1419440211066097725,
+]
+
+EXEMPT_CHANNELS = [
+    1436046265841614858,
+    1392915080294695003,
+    1434727818280833024,
+]
+
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Lockdown Commands
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
+class LockdownData(TypedDict):
+    active              : bool
+    activated_at        : str | None
+    activated_by        : int | None
+    reason              : str | None
+    channel_permissions : dict[
+        str,
+        dict[
+            str,
+            bool | None,
+        ],
+    ]
+
 class LockdownCommands(commands.Cog):
+    bot       : "UtilityBot"
+    data_file : str
+    data      : LockdownData
     def __init__(self, bot : "UtilityBot") -> None:
         self.bot       = bot
         self.data_file = "lockdown_data.json"
         self.data      = self.load_data()
 
-        self.STAFF_ROLE_ID = STAFF_ROLE_ID
-
-        self.EXEMPT_CATEGORIES = [
-            1433851234661695609,
-            1442891409584820416,
-            1385654682197819573,
-            1435770165626277908,
-            1437524579932176385,
-            1386359981271421059,
-            1460736720202109075,
-            1419440211066097725,
-        ]
-
-        self.EXEMPT_CHANNELS = [
-            1436046265841614858,
-            1392915080294695003,
-            1434727818280833024,
-        ]
-
     @property
     def cases_manager(self) -> CasesManager:
         return self.bot.cases_manager
 
-    def load_data(self) -> dict[str, Any]:
+    def load_data(self) -> LockdownData:
         if Path(self.data_file).exists():
             with contextlib.suppress(json.JSONDecodeError), Path(self.data_file).open() as f:
-                return json.load(f)
+                return cast(
+                    LockdownData,
+                    json.load(f),
+                )
         return self.get_default_data()
 
-    def get_default_data(self) -> dict[str, Any]:
+    def get_default_data(self) -> LockdownData:
         return {
             "active"              : False,
             "activated_at"        : None,
             "activated_by"        : None,
-            "reason"              :  None,
+            "reason"              : None,
             "channel_permissions" : {},
         }
 
     def save_data(self) -> None:
         with Path(self.data_file).open("w") as f:
-            json.dump(self.data, f, indent=4)
+            json.dump(self.data, f, indent = 4)
 
     def can_manage_lockdown(self, member : discord.Member) -> bool:
         return is_director(member)
 
     def is_channel_exempt(self, channel : discord.TextChannel | discord.VoiceChannel | discord.ForumChannel | discord.StageChannel) -> bool:
         return (
-            channel.id in self.EXEMPT_CHANNELS
-            or (channel.category_id is not None and channel.category_id in self.EXEMPT_CATEGORIES)
+            channel.id in EXEMPT_CHANNELS
+            or (channel.category_id is not None and channel.category_id in EXEMPT_CATEGORIES)
         )
 
-    lockdown_group = app_commands.Group(
+    lockdown_group : app_commands.Group = app_commands.Group(
         name        = "lockdown",
         description = "Directors only —— Server lockdown management.",
     )
@@ -91,13 +108,16 @@ class LockdownCommands(commands.Cog):
         name        = "status",
         description = "View the current lockdown status.",
     )
-    async def lockdown_status(self, interaction : discord.Interaction) -> None:
+    async def lockdown_status(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         member = interaction.user
         if not isinstance(member, discord.Member):
             return
 
         if not self.can_manage_lockdown(member):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -113,14 +133,24 @@ class LockdownCommands(commands.Cog):
                 color       = COLOR_GREEN,
                 timestamp   = datetime.now(UTC),
             )
-            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(
+                embed     = embed,
+                ephemeral = True,
+            )
             return
 
-        activated_at = datetime.fromisoformat(self.data["activated_at"])
+        raw_at = self.data["activated_at"]
+        raw_by = self.data["activated_by"]
+
+        if raw_at is None or raw_by is None:
+            return
+
+        activated_at = datetime.fromisoformat(raw_at)
         guild = interaction.guild
         if guild is None:
             return
-        activated_by         = guild.get_member(self.data["activated_by"])
+
+        activated_by         = guild.get_member(raw_by)
         activated_by_mention = activated_by.mention if activated_by else f"Unknown User ({self.data['activated_by']})"
 
         embed = discord.Embed(
@@ -166,7 +196,7 @@ class LockdownCommands(commands.Cog):
             return
 
         if not self.can_manage_lockdown(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -176,7 +206,7 @@ class LockdownCommands(commands.Cog):
             return
 
         if self.data["active"]:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "activate lockdown",
@@ -191,9 +221,9 @@ class LockdownCommands(commands.Cog):
         if guild is None:
             return
 
-        staff_role = guild.get_role(self.STAFF_ROLE_ID)
+        staff_role = guild.get_role(STAFF_ROLE_ID)
         if not staff_role:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type          = "error",
                 title             = "activate lockdown",
@@ -266,9 +296,21 @@ class LockdownCommands(commands.Cog):
             color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Director", value = actor.mention, inline = True)
-        _ = embed.add_field(name = "Channels Locked", value = str(channels_locked), inline = True)
-        _ = embed.add_field(name = "Reason", value = reason, inline = False)
+        _ = embed.add_field(
+            name   = "Director",
+            value  = actor.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Channels Locked",
+            value  = str(channels_locked),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Reason",
+            value =  reason,
+            inline = False,
+        )
         _ = embed.add_field(
             name   = "Note",
             value  = f"Staff members ({staff_role.mention}) can still send messages.\n"
@@ -282,13 +324,16 @@ class LockdownCommands(commands.Cog):
         name        = "lift",
         description = "Lift server lockdown.",
     )
-    async def lockdown_lift(self, interaction : discord.Interaction) -> None:
+    async def lockdown_lift(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
 
         if not self.can_manage_lockdown(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -298,7 +343,7 @@ class LockdownCommands(commands.Cog):
             return
 
         if not self.data["active"]:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "lift lockdown",
@@ -336,7 +381,7 @@ class LockdownCommands(commands.Cog):
                     reason                   = f"Lockdown lifted by {actor}",
                 )
 
-                staff_role: discord.Role | None = guild.get_role(self.STAFF_ROLE_ID)
+                staff_role: discord.Role | None = guild.get_role(STAFF_ROLE_ID)
                 if staff_role and isinstance(channel, discord.TextChannel):
                     overwrites : discord.PermissionOverwrite = channel.overwrites_for(staff_role)
                     if overwrites.is_empty():
@@ -369,8 +414,15 @@ class LockdownCommands(commands.Cog):
             color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Director", value = actor.mention, inline = True)
-        _ = embed.add_field(name = "Channels Restored", value = str(channels_restored), inline = True)
+        _ = embed.add_field(
+            name   = "Director", 
+            value  = actor.mention,
+            inline = True)
+        _ = embed.add_field(
+            name   = "Channels Restored", 
+            value  = str(channels_restored),
+            inline = True
+        )
 
         if channels_not_found > 0:
             _ = embed.add_field(

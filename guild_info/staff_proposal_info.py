@@ -1,8 +1,18 @@
 from inspect import cleandoc
 
 import discord
-from discord import ButtonStyle, SeparatorSpacing
-from discord.ui import ActionRow, Button, Container, LayoutView, Separator, TextDisplay
+from discord import (
+    ButtonStyle,
+    SeparatorSpacing,
+)
+from discord.ui import (
+    ActionRow,
+    Button,
+    Container,
+    LayoutView,
+    Separator,
+    TextDisplay,
+)
 from typing_extensions import override
 
 
@@ -55,12 +65,13 @@ class ModeratorsRolesComponents(LayoutView):
 class TrusteeRolesComponents(LayoutView):
     container : Container[LayoutView] = Container(
         TextDisplay(
-            content =
+            content = (
                 "# Goobers Guild Trustees\n"
                 "Guild Trustees are members of the community who contribute to the server's improvement through proposals and suggestions.\n\n"
                 "**Tasks**\n"
                 "> *To raise proposals that improve The Goobers server and its community.*\n\n"
-                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function.",
+                "Guild Trustees may raise Staff Proposals to suggest improvements, changes, or additions to the server. All proposands are expected to be formal, precise, and beneficial to the server's growth and function."
+            ),
         ),
         accent_color = 0xfacd6c,
     )
@@ -160,7 +171,10 @@ class StaffProposalComponents1(LayoutView):
     )
 
 class StaffProposalComponents2a(LayoutView):
-    def __init__(self, timestamp : int) -> None:
+    def __init__(
+        self,
+        timestamp : int,
+    ) -> None:
         super().__init__(timeout = None)
         self.container : Container[LayoutView] = Container(
             TextDisplay(

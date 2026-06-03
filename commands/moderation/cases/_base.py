@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import contextlib
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, ClassVar, NotRequired
 
 import discord
 from discord import ButtonStyle
 from discord.ui import Button, View
-from typing_extensions import override
+from typing_extensions import TypedDict, override
 
 if TYPE_CHECKING:
     from bot import UtilityBot
@@ -33,11 +33,48 @@ from core.permissions import (
 from core.responses import send_custom_message
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# TypedDicts
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+
+class CaseMetadata(TypedDict, total=False):
+    mass_action     : bool
+    target_user_ids : list[int]
+
+class CaseData(TypedDict):
+    case_id          : int
+    type             : str
+    created_at       : str
+    moderator_id     : int
+    moderator_name   : str
+    target_user_id   : NotRequired[int | None]
+    target_user_name : NotRequired[str | None]
+    duration         : NotRequired[str | None]
+    reason           : NotRequired[str | None]
+    content          : NotRequired[str | None]
+    visibility_level : NotRequired[str]
+    pending_visibility: NotRequired[str | None]
+    related_case_id  : NotRequired[int | None]
+    edited_at        : NotRequired[str | None]
+    metadata         : NotRequired[CaseMetadata | None]
+
+class NoteData(TypedDict):
+    case_id        : int
+    created_at     : str
+    moderator_name : str
+    content        : NotRequired[str | None]
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Classification Request View
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ClassificationView(View):
-    def __init__(self, case_id: int, cases_manager: CasesManager) -> None:
+    case_id       : int
+    cases_manager : CasesManager
+    def __init__(
+        self,
+        case_id       : int,
+        cases_manager : CasesManager,
+    ) -> None:
         super().__init__(timeout = None)
         self.case_id       = case_id
         self.cases_manager = cases_manager
@@ -61,7 +98,7 @@ class ClassificationView(View):
             return
 
         if not is_director(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -72,7 +109,7 @@ class ClassificationView(View):
 
         case = self.cases_manager.get_case_by_id(self.case_id)
         if not case or not case.get("pending_visibility"):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "accept classification request",
@@ -100,7 +137,7 @@ class ClassificationView(View):
             if isinstance(child, Button):
                 child.disabled = True
         with contextlib.suppress(discord.HTTPException):
-            await interaction.message.edit(view=self) if interaction.message else None
+            await interaction.message.edit(view = self) if interaction.message else None
 
     @discord.ui.button(
         label     = "Deny",
@@ -114,11 +151,14 @@ class ClassificationView(View):
         _button     : Button[ClassificationView],
     ) -> None:
         actor = interaction.user
-        if not isinstance(actor, discord.Member):
+        if not isinstance(
+            actor,
+            discord.Member,
+        ):
             return
 
         if not is_director(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -129,7 +169,7 @@ class ClassificationView(View):
 
         case = self.cases_manager.get_case_by_id(self.case_id)
         if not case or not case.get("pending_visibility"):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "deny classification request",
@@ -157,17 +197,24 @@ class ClassificationView(View):
             if isinstance(child, Button):
                 child.disabled = True
         with contextlib.suppress(discord.HTTPException):
-            await interaction.message.edit(view=self) if interaction.message else None
+            await interaction.message.edit(view = self) if interaction.message else None
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Paginators
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class CaseQueryPaginator(View):
+    interaction : discord.Interaction
+    cases       : list[CaseData]
+    title       : str
+    color_map   : dict[str, discord.Color]
+    per_page    : int
+    page        : int
+    max_page    : int
     def __init__(
         self,
         interaction : discord.Interaction,
-        cases       : list[dict[str, Any]],
+        cases       : list[CaseData],
         title       : str,
         color_map   : dict[str, discord.Color],
     ) -> None:
@@ -190,33 +237,43 @@ class CaseQueryPaginator(View):
         self.next_page.disabled     = no_pagination_needed or self.page >= self.max_page
         self.last_page.disabled     = no_pagination_needed or self.page >= self.max_page
 
-    def _format_case_field(self, case: dict[str, Any]) -> tuple[str, str]:
+    def _format_case_field(
+        self,
+        case : CaseData,
+    ) -> tuple[str, str]:
         case_type  = case["type"]
         type_label = case_type.replace("_", " ").title()
         created    = datetime.fromisoformat(case["created_at"])
 
         parts: list[str] = [f"**Type:** {type_label}"]
 
-        if case.get("target_user_name"):
-            parts.append(f"**User:** {case['target_user_name']} ({case['target_user_id']})")
-        elif case.get("metadata", {}).get("target_user_ids"):
-            user_ids = case["metadata"]["target_user_ids"]
-            parts.append(f"**Users:** {len(user_ids)} targeted")
+        target_user_name = case.get("target_user_name")
+        target_user_id   = case.get("target_user_id")
+        if target_user_name:
+            parts.append(f"**User:** {target_user_name} ({target_user_id})")
+        else:
+            metadata = case.get("metadata") or {}
+            user_ids = metadata.get("target_user_ids")
+            if user_ids:
+                parts.append(f"**Users:** {len(user_ids)} targeted")
 
         parts.append(f"**Moderator:** {case['moderator_name']}")
 
-        if case.get("duration"):
-            parts.append(f"**Duration:** {case['duration']}")
+        duration = case.get("duration")
+        if duration:
+            parts.append(f"**Duration:** {duration}")
 
-        if case.get("reason"):
-            reason = str(case["reason"])
+        reason = case.get("reason")
+        if reason:
+            reason = str(reason)
             n_20 = 20
             if len(reason) > n_20:
                 reason = reason[:197] + "..."
             parts.append(f"**Reason:** {reason}")
 
-        if case.get("content"):
-            content = str(case["content"])
+        content = case.get("content")
+        if content:
+            content = str(content)
             n_20 = 20
             if len(content) > n_20:
                 content = content[:197] + "..."
@@ -226,7 +283,7 @@ class CaseQueryPaginator(View):
         if vis != "moderators":
             parts.append(f"**Visibility:** {str(vis).replace('_', ' ').title()}")
 
-        metadata : dict[str, Any] = case.get("metadata") or {}
+        metadata = case.get("metadata") or {}
         if metadata.get("mass_action"):
             parts.append("**Mass Action:** Yes")
 
@@ -247,19 +304,28 @@ class CaseQueryPaginator(View):
 
         for case in page_cases:
             name, value = self._format_case_field(case)
-            _ = embed.add_field(name=name, value=value, inline=False)
+            _ = embed.add_field(
+                name   = name,
+                value  = value,
+                inline = False,
+            )
 
-        _ = embed.set_footer(
-            text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.cases)} cases total",
+        _ = embed.set_footer(text = f"Page {self.page + 1}/{self.max_page + 1} · {len(self.cases)} cases total",
         )
 
         return embed
 
     @override
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(
+        self,
+        interaction : discord.Interaction,
+    ) -> bool:
         return interaction.user == self.interaction.user
 
-    @discord.ui.button(label="<<", style=ButtonStyle.secondary)
+    @discord.ui.button(
+        label = "<<",
+        style = ButtonStyle.secondary,
+    )
     async def first_page(
         self,
         interaction : discord.Interaction,
@@ -267,9 +333,12 @@ class CaseQueryPaginator(View):
     ) -> None:
         self.page = 0
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
-    @discord.ui.button(label="<", style=ButtonStyle.secondary)
+    @discord.ui.button(
+        label = "<",
+        style = ButtonStyle.secondary,
+    )
     async def previous_page(
         self,
         interaction : discord.Interaction,
@@ -278,9 +347,12 @@ class CaseQueryPaginator(View):
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
-    @discord.ui.button(label=">", style=ButtonStyle.secondary)
+    @discord.ui.button(
+        label = ">",
+        style = ButtonStyle.secondary,
+    )
     async def next_page(
         self,
         interaction : discord.Interaction,
@@ -289,9 +361,15 @@ class CaseQueryPaginator(View):
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(
+            embed = self.get_embed(),
+            view  = self,
+        )
 
-    @discord.ui.button(label=">>", style=ButtonStyle.secondary)
+    @discord.ui.button(
+        label = ">>",
+        style = ButtonStyle.secondary,
+    )
     async def last_page(
         self,
         interaction : discord.Interaction,
@@ -299,15 +377,24 @@ class CaseQueryPaginator(View):
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(
+            embed = self.get_embed(),
+            view  = self,
+        )
 
 
 class CaseViewPaginator(View):
+    interaction : discord.Interaction
+    case_embed  : discord.Embed
+    notes       : list[NoteData]
+    per_page    : int
+    page        : int
+    max_page    : int
     def __init__(
         self,
         interaction : discord.Interaction,
         case_embed  : discord.Embed,
-        notes       : list[dict[str, Any]],
+        notes       : list[NoteData],
     ) -> None:
         super().__init__(timeout = 120)
         self.interaction = interaction
@@ -337,7 +424,9 @@ class CaseViewPaginator(View):
         end        = start + self.per_page
         page_notes = self.notes[start:end]
 
-        _ = embed.add_field(name="—— Notes ——", value="\u200b", inline=False)
+        _ = embed.add_field(
+            name   = "Notes",
+            value  = "\u200b", inline = False)
 
         for note in page_notes:
             note_created = datetime.fromisoformat(note["created_at"])
@@ -345,8 +434,9 @@ class CaseViewPaginator(View):
                 f"**Moderator:** {note['moderator_name']}",
                 f"**Created:** {discord.utils.format_dt(note_created, 'R')}",
             ]
-            if note.get("content"):
-                note_parts.append(f"\n{note['content']}")
+            note_content = note.get("content")
+            if note_content:
+                note_parts.append(f"\n{note_content}")
             _ = embed.add_field(
                 name   = f"Note #{note['case_id']}",
                 value  = "\n".join(note_parts),
@@ -371,7 +461,7 @@ class CaseViewPaginator(View):
     ) -> None:
         self.page = 0
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(label="<", style=ButtonStyle.secondary)
     async def previous_page(
@@ -382,7 +472,7 @@ class CaseViewPaginator(View):
         if self.page > 0:
             self.page -= 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(label=">", style=ButtonStyle.secondary)
     async def next_page(
@@ -393,7 +483,7 @@ class CaseViewPaginator(View):
         if self.page < self.max_page:
             self.page += 1
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
     @discord.ui.button(label=">>", style=ButtonStyle.secondary)
     async def last_page(
@@ -403,7 +493,7 @@ class CaseViewPaginator(View):
     ) -> None:
         self.page = self.max_page
         self.update_buttons()
-        _ = await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Cases Mixin
@@ -457,7 +547,7 @@ class CasesMixin:
             return 1
         return 0
 
-    def can_see_case(self, member : discord.Member, case: dict[str, Any]) -> bool:
+    def can_see_case(self, member : discord.Member, case: CaseData) -> bool:
         vis   = case.get("visibility_level", "moderators")
         level = self._visibility_level(member)
         if vis == "directors":
@@ -468,7 +558,7 @@ class CasesMixin:
             return level >= n_2
         return level >= 1
 
-    def can_edit_entry(self, member : discord.Member, case: dict[str, Any]) -> bool:
+    def can_edit_entry(self, member : discord.Member, case: CaseData) -> bool:
         return (
             member.id == case["moderator_id"]
             or is_senior_moderator(member)
@@ -482,9 +572,9 @@ class CasesMixin:
 
     async def build_case_embed(
         self,
-        bot   : UtilityBot,
+        bot    : UtilityBot,
         _guild : discord.Guild,
-        case  : dict[str, Any],
+        case   : CaseData,
     ) -> discord.Embed:
         case_type  = case["type"]
         type_label = case_type.replace("_", " ").title()
@@ -499,15 +589,24 @@ class CasesMixin:
         mod_added = False
         with contextlib.suppress(discord.NotFound, discord.HTTPException):
             mod = await bot.fetch_user(case["moderator_id"])
-            _ = embed.add_field(name="Moderator", value=mod.mention, inline=True)
+            _ = embed.add_field(
+                name   = "Moderator",
+                value  = mod.mention,
+                inline = True,
+            )
             mod_added = True
         if not mod_added:
-            _ = embed.add_field(name="Moderator", value=case["moderator_name"], inline=True)
+            _ = embed.add_field(
+                name   = "Moderator",
+                value  = case["moderator_name"],
+                inline = True,
+            )
 
-        if case.get("target_user_id"):
+        target_user_id = case.get("target_user_id")
+        if target_user_id:
             user_added = False
             with contextlib.suppress(discord.NotFound, discord.HTTPException):
-                user = await bot.fetch_user(case["target_user_id"])
+                user = await bot.fetch_user(target_user_id)
                 _ = embed.add_field(
                     name   = "User",
                     value  = f"{user.mention} ({user.id})",
@@ -515,27 +614,52 @@ class CasesMixin:
                 )
                 user_added = True
             if not user_added:
+                target_user_name = case.get("target_user_name")
                 _ = embed.add_field(
                     name   = "User",
-                    value  = f"{case['target_user_name']} ({case['target_user_id']})",
+                    value  = f"{target_user_name} ({target_user_id})",
                     inline = True,
                 )
 
-        if case.get("duration"):
-            _ = embed.add_field(name="Duration", value=case["duration"], inline=True)
+        duration = case.get("duration")
+        if duration:
+            _ = embed.add_field(
+                name   = "Duration",
+                value  = duration,
+                inline = True,
+            )
 
-        if case.get("reason"):
-            _ = embed.add_field(name="Reason", value=case["reason"], inline=False)
+        reason = case.get("reason")
+        if reason:
+            _ = embed.add_field(
+                name   = "Reason",
+                value  = reason,
+                inline = False,
+            )
 
-        if case.get("content"):
-            _ = embed.add_field(name="Content", value=case["content"], inline=False)
+        content = case.get("content")
+        if content:
+            _ = embed.add_field(
+                name   = "Content",
+                value  = content,
+                inline = False,
+            )
 
-        if case.get("related_case_id"):
-            _ = embed.add_field(name="Related Case", value=f"#{case['related_case_id']}", inline=True)
+        related_case_id = case.get("related_case_id")
+        if related_case_id:
+            _ = embed.add_field(
+                name   = "Related Case",
+                value  = f"#{related_case_id}",
+                inline = True,
+            )
 
-        metadata : dict[str, Any] = case.get("metadata") or {}
+        metadata = case.get("metadata") or {}
         if metadata.get("mass_action"):
-            _ = embed.add_field(name="Mass Action", value="Yes", inline=True)
+            _ = embed.add_field(
+                name   = "Mass Action",
+                value  = "Yes",
+                inline = True,
+            )
 
         vis = case.get("visibility_level", "moderators")
         _ = embed.add_field(
@@ -550,24 +674,33 @@ class CasesMixin:
             inline = True,
         )
 
-        if case.get("edited_at"):
-            edited = datetime.fromisoformat(case["edited_at"])
+        edited_at = case.get("edited_at")
+        if edited_at:
+            edited = datetime.fromisoformat(edited_at)
             _ = embed.add_field(
                 name   = "Edited",
                 value  = discord.utils.format_dt(edited, "R"),
                 inline = True,
             )
 
-        if case.get("pending_visibility"):
-            pending = str(case["pending_visibility"]).replace("_", " ").title()
-            _ = embed.add_field(name="Pending Visibility", value=pending, inline=True)
+        pending_visibility = case.get("pending_visibility")
+        if pending_visibility:
+            pending = str(pending_visibility).replace("_", " ").title()
+            _ = embed.add_field(
+                name   = "Pending Visibility",
+                value  = pending,
+                inline = True,
+            )
 
         return embed
 
 
 __all__ = [
+    "CaseData",
+    "CaseMetadata",
     "CaseQueryPaginator",
     "CaseViewPaginator",
     "CasesMixin",
     "ClassificationView",
+    "NoteData",
 ]

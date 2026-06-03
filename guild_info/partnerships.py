@@ -6,9 +6,19 @@ from typing import Any
 
 import discord
 from discord import SeparatorSpacing
-from discord.ui import Container, LayoutView, Section, Separator, TextDisplay, Thumbnail
+from discord.ui import (
+    Container,
+    LayoutView,
+    Section,
+    Separator,
+    TextDisplay,
+    Thumbnail,
+)
 
-from constants import PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, TICKET_CHANNEL_ID
+from constants import (
+    PARTNERSHIP_REQUIREMENTS_CHANNEL_ID,
+    TICKET_CHANNEL_ID,
+)
 from core.state.partnership_state import (
     IMAGE_DIR,
     PartnershipData,
@@ -18,8 +28,7 @@ from core.state.partnership_state import (
 
 log = logging.getLogger("Utility Bot")
 
-_CHARS_PER_GROUP_LIMIT: int = 3200
-_NO_PINGS = discord.AllowedMentions(users = False)
+CHARACTERS_PER_GROUP_LIMIT : int = 3200
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # Partnership Views
@@ -57,9 +66,18 @@ class PartnershipComponents2(LayoutView):
                     "-# All partnerships below are subject to removal or update at any time based on Directorate decision. Partnerships are not influenced by the public or other staff.\n"
                     "-# Partnerships assembled by the Directorate team.",
             ),
-            Separator(visible = False, spacing = SeparatorSpacing.small),
-            Separator(visible = True,  spacing = SeparatorSpacing.small),
-            Separator(visible = False, spacing = SeparatorSpacing.small),
+            Separator(
+                visible = False,
+                spacing = SeparatorSpacing.small,
+            ),
+            Separator(
+                visible = False,
+                spacing = SeparatorSpacing.small,
+            ),
+            Separator(
+                visible = False,
+                spacing = SeparatorSpacing.small,
+            ),
         ]
 
         if not partnerships:
@@ -113,16 +131,14 @@ def _estimate_chars(p : PartnershipEntry) -> int:
     )
 
 
-def split_partnerships(
-    partnerships : list[PartnershipEntry],
-) -> list[list[PartnershipEntry]]:
+def split_partnerships(partnerships : list[PartnershipEntry]) -> list[list[PartnershipEntry]]:
     groups        : list[list[PartnershipEntry]] = []
     current       : list[PartnershipEntry]       = []
     current_chars : int                          = 0
 
     for p in partnerships:
         p_chars = _estimate_chars(p)
-        if current and current_chars + p_chars > _CHARS_PER_GROUP_LIMIT:
+        if current and current_chars + p_chars > CHARACTERS_PER_GROUP_LIMIT:
             groups.append(current)
             current       = [p]
             current_chars = p_chars
@@ -144,7 +160,10 @@ async def rebuild_partnership_layout(
         try:
             msg = await channel.fetch_message(msg_id)
             await msg.delete()
-        except (discord.NotFound, discord.HTTPException):
+        except (
+            discord.NotFound,
+            discord.HTTPException,
+        ):
             pass
 
     header_msg_id = data["header_message_id"]
@@ -152,7 +171,10 @@ async def rebuild_partnership_layout(
         try:
             msg = await channel.fetch_message(header_msg_id)
             await msg.delete()
-        except (discord.NotFound, discord.HTTPException):
+        except (
+            discord.NotFound,
+            discord.HTTPException,
+        ):
             pass
 
     timestamp : int = int(time.time())
@@ -163,8 +185,11 @@ async def rebuild_partnership_layout(
 
     if not partnerships:
         empty_msg = await channel.send(
-            view             = PartnershipComponents2([], timestamp),
-            allowed_mentions =_NO_PINGS,
+            view             = PartnershipComponents2(
+                [],
+                timestamp,
+            ),
+            allowed_mentions = discord.AllowedMentions.none(),
         )
         new_message_ids.append(empty_msg.id)
     else:
@@ -177,9 +202,12 @@ async def rebuild_partnership_layout(
                 for p in group
             ]
             msg = await channel.send(
-                view             = PartnershipComponents2(group, timestamp),
+                view             = PartnershipComponents2(
+                    group,
+                    timestamp,
+                ),
                 files            = files,
-                allowed_mentions = _NO_PINGS,
+                allowed_mentions = discord.AllowedMentions.none(),
             )
             new_message_ids.append(msg.id)
 

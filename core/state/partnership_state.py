@@ -62,6 +62,6 @@ def save_partnership_data(data: PartnershipData) -> None:
     _DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     try:
         with Path.open(_DATA_FILE, "w") as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent = 2)
     except OSError:
         log.exception("Failed to save partnership data")

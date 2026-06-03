@@ -216,7 +216,10 @@ class AddMemberModal(Modal, title = "Add Member to Ticket"):
     )
 
     @override
-    async def on_submit(self, interaction : discord.Interaction) -> None:
+    async def on_submit(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
 
@@ -314,7 +317,10 @@ class TicketControlPanel(LayoutView):
         accent_color = COLOR_GREEN,
     )
 
-    async def _archive(self, interaction : discord.Interaction) -> None:
+    async def _archive(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
         if not isinstance(interaction.user, discord.Member):
@@ -334,7 +340,7 @@ class TicketControlPanel(LayoutView):
 
         stop_resolution(channel.id)
         unregister_ticket(channel.id)
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type  = "success",
             title     = "archived ticket",
@@ -342,14 +348,17 @@ class TicketControlPanel(LayoutView):
         )
         _ = await channel.edit(locked=True, archived=True)
 
-    async def _lock(self, interaction : discord.Interaction) -> None:
+    async def _lock(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
         if not isinstance(interaction.user, discord.Member):
             return
 
         if not _is_staff(interaction.user):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "lock ticket",
@@ -366,7 +375,10 @@ class TicketControlPanel(LayoutView):
         )
         _ = await interaction.channel.edit(locked=True)
 
-    async def _close(self, interaction : discord.Interaction) -> None:
+    async def _close(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if not isinstance(interaction.channel, discord.Thread):
             return
         if not isinstance(interaction.user, discord.Member):
@@ -392,7 +404,10 @@ class TicketControlPanel(LayoutView):
         )
         _ = await interaction.channel.edit(archived=True)
 
-    async def _add_members(self, interaction : discord.Interaction) -> None:
+    async def _add_members(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
 
@@ -407,7 +422,10 @@ class TicketControlPanel(LayoutView):
 
         _ = await interaction.response.send_modal(AddMemberModal())
 
-    async def _claim(self, interaction : discord.Interaction) -> None:
+    async def _claim(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if not isinstance(interaction.user, discord.Member):
             return
         if not isinstance(interaction.channel, discord.Thread):
@@ -495,7 +513,10 @@ class TicketComponents(LayoutView):
         accent_color = COLOR_GREEN,
     )
 
-    async def open_ticket(self, interaction : discord.Interaction) -> None:
+    async def open_ticket(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if interaction.response.is_done():
             return
 

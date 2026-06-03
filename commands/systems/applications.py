@@ -7,7 +7,7 @@ from discord.ext import commands
 from constants import (
     STAFF_ROLE_ID,
 )
-from core.permissions import directors_only, main_guild_only
+from core.permissions import directors_only
 from core.responses import send_custom_message
 from core.state.application_state import APPLICATIONS_OPEN, save_application_state
 from core.state.blacklist_state import BLACKLIST, save_blacklist
@@ -50,7 +50,6 @@ class ApplicationsCommands(
             ),
         ],
     )
-    @main_guild_only()
     @directors_only()
     async def blacklist(
         self,
@@ -169,7 +168,7 @@ class ApplicationsCommands(
         current_state = APPLICATIONS_OPEN.get(application.value, False)
 
         if current_state == new_state:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "modify application state",
@@ -181,7 +180,7 @@ class ApplicationsCommands(
         APPLICATIONS_OPEN[application.value] = new_state
         save_application_state()
 
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "success",
             title    = f"set {application.name} applications to {state.value}",
@@ -191,10 +190,13 @@ class ApplicationsCommands(
     # .cancel Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "cancel")
-    async def cancel(self, ctx : commands.Context[commands.Bot]) -> None:
+    @commands.command()
+    async def cancel(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         if ctx.guild is not None:
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "cancel application",
@@ -204,7 +206,7 @@ class ApplicationsCommands(
             return
 
         if ctx.author.id not in ACTIVE_APPLICATIONS:
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "cancel application",

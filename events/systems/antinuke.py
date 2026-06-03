@@ -75,7 +75,7 @@ class AntiNukeSystem(commands.Cog):
 
     def save_config(self) -> None:
         with Path(self.config_file).open("w") as f:
-            json.dump(self.config, f, indent=4)
+            json.dump(self.config, f, indent = 4)
 
     def is_director(self, member : discord.Member) -> bool:
         return any(role.id == self.DIRECTORS_ROLE_ID for role in member.roles)
@@ -222,47 +222,99 @@ class AntiNukeSystem(commands.Cog):
             color = COLOR_ORANGE,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "User", value = f"{user.mention} ({user.id})", inline = True)
-        _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
-        _ = embed.add_field(name = "Hourly", value = f"{hourly_count}/{hourly_limit}", inline = True)
-        _ = embed.add_field(name = "Daily", value = f"{daily_count}/{daily_limit}", inline = True)
+        _ = embed.add_field(
+            name   = "User",
+            value  = f"{user.mention} ({user.id})",
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Action Type",
+            value  = action_type.replace(
+                "_",
+                " ",
+            ).title(),
+            inline = True)
+        _ = embed.add_field(
+            name   = "Hourly",
+            value  = f"{hourly_count}/{hourly_limit}",
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Daily",
+            value  = f"{daily_count}/{daily_limit}",
+            inline = True,
+        )
 
         with contextlib.suppress(discord.Forbidden):
             _ = await log_channel.send(embed = embed)
 
     async def send_quarantine_alert(
         self,
-        guild : discord.Guild,
-        member : discord.Member,
-        action_type: str,
-        hourly_count: int,
-        daily_count: int,
-        limit_type: str,
-        details: str,
+        guild        : discord.Guild,
+        member       : discord.Member,
+        action_type  : str,
+        hourly_count : int,
+        daily_count  : int,
+        limit_type   : str,
+        details      : str,
     ) -> None:
         log_channel_id = self.config.get("log_channel_id")
         if not log_channel_id:
             return
 
         log_channel = guild.get_channel(log_channel_id)
-        if not isinstance(log_channel, discord.TextChannel | discord.Thread):
+        if not isinstance(
+            log_channel,
+            discord.TextChannel | discord.Thread,
+        ):
             return
 
         embed = discord.Embed(
-            title = "Anti-Nuke: User Quarantined",
+            title       = "Anti-Nuke: User Quarantined",
             description = f"{member.mention} has been automatically quarantined for exceeding action limits.",
-            color = COLOR_RED,
-            timestamp = datetime.now(UTC),
+            color       = COLOR_RED,
+            timestamp   = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "User", value = f"{member.mention} ({member.id})", inline = True)
-        _ = embed.add_field(name = "Action Type", value = action_type.replace("_", " ").title(), inline = True)
-        _ = embed.add_field(name = "Limit Exceeded", value = limit_type.title(), inline = True)
-        _ = embed.add_field(name = "Hourly Count", value = str(hourly_count), inline = True)
-        _ = embed.add_field(name = "Daily Count", value = str(daily_count), inline = True)
-        _ = embed.add_field(name = "\u200b", value = "\u200b", inline = True)
+        _ = embed.add_field(
+            name   = "User",
+            value  = f"{member.mention} ({member.id})",
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Action Type",
+            value  = action_type.replace(
+                "_",
+                " ",
+            ).title(),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Limit Exceeded",
+            value  = limit_type.title(),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Hourly Count",
+            value  = str(hourly_count),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Daily Count",
+            value  = str(daily_count),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "\u200b",
+            value  = "\u200b",
+            inline = True,
+        )
 
         if details:
-            _ = embed.add_field(name = "Details", value = details, inline = False)
+            _ = embed.add_field(
+                name   = "Details",
+                value  = details,
+                inline = False,
+            )
 
         with contextlib.suppress(discord.Forbidden):
             _ = await log_channel.send(embed = embed)

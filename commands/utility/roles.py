@@ -15,7 +15,11 @@ class RoleCommands(
     name        = "role",
     description = "Directors only —— Role commands.",
 ):
-    def __init__(self, bot : commands.Bot) -> None:
+    bot : commands.Bot
+    def __init__(
+        self,
+        bot : commands.Bot
+    ) -> None:
         self.bot = bot
         super().__init__()
 
@@ -48,7 +52,7 @@ class RoleCommands(
     ) -> None:
         _ = await interaction.response.defer(ephemeral = False)
 
-        lines: list[str] = []
+        lines : list[str] = []
         for perm_name, value in role.permissions:
             if perm_filter == "enabled" and not value:
                 continue
@@ -95,7 +99,7 @@ class RoleCommands(
         diffs_role2 : list[str] = []
 
         for perm_name, value1 in role1.permissions:
-            value2: bool = getattr(role2.permissions, perm_name)
+            value2 : bool = getattr(role2.permissions, perm_name)
             if value1 != value2:
                 label : str = perm_name.replace("_", " ").title()
                 mark1 : str = ACCEPTED_EMOJI if value1 else DENIED_EMOJI
@@ -180,7 +184,7 @@ class RoleCommands(
 
         guild = interaction.guild
         if guild is None:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "run command",
@@ -206,8 +210,16 @@ class RoleCommands(
             description = formatted,
             color       = COLOR_BLURPLE,
         )
-        _ = embed.add_field(name = "Role Filter",   value = role_filter.name,   inline = True)
-        _ = embed.add_field(name = "Person Filter", value = person_filter.name, inline = True)
+        _ = embed.add_field(
+            name   = "Role Filter",
+            value  = role_filter.name,
+            inline = True
+        )
+        _ = embed.add_field(
+            name   = "Person Filter",
+            value  = person_filter.name,
+            inline = True
+        )
         _ = embed.set_footer(text = f"{len(filtered)} member(s) found.")
 
         await interaction.followup.send(embed = embed)

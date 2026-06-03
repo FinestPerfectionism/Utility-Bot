@@ -92,4 +92,10 @@ suppress-none-returning = false
 keep-runtime-typing = true
 
 [tool.setuptools]
-packages = ["core", "data", "events", "commands", "guild_info"]
+packages = [
+    "core",
+    "data",
+    "events",
+    "commands",
+    "guild_info",
+]

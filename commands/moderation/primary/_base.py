@@ -4,7 +4,7 @@ import json
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, cast
 
 import discord
 from discord import ButtonStyle
@@ -50,21 +50,67 @@ from core.permissions import (
     is_senior_moderator,
 )
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Moderation List Paginator
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+PROTECTED_ROLE_IDS = [
+    STAFF_ROLE_ID,
+    ADMINISTRATORS_ROLE_ID,
+    JUNIOR_ADMINISTRATORS_ROLE_ID,
+    SENIOR_ADMINISTRATORS_ROLE_ID,
+    MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
+    MODERATORS_ROLE_ID,
+    JUNIOR_MODERATORS_ROLE_ID,
+    SENIOR_MODERATORS_ROLE_ID,
+    DIRECTORS_ROLE_ID,
+]
 
-_Context = discord.Interaction
+BAN_HOURLY_LIMIT        = 2
+BAN_DAILY_LIMIT         = 4
+KICK_HOURLY_LIMIT       = 3
+KICK_DAILY_LIMIT        = 6
+TIMEOUT_HOURLY_LIMIT    = 5
+TIMEOUT_DAILY_LIMIT     = 10
+QUARANTINE_HOURLY_LIMIT = 5
+QUARANTINE_DAILY_LIMIT  = 20
+SEVERE_HOURLY_LIMIT     = 4
+SEVERE_DAILY_LIMIT      = 8
+
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
+# Moderation Base
+# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ModerationListPaginator(View):
+    context         : discord.Interaction
+    title           : str
+    color           : discord.Color
+    fields          : list[
+        tuple[
+            str,
+            str,
+        ]
+    ]
+    per_page        : int
+    page            : int
+    max_page        : int
+    delete_delay    : float     | None = None
+    delete_callback : Callable[
+        [],
+        Awaitable[None],
+    ]                           | None = None
     def __init__(
         self,
-        context         : _Context,
+        context         : discord.Interaction,
         title           : str,
         color           : discord.Color,
-        fields          : list[tuple[str, str]],
-        delete_delay    : float                         | None = None,
-        delete_callback : Callable[[], Awaitable[None]] | None = None,
+        fields          : list[
+            tuple[
+                str,
+                str,
+            ]
+        ],
+        delete_delay    : float     | None = None,
+        delete_callback : Callable[
+            [],
+            Awaitable[None],
+        ]                           | None = None,
     ) -> None:
         super().__init__(timeout = 120)
         self.context         = context
@@ -116,7 +162,11 @@ class ModerationListPaginator(View):
         )
 
         for name, value in page_fields:
-            _ = embed.add_field(name = name, value = value, inline = False)
+            _ = embed.add_field(
+                name   = name,
+                value  = value,
+                inline = False
+            )
 
         _ = embed.set_footer(
             text=f"Page {self.page + 1}/{self.max_page + 1} · {len(self.fields)} total",
@@ -125,10 +175,16 @@ class ModerationListPaginator(View):
         return embed
 
     @override
-    async def interaction_check(self, interaction : discord.Interaction) -> bool:
+    async def interaction_check(
+        self,
+        interaction : discord.Interaction,
+    ) -> bool:
         return interaction.user == self.context.user
 
-    @discord.ui.button(label = "<<", style = ButtonStyle.secondary)
+    @discord.ui.button(
+        label = "<<",
+        style = ButtonStyle.secondary,
+    )
     async def first_page(
         self,
         interaction : discord.Interaction,
@@ -178,61 +234,49 @@ class ModerationListPaginator(View):
             self._schedule_delete()
         _ = await interaction.response.edit_message(embed = self.get_embed(), view = self)
 
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-# Moderation Base
-# ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
-
 class ModerationBase(commands.Cog):
-    def __init__(self, bot : "UtilityBot") -> None:
+    bot : "UtilityBot"
+    def __init__(
+        self,
+        bot : "UtilityBot",
+    ) -> None:
         self.bot = bot
 
         if not hasattr(bot, "mod_data"):
             bot.mod_data = self._load_data()
 
-        self.QUARANTINE_ROLE_ID        = QUARANTINE_ROLE_ID
-        self.DIRECTORS_ROLE_ID         = DIRECTORS_ROLE_ID
-        self.SENIOR_MODERATORS_ROLE_ID = SENIOR_MODERATORS_ROLE_ID
-        self.MODERATORS_ROLE_ID        = MODERATORS_ROLE_ID
-        self.ADMINISTRATORS_ROLE_ID    = ADMINISTRATORS_ROLE_ID
-
-        self.PROTECTED_ROLE_IDS = [
-            STAFF_ROLE_ID,
-            ADMINISTRATORS_ROLE_ID,
-            JUNIOR_ADMINISTRATORS_ROLE_ID,
-            SENIOR_ADMINISTRATORS_ROLE_ID,
-            MODERATORS_AND_ADMINISTRATORS_ROLE_ID,
-            MODERATORS_ROLE_ID,
-            JUNIOR_MODERATORS_ROLE_ID,
-            SENIOR_MODERATORS_ROLE_ID,
-            DIRECTORS_ROLE_ID,
-        ]
-
-        self.BAN_HOURLY_LIMIT        = 2
-        self.BAN_DAILY_LIMIT         = 4
-        self.KICK_HOURLY_LIMIT       = 3
-        self.KICK_DAILY_LIMIT        = 6
-        self.TIMEOUT_HOURLY_LIMIT    = 5
-        self.TIMEOUT_DAILY_LIMIT     = 10
-        self.QUARANTINE_HOURLY_LIMIT = 5
-        self.QUARANTINE_DAILY_LIMIT  = 20
-        self.SEVERE_HOURLY_LIMIT     = 4
-        self.SEVERE_DAILY_LIMIT      = 8
-
     @property
-    def data(self) -> dict[str, Any]:
+    def data(self) -> dict[
+        str,
+        object,
+    ]:
         return self.bot.mod_data
 
     @property
     def cases_manager(self) -> CasesManager:
         return self.bot.cases_manager
 
-    def _load_data(self) -> dict[str, Any]:
+    def _load_data(self) -> dict[str, object]:
         if Path("moderation_data.json").exists():
             with contextlib.suppress(json.JSONDecodeError), Path("moderation_data.json").open() as f:
-                return json.load(f)
+                data_json = cast(
+                    object,
+                    json.load(f),
+                )
+                if isinstance(
+                    data_json,
+                    dict,
+                ):
+                    return cast(
+                        dict[
+                            str,
+                            object,
+                        ],
+                        data_json,
+                    )
         return self._get_default_data()
 
-    def _get_default_data(self) -> dict[str, Any]:
+    def _get_default_data(self) -> dict[str, object]:
         return {
             "bans"        : {},
             "timeouts"    : {},
@@ -243,14 +287,32 @@ class ModerationBase(commands.Cog):
 
     def save_data(self) -> None:
         with Path("moderation_data.json").open("w") as f:
-            json.dump(self.data, f, indent=4)
+            json.dump(self.data, f, indent = 4)
 
-    def ensure_data_section(self, section: str) -> dict[str, Any]:
+    def ensure_data_section(
+        self,
+        section : str,
+    ) -> dict[str, object]:
         if section not in self.data:
             self.data[section] = {}
-        return self.data[section]
 
-    def parse_duration(self, duration_str : str) -> int | None:
+        section_data = self.data[section]
+        if not isinstance(section_data, dict):
+            self.data[section] = {}
+            return {}
+
+        return cast(
+            dict[
+            str,
+            object,
+            ],
+            section_data,
+        )
+
+    def parse_duration(
+        self,
+        duration_str : str,
+    ) -> int | None:
         duration_str = duration_str.lower().strip()
         try:
             if duration_str.endswith("s"):
@@ -267,16 +329,36 @@ class ModerationBase(commands.Cog):
         except ValueError:
             return None
 
-    def _ensure_rate_limit_entry(self, user_id: str) -> None:
+    def _ensure_rate_limit_entry(
+        self,
+        user_id : str,
+    ) -> None:
         if "rate_limits" not in self.data:
             self.data["rate_limits"] = {}
 
-        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
+        raw_limits = self.data.get("rate_limits")
+        if not isinstance(raw_limits, dict):
+            self.data["rate_limits"] = {}
+            raw_limits = self.data["rate_limits"]
+
+        rate_limits = cast(
+            dict[
+                str,
+                dict[
+                    str,
+                    list[str],
+                ],
+            ],
+            raw_limits,
+        )
 
         if user_id not in rate_limits:
             rate_limits[user_id] = {}
 
-        rl: dict[str, list[str]] = rate_limits[user_id]
+        rl : dict[
+            str,
+            list[str],
+        ] = rate_limits[user_id]
         for key in (
             "ban_hourly"       , "ban_daily",
             "kick_hourly"      , "kick_daily",
@@ -287,58 +369,100 @@ class ModerationBase(commands.Cog):
             if key not in rl:
                 rl[key] = []
 
-    def clean_old_rate_limits(self, user_id: str) -> None:
+    def clean_old_rate_limits(
+        self,
+        user_id : str,
+    ) -> None:
         now = datetime.now(UTC)
         self._ensure_rate_limit_entry(user_id)
 
-        rate_limits : dict[str, dict[str, list[str]]] = self.data["rate_limits"]
-        rl          : dict[str, list[str]] = rate_limits[user_id]
+        raw_limits = self.data.get("rate_limits")
+        if not isinstance(raw_limits, dict):
+            return
+
+        rate_limits = cast(
+            dict[
+                str,
+                dict[
+                    str,
+                    list[str],
+                ],
+            ],
+            raw_limits,
+        )
+        rl : dict[
+            str,
+            list[str],
+        ] = rate_limits[user_id]
 
         for key in ("ban_hourly", "kick_hourly", "timeout_hourly", "quarantine_hourly", "severe_hourly"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(hours=1)]
         for key in ("ban_daily", "kick_daily", "timeout_daily", "quarantine_daily", "severe_daily"):
             rl[key] = [ts for ts in rl[key] if datetime.fromisoformat(ts) > now - timedelta(days=1)]
 
-    def check_rate_limit(self, user_id: str, action: str) -> tuple[bool, str]:
+    def check_rate_limit(
+        self,
+        user_id : str,
+        action  : str,
+    ) -> tuple[
+        bool,
+        str,
+    ]:
         self.clean_old_rate_limits(user_id)
 
-        rate_limits : dict[str, dict[str, list[str]]] = self.data["rate_limits"]
-        rl          : dict[str, list[str]] = rate_limits[user_id]
+        rate_limits = cast(dict[str, dict[str, list[str]]], self.data["rate_limits"])
+        rl = rate_limits[user_id]
 
-        if len(rl["severe_hourly"]) >= self.SEVERE_HOURLY_LIMIT:
-            return False, f"Severe action hourly limit exceeded ({self.SEVERE_HOURLY_LIMIT} bans/kicks/quarantines per hour)"
-        if len(rl["severe_daily"]) >= self.SEVERE_DAILY_LIMIT:
-            return False, f"Severe action daily limit exceeded ({self.SEVERE_DAILY_LIMIT} bans/kicks/quarantines per day)"
+        if len(rl["severe_hourly"]) >= SEVERE_HOURLY_LIMIT:
+            return False, f"Severe action hourly limit exceeded ({SEVERE_HOURLY_LIMIT} bans/kicks/quarantines per hour)"
+        if len(rl["severe_daily"]) >= SEVERE_DAILY_LIMIT:
+            return False, f"Severe action daily limit exceeded ({SEVERE_DAILY_LIMIT} bans/kicks/quarantines per day)"
 
         if action == "ban":
-            if len(rl["ban_hourly"]) >= self.BAN_HOURLY_LIMIT:
-                return False, f"Ban hourly limit exceeded ({self.BAN_HOURLY_LIMIT} bans per hour)"
-            if len(rl["ban_daily"]) >= self.BAN_DAILY_LIMIT:
-                return False, f"Ban daily limit exceeded ({self.BAN_DAILY_LIMIT} bans per day)"
+            if len(rl["ban_hourly"]) >= BAN_HOURLY_LIMIT:
+                return False, f"Ban hourly limit exceeded ({BAN_HOURLY_LIMIT} bans per hour)"
+            if len(rl["ban_daily"]) >= BAN_DAILY_LIMIT:
+                return False, f"Ban daily limit exceeded ({BAN_DAILY_LIMIT} bans per day)"
         elif action == "kick":
-            if len(rl["kick_hourly"]) >= self.KICK_HOURLY_LIMIT:
-                return False, f"Kick hourly limit exceeded ({self.KICK_HOURLY_LIMIT} kicks per hour)"
-            if len(rl["kick_daily"]) >= self.KICK_DAILY_LIMIT:
-                return False, f"Kick daily limit exceeded ({self.KICK_DAILY_LIMIT} kicks per day)"
+            if len(rl["kick_hourly"]) >= KICK_HOURLY_LIMIT:
+                return False, f"Kick hourly limit exceeded ({KICK_HOURLY_LIMIT} kicks per hour)"
+            if len(rl["kick_daily"]) >= KICK_DAILY_LIMIT:
+                return False, f"Kick daily limit exceeded ({KICK_DAILY_LIMIT} kicks per day)"
         elif action == "timeout":
-            if len(rl["timeout_hourly"]) >= self.TIMEOUT_HOURLY_LIMIT:
-                return False, f"Timeout hourly limit exceeded ({self.TIMEOUT_HOURLY_LIMIT} timeouts per hour)"
-            if len(rl["timeout_daily"]) >= self.TIMEOUT_DAILY_LIMIT:
-                return False, f"Timeout daily limit exceeded ({self.TIMEOUT_DAILY_LIMIT} timeouts per day)"
+            if len(rl["timeout_hourly"]) >= TIMEOUT_HOURLY_LIMIT:
+                return False, f"Timeout hourly limit exceeded ({TIMEOUT_HOURLY_LIMIT} timeouts per hour)"
+            if len(rl["timeout_daily"]) >= TIMEOUT_DAILY_LIMIT:
+                return False, f"Timeout daily limit exceeded ({TIMEOUT_DAILY_LIMIT} timeouts per day)"
         elif action == "quarantine":
-            if len(rl["quarantine_hourly"]) >= self.QUARANTINE_HOURLY_LIMIT:
-                return False, f"Quarantine hourly limit exceeded ({self.QUARANTINE_HOURLY_LIMIT} quarantines per hour)"
-            if len(rl["quarantine_daily"]) >= self.QUARANTINE_DAILY_LIMIT:
-                return False, f"Quarantine daily limit exceeded ({self.QUARANTINE_DAILY_LIMIT} quarantines per day)"
+            if len(rl["quarantine_hourly"]) >= QUARANTINE_HOURLY_LIMIT:
+                return False, f"Quarantine hourly limit exceeded ({QUARANTINE_HOURLY_LIMIT} quarantines per hour)"
+            if len(rl["quarantine_daily"]) >= QUARANTINE_DAILY_LIMIT:
+                return False, f"Quarantine daily limit exceeded ({QUARANTINE_DAILY_LIMIT} quarantines per day)"
 
         return True, ""
 
-    def add_rate_limit_entry(self, user_id: str, action: str) -> None:
+    def add_rate_limit_entry(
+        self,
+        user_id : str,
+        action  : str,
+    ) -> None:
         now = datetime.now(UTC).isoformat()
         self._ensure_rate_limit_entry(user_id)
 
-        rate_limits: dict[str, dict[str, list[str]]] = self.data["rate_limits"]
-        rl: dict[str, list[str]] = rate_limits[user_id]
+        rate_limits = cast(
+            dict[
+                str,
+                dict[
+                    str,
+                    list[str],
+                ],
+            ],
+            self.data["rate_limits"],
+        )
+        rl : dict[
+            str,
+            list[str],
+        ] = rate_limits[user_id]
 
         if action in ("ban", "kick", "quarantine"):
             rl["severe_hourly"].append(now)
@@ -359,10 +483,21 @@ class ModerationBase(commands.Cog):
 
         self.save_data()
 
-    def has_protected_role(self, member : discord.Member) -> bool:
-        return any(has_role(member, role_id) for role_id in self.PROTECTED_ROLE_IDS)
+    def has_protected_role(
+        self,
+        member : discord.Member,
+    ) -> bool:
+        return any(
+            has_role(
+                member,
+                role_id,
+            ) for role_id in PROTECTED_ROLE_IDS
+        )
 
-    def can_view_moderation(self, member : discord.Member) -> bool:
+    def can_view_moderation(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return (
             is_director(member) or
             is_senior_moderator(member) or
@@ -370,36 +505,61 @@ class ModerationBase(commands.Cog):
             is_moderator(member)
         )
 
-    def can_apply_standard_actions(self, member : discord.Member) -> bool:
+    def can_apply_standard_actions(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return is_moderator(member)
 
-    def can_untimeout(self, member : discord.Member) -> bool:
+    def can_untimeout(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return is_director(member) or is_senior_moderator(member)
 
-    def can_reverse_actions(self, member : discord.Member) -> bool:
+    def can_reverse_actions(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return is_director(member)
 
-    def can_quarantine(self, member : discord.Member) -> bool:
+    def can_quarantine(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return self.can_apply_standard_actions(member)
 
-    def can_view(self, member : discord.Member) -> bool:
+    def can_view(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return self.can_view_moderation(member)
 
-    def can_moderate(self, member : discord.Member) -> bool:
+    def can_moderate(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return self.can_apply_standard_actions(member)
 
-    def can_unban_untimeout(self, member : discord.Member) -> bool:
+    def can_unban_untimeout(
+        self,
+        member : discord.Member,
+    ) -> bool:
         return self.can_reverse_actions(member)
 
-    def check_hierarchy(self, moderator: discord.Member, target: discord.Member) -> bool:
+    def check_hierarchy(
+        self,
+        moderator : discord.Member,
+        target    : discord.Member,
+    ) -> bool:
         if target.id == moderator.guild.owner_id:
             return False
         if moderator.id == moderator.guild.owner_id:
             return True
-        if is_director(moderator) and has_role(target, self.QUARANTINE_ROLE_ID):
+        if is_director(moderator) and has_role(target, QUARANTINE_ROLE_ID):
             return True
 
-        target_roles = [role for role in target.roles if role.id != self.QUARANTINE_ROLE_ID]
+        target_roles = [role for role in target.roles if role.id != QUARANTINE_ROLE_ID]
         if not target_roles:
             return True
 
@@ -423,20 +583,34 @@ class ModerationBase(commands.Cog):
             return False, "Target user is greater than or equal to your highest role."
 
         return True, ""
-    async def auto_quarantine_moderator(self, moderator: discord.Member, guild : discord.Guild) -> None:
+    async def auto_quarantine_moderator(
+        self,
+        moderator : discord.Member,
+        guild     : discord.Guild,
+    ) -> None:
         if not guild or not self.bot.user:
             return
 
-        quarantine_role = guild.get_role(self.QUARANTINE_ROLE_ID)
+        quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
         if not quarantine_role:
             return
 
         saved_roles = [role.id for role in moderator.roles if role.id != guild.id]
 
-        if "quarantined" not in self.data:
+        if "quarantined" not in self.data or not isinstance(self.data["quarantined"], dict):
             self.data["quarantined"] = {}
 
-        self.data["quarantined"][str(moderator.id)] = {
+        quarantine_reg = cast(
+            dict[
+                str,
+                object,
+            ],
+            self.data["quarantined"],
+        )
+
+        quarantine_reg[
+            str(moderator.id)
+        ] = {
             "roles"          : saved_roles,
             "quarantined_at" : datetime.now(UTC).isoformat(),
             "quarantined_by" : self.bot.user.id,
@@ -464,6 +638,10 @@ class ModerationBase(commands.Cog):
 
 
 class MassConfigModal(Modal):
+    member        : discord.Member | None
+    parent        : "MassModerationView"
+    is_global     : bool = False
+    with_duration : bool = False
     def __init__(
         self,
         member        : discord.Member | None,
@@ -487,29 +665,73 @@ class MassConfigModal(Modal):
             required = True,
             style    = discord.TextStyle.paragraph,
         )
-        self.file_upload : FileUpload[Modal] = FileUpload(required = False)
+        self.file_upload  : FileUpload[Modal] = FileUpload(required = False)
 
         _ = self.add_item(self.reason_input)
         _ = self.add_item(Label(text = "Proof", component = self.file_upload))
 
     @override
-    async def on_submit(self, interaction : discord.Interaction) -> None:
-        payload : dict[str, Any] = {
-            "reason"   : self.reason_input.value,
+    async def on_submit(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
+        payload : dict[str, object] = {
+            "reason"   : str(self.reason_input.value),
             "proof"    : self.file_upload.values[0] if self.file_upload.values else None, # noqa: PD011
-            "duration" : self.duration_input.value if self.with_duration else None,
+            "duration" : str(self.duration_input.value) if self.with_duration else None,
         }
 
         if self.is_global:
             for member in self.parent.members:
-                self.parent.values[member.id] = payload # noqa: PD011
+                self.parent.values[member.id] = payload
         elif self.member:
-            self.parent.values[self.member.id] = payload # noqa: PD011
+            self.parent.values[self.member.id] = payload
 
         await self.parent.update(interaction)
 
 
 class MassModerationView(LayoutView):
+    base              : ModerationBase
+    oi                : discord.Interaction
+    members           : list[discord.Member]
+    action_label      : str
+    action_key        : str
+    with_duration     : bool = False
+    precheck_callback : Callable[
+        [
+            discord.Member,
+            discord.Member,
+        ],
+        tuple[
+            bool,
+            str,
+        ],
+    ] | None = None
+    execute_callback  : Callable[
+        [
+            discord.Interaction,
+            discord.Member,
+            dict[
+                str,
+                object,
+            ],
+        ],
+        Awaitable[
+            tuple[
+                bool,
+                str,
+            ]
+        ],
+    ]
+    page              : int
+    locked            : bool = False
+    values            : dict[
+        int,
+        dict[
+            str,
+            object,
+        ],
+    ]
     def __init__(
         self,
         base              : ModerationBase,
@@ -519,10 +741,31 @@ class MassModerationView(LayoutView):
         action_key        : str,
         *,
         with_duration     : bool = False,
-        precheck_callback : Callable[[discord.Member, discord.Member], tuple[bool, str]] | None = None,
+        precheck_callback : Callable[
+            [
+                discord.Member,
+                discord.Member,
+            ],
+            tuple[
+                bool,
+                str,
+            ],
+        ] | None = None,
         execute_callback  : Callable[
-            [discord.Interaction, discord.Member, dict[str, Any]],
-            Awaitable[tuple[bool, str]],
+            [
+                discord.Interaction,
+                discord.Member,
+                dict[
+                    str,
+                    object,
+                ],
+            ],
+            Awaitable[
+                tuple[
+                    bool,
+                    str,
+                ]
+            ],
         ],
     ) -> None:
         super().__init__(timeout = 300)
@@ -537,12 +780,19 @@ class MassModerationView(LayoutView):
         self.page              = 0
         self.locked            = False
         self.values            = {
-            member.id : {"reason" : None, "duration" : None, "proof" : None}
+            member.id : {
+                "reason"   : None,
+                "duration" : None,
+                "proof"    : None,
+            }
             for member in members
         }
         self.build()
 
-    def _is_ready(self, member_id : int) -> bool:
+    def _is_ready(
+        self,
+        member_id : int,
+    ) -> bool:
         data = self.values[member_id]
         has_reason = bool(data.get("reason"))
         if self.with_duration:
@@ -597,7 +847,7 @@ class MassModerationView(LayoutView):
 
             missing = [m.mention for m in self.members if not self._is_ready(m.id)]
             if missing:
-                await send_custom_message(
+                _ = await send_custom_message(
                     interaction,
                     msg_type =  "warning",
                     title    =  "run mass moderation",
@@ -644,7 +894,7 @@ class MassModerationView(LayoutView):
                 summary      = f"{summary}\n" + "\n".join(failed_lines)
 
             msg_type = "success" if not failed else "warning"
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = msg_type,
                 title    = f"complete mass {self.action_label.lower()} run",
@@ -681,7 +931,10 @@ class MassModerationView(LayoutView):
         last.callback     = lambda interaction : move(interaction, 2)
         _ = self.add_item(ActionRow(first, previous, next_b, last))
 
-    async def update(self, interaction : discord.Interaction) -> None:
+    async def update(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         self.build()
         if interaction.response.is_done():
             _ = await interaction.edit_original_response(view = self)
@@ -690,17 +943,68 @@ class MassModerationView(LayoutView):
 
 
 class MemberPickerView(View):
+    base              : ModerationBase
+    action_label      : str
+    action_key        : str
+    with_duration     : bool = False
+    precheck_callback : Callable[
+        [
+            discord.Member,
+            discord.Member,
+        ],
+        tuple[
+            bool,
+            str,
+        ],
+    ] | None = None
+    execute_callback  : Callable[
+        [
+            discord.Interaction,
+            discord.Member,
+            dict[
+                str,
+                object,
+            ],
+        ],
+        Awaitable[
+            tuple[
+                bool,
+                str,
+            ]
+        ],
+    ]
     def __init__(
         self,
-        base             : ModerationBase,
-        action_label     : str,
-        action_key       : str,
+        base              : ModerationBase,
+        action_label      : str,
+        action_key        : str,
         *,
-        with_duration    : bool = False,
-        precheck_callback: Callable[[discord.Member, discord.Member], tuple[bool, str]] | None = None,
-        execute_callback : Callable[
-            [discord.Interaction, discord.Member, dict[str, Any]],
-            Awaitable[tuple[bool, str]],
+        with_duration     : bool = False,
+        precheck_callback : Callable[
+            [
+                discord.Member,
+                discord.Member,
+            ],
+            tuple[
+                bool,
+                str,
+            ],
+        ] | None = None,
+        execute_callback  : Callable[
+            [
+                discord.Interaction,
+                discord.Member,
+                dict[
+                    str,
+                    object,
+                ],
+            ],
+            Awaitable[
+                tuple[
+                    bool,
+                    str,
+                ]
+            ],
         ],
     ) -> None:
         super().__init__(timeout = 180)
@@ -765,7 +1069,7 @@ class MemberPickerView(View):
             members.append(member)
 
         if errors.has_errors():
-            await errors.send()
+            _ = await errors.send()
             return
 
         self.active_view = MassModerationView(

@@ -30,9 +30,9 @@ async def run_unload(
         return
 
     if cog not in cogs:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
-            msg_type = cr.warning,
+            msg_type = "warning",
             title    = "unload cog",
             subtitle = f"Failed to unload cog `{cog}`: cog `{cog}` not found.",
             footer   = "Bad argument.",
@@ -40,9 +40,9 @@ async def run_unload(
         return
 
     if cog not in bot.extensions:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
-            msg_type = cr.warning,
+            msg_type = "warning",
             title    =  "unload cog",
             subtitle = f"Cog `{cog}` is not currently loaded.",
             footer   =  "Bad argument.",
@@ -59,7 +59,7 @@ async def run_unload(
         )
         log.info("Unloaded cog %s", cog)
     except Exception as e:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = cr.error,
             title    =  "unload cog",

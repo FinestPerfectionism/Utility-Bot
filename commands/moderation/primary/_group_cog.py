@@ -33,8 +33,14 @@ class ModerationCommands(
     name        = "moderation",
     description = "Moderators only —— Moderation commands.",
 ):
-    def __init__(self, bot : "UtilityBot") -> None:
-        ModerationBase.__init__(self, bot)
+    def __init__(
+        self,
+        bot : "UtilityBot",
+    ) -> None:
+        ModerationBase.__init__(
+            self,
+            bot,
+        )
         commands.GroupCog.__init__(self)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -97,7 +103,14 @@ class ModerationCommands(
         delete_messages : int                | None = 7,
         proof           : discord.Attachment | None = None,
     ) -> None:
-        await run_ban(self, interaction, member, reason, delete_messages, proof)
+        await run_ban(
+            self,
+            interaction,
+            member,
+            reason,
+            delete_messages,
+            proof,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation un-ban Command
@@ -119,7 +132,13 @@ class ModerationCommands(
         users       : str | None = None,
         reason      : str | None = None,
     ) -> None:
-        await run_unban(self, interaction, user, users, reason)
+        await run_unban(
+            self,
+            interaction,
+            user,
+            users,
+            reason,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation bans Command
@@ -129,8 +148,14 @@ class ModerationCommands(
         name        = "bans",
         description = "View all banned members.",
     )
-    async def bans(self, interaction : discord.Interaction) -> None:
-        await run_bans(self, interaction)
+    async def bans(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
+        await run_bans(
+            self,
+            interaction,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation kick Command
@@ -152,7 +177,13 @@ class ModerationCommands(
         reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
-        await run_kick(self, interaction, member, reason, proof)
+        await run_kick(
+            self,
+            interaction,
+            member,
+            reason,
+            proof,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation timeout Command
@@ -176,7 +207,14 @@ class ModerationCommands(
         reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
-        await run_timeout(self, interaction, member, duration, reason, proof)
+        await run_timeout(
+            self,
+            interaction,
+            member,
+            duration,
+            reason,
+            proof,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation un-timeout Command
@@ -196,7 +234,12 @@ class ModerationCommands(
         member      : discord.Member | None,
         reason      : str            | None = None,
     ) -> None:
-        await run_untimeout(self, interaction, member, reason)
+        await run_untimeout(
+            self,
+            interaction,
+            member,
+            reason,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation timeouts Command
@@ -206,8 +249,14 @@ class ModerationCommands(
         name        = "timeouts",
         description = "View all timed out members.",
     )
-    async def timeouts(self, interaction : discord.Interaction) -> None:
-        await run_timeouts(self, interaction)
+    async def timeouts(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
+        await run_timeouts(
+            self,
+            interaction,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation purge Command
@@ -231,7 +280,14 @@ class ModerationCommands(
         member      : discord.Member     | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
-        await run_purge(self, interaction, amount or 25, reason, member, proof)
+        await run_purge(
+            self,
+            interaction,
+            amount or 25,
+            reason,
+            member,
+            proof,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation quarantines Command
@@ -241,8 +297,14 @@ class ModerationCommands(
         name        = "quarantines",
         description = "View all quarantined members.",
     )
-    async def quarantines(self, interaction : discord.Interaction) -> None:
-        await run_quarantines(self, interaction)
+    async def quarantines(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
+        await run_quarantines(
+            self,
+            interaction,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation quarantine Command
@@ -264,7 +326,13 @@ class ModerationCommands(
         reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
-        await run_quarantine(self, interaction, member, reason, proof)
+        await run_quarantine(
+            self,
+            interaction,
+            member,
+            reason,
+            proof,
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /moderation un-quarantine Command
@@ -286,7 +354,13 @@ class ModerationCommands(
         reason      : str                | None = None,
         proof       : discord.Attachment | None = None,
     ) -> None:
-        await run_unquarantine(self, interaction, member, reason, proof)
+        await run_unquarantine(
+            self,
+            interaction,
+            member,
+            reason,
+            proof,
+        )
 
 async def setup(bot : commands.Bot) -> None:
     await bot.add_cog(ModerationCommands(cast("UtilityBot", bot)))

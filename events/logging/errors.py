@@ -2,7 +2,6 @@ import asyncio
 import sys
 import traceback
 from collections.abc import Coroutine
-from typing import Any
 
 import aiohttp
 import discord
@@ -20,11 +19,11 @@ from constants import (
     COLOR_BLURPLE,
     COLOR_RED,
 )
-from core.permissions import PermissionDenied, WrongGuild
+from core.permissions import PermissionDenied
 from core.responses import send_custom_message
 
 MAX_n_429S = 5
-n_429 = 429
+n_429      = 429
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # User Input Errors
@@ -61,17 +60,26 @@ USER_INPUT_ERRORS = (
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ErrorLogger(commands.Cog):
-    def __init__(self, bot : commands.Bot) -> None:
-        self.bot                            = bot
-        self._tasks: set[asyncio.Task[Any]] = set()
-        self._rate_limit_hits               = 0
+    bot : commands.Bot
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
+        self.bot                                          = bot
+        self._tasks           : set[asyncio.Task[object]] = set()
+        self._rate_limit_hits : int                       = 0
         _ = bot.tree.error(self.app_command_error_handler)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Central Error Sender
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    async def send_info(self, *, title: str, description: str | None = None) -> None:
+    async def send_info(
+        self,
+        *,
+        title       : str,
+        description : str | None = None,
+    ) -> None:
         channel = self.bot.get_channel(BOT_LOG_CHANNEL_ID)
         if not isinstance(channel, discord.TextChannel):
             return
@@ -114,43 +122,43 @@ class ErrorLogger(commands.Cog):
 
         if guild:
             _ = embed.add_field(
-                name = "Guild",
-                value = f"`{guild}`\n`{guild.id}`",
+                name   = "Guild",
+                value  = f"`{guild}`\n`{guild.id}`",
                 inline = True,
             )
 
         if command_display:
             _ = embed.add_field(
-                name = "Command",
-                value = f"```{command_display}```",
+                name   = "Command",
+                value  = f"```{command_display}```",
                 inline = True,
             )
 
         if error_text:
             _ = embed.add_field(
-                name = "Error",
-                value = f"```python\n{error_text}\n```",
+                name   = "Error",
+                value  = f"```python\n{error_text}\n```",
                 inline = False,
             )
 
         if traceback_text:
-            embed.description = (
-                f"**Traceback:**\n```python\n{traceback_text[:3900]}\n```"
-            )
+            embed.description = f"**Traceback:**\n```python\n{traceback_text[:3900]}\n```"
         else:
             embed.description = None
 
         _ = await channel.send(
-            content          = f"<@{BOT_OWNER_ID}>",
-            embed            = embed,
-            allowed_mentions = discord.AllowedMentions(users=True),
+            content = f"<@{BOT_OWNER_ID}>",
+            embed   = embed,
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # n_429 / Rate Limit Guard
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    async def handle_rate_limit(self, source: str) -> None:
+    async def handle_rate_limit(
+        self,
+        source : str,
+    ) -> None:
         self._rate_limit_hits += 1
 
         await self.send_error(
@@ -176,7 +184,12 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener("on_error")
-    async def on_error(self, event : str, *_args: str, **_kwargs : int) -> None:
+    async def on_error(
+        self,
+        event     : str,
+        *_args    : str,
+        **_kwargs : int,
+    ) -> None:
         if event in {"on_command_error", "on_interaction"}:
             return
 
@@ -199,9 +212,9 @@ class ErrorLogger(commands.Cog):
         tb_text = "".join(traceback.format_exception(exc_type, exc, tb))
 
         await self.send_error(
-            title = "Bot Event Error",
-            error_text=f"{event}: {exc}",
-            traceback_text=tb_text,
+            title          = "Bot Event Error",
+            error_text     = f"{event}: {exc}",
+            traceback_text = tb_text,
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -209,7 +222,11 @@ class ErrorLogger(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.Cog.listener("on_command_error")
-    async def on_command_error(self, ctx : commands.Context[commands.Bot], error: commands.CommandError) -> None:
+    async def on_command_error(
+        self,
+        ctx   : commands.Context[commands.Bot],
+        error : commands.CommandError,
+    ) -> None:
         if hasattr(ctx.command, "on_error"):
             return
 
@@ -232,12 +249,12 @@ class ErrorLogger(commands.Cog):
         )
 
         await self.send_error(
-            title = "Prefix Command Error",
-            user=ctx.author,
-            guild=ctx.guild,
-            command_display=ctx.message.content,
-            error_text=str(actual_error),
-            traceback_text=tb_text,
+            title           = "Prefix Command Error",
+            user            = ctx.author,
+            guild           = ctx.guild,
+            command_display = ctx.message.content,
+            error_text      = str(actual_error),
+            traceback_text  = tb_text,
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -256,16 +273,6 @@ class ErrorLogger(commands.Cog):
                 title    = "run command",
                 subtitle = f"Cooldown active. Try again in {error.retry_after:.1f}s.",
                 footer   = "Cooldown active.",
-            )
-            return
-
-        if isinstance(error, WrongGuild):
-            _ = await send_custom_message(
-                interaction,
-                msg_type = cr.warning,
-                title    = "run command",
-                subtitle = "You are authorized to run this command, but this command is for main guild usage.",
-                footer   = "Bad environment.",
             )
             return
 
@@ -295,19 +302,19 @@ class ErrorLogger(commands.Cog):
         cmd_name = f"/{cmd.qualified_name}" if cmd else "Unknown"
 
         await self.send_error(
-            title = "Application Command Error",
-            user=interaction.user,
-            guild=interaction.guild,
-            command_display=cmd_name,
-            error_text=str(error),
-            traceback_text=tb_text,
+            title           = "Application Command Error",
+            user            = interaction.user,
+            guild           = interaction.guild,
+            command_display = cmd_name,
+            error_text      = str(error),
+            traceback_text  = tb_text,
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # Extension Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.Cog.listener("")
+    @commands.Cog.listener("on_extension_error")
     async def on_extension_error(
         self,
         extension : str,
@@ -318,9 +325,9 @@ class ErrorLogger(commands.Cog):
         )
 
         await self.send_error(
-            title = "Extension Error",
-            error_text=f"{extension}: {error}",
-            traceback_text=tb_text,
+            title          = "Extension Error",
+            error_text     = f"{extension}: {error}",
+            traceback_text = tb_text,
         )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -330,12 +337,22 @@ class ErrorLogger(commands.Cog):
     @commands.Cog.listener("on_socket_raw_receive")
     async def on_socket_raw_receive(
         self,
-        payload : dict[str, Any],
+        payload : dict[
+            str,
+            object,
+        ],
     ) -> None:
         if payload.get("t") == "INVALID_SESSION":
             await self.send_info(title = "Invalid Gateway Session")
 
-    async def guard_http(self, coro: Coroutine[Any, Any, Any]) -> None:
+    async def guard_http(
+        self,
+        coro : Coroutine[
+            object,
+            object,
+            object,
+        ],
+    ) -> object:
         try:
             return await coro
         except (
@@ -363,14 +380,22 @@ class ErrorLogger(commands.Cog):
     # Task Errors
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    def create_task(self, coro: Coroutine[Any, Any, Any], *, name : str) -> asyncio.Task[Any]:
+    def create_task(
+        self,
+        coro : Coroutine[object, object, object],
+        *,
+        name : str,
+    ) -> asyncio.Task[object]:
         task = asyncio.create_task(coro, name = name)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
         task.add_done_callback(self.task_done)
         return task
 
-    def task_done(self, task: asyncio.Task[Any]) -> None:
+    def task_done(
+        self,
+        task : asyncio.Task[object],
+    ) -> None:
         if task.cancelled():
             return
 
@@ -415,28 +440,40 @@ class ErrorLogger(commands.Cog):
         await self.send_info(title = "Gateway Resumed")
 
     @commands.Cog.listener("on_shard_disconnect")
-    async def on_shard_disconnect(self, shard_id : int) -> None:
+    async def on_shard_disconnect(
+        self,
+        shard_id : int,
+    ) -> None:
         await self.send_info(
             title       = "Shard Disconnected",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener("on_shard_connect")
-    async def on_shard_connect(self, shard_id : int) -> None:
+    async def on_shard_connect(
+        self,
+        shard_id : int,
+    ) -> None:
         await self.send_info(
             title       = "Shard Connected",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener("on_shard_ready")
-    async def on_shard_ready(self, shard_id : int) -> None:
+    async def on_shard_ready(
+        self,
+        shard_id : int,
+    ) -> None:
         await self.send_info(
             title       = "Shard Ready",
             description = f"Shard {shard_id}",
         )
 
     @commands.Cog.listener("on_shard_resumed")
-    async def on_shard_resumed(self, shard_id : int) -> None:
+    async def on_shard_resumed(
+        self,
+        shard_id : int,
+    ) -> None:
         await self.send_info(
             title       = "Shard Resumed",
             description = f"Shard {shard_id}",
@@ -449,22 +486,33 @@ class ErrorLogger(commands.Cog):
     def loop_exception_handler(
         self,
         loop    : asyncio.AbstractEventLoop,
-        context : dict[str, Any],
+        context : dict[
+            str,
+            object,
+        ],
     ) -> None:
         if loop.is_closed():
             return
-        exc = context.get("exception")
-        msg = context.get("message", "No message")
 
-        tb_text = (
-            "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
-            if exc else msg
-        )
+        exc = context.get("exception")
+        msg = context.get("message")
+        msg_str = str(msg) if msg is not None else "No message"
+
+        if isinstance(exc, BaseException):
+            tb_text = "".join(
+                traceback.format_exception(
+                    type(exc),
+                    exc,
+                    exc.__traceback__,
+                ),
+            )
+        else:
+            tb_text = msg_str
 
         _ = loop.create_task(
             self.send_error(
                 title          = "Asyncio Event Loop Error",
-                error_text     = str(msg),
+                error_text     = msg_str,
                 traceback_text = tb_text,
             ),
         )

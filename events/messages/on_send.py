@@ -192,7 +192,7 @@ def _default_state() -> CountingState:
 def _load_state() -> CountingState:
     if COUNTING_STATE_PATH.exists():
         try:
-            with COUNTING_STATE_PATH.open("r", encoding="utf-8") as f:
+            with COUNTING_STATE_PATH.open("r", encoding = "utf-8") as f:
                 raw: dict[str, Any] = json.load(f)
                 return cast(CountingState, {**_default_state(), **raw})
         except Exception:
@@ -202,7 +202,7 @@ def _load_state() -> CountingState:
 def _save_state(state: CountingState) -> None:
     try:
         COUNTING_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        with COUNTING_STATE_PATH.open("w", encoding="utf-8") as f:
+        with COUNTING_STATE_PATH.open("w", encoding = "utf-8") as f:
             json.dump(state, f)
     except Exception:
         log.exception("Could not save counting state")
@@ -269,7 +269,7 @@ class MessageSendHandler(commands.Cog):
             await self._assign_failed_role(message.guild, message.author.id)
         self._reset()
 
-    @commands.Cog.listener("on_message")
+    @commands.Cog.listener(on)
     async def on_message(
         self,
         message : discord.Message,

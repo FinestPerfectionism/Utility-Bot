@@ -12,10 +12,6 @@ from core.cases import CasesManager
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class UtilityBot(commands.Bot):
-    cases_manager : CasesManager
-    mod_data      : dict[str, Any]
-    notes_manager : Any
-
     def __init__(self) -> None:
         intents : discord.Intents = discord.Intents.default()
         intents.guilds            = True
@@ -23,12 +19,15 @@ class UtilityBot(commands.Bot):
         intents.message_content   = True
 
         super().__init__(
-            command_prefix   = ".",
+            command_prefix   = commands.when_mentioned_or("."),
             intents          = intents,
             case_insensitive = True,
         )
         self.cases_manager : CasesManager = CasesManager(self)
-        self.mod_data      : dict[str, Any] = {}
+        self.mod_data      : dict[
+            str,
+            Any,
+        ] = {}
         self.notes_manager : Any = None
 
     @override
@@ -44,8 +43,7 @@ class UtilityBot(commands.Bot):
             "events.systems.verification",
             "core.startup",
         ]
-
-        cogs : list[str] = discover_cogs(
+        cogs          : list[str] = discover_cogs(
             "commands",
             "events",
             "core",

@@ -31,7 +31,7 @@ def load_application_state() -> None:
 
 def save_application_state() -> None:
     _ = APPLICATION_STATE_FILE.write_text(
-        json.dumps(APPLICATIONS_OPEN, indent=4),
+        json.dumps(APPLICATIONS_OPEN, indent = 4),
     )
 
 def load_active_applications() -> None:
@@ -77,5 +77,5 @@ def save_active_applications() -> None:
         }
 
     _ = ACTIVE_APPLICATIONS_FILE.write_text(
-        json.dumps(serializable, indent=4),
+        json.dumps(serializable, indent = 4),
     )

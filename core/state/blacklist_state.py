@@ -27,5 +27,5 @@ def load_blacklist() -> None:
 
 def save_blacklist() -> None:
     _ = BLACKLIST_FILE.write_text(
-        json.dumps(BLACKLIST, indent=4),
+        json.dumps(BLACKLIST, indent = 4),
     )

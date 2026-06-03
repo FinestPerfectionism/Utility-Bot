@@ -13,7 +13,7 @@ _STATE_PATH = "data/tickets.json"
 
 def save_ticket_state() -> None:
     Path("data").mkdir(parents=True, exist_ok=True)
-    with Path(_STATE_PATH).open("w", encoding="utf-8") as f:
+    with Path(_STATE_PATH).open("w", encoding = "utf-8") as f:
         json.dump(
             {
                 "active_tickets": {str(k): v for k, v in ACTIVE_TICKETS.items()},
@@ -24,13 +24,13 @@ def save_ticket_state() -> None:
                 "resolution_state": {str(k): v for k, v in RESOLUTION_STATE.items()},
             },
             f,
-            indent=2,
+            indent = 2,
         )
 
 def load_ticket_state() -> None:
     if not Path(_STATE_PATH).exists():
         return
-    with Path(_STATE_PATH).open(encoding="utf-8") as f:
+    with Path(_STATE_PATH).open(encoding = "utf-8") as f:
         data = json.load(f)
     ACTIVE_TICKETS.update({int(k): int(v) for k, v in data.get("active_tickets", {}).items()})
     THREAD_OPENERS.update({int(k): int(v) for k, v in data.get("thread_openers", {}).items()})

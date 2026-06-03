@@ -36,13 +36,16 @@ class AntiNukeCommands(commands.Cog):
         name        = "status",
         description = "Status of the anti-nuke system.",
     )
-    async def antinuke_status(self, interaction : discord.Interaction) -> None:
+    async def antinuke_status(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
 
         if not self.is_director(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -75,9 +78,17 @@ class AntiNukeCommands(commands.Cog):
                 inline = True,
             )
         else:
-            _ = embed.add_field(name = "Log Channel", value = "Not configured", inline = True)
+            _ = embed.add_field(
+                name   = "Log Channel",
+                value  = "Not configured",
+                inline = True,
+            )
 
-        _ = embed.add_field(name = "\u200b", value = "\u200b", inline = False)
+        _ = embed.add_field(
+            name   = "\u200b",
+            value  = "\u200b",
+            inline = False,
+        )
 
         limits = self.config["limits"]
         for action_type, settings in limits.items():
@@ -85,19 +96,32 @@ class AntiNukeCommands(commands.Cog):
             hourly      = settings.get("hourly", "N/A")
             daily       = settings.get("daily", "N/A")
             limit_text  = f"Hourly: {hourly}\nDaily: {daily}"
-            _ = embed.add_field(name = action_name, value = limit_text, inline = True)
+            _ = embed.add_field(
+                name   = action_name,
+                value  = limit_text,
+                inline = True,
+            )
 
-        _ = embed.set_footer(text="Directors are exempt from all limits")
-        _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        _ = embed.set_footer(text = "Directors are exempt from all limits")
+        _ = await interaction.response.send_message(
+            embed     = embed,
+            ephemeral = True,
+        )
 
-    @antinuke_group.command(name = "toggle", description = "Enable or disable anti-nuke protection.")
-    async def antinuke_toggle(self, interaction : discord.Interaction) -> None:
+    @antinuke_group.command(
+        name        = "toggle",
+        description = "Enable or disable anti-nuke protection.",
+    )
+    async def antinuke_toggle(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         actor = interaction.user
         if not isinstance(actor, discord.Member):
             return
 
         if not self.is_director(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -118,9 +142,15 @@ class AntiNukeCommands(commands.Cog):
             timestamp   = datetime.now(UTC),
         )
 
-        _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        _ = await interaction.response.send_message(
+            embed     = embed,
+            ephemeral = True,
+        )
 
-    @antinuke_group.command(name = "set-limit", description = "Configure limits for a specific action type.")
+    @antinuke_group.command(
+        name        = "set-limit",
+        description = "Configure limits for a specific action type.",
+    )
     @app_commands.describe(
         action = "The action type to configure.",
         hourly = "Maximum number of actions allowed per hour.",
@@ -138,7 +168,7 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -186,7 +216,7 @@ class AntiNukeCommands(commands.Cog):
             )
 
         if errors.has_errors():
-            await errors.send()
+            _ = await errors.send()
             return
 
         self.config["limits"][action] = {
@@ -201,11 +231,29 @@ class AntiNukeCommands(commands.Cog):
             color       = COLOR_GREEN,
             timestamp   = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Action",       value = action.replace("_", " ").title(), inline = True)
-        _ = embed.add_field(name = "Hourly Limit", value = str(hourly),                      inline = True)
-        _ = embed.add_field(name = "Daily Limit",  value = str(daily),                       inline = True)
+        _ = embed.add_field(
+            name   = "Action",
+            value  = action.replace(
+                "_",
+                " ",
+            ).title(),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Hourly Limit",
+            value  = str(hourly),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Daily Limit",
+            value  = str(daily),
+            inline = True,
+        )
 
-        _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+        _ = await interaction.response.send_message(
+            embed     = embed,
+            ephemeral = True,
+        )
 
     @antinuke_setlimit.autocomplete("action")
     async def antinuke_setlimit_autocomplete(
@@ -215,15 +263,22 @@ class AntiNukeCommands(commands.Cog):
     ) -> list[app_commands.Choice[str]]:
         actions = list(self.config["limits"].keys())
         return [
-            app_commands.Choice(name = action.replace("_", " ").title(), value = action)
+            app_commands.Choice(
+                name  = action.replace(
+                    "_",
+                    " ",
+                ).title(),
+                value = action,
+            )
             for action in actions
             if current.lower() in action.lower()
         ][:25]
 
-    @antinuke_group.command(name = "configure", description = "Configure the anti-nuke log channel.")
-    @app_commands.describe(
-        channel = "The channel where anti-nuke alerts will be sent.",
+    @antinuke_group.command(
+        name        = "configure",
+        description = "Configure the anti-nuke log channel.",
     )
+    @app_commands.describe(channel = "The channel where anti-nuke alerts will be sent.")
     async def antinuke_config(
         self,
         interaction : discord.Interaction,
@@ -234,7 +289,7 @@ class AntiNukeCommands(commands.Cog):
             return
 
         if not self.is_director(actor):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "run command",
@@ -246,7 +301,7 @@ class AntiNukeCommands(commands.Cog):
         self.config["log_channel_id"] = channel.id
         self.save_config()
 
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "success",
             title    = f"set anti-nuke alert channel to {channel.mention}",

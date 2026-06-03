@@ -11,7 +11,7 @@ import discord
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from constants import COLOR_ORANGE
+from constants import COLOR_ORANGE, QUARANTINE_ROLE_ID
 from core.cases import CaseType
 from core.permissions import is_director
 from core.responses import send_custom_message
@@ -34,7 +34,7 @@ async def run_quarantine(
         return
 
     if not base.can_quarantine(actor):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "error",
             title    = "run command",
@@ -61,7 +61,7 @@ async def run_quarantine(
         return
 
     if not reason:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "quarantine member",
@@ -71,7 +71,7 @@ async def run_quarantine(
         return
 
     if member.id == actor.id:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "quarantine member",
@@ -81,7 +81,7 @@ async def run_quarantine(
         return
 
     if not base.check_hierarchy(actor, member):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "quarantine member",
@@ -93,7 +93,7 @@ async def run_quarantine(
     quarantined = base.ensure_data_section("quarantined")
 
     if str(member.id) in quarantined:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "quarantine member",
@@ -109,7 +109,7 @@ async def run_quarantine(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "quarantine")
         if not can_proceed:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type          = "error",
                 title             = "quarantine member",
@@ -128,7 +128,7 @@ async def run_quarantine(
     _ = await interaction.response.defer(ephemeral = True)
     ok, msg = await _execute_quarantine(base, interaction, actor, member, reason, proof)
     if not ok:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "quarantine member",
@@ -150,7 +150,7 @@ async def _execute_quarantine(
         return False, "No guild context."
 
     quarantined = base.ensure_data_section("quarantined")
-    quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
+    quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
     if not quarantine_role:
         return False, "The quarantine role could not be found."
     bot_member = guild.me
@@ -163,7 +163,7 @@ async def _execute_quarantine(
 
     saved_roles = [
         role.id for role in member.roles
-        if role.id not in (guild.default_role.id, base.QUARANTINE_ROLE_ID)
+        if role.id not in (guild.default_role.id, QUARANTINE_ROLE_ID)
     ]
 
     quarantined[str(member.id)] = {
@@ -197,10 +197,28 @@ async def _execute_quarantine(
             color     = COLOR_ORANGE,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",      value = member.mention,        inline = True)
-        _ = embed.add_field(name = "Moderator",   value = actor.mention,         inline = True)
-        _ = embed.add_field(name = "Roles Saved", value = str(len(saved_roles)), inline = True)
-        _ = embed.add_field(name = "Reason",      value = reason,                inline = False)
+        _ = embed.add_field(
+            name   = "Member",
+            value  = member.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Moderator",
+            value  = actor.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Roles Saved",
+            value  = str(
+                len(saved_roles),
+            ),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Reason",
+            value  = reason,
+            inline = False,
+        )
         if proof:
             _ = embed.set_image(url = proof.url)
 

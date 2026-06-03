@@ -1,11 +1,7 @@
 import asyncio
 import contextlib
 import io
-import re
 import textwrap
-import traceback
-from asyncio import sleep
-from inspect import cleandoc
 from typing import (
     TYPE_CHECKING,
     cast,
@@ -25,7 +21,6 @@ import core.responses as cr
 from constants import (
     ACCEPTED_EMOJI,
     BOT_OWNER_ID,
-    CONTESTED_EMOJI,
     DENIED_EMOJI,
 )
 from core.responses import multi_custom_message, send_custom_message
@@ -43,21 +38,7 @@ async def run_status(
     state         : app_commands.Choice[str] | None,
     url           :                     str  | None,
 ) -> None:
-    if interaction.user.id != BOT_OWNER_ID:
-        _ = await send_custom_message(
-            interaction,
-            msg_type = cr.error,
-            title    = "run command",
-            subtitle = "You are not authorized to run this command.",
-            footer   = "No permissions.",
-        )
-        return
-
-    presence_status = (
-        getattr(discord.Status, state.value)
-        if state
-        else discord.Status.online
-    )
+    presence_status = getattr(discord.Status, state.value) if state else discord.Status.online
 
     activity: discord.BaseActivity | None = None
 
@@ -120,36 +101,11 @@ async def run_status(
 # .eval Logic
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-_SILENT_FLAGS  = {"/s", "/silent", "/supress", "/shush"}
-_FENCE_PATTERN = re.compile(r"```.*?```", re.DOTALL)
-
-def _parse_eval_input(raw: str) -> tuple[str, bool]:
-    match  = _FENCE_PATTERN.search(raw)
-    silent = False
-    if match:
-        body    = match.group()
-        outside = raw[: match.start()] + raw[match.end() :]
-        for line in outside.splitlines():
-            if line.strip().lower() in _SILENT_FLAGS:
-                silent = True
-    else:
-        body             = raw
-        lines            = raw.splitlines()
-        kept : list[str] = []
-        for line in lines:
-            if line.strip().lower() in _SILENT_FLAGS:
-                silent = True
-            else:
-                kept.append(line)
-        body = "\n".join(kept)
-    return body, silent
-
 async def run_eval(
     bot  : commands.Bot,
     ctx  : commands.Context[commands.Bot],
     body : str,
 ) -> None:
-    body, silent = _parse_eval_input(ctx.message.content)
     if ctx.author.id != BOT_OWNER_ID:
         _ = await ctx.message.add_reaction(DENIED_EMOJI)
         return
@@ -173,18 +129,6 @@ async def run_eval(
         import builtins
         builtins.exec(to_compile, env)
     except Exception as e:  # noqa: BLE001
-        if silent:
-            _   = await ctx.message.delete()
-            msg = await ctx.send(cleandoc(f"""
-                    ```py\n
-                    {e.__class__.__name__}: {e}\n
-                    ```
-                    """,
-                ),
-            )
-            await sleep(5)
-            await msg.delete()
-            return
         _ = await ctx.message.add_reaction(f"{DENIED_EMOJI}")
         _ = await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
         return
@@ -194,19 +138,8 @@ async def run_eval(
             ret = await func()
     except Exception:  # noqa: BLE001
         value = stdout.getvalue()
-        if silent:
-            _   = await ctx.message.delete()
-            msg = await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
-            await sleep(5)
-            await msg.delete()
-            return
-        _ = await ctx.message.add_reaction(f"{CONTESTED_EMOJI}")
-        _ = await ctx.send(f"```py\n{value}{traceback.format_exc()}\n```")
     else:
         value = stdout.getvalue()
-        if silent:
-            _ = await ctx.message.delete()
-            return
 
         _ = await ctx.message.add_reaction(f"{ACCEPTED_EMOJI}")
 
@@ -275,7 +208,7 @@ async def run_say(
         await interaction.followup.send("Sent!", ephemeral = True)
 
     except discord.Forbidden:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = cr.error,
             title       = "run command",

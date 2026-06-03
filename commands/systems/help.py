@@ -36,17 +36,15 @@ def _build_info_view() -> LayoutView:
         )
     return InfoView()
 
-
 class HelpCommands(commands.Cog):
-    bot : commands.Bot
     def __init__(self, bot : commands.Bot) -> None:
-        self.bot = bot
+        self.bot : commands.Bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .help Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "help")
+    @commands.command()
     async def help(
         self,
         ctx          : commands.Context[commands.Bot],
@@ -74,7 +72,6 @@ class HelpCommands(commands.Cog):
             return
 
         await run_help(self.bot, ctx, command_name)
-
 
 async def setup(bot : commands.Bot) -> None:
     cog = HelpCommands(bot)

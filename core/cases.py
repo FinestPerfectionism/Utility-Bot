@@ -68,7 +68,10 @@ class CasesManager:
     data        : CasesDataFile
     config      : CasesConfig
 
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot         = bot
         self.data_file   = "cases_data.json"
         self.config_file = "cases_config.json"
@@ -82,36 +85,94 @@ class CasesManager:
                 data = cast(CasesDataFile, json.load(f))
                 self._normalize_cases(data)
                 return data
-        return {"cases": [], "next_case_id": 1}
+        return {
+            "cases"        : [],
+            "next_case_id" : 1,
+        }
 
-    def _normalize_cases(self, data : CasesDataFile) -> None:
-        for case in data.get("cases", []):
+    def _normalize_cases(
+        self,
+        data : CasesDataFile,
+    ) -> None:
+        for case in data.get(
+            "cases",
+            [],
+        ):
             if "timestamp" in case and "created_at" not in case:
-                legacy_case = cast(dict[str, object], case)
+                legacy_case        = cast(
+                    dict[
+                        str,
+                        object,
+                    ],
+                    case,
+                )
                 case["created_at"] = cast(str, legacy_case.pop("timestamp"))
 
-            _ = case.setdefault("content", None)
-            _ = case.setdefault("related_case_id", None)
-            _ = case.setdefault("visibility_level", "moderators")
-            _ = case.setdefault("pending_visibility", None)
-            _ = case.setdefault("edited_at", None)
-            _ = case.setdefault("metadata", {})
+            _ = case.setdefault(
+                "content",
+                None,
+            )
+            _ = case.setdefault(
+                "related_case_id",
+                None,
+            )
+            _ = case.setdefault(
+                "visibility_level",
+                "moderators",
+            )
+            _ = case.setdefault(
+                "pending_visibility",
+                None,
+            )
+            _ = case.setdefault(
+                "edited_at",
+                None,
+            )
+            _ = case.setdefault(
+                "metadata",
+                {},
+            )
 
     def _auto_migrate_notes(self) -> None:
         notes_file = Path("notes_data.json")
         if not notes_file.exists():
             return
 
-        notes_data : dict[str, dict[str, list[dict[str, object]]]] = {}
+        notes_data : dict[
+            str,
+            dict[
+                str,
+                list[
+                    dict[
+                        str,
+                        object,
+                    ]
+                ],
+            ],
+        ] = {}
         with contextlib.suppress(json.JSONDecodeError), Path(notes_file).open() as f:
-            notes_data = cast(dict[str, dict[str, list[dict[str, object]]]], json.load(f))
+            notes_data = cast(
+                dict[
+                    str,
+                    dict[
+                        str,
+                        list[
+                            dict[
+                                str,
+                                object,
+                            ]
+                        ],
+                    ],
+                ],
+                json.load(f),
+            )
 
         if not notes_data:
             with contextlib.suppress(OSError):
                 Path(notes_file).unlink()
             return
 
-        existing_ids: set[int] = {c["case_id"] for c in self.data["cases"]}
+        existing_ids : set[int] = {c["case_id"] for c in self.data["cases"]}
 
         def _next_id() -> int:
             nid = self.data["next_case_id"]
@@ -123,48 +184,132 @@ class CasesManager:
 
         now_iso = datetime.now(UTC).isoformat()
 
-        user_notes : dict [str, list [dict [str, object]]] = notes_data.get("user_notes", {})
+        user_notes : dict[
+            str,
+            list[
+                dict[
+                    str,
+                    object,
+                ]
+            ],
+        ] = notes_data.get(
+            "user_notes",
+            {},
+        )
         for user_id_str, notes in user_notes.items():
             for note in notes:
                 new_note_entry : CaseData = {
                     "case_id"            : _next_id(),
                     "type"               : CaseType.NOTE.value,
-                    "guild_id"           : int(cast(int, note.get("guild_id", 0))),
-                    "moderator_id"       : int(cast(int, note.get("author_id", 0))),
-                    "moderator_name"     : str(note.get("author_name", "Unknown")),
+                    "guild_id"           : int(
+                        cast(
+                            int,
+                            note.get(
+                                "guild_id",
+                                0,
+                            ),
+                        ),
+                    ),
+                    "moderator_id"       : int(
+                        cast(
+                            int,
+                            note.get(
+                                "author_id",
+                                0,
+                            ),
+                        ),
+                    ),
+                    "moderator_name"     : str(
+                        note.get(
+                            "author_name",
+                            "Unknown",
+                        ),
+                    ),
                     "target_user_id"     : int(user_id_str),
                     "target_user_name"   : None,
                     "reason"             : None,
-                    "content"            : cast(str | None, note.get("content")),
+                    "content"            : cast(
+                        str | None,
+                        note.get("content"),
+                    ),
                     "duration"           : None,
                     "related_case_id"    : None,
                     "visibility_level"   : str(note.get("classification") or "moderators"),
-                    "pending_visibility" : cast(str | None, note.get("classification_pending")),
-                    "created_at"         : cast(str, note.get("created_at") or now_iso),
-                    "edited_at"          : cast(str | None, note.get("edited_at")),
+                    "pending_visibility" : cast(
+                        str | None,
+                        note.get("classification_pending"),
+                    ),
+                    "created_at"         : cast(
+                        str,
+                        note.get("created_at") or now_iso,
+                    ),
+                    "edited_at"          : cast(
+                        str | None,
+                        note.get("edited_at"),
+                    ),
                     "metadata"           : {},
                 }
                 self.data["cases"].append(new_note_entry)
 
-        case_notes : dict[str, list[dict[str, object]]] = notes_data.get("case_notes", {})
+        case_notes : dict[
+            str,
+            list[
+                dict[
+                    str,
+                    object,
+                ],
+            ],
+        ] = notes_data.get("case_notes", {})
         for case_id_str, notes in case_notes.items():
             for note in notes:
                 new_note : CaseData = {
                     "case_id"            : _next_id(),
                     "type"               : CaseType.NOTE.value,
-                    "guild_id"           : int(cast(int, note.get("guild_id", 0))),
-                    "moderator_id"       : int(cast(int, note.get("author_id", 0))),
-                    "moderator_name"     : str(note.get("author_name", "Unknown")),
+                    "guild_id"           : int(
+                        cast(
+                            int,
+                            note.get(
+                                "guild_id",
+                                0,
+                            ),
+                        ),
+                    ),
+                    "moderator_id"       : int(
+                        cast(
+                            int,
+                            note.get(
+                                "author_id",
+                                0),
+                        ),
+                    ),
+                    "moderator_name"     : str(
+                        note.get(
+                            "author_name",
+                            "Unknown",
+                        ),
+                    ),
                     "target_user_id"     : None,
                     "target_user_name"   : None,
                     "reason"             : None,
-                    "content"            : cast(str | None, note.get("content")),
+                    "content"            : cast(
+                        str | None,
+                        note.get("content"),
+                    ),
                     "duration"           : None,
                     "related_case_id"    : int(case_id_str),
                     "visibility_level"   : str(note.get("classification") or "moderators"),
-                    "pending_visibility" : cast(str | None, note.get("classification_pending")),
-                    "created_at"         : cast(str, note.get("created_at") or now_iso),
-                    "edited_at"          : cast(str | None, note.get("edited_at")),
+                    "pending_visibility" : cast(
+                        str | None,
+                        note.get("classification_pending"),
+                    ),
+                    "created_at"         : cast(
+                        str,
+                        note.get("created_at") or now_iso,
+                    ),
+                    "edited_at"          : cast(
+                        str | None,
+                        note.get("edited_at"),
+                    ),
                     "metadata"           : {},
                 }
                 self.data["cases"].append(new_note)
@@ -176,12 +321,15 @@ class CasesManager:
     def load_config(self) -> CasesConfig:
         if Path(self.config_file).exists():
             with contextlib.suppress(json.JSONDecodeError), Path(self.config_file).open() as f:
-                return cast(CasesConfig, json.load(f))
+                return cast(
+                    CasesConfig,
+                    json.load(f),
+                )
         return {"log_channel_id" : None}
 
     def save_data(self) -> None:
         with Path(self.data_file).open("w") as f:
-            json.dump(self.data, f, indent=4)
+            json.dump(self.data, f, indent = 4)
 
     def save_config(self) -> None:
         with Path(self.config_file).open("w") as f:
@@ -289,7 +437,10 @@ class CasesManager:
 
         if self.config.get("log_channel_id"):
             for case_data in pending_cases:
-                await self._send_to_log_channel(guild, case_data)
+                await self._send_to_log_channel(
+                    guild,
+                    case_data,
+                )
 
         return case_ids
 
@@ -320,8 +471,16 @@ class CasesManager:
         users            : Sequence[discord.User | discord.Member],
         visibility_level : str = "moderators",
     ) -> list[int]:
-        entries: list[dict[str, object]] = [
-            {"target_user": user, "content": content}
+        entries : list[
+            dict[
+                str,
+                object,
+            ]
+        ] = [
+            {
+                "target_user" : user,
+                "content"     : content,
+            }
             for user in users
         ]
         return await self.log_cases(
@@ -332,13 +491,20 @@ class CasesManager:
             visibility_level = visibility_level,
         )
 
-    async def _send_to_log_channel(self, guild : discord.Guild, case_data : CaseData) -> None:# noqa: PLR0915
+    async def _send_to_log_channel(
+        self,
+        guild     : discord.Guild,
+        case_data : CaseData,
+    ) -> None:
         channel_id = self.config.get("log_channel_id")
         if not channel_id:
             return
 
         log_channel = guild.get_channel(channel_id)
-        if not isinstance(log_channel, discord.TextChannel | discord.Thread):
+        if not isinstance(
+            log_channel,
+            discord.TextChannel | discord.Thread,
+        ):
             return
 
         case_type = case_data["type"]
@@ -373,23 +539,42 @@ class CasesManager:
 
         embed = discord.Embed(
             title     = f"Case #{case_data['case_id']} — {title_map.get(case_type, 'Moderation Action')}",
-            color     = color_map.get(case_type, COLOR_BLURPLE),
-            timestamp = datetime.fromisoformat(case_data["created_at"]),
+            color     = color_map.get(
+                case_type,
+                COLOR_BLURPLE,
+            ),
+            timestamp = datetime.fromisoformat(
+                case_data["created_at"],
+            ),
         )
 
         mod_added = False
-        moderator = guild.get_member(case_data["moderator_id"])
+        moderator = guild.get_member(
+            case_data["moderator_id"],
+        )
         if moderator:
-            _ = embed.add_field(name = "Moderator", value = moderator.mention, inline = True)
+            _ = embed.add_field(
+                name   = "Moderator",
+                value  = moderator.mention,
+                inline = True,
+            )
             mod_added = True
         if not mod_added:
-            _ = embed.add_field(name = "Moderator", value = case_data["moderator_name"], inline = True)
+            _ = embed.add_field(
+                name   = "Moderator",
+                value  = case_data["moderator_name"],
+                inline = True,
+            )
 
         if case_data["target_user_id"]:
             user_added = False
             with contextlib.suppress(discord.NotFound, discord.HTTPException):
                 user = await self.bot.fetch_user(case_data["target_user_id"])
-                _ = embed.add_field(name = "User", value = f"{user.mention} ({user.id})", inline = True)
+                _ = embed.add_field(
+                    name   = "User",
+                    value  = f"{user.mention} ({user.id})",
+                    inline = True,
+                )
                 user_added = True
             if not user_added:
                 _ = embed.add_field(
@@ -399,48 +584,116 @@ class CasesManager:
                 )
 
         if case_data.get("duration"):
-            _ = embed.add_field(name = "Duration", value = case_data["duration"], inline = True)
+            _ = embed.add_field(
+                name   = "Duration",
+                value  = case_data["duration"],
+                inline = True,
+            )
 
         if case_data.get("reason"):
-            _ = embed.add_field(name = "Reason", value = case_data["reason"], inline = False)
+            _ = embed.add_field(
+                name   = "Reason",
+                value  = case_data["reason"],
+                inline = False,
+            )
 
         if case_data.get("content"):
-            _ = embed.add_field(name = "Content", value = case_data["content"], inline = False)
+            _ = embed.add_field(
+                name   = "Content",
+                value  = case_data["content"],
+                inline = False,
+            )
 
         if case_data.get("related_case_id"):
-            _ = embed.add_field(name = "Related Case", value = f"#{case_data['related_case_id']}", inline = True)
+            _ = embed.add_field(
+                name   = "Related Case",
+                value  = f"#{case_data['related_case_id']}",
+                inline = True,
+            )
 
-        metadata: dict[str, object] = case_data.get("metadata") or {}
+        metadata : dict[
+            str,
+            object,
+        ] = case_data.get("metadata") or {}
 
         if "deleted_messages" in metadata:
-            _ = embed.add_field(name = "Messages Deleted", value = str(metadata["deleted_messages"]), inline = True)
+            _ = embed.add_field(
+                name   = "Messages Deleted",
+                value  = str(
+                    metadata["deleted_messages"],
+                ),
+                inline = True,
+            )
 
         if "channel_id" in metadata:
-            action_channel = guild.get_channel(cast(int, metadata["channel_id"]))
+            action_channel = guild.get_channel(
+                cast(
+                    int,
+                    metadata["channel_id"],
+                ),
+            )
             if action_channel:
-                _ = embed.add_field(name = "Channel", value = action_channel.mention, inline = True)
+                _ = embed.add_field(
+                    name   = "Channel",
+                    value  = action_channel.mention,
+                    inline = True,
+                )
 
         if "roles_saved" in metadata:
-            _ = embed.add_field(name = "Roles Saved", value = str(metadata["roles_saved"]), inline = True)
+            _ = embed.add_field(
+                name   = "Roles Saved",
+                value  = str(
+                    metadata["roles_saved"],
+                ),
+                inline = True,
+            )
 
         if "roles_restored" in metadata:
-            _ = embed.add_field(name = "Roles Restored", value = str(metadata["roles_restored"]), inline = True)
+            _ = embed.add_field(
+                name   = "Roles Restored",
+                value  = str(
+                    metadata["roles_restored"],
+                ),
+                inline = True,
+            )
 
         if "channels_locked" in metadata:
-            _ = embed.add_field(name = "Channels Locked", value = str(metadata["channels_locked"]), inline = True)
+            _ = embed.add_field(
+                name   = "Channels Locked",
+                value  = str(
+                    metadata["channels_locked"],
+                ),
+                inline = True,
+            )
 
         if "channels_restored" in metadata:
-            _ = embed.add_field(name = "Channels Restored", value = str(metadata["channels_restored"]), inline = True)
+            _ = embed.add_field(
+                name   = "Channels Restored",
+                value  = str(
+                    metadata["channels_restored"],
+                ),
+                inline = True,
+            )
 
         if "proof_url" in metadata:
-            proof_url = cast(str, metadata["proof_url"])
-            _ = embed.add_field(name = "Proof", value = proof_url, inline = False)
+            proof_url = cast(
+                str,
+                metadata["proof_url"],
+            )
+            _ = embed.add_field(
+                name   = "Proof",
+                value  = proof_url,
+                inline = False,
+            )
             _ = embed.set_image(url = proof_url)
 
         with contextlib.suppress(discord.Forbidden):
             _ = await log_channel.send(embed = embed)
 
-    def get_case_by_id(self, case_id : int) -> CaseData | None:
+    def get_case_by_id(
+        self,
+        case_id : int,
+    ) -> CaseData | None:
         self.data = self.load_data()
         for case in self.data["cases"]:
             if case["case_id"] == case_id:
@@ -454,7 +707,11 @@ class CasesManager:
             if c.get("pending_visibility") is not None
         ]
 
-    def edit_case(self, case_id : int, content: str) -> bool:
+    def edit_case(
+        self,
+        case_id : int,
+        content : str,
+    ) -> bool:
         case = self.get_case_by_id(case_id)
         if not case:
             return False
@@ -463,7 +720,10 @@ class CasesManager:
         self.save_data()
         return True
 
-    def delete_case(self, case_id : int) -> bool:
+    def delete_case(
+        self,
+        case_id : int,
+    ) -> bool:
         cases : list[CaseData] = self.data["cases"]
         for i, case in enumerate(cases):
             if case["case_id"] == case_id:
@@ -472,7 +732,11 @@ class CasesManager:
                 return True
         return False
 
-    def set_visibility(self, case_id : int, visibility : str) -> bool:
+    def set_visibility(
+        self,
+        case_id    : int,
+        visibility : str,
+    ) -> bool:
         case = self.get_case_by_id(case_id)
         if not case:
             return False
@@ -481,7 +745,11 @@ class CasesManager:
         self.save_data()
         return True
 
-    def request_visibility(self, case_id : int, visibility : str) -> bool:
+    def request_visibility(
+        self,
+        case_id    : int,
+        visibility : str,
+    ) -> bool:
         case = self.get_case_by_id(case_id)
         if not case:
             return False
@@ -489,8 +757,11 @@ class CasesManager:
         self.save_data()
         return True
 
-    def approve_visibility(self, case_id : int) -> bool:
-        case = self.get_case_by_id(case_id)
+    def approve_visibility(
+        self,
+        case_id : int,
+    ) -> bool:
+        case    = self.get_case_by_id(case_id)
         pending = case.get("pending_visibility") if case else None
         if not case or pending is None:
             return False
@@ -500,7 +771,10 @@ class CasesManager:
         self.save_data()
         return True
 
-    def deny_visibility(self, case_id : int) -> bool:
+    def deny_visibility(
+        self,
+        case_id : int,
+    ) -> bool:
         case = self.get_case_by_id(case_id)
         if not case or not case.get("pending_visibility"):
             return False
@@ -508,7 +782,11 @@ class CasesManager:
         self.save_data()
         return True
 
-    def get_related_notes(self, case_id : int, guild_id : int) -> list[CaseData]:
+    def get_related_notes(
+        self,
+        case_id  : int,
+        guild_id : int,
+    ) -> list[CaseData]:
         self.data = self.load_data()
         return [
             c for c in self.data["cases"]
@@ -546,10 +824,10 @@ class CasesManager:
             cases = [c for c in cases if c["type"] == case_type]
 
         if contains is not None:
-            query: str = contains.lower()
+            query : str = contains.lower()
             cases = [
                 c for c in cases
-                if query in (c.get("reason") or "").lower()
+                if query in (c.get("reason" ) or "").lower()
                 or query in (c.get("content") or "").lower()
             ]
 
@@ -559,5 +837,8 @@ class CasesManager:
         if before is not None:
             cases = [c for c in cases if datetime.fromisoformat(c["created_at"]) < before]
 
-        cases.sort(key=lambda x: int(x["case_id"]), reverse=True)
+        cases.sort(
+            key     = lambda x : int(x["case_id"]),
+            reverse = True,
+        )
         return cases

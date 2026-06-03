@@ -25,11 +25,14 @@ async def run_untimeout(
     reason      : str            | None,
 ) -> None:
     actor = interaction.user
-    if not isinstance(actor, discord.Member):
+    if not isinstance(
+        actor,
+        discord.Member,
+    ):
         return
 
     if not base.can_untimeout(actor):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "error",
             title    = "run command",
@@ -52,11 +55,14 @@ async def run_untimeout(
                 base, i, actor, m, str(data["reason"]),
             ),
         )
-        _ = await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(
+            view      = picker,
+            ephemeral = True,
+        )
         return
 
     if not reason:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "remove member timeout",
@@ -66,7 +72,7 @@ async def run_untimeout(
         return
 
     if not member.is_timed_out():
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "remove member timeout",
@@ -81,9 +87,15 @@ async def run_untimeout(
     if not guild:
         return
 
-    ok, msg = await _execute_untimeout(base, interaction, actor, member, reason)
+    ok, msg = await _execute_untimeout(
+        base,
+        interaction,
+        actor,
+        member,
+        reason,
+    )
     if not ok:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "remove member timeout",
@@ -109,8 +121,12 @@ async def _execute_untimeout(
     try:
         await member.timeout(None, reason = f"Timeout removed by {actor}: {reason}")
 
-        if "timeouts" in base.data and str(member.id) in base.data["timeouts"]:
-            del base.data["timeouts"][str(member.id)]
+        timeouts = base.data.get("timeouts")
+        if isinstance(
+            timeouts,
+            dict,
+        ) and str(member.id) in timeouts:
+            del timeouts[str(member.id)]
             base.save_data()
 
         _ = await base.cases_manager.log_case(
@@ -126,14 +142,32 @@ async def _execute_untimeout(
             color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",           value = member.mention, inline = True)
-        _ = embed.add_field(name = "Senior Moderator", value = actor.mention,  inline = True)
-        _ = embed.add_field(name = "Reason",           value = reason,         inline = False)
+        _ = embed.add_field(
+            name   = "Member",
+            value  = member.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Senior Moderator",
+            value  = actor.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Reason",
+            value  = reason,
+            inline = False,
+        )
     except discord.Forbidden:
         return False, "I lack permissions to timeout members: `Moderate Members`"
     else:
         if interaction.response.is_done():
-            await interaction.followup.send(embed = embed, ephemeral = True)
+            await interaction.followup.send(
+                embed     = embed,
+                ephemeral = True,
+            )
         else:
-            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(
+                embed     = embed,
+                ephemeral = True,
+            )
         return True, "ok"

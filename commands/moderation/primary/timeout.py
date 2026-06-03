@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import (
-    TYPE_CHECKING,
-    Any,
-)
+from typing import TYPE_CHECKING
 
 import discord
 
@@ -35,7 +32,7 @@ async def run_timeout(
         return
 
     if not base.can_apply_standard_actions(actor):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "error",
             title    = "run command",
@@ -45,27 +42,39 @@ async def run_timeout(
         return
 
     if member is None:
+        from typing import cast
+
         picker = MemberPickerView(
             base,
             "Timeout",
             "timeout",
-            with_duration = True,
-            precheck_callback = lambda moderator, target: base.check_can_moderate_target(moderator, target, "timeout"),
-            execute_callback = lambda i, m, data: _execute_timeout(
+            with_duration     = True,
+            precheck_callback = lambda moderator, target : base.check_can_moderate_target(
+                moderator,
+                target,
+                "timeout",
+            ),
+            execute_callback  = lambda i, m, data : _execute_timeout(
                 base,
                 i,
                 actor,
                 m,
                 str(data["duration"]),
                 str(data["reason"]),
-                data.get("proof"),
+                cast(
+                    discord.Attachment | None,
+                    data.get("proof"),
+                ),
             ),
         )
-        _ = await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(
+            view      = picker,
+            ephemeral = True,
+        )
         return
 
     if not reason:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "timeout member",
@@ -75,7 +84,7 @@ async def run_timeout(
         return
 
     if member.id == actor.id:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "timeout member",
@@ -86,7 +95,7 @@ async def run_timeout(
 
     can_moderate, error_msg = base.check_can_moderate_target(actor, member, "timeout")
     if not can_moderate:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "timeout member",
@@ -97,7 +106,7 @@ async def run_timeout(
 
     duration_seconds = base.parse_duration(duration)
     if not duration_seconds:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "timeout member",
@@ -107,7 +116,7 @@ async def run_timeout(
         return
 
     if duration_seconds > 28 * 86400:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "timeout member",
@@ -123,7 +132,7 @@ async def run_timeout(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "timeout")
         if not can_proceed:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type          = "error",
                 title             = "timeout member",
@@ -140,9 +149,17 @@ async def run_timeout(
         base.add_rate_limit_entry(str(actor.id), "timeout")
 
     _ = await interaction.response.defer(ephemeral = True)
-    ok, msg = await _execute_timeout(base, interaction, actor, member, duration, reason, proof)
+    ok, msg = await _execute_timeout(
+        base,
+        interaction,
+        actor,
+        member,
+        duration,
+        reason,
+        proof,
+    )
     if not ok:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "timeout member",
@@ -159,7 +176,10 @@ async def _execute_timeout(
     duration    : str,
     reason      : str,
     proof       : discord.Attachment | None,
-) -> tuple[bool, str]:
+) -> tuple[
+    bool,
+    str,
+]:
     guild = interaction.guild
     if not guild:
         return False, "No guild context."
@@ -189,7 +209,10 @@ async def _execute_timeout(
         }
         base.save_data()
 
-        metadata: dict[str, Any] = {"until": until.isoformat()}
+        metadata : dict[
+            str,
+            object,
+        ] = {"until" : until.isoformat()}
         if proof:
             metadata["proof_url"] = proof.url
 
@@ -208,11 +231,31 @@ async def _execute_timeout(
             color     = COLOR_YELLOW,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",    value = member.mention,                      inline = True)
-        _ = embed.add_field(name = "Moderator", value = actor.mention,                       inline = True)
-        _ = embed.add_field(name = "Duration",  value = duration,                            inline = True)
-        _ = embed.add_field(name = "Expires",   value = discord.utils.format_dt(until, "R"), inline = True)
-        _ = embed.add_field(name = "Reason",    value = reason,                              inline = False)
+        _ = embed.add_field(
+            name   = "Member",
+            value  = member.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Moderator",
+            value = actor.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Duration",
+            value  = duration,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Expires",
+            value  = discord.utils.format_dt(until, "R"),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Reason",
+            value  = reason,
+            inline = False,
+        )
         if proof:
             _ = embed.set_image(url = proof.url)
 
@@ -220,7 +263,13 @@ async def _execute_timeout(
         return False, "I lack permissions to timeout members: `Moderate Members`"
     else:
         if interaction.response.is_done():
-            await interaction.followup.send(embed = embed, ephemeral = True)
+            await interaction.followup.send(
+                embed     = embed,
+                ephemeral = True,
+            )
         else:
-            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(
+                embed     = embed,
+                ephemeral = True,
+            )
         return True, "ok"

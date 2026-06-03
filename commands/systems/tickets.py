@@ -8,7 +8,7 @@ from constants import (
     STAFF_ROLE_ID,
     TICKET_CHANNEL_ID,
 )
-from core.permissions import directors_only, main_guild_only
+from core.permissions import directors_only
 from core.responses import send_custom_message
 from core.state.blacklist_state import BLACKLIST, save_blacklist
 from core.state.ticket_state import (
@@ -57,7 +57,6 @@ class TicketsCommands(
             ),
         ],
     )
-    @main_guild_only()
     @directors_only()
     async def blacklist(
         self,
@@ -69,7 +68,7 @@ class TicketsCommands(
         target_list = BLACKLIST["tickets"]
 
         if interaction.user.id == user.id:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "modify blacklist",
@@ -82,7 +81,7 @@ class TicketsCommands(
         if guild and isinstance(user, discord.Member):
             staff_role = guild.get_role(STAFF_ROLE_ID)
             if staff_role and staff_role in user.roles:
-                await send_custom_message(
+                _ = await send_custom_message(
                     interaction,
                     msg_type = "warning",
                     title    = "modify blacklist",
@@ -93,7 +92,7 @@ class TicketsCommands(
 
         if action.value == "add":
             if user_id in target_list:
-                await send_custom_message(
+                _ = await send_custom_message(
                     interaction,
                     msg_type = "warning",
                     title    = "modify blacklist",
@@ -105,7 +104,7 @@ class TicketsCommands(
             target_list.append(user_id)
             save_blacklist()
 
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "success",
                 title    = f"blacklisted {user.mention} from Tickets",
@@ -113,7 +112,7 @@ class TicketsCommands(
 
         else:
             if user_id not in target_list:
-                await send_custom_message(
+                _ = await send_custom_message(
                     interaction,
                     msg_type = "warning",
                     title    = "modify blacklist",
@@ -125,7 +124,7 @@ class TicketsCommands(
             target_list.remove(user_id)
             save_blacklist()
 
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "success",
                 title    = f"un-blacklisted {user.mention} from Tickets",
@@ -135,15 +134,15 @@ class TicketsCommands(
     # .archive/.a Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(
-        name    = "archive",
-        aliases = ["a"],
-    )
-    async def archive(self, ctx : commands.Context[commands.Bot]) -> None:
+    @commands.command(aliases = ["a"])
+    async def archive(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "archive ticket",
@@ -153,7 +152,7 @@ class TicketsCommands(
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "archive ticket",
@@ -196,12 +195,15 @@ class TicketsCommands(
     # .claim Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "claim")
-    async def claim(self, ctx : commands.Context[commands.Bot]) -> None:
+    @commands.command()
+    async def claim(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "claim ticket",
@@ -211,7 +213,7 @@ class TicketsCommands(
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "claim ticket",
@@ -235,7 +237,7 @@ class TicketsCommands(
         )
 
         if not is_staff:
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "error",
                 title    = "run command",
@@ -246,7 +248,7 @@ class TicketsCommands(
 
         existing_claimer_id = TICKET_CLAIMS.get(channel.id)
         if existing_claimer_id == ctx.author.id:
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "claim ticket",
@@ -258,7 +260,7 @@ class TicketsCommands(
         TICKET_CLAIMS[channel.id] = ctx.author.id
         save_ticket_state()
 
-        await send_custom_message(
+        _ = await send_custom_message(
             ctx,
             msg_type = "success",
             title    = f"claimed ticket by {ctx.author.mention}",
@@ -272,11 +274,14 @@ class TicketsCommands(
         name    = "escalate",
         aliases = ["e", "esc"],
     )
-    async def escalate(self, ctx : commands.Context[commands.Bot]) -> None:
+    async def escalate(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         channel = ctx.channel
 
         if not isinstance(channel, discord.Thread):
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "escalate ticket",
@@ -286,7 +291,7 @@ class TicketsCommands(
             return
 
         if channel.parent is None or channel.parent.id != TICKET_CHANNEL_ID:
-            await send_custom_message(
+            _ = await send_custom_message(
                 ctx,
                 msg_type = "warning",
                 title    = "escalate ticket",

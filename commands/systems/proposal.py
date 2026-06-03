@@ -20,7 +20,7 @@ from constants import (
     TAG_SPECIAL,
     TAG_STATUS,
 )
-from core.permissions import has_director_role, main_guild_only
+from core.permissions import has_director_role
 from core.responses import multi_custom_message, send_custom_message
 from core.utils import (
     assert_forum_thread,
@@ -210,7 +210,11 @@ class ProposalCommands(
     name        = "proposal",
     description = "Staff Committee only —— Proposal commands.",
 ):
-    def __init__(self, bot : commands.Bot) -> None:
+    bot : commands.Bot
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot = bot
         super().__init__()
 
@@ -251,7 +255,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Veto.",                      value = "Veto."),
         ],
     )
-    @main_guild_only()
     async def status(
         self,
         interaction : discord.Interaction,
@@ -393,7 +396,6 @@ class ProposalCommands(
             app_commands.Choice(name = "S. Director Action",   value = "sdirector_action"),
         ],
     )
-    @main_guild_only()
     async def tag(
         self,
         interaction : discord.Interaction,
@@ -535,7 +537,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Issue resolved.",        value = "Issue resolved."),
         ],
     )
-    @main_guild_only()
     async def finalize(
         self,
         interaction : discord.Interaction,
@@ -656,7 +657,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Further discussion needed.", value = "Further discussion needed."),
         ],
     )
-    @main_guild_only()
     async def unlock_thread(
         self,
         interaction : discord.Interaction,
@@ -729,7 +729,6 @@ class ProposalCommands(
             app_commands.Choice(name = "Committee direction established.", value = "Committee direction established."),
         ],
     )
-    @main_guild_only()
     async def unstandstill(
         self,
         interaction : discord.Interaction,
@@ -802,7 +801,10 @@ class ProposalCommands(
         aliases = ["d", "del"],
     )
     @has_director_role()
-    async def delete_thread(self, ctx : commands.Context[commands.Bot]) -> None:
+    async def delete_thread(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         if not isinstance(ctx.channel, discord.Thread):
             return
 

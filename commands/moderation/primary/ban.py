@@ -32,7 +32,7 @@ async def run_ban(
         return
 
     if not base.can_apply_standard_actions(actor):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "error",
             title    = "run command",
@@ -61,7 +61,7 @@ async def run_ban(
         return
 
     if not reason:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "ban member",
@@ -71,7 +71,7 @@ async def run_ban(
         return
 
     if member.id == actor.id:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "ban member",
@@ -82,7 +82,7 @@ async def run_ban(
 
     can_moderate, error_msg = base.check_can_moderate_target(actor, member, "ban")
     if not can_moderate:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "ban member",
@@ -98,7 +98,7 @@ async def run_ban(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "ban")
         if not can_proceed:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type          = "error",
                 title             = "ban member",
@@ -116,7 +116,7 @@ async def run_ban(
     _ = await interaction.response.defer(ephemeral = True)
     ok, msg = await _execute_ban(base, interaction, actor, member, reason, delete_messages or 0, proof)
     if not ok:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "ban member",
@@ -186,9 +186,21 @@ async def _execute_ban(
             color     = COLOR_BLACK,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)
-        _ = embed.add_field(name = "Moderator", value = actor.mention,                     inline = True)
-        _ = embed.add_field(name = "Reason",    value = reason,                            inline = False)
+        _ = embed.add_field(
+            name   = "Member",
+            value  = f"{member.mention} ({member.id})",
+            inline = True
+        )
+        _ = embed.add_field(
+            name   = "Moderator",
+            value  = actor.mention,
+            inline = True
+        )
+        _ = embed.add_field(
+            name   = "Reason",
+            value  = reason,
+            inline = False
+        )
         if proof:
             _ = embed.set_image(url = proof.url)
 
@@ -196,7 +208,13 @@ async def _execute_ban(
         return False, "I lack permissions to ban members: `Ban Members`"
     else:
         if interaction.response.is_done():
-            await interaction.followup.send(embed = embed, ephemeral = True)
+            await interaction.followup.send(
+                embed     = embed,
+                ephemeral = True
+            )
         else:
-            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(
+                embed     = embed,
+                ephemeral = True
+            )
         return True, "ok"

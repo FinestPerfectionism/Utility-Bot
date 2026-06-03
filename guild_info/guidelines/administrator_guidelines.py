@@ -17,7 +17,10 @@ class AdministratorComponents1(LayoutView):
     )
 
 class AdministratorComponents2(LayoutView):
-    def __init__(self, timestamp : int) -> None:
+    def __init__(
+        self,
+        timestamp : int,
+    ) -> None:
         super().__init__(timeout = None)
         self.container : Container[LayoutView] = Container(
             TextDisplay[LayoutView](

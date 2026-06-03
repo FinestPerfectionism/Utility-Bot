@@ -10,8 +10,9 @@ import discord
 from discord.ext import commands
 
 import core.responses as cr
-from constants import BOT_OWNER_ID, DENIED_EMOJI
+from constants import DENIED_EMOJI
 from core.responses import send_custom_message
+
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 # .restart Logic
@@ -22,17 +23,7 @@ async def run_restart(
     ctx            : commands.Context[commands.Bot],
     restarting_ref : list[bool],
     log            : logging.Logger,
-) -> None:
-    if ctx.author.id != BOT_OWNER_ID:
-        _ = await send_custom_message(
-            ctx,
-            msg_type = cr.error,
-            title    = "run command",
-            subtitle = "You are not authorized to run this command.",
-            footer   = "No permissions.",
-        )
-        return
-
+) -> None
     if restarting_ref[0]:
         _ = await send_custom_message(
             ctx,
@@ -42,20 +33,29 @@ async def run_restart(
             footer   = "Bad operation.",
         )
         return
+        raise 
 
     restarting_ref[0] = True
     confirm_msg = await send_custom_message(
         ctx,
-        msg_type = "information",
-        title    = "Restarting bot.",
-        subtitle = "Restarting bot...",
+        msg_type     = "information",
+        title        = "Restarting bot.",
+        subtitle     = "Restarting bot...",
+        delete_after = 1,
     )
 
     with contextlib.suppress(discord.HTTPException, discord.Forbidden):
         await ctx.message.delete()
 
     loop         = asyncio.get_running_loop()
-    restart_task = loop.create_task(restart_bot(bot, log, restarting_ref, confirm_msg))
+    restart_task = loop.create_task(
+        restart_bot(
+            bot,
+            log,
+            restarting_ref,
+            confirm_msg,
+        ),
+    )
     restart_task.add_done_callback(lambda t : t.exception() if not t.cancelled() else None)
 
 async def restart_bot(
@@ -97,7 +97,10 @@ async def restart_bot(
                 _ = task.cancel()
             try:
                 _ = await asyncio.wait_for(
-                    asyncio.gather(*pending, return_exceptions=True),
+                    asyncio.gather(
+                        *pending,
+                        return_exceptions = True,
+                    ),
                     timeout = 5.0,
                 )
             except TimeoutError:
@@ -110,7 +113,13 @@ async def restart_bot(
         _ = sys.stdout.flush()
         _ = sys.stderr.flush()
 
-        os.execv(sys.executable, [sys.executable, *sys.argv]) # noqa: S606
+        os.execv(
+            sys.executable,
+            [
+                sys.executable,
+                *sys.argv,
+            ],
+        )
 
     except (OSError, discord.DiscordException) as e:
         log.critical("Fatal error during restart: %s", e, exc_info=True)
@@ -119,12 +128,13 @@ async def restart_bot(
         if confirm_msg:
             with contextlib.suppress(Exception):
                 _ = await confirm_msg.edit(
-                    content =
-                   f"{DENIED_EMOJI} **Failed to restart bot!**\n"
-                    "Restart failed:\n"
-                    "```py\n"
-                   f"{e}\n"
-                    "```",
+                    content = (
+                       f"{DENIED_EMOJI} **Failed to restart bot!**\n"
+                        "Restart failed:\n"
+                        "```py\n"
+                       f"{e}\n"
+                        "```"
+                    ),
                 )
 
         with contextlib.suppress(Exception):

@@ -14,7 +14,7 @@ AUTOMOD_STRIKES:      dict[int, list[datetime]] = defaultdict(list)
 def save_automod_strikes() -> None:
     AUTOMOD_STRIKES_FILE.parent.mkdir(parents=True, exist_ok=True)
     data = {str(k): [t.isoformat() for t in v] for k, v in AUTOMOD_STRIKES.items()}
-    _ = AUTOMOD_STRIKES_FILE.write_text(json.dumps(data, indent=4))
+    _ = AUTOMOD_STRIKES_FILE.write_text(json.dumps(data, indent = 4))
 
 def load_automod_strikes() -> None:
     if not AUTOMOD_STRIKES_FILE.exists():

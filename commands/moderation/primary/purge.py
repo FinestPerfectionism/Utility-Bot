@@ -38,12 +38,24 @@ def _build_purge_embed(
         color     = COLOR_BLURPLE,
         timestamp = datetime.now(tz = UTC),
     )
-    _ = embed.add_field(name = "Deleted",   value = str(deleted_count), inline = True)
-    _ = embed.add_field(name = "Moderator", value = moderator.mention,  inline = True)
+    _ = embed.add_field(
+        name   = "Deleted",
+        value  = str(deleted_count),
+        inline = True
+    )
+    _ = embed.add_field(
+        name   = "Moderator",
+        value  = moderator.mention,
+        inline = True
+    )
     if member:
-        _ = embed.add_field(name = "From User", value = member.mention, inline = True)
+        _ = embed.add_field(
+            name   = "From User",
+            value  = member.mention,
+            inline = True
+        )
     if proof:
-        _ = embed.set_image(url=proof.url)
+        _ = embed.set_image(url = proof.url)
     return embed
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -63,7 +75,7 @@ async def run_purge(
         return
 
     if not base.can_apply_standard_actions(actor):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "error",
             title    = "run command",
@@ -73,19 +85,32 @@ async def run_purge(
         return
 
     if member is None:
+        from typing import cast
+
         picker = MemberPickerView(
             base,
             "Purge",
             "purge",
             execute_callback = lambda i, m, data: _execute_mass_purge(
-                base, i, amount, m, str(data["reason"]), data.get("proof"),
+                base, 
+                i, 
+                amount, 
+                m, 
+                str(data["reason"]), 
+                cast(
+                    discord.Attachment | None,
+                    data.get("proof")
+                ),
             ),
         )
-        _ = await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(
+            view      = picker,
+            ephemeral = True
+        )
         return
 
     if not reason:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "purge messages",
@@ -96,7 +121,7 @@ async def run_purge(
 
     n_100 = 100
     if amount < 1 or amount > n_100:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "purge messages",
@@ -108,7 +133,7 @@ async def run_purge(
     channel = _get_purgeable_channel(interaction.channel)
 
     if channel is None:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "purge messages",
@@ -165,7 +190,7 @@ async def run_purge(
         await interaction.followup.send(embed = embed, ephemeral = True)
 
     except discord.Forbidden:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "purge messages",

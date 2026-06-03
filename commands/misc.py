@@ -1,7 +1,10 @@
 import discord
-from discord import SeparatorSpacing, app_commands
+from discord import app_commands
 from discord.ext import commands
-from discord.ui import LayoutView, Separator, TextDisplay
+from discord.ui import (
+    LayoutView,
+    TextDisplay,
+)
 
 import core.responses as cr
 from constants import BOT_OWNER_ID, HOLY_FATHER_ID
@@ -13,18 +16,10 @@ class Ping(LayoutView):
         super().__init__()
 
         _ = self.add_item(
-            TextDisplay(content = "# I HAVE BEEN AWAKENEDDDD."),
+            TextDisplay(content = "# Beep Boop,"),
         )
         _ = self.add_item(
-            Separator(
-                visible = True,
-                spacing = SeparatorSpacing.small,
-            ),
-        )
-        _ = self.add_item(
-            TextDisplay(
-                content = f"*cough cough* My ping is {ping} milliseconds.",
-            ),
+            TextDisplay(content = f"My ping is {ping} milliseconds."),
         )
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -34,7 +29,10 @@ class Ping(LayoutView):
 class MiscCommands(commands.Cog):
     bot : commands.Bot
 
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot = bot
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -45,7 +43,10 @@ class MiscCommands(commands.Cog):
         name        = "femboy",
         description = "Such a good little utility kitten.",
     )
-    async def femboy(self, interaction : discord.Interaction) -> None:
+    async def femboy(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         _ = await interaction.response.defer()
         await interaction.followup.send(
             "i-i'm such a submissive wittle kitty UwU. *snuggles* I hewp cwose proposals... naa~~",
@@ -58,7 +59,10 @@ class MiscCommands(commands.Cog):
     @commands.command(
         name = "super_secret_command",
     )
-    async def super_secret_command(self, ctx : commands.Context[commands.Bot]) -> None:
+    async def super_secret_command(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         author_id = ctx.author.id
 
         if author_id == BOT_OWNER_ID:
@@ -85,12 +89,15 @@ class MiscCommands(commands.Cog):
         name        = "roulette",
         description = "Have fun...",
     )
-    async def roulette(self, interaction : discord.Interaction) -> None:
+    async def roulette(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         guild  = interaction.guild
         member = interaction.user
 
         if guild is None:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = cr.warning,
                 title    = "run command",
@@ -136,9 +143,15 @@ class MiscCommands(commands.Cog):
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
     @commands.command(name = "bot-ping")
-    async def ping(self, ctx : commands.Context[commands.Bot]) -> None:
-        latency_ms = round(self.bot.latency * 1000)
-        _ = await ctx.send(view = Ping(latency_ms))
+    async def ping(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
+        _ = await ctx.send(
+            view = Ping(
+                round(self.bot.latency * 1000),
+            ),
+        )
 
 async def setup(bot : commands.Bot) -> None:
     cog = MiscCommands(bot)

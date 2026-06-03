@@ -71,7 +71,14 @@ MOD_ROLE_IDS = {
 class DecisionModal(Modal, title = "Decision Reason"):
     notes : TextInput[Modal] = TextInput(label = "Notes", required = True)
 
-    def __init__(self, applicant_id : int, app_type: str, *, accepted: bool, message_id : int) -> None:
+    def __init__(
+        self,
+        applicant_id : int,
+        app_type     : str,
+        *,
+        accepted     : bool,
+        message_id   : int,
+    ) -> None:
         super().__init__()
         self.message_id   = message_id
         self.applicant_id = applicant_id
@@ -79,9 +86,12 @@ class DecisionModal(Modal, title = "Decision Reason"):
         self.accepted     = accepted
 
     @override
-    async def on_submit(self, interaction : discord.Interaction) -> None:
+    async def on_submit(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         _ = await interaction.response.defer(ephemeral = True)
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "success",
             title    = "submitted decision",
@@ -231,8 +241,16 @@ class DecisionView(View):
     def __init__(self) -> None:
         super().__init__(timeout = None)
 
-    @discord.ui.button(label = "Accept", style = ButtonStyle.success, custom_id = "decision:accept")
-    async def accept(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    @discord.ui.button(
+        label     = "Accept",
+        style     = ButtonStyle.success,
+        custom_id = "decision:accept",
+    )
+    async def accept(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         msg = interaction.message
         if msg is None:
             return
@@ -259,8 +277,16 @@ class DecisionView(View):
             ),
         )
 
-    @discord.ui.button(label = "Deny", style = ButtonStyle.danger, custom_id = "decision:deny")
-    async def deny(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    @discord.ui.button(
+        label     = "Deny",
+        style     = ButtonStyle.danger,
+        custom_id = "decision:deny",
+    )
+    async def deny(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         msg = interaction.message
         if msg is None:
             return
@@ -287,8 +313,16 @@ class DecisionView(View):
             ),
         )
 
-    @discord.ui.button(label = "History", style = ButtonStyle.secondary, custom_id = "decision:history")
-    async def history(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    @discord.ui.button(
+        label     = "History",
+        style     = ButtonStyle.secondary,
+        custom_id = "decision:history",
+    )
+    async def history(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         msg = interaction.message
         if msg is None:
             return
@@ -458,12 +492,22 @@ def can_apply(member : discord.Member, app_type : str) -> bool:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class ApplicationSubmitView(View):
-    def __init__(self, user_id : int) -> None:
+    def __init__(
+        self,
+        user_id : int,
+    ) -> None:
         super().__init__(timeout = 300)
         self.user_id = user_id
 
-    @discord.ui.button(label = "Edit", style = ButtonStyle.secondary)
-    async def edit(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    @discord.ui.button(
+        label = "Edit",
+        style = ButtonStyle.secondary,
+    )
+    async def edit(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             return
@@ -475,11 +519,18 @@ class ApplicationSubmitView(View):
             ephemeral = True,
         )
 
-    @discord.ui.button(label = "Submit", style = ButtonStyle.success)
-    async def submit(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    @discord.ui.button(
+        label = "Submit",
+        style = ButtonStyle.success,
+    )
+    async def submit(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "submit application",
@@ -538,8 +589,15 @@ class ApplicationSubmitView(View):
             subtitle = "Application submitted.",
         )
 
-    @discord.ui.button(label = "Cancel", style = ButtonStyle.danger)
-    async def cancel(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    @discord.ui.button(
+        label = "Cancel",
+        style = ButtonStyle.danger,
+    )
+    async def cancel(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         await delete_application_messages(interaction.client, self.user_id)
         __ = await send_custom_message(
             interaction,
@@ -564,7 +622,7 @@ class ApplicationComponents(LayoutView):
                     item.callback = self.admin_btn
 
     container : Container[LayoutView] = Container(
-        TextDisplay(
+        TextDisplay[LayoutView](
             content =
                 "# Staff Applications\n"
                 "Staff applications are reviewed carefully to ensure we select members who are responsible, active, and aligned with the server's values. Take your time when completing the application and ensure all answers are honest and well thought out.\n\n"
@@ -587,7 +645,7 @@ class ApplicationComponents(LayoutView):
             spacing = SeparatorSpacing.large,
         ),
         ActionRow(
-            Button(
+            Button[LayoutView](
                 style     = ButtonStyle.primary,
                 label     = "Open Moderators Application",
                 custom_id = "application_menu:apply_mod",
@@ -601,11 +659,17 @@ class ApplicationComponents(LayoutView):
         accent_color = COLOR_GREEN,
     )
 
-    async def mod_btn(self, interaction : discord.Interaction) -> None:
+    async def mod_btn(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         view = ApplicationMenuView()
         await view.handle_mod_application(interaction)
 
-    async def admin_btn(self, interaction : discord.Interaction) -> None:
+    async def admin_btn(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         view = ApplicationMenuView()
         await view.handle_admin_application(interaction)
 
@@ -617,9 +681,12 @@ class ApplicationMenuView(View):
     def __init__(self) -> None:
         super().__init__(timeout = None)
 
-    async def handle_mod_application(self, interaction : discord.Interaction) -> None:
+    async def handle_mod_application(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "open application",
@@ -629,7 +696,7 @@ class ApplicationMenuView(View):
             return
 
         if interaction.user.id in ACTIVE_APPLICATIONS:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -639,7 +706,7 @@ class ApplicationMenuView(View):
             return
 
         if not APPLICATIONS_OPEN["mod"]:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -649,7 +716,7 @@ class ApplicationMenuView(View):
             return
 
         if not isinstance(interaction.user, discord.Member):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -659,7 +726,7 @@ class ApplicationMenuView(View):
             return
 
         if not can_apply(interaction.user, "mod"):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -691,16 +758,19 @@ class ApplicationMenuView(View):
         data["messages"].append(msg.id)
         save_active_applications()
 
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "success",
             title    = "open application",
             subtitle = "The application has been sent to your DMs.",
         )
 
-    async def handle_admin_application(self, interaction : discord.Interaction) -> None:
+    async def handle_admin_application(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if interaction.user.id in BLACKLIST["applications"]:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "error",
                 title    = "open application",
@@ -710,7 +780,7 @@ class ApplicationMenuView(View):
             return
 
         if interaction.user.id in ACTIVE_APPLICATIONS:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -720,7 +790,7 @@ class ApplicationMenuView(View):
             return
 
         if not APPLICATIONS_OPEN["admin"]:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -730,7 +800,7 @@ class ApplicationMenuView(View):
             return
 
         if not isinstance(interaction.user, discord.Member):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -740,7 +810,7 @@ class ApplicationMenuView(View):
             return
 
         if not can_apply(interaction.user, "admin"):
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "open application",
@@ -772,17 +842,25 @@ class ApplicationMenuView(View):
         data["messages"].append(msg.id)
         save_active_applications()
 
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "success",
             title    = "open application",
             subtitle = "The application has been sent to your DMs.",
         )
 
-    async def mod_btn(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    async def mod_btn(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         await self.handle_mod_application(interaction)
 
-    async def admin_btn(self, interaction : discord.Interaction, _ : Button[View]) -> None:
+    async def admin_btn(
+        self,
+        interaction : discord.Interaction,
+        _           : Button[View],
+    ) -> None:
         await self.handle_admin_application(interaction)
 
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -790,7 +868,10 @@ class ApplicationMenuView(View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EditQuestionSelectView(View):
-    def __init__(self, user_id : int) -> None:
+    def __init__(
+        self,
+        user_id : int,
+    ) -> None:
         super().__init__(timeout = 120)
         self.user_id = user_id
 
@@ -815,7 +896,11 @@ class EditQuestionSelectView(View):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class EditQuestionSelect(Select[View]):
-    def __init__(self, options : list[discord.SelectOption], user_id : int) -> None:
+    def __init__(
+        self,
+        options : list[discord.SelectOption],
+        user_id : int,
+    ) -> None:
         super().__init__(
             placeholder = "Select a question to edit.",
             options     = options,
@@ -823,7 +908,10 @@ class EditQuestionSelect(Select[View]):
         self.user_id = user_id
 
     @override
-    async def callback(self, interaction : discord.Interaction) -> None:
+    async def callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         data = ACTIVE_APPLICATIONS.get(self.user_id)
         if not data:
             return
@@ -841,7 +929,10 @@ class EditQuestionSelect(Select[View]):
         )
 
 class ApplicationsSystem(commands.Cog):
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot = bot
 
 async def setup(bot : commands.Bot) -> None:

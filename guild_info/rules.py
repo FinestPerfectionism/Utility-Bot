@@ -3,7 +3,7 @@ from inspect import cleandoc
 from discord import ButtonStyle, SeparatorSpacing
 from discord.ui import Button, Container, LayoutView, Section, Separator, TextDisplay
 
-from constants import STANDSTILL_EMOJI_ID
+from constants import STANDSTILL_EMOJI
 
 
 class RuleComponents1(LayoutView):
@@ -19,7 +19,10 @@ class RuleComponents1(LayoutView):
     )
 
 class RuleComponents2(LayoutView):
-    def __init__(self, timestamp : int) -> None:
+    def __init__(
+        self,
+        timestamp : int,
+    ) -> None:
         super().__init__(timeout = None)
         self.container : Container[LayoutView] = Container(
             Section[LayoutView](
@@ -31,7 +34,7 @@ class RuleComponents2(LayoutView):
                     url   =  "https://discord.com/terms",
                     style = ButtonStyle.link,
                     label =  "Discord Terms of Service",
-                    emoji = f"{STANDSTILL_EMOJI_ID}",
+                    emoji = f"{STANDSTILL_EMOJI}",
                 ),
             ),
             TextDisplay(

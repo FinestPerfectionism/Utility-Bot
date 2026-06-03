@@ -22,7 +22,10 @@ class BotOwnerCommands(
     name        = "bot-owner",
     description = "Bot Owner only —— Bot owner commands.",
 ):
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot            = bot
         self.logger         = logging.getLogger("bot")
         self.restarting_ref = [False]
@@ -40,7 +43,10 @@ class BotOwnerCommands(
         name        = "pull-reload",
         description = "Pull from main, then reload all cogs.",
     )
-    async def pull_reload(self, interaction : discord.Interaction) -> None:
+    async def pull_reload(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         await run_pull_reload(self.bot, interaction, get_cogs())
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
@@ -51,12 +57,19 @@ class BotOwnerCommands(
         name        = "reload",
         description = "Reload a cog or all cogs.",
     )
-    @app_commands.describe(
-        cog = "The cog to reload. Leave empty to reload all cogs.",
-    )
+    @app_commands.describe(cog = "The cog to reload. Leave empty to reload all cogs.")
     @app_commands.autocomplete(cog = cog_autocomplete)
-    async def reload(self, interaction : discord.Interaction, cog: str | None = None) -> None:
-        await run_reload(self.bot, interaction, cog, get_cogs())
+    async def reload(
+        self,
+        interaction : discord.Interaction,
+        cog         : str | None = None,
+    ) -> None:
+        await run_reload(
+            self.bot,
+            interaction,
+            cog,
+            get_cogs(),
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /bot-owner load Command
@@ -66,12 +79,19 @@ class BotOwnerCommands(
         name        = "load",
         description = "Load a cog.",
     )
-    @app_commands.describe(
-        cog = "The cog to load.",
-    )
+    @app_commands.describe(cog = "The cog to load.")
     @app_commands.autocomplete(cog = cog_autocomplete)
-    async def load(self, interaction : discord.Interaction, cog: str) -> None:
-        await run_load(self.bot, interaction, cog, get_cogs())
+    async def load(
+        self,
+        interaction : discord.Interaction,
+        cog         : str,
+    ) -> None:
+        await run_load(
+            self.bot,
+            interaction,
+            cog,
+            get_cogs(),
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /bot-owner unload Command
@@ -81,27 +101,40 @@ class BotOwnerCommands(
         name        = "unload",
         description = "Unload a cog.",
     )
-    @app_commands.describe(
-        cog = "The cog to unload.",
-    )
+    @app_commands.describe(cog = "The cog to unload.")
     @app_commands.autocomplete(cog = cog_autocomplete)
-    async def unload(self, interaction : discord.Interaction, cog : str) -> None:
-        await run_unload(self.bot, interaction, cog, get_cogs())
+    async def unload(
+        self,
+        interaction : discord.Interaction,
+        cog         : str,
+    ) -> None:
+        await run_unload(
+            self.bot,
+            interaction,
+            cog,
+            get_cogs(),
+        )
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .shutdown/.shut Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "shutdown", aliases = ["shut"])
-    async def shutdown(self, ctx : commands.Context[commands.Bot]) -> None:
+    @commands.command(aliases = ["shut"])
+    async def shutdown(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         await run_shutdown(self.bot, ctx)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # .restart/.r Command
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
-    @commands.command(name = "restart", aliases = ["r"])
-    async def restart(self, ctx : commands.Context[commands.Bot]) -> None:
+    @commands.command(aliases = ["r"])
+    async def restart(
+        self,
+        ctx : commands.Context[commands.Bot],
+    ) -> None:
         await run_restart(self.bot, ctx, self.restarting_ref, self.logger)
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻

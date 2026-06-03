@@ -11,7 +11,7 @@ import discord
 if TYPE_CHECKING:
     from ._base import ModerationBase
 
-from constants import COLOR_GREEN, CONTESTED_EMOJI
+from constants import COLOR_GREEN, CONTESTED_EMOJI, QUARANTINE_ROLE_ID
 from core.cases import CaseType
 from core.responses import send_custom_message
 
@@ -33,7 +33,7 @@ async def run_unquarantine(
         return
 
     if not base.can_reverse_actions(actor):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "error",
             title    = "run command",
@@ -44,7 +44,7 @@ async def run_unquarantine(
 
     guild = interaction.guild
     if not guild:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "remove member quarantine",
@@ -60,7 +60,7 @@ async def run_unquarantine(
             "none",
             precheck_callback = lambda _moderator, target: (
                 (True, "")
-                if (str(target.id) in base.data.get("quarantined", {}) or (guild.get_role(base.QUARANTINE_ROLE_ID) in target.roles if guild.get_role(base.QUARANTINE_ROLE_ID) else False))
+                if (str(target.id) in base.data.get("quarantined", {}) or (guild.get_role(QUARANTINE_ROLE_ID) in target.roles if guild.get_role(QUARANTINE_ROLE_ID) else False))
                 else (False, "Member is already not quarantined.")
             ),
             execute_callback = lambda i, m, data: _execute_unquarantine(
@@ -71,7 +71,7 @@ async def run_unquarantine(
         return
 
     if not reason:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "remove member quarantine",
@@ -80,12 +80,12 @@ async def run_unquarantine(
         )
         return
 
-    quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
+    quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
     in_json         = str(member.id) in base.data.get("quarantined", {})
     has_quarantine  = quarantine_role in member.roles if quarantine_role else False
 
     if not in_json and not has_quarantine:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "remove member quarantine",
@@ -97,7 +97,7 @@ async def run_unquarantine(
     _ = await interaction.response.defer(ephemeral = True)
     ok, msg = await _execute_unquarantine(base, interaction, actor, member, reason, proof)
     if not ok:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "remove member quarantine",
@@ -123,7 +123,7 @@ async def _execute_unquarantine(
 
     quarantine_data           = base.data.get("quarantined", {}).get(str(member.id))
     saved_role_ids: list[int] = list(quarantine_data["roles"]) if quarantine_data else []
-    quarantine_role = guild.get_role(base.QUARANTINE_ROLE_ID)
+    quarantine_role = guild.get_role(QUARANTINE_ROLE_ID)
     if member.top_role >= bot_member.top_role:
         return False, "Target user is above or equal to my highest role."
     if quarantine_role and quarantine_role >= bot_member.top_role:
@@ -137,7 +137,7 @@ async def _execute_unquarantine(
         roles_not_found: list[int]          = []
 
         for role_id in saved_role_ids:
-            if role_id == base.QUARANTINE_ROLE_ID:
+            if role_id == QUARANTINE_ROLE_ID:
                 continue
             role = guild.get_role(role_id)
             if role:
@@ -171,10 +171,28 @@ async def _execute_unquarantine(
             color     = COLOR_GREEN,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",         value = member.mention,          inline = True)
-        _ = embed.add_field(name = "Director",       value = actor.mention,           inline = True)
-        _ = embed.add_field(name = "Roles Restored", value = str(len(roles_to_add)),  inline = True)
-        _ = embed.add_field(name = "Reason",         value = reason,                  inline = False)
+        _ = embed.add_field(
+            name   = "Member",
+            value  = member.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Director",
+            value  = actor.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Roles Restored",
+            value  = str(
+                len(roles_to_add),
+            ),
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Reason",
+            value  = reason,
+            inline = False,
+        )
 
         if roles_not_found:
             _ = embed.add_field(

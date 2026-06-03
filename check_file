@@ -8,7 +8,10 @@ def run_pipeline(cmd):
     elif "ruff" in cmd:
         pipeline = f"{cmd} | cut -d: -f1 | sort | uniq -c | sort -nr | head -n 1"
     
-    subprocess.run(pipeline, shell=True)
+    subprocess.run(
+        pipeline,
+        shell = True,
+    )
 
 if len(sys.argv) < 2:
     print("Usage: ./check_file {bp|p|r}")

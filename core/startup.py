@@ -137,9 +137,15 @@ def load_layout_config() -> dict[str, bool]:
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class Startup(commands.Cog):
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot = bot
-        self.layout_message_ids: dict[str, int | list[int]] = load_layout_message_ids()
+        self.layout_message_ids : dict[
+            str,
+            int | list[int],
+        ] = load_layout_message_ids()
 
     @override
     async def cog_load(self) -> None:
@@ -148,7 +154,7 @@ class Startup(commands.Cog):
     async def _wait_and_restore(self) -> None:
         await self.bot.wait_until_ready()
 
-        verification_cog: commands.Cog | None = None
+        verification_cog : commands.Cog | None = None
         while verification_cog is None:
             verification_cog = self.bot.get_cog("VerificationHandler")
             if verification_cog is None:
@@ -159,13 +165,40 @@ class Startup(commands.Cog):
     async def restore_or_send_layouts(self) -> None:
         config = load_layout_config()
 
-        view_mapping: dict[str, tuple[int, type[View]]] = {
-            "tickets": (TICKET_CHANNEL_ID, cast("type[discord.ui.View]", TicketComponents)),
-            "applications": (APPLICATION_CHANNEL_ID, cast("type[discord.ui.View]", ApplicationComponents)),
-            "leave": (STAFF_LEAVE_CHANNEL_ID, cast("type[discord.ui.View]", LeaveComponents)),
+        view_mapping : dict[
+            str,
+            tuple[
+                int,
+                type[View],
+            ],
+        ] = {
+            "tickets"      : (
+                TICKET_CHANNEL_ID,
+                cast(
+                    "type[discord.ui.View]",
+                    TicketComponents,
+                ),
+            ),
+            "applications" : (
+                APPLICATION_CHANNEL_ID,
+                cast(
+                    "type[discord.ui.View]",
+                    ApplicationComponents,
+                ),
+            ),
+            "leave"        : (
+                STAFF_LEAVE_CHANNEL_ID,
+                cast(
+                    "type[discord.ui.View]",
+                    LeaveComponents,
+                ),
+            ),
         }
 
-        for key, (channel_id, view_cls) in view_mapping.items():
+        for key, (
+            channel_id,
+            view_cls,
+        ) in view_mapping.items():
             if not config.get(key, True):
                 log.info("Layout '%s' is disabled in layout_config.json, skipping", key)
                 continue
@@ -184,12 +217,28 @@ class Startup(commands.Cog):
                 except discord.NotFound:
                     pass
 
-            msg = await channel.send(view = view_cls())
+            msg                          = await channel.send(view = view_cls())
             self.layout_message_ids[key] = msg.id
-            self.bot.add_view(view_cls(), message_id = msg.id)
+            self.bot.add_view(
+                view_cls(),
+                message_id = msg.id,
+            )
             save_layout_message_ids(self.layout_message_ids)
 
-        layout_handlers : list[tuple[str, int, Callable[[discord.TextChannel], Coroutine[Any, Any, None]]]] = [
+        layout_handlers : list[
+            tuple[
+                str,
+                int,
+                Callable[
+                    [discord.TextChannel],
+                    Coroutine[
+                        Any,
+                        Any,
+                        None,
+                    ],
+                ],
+            ],
+        ] = [
             ("rules", RULES_CHANNEL_ID, self._handle_rules_layout),
             ("staff_proposals", STAFF_PROPOSALS_INFO_CHANNEL_ID, self._handle_staff_proposals_layout),
             ("partnership_requirements", PARTNERSHIP_REQUIREMENTS_CHANNEL_ID, self._handle_partnership_requirements_layout),
@@ -202,17 +251,29 @@ class Startup(commands.Cog):
         ]
 
         for key, channel_id, handler in layout_handlers:
-            if not config.get(key, True):
+            if not config.get(
+                key,
+                True,
+            ):
                 log.info("Layout '%s' is disabled in layout_config.json, skipping", key)
                 continue
 
             channel = self.bot.get_channel(channel_id)
-            if isinstance(channel, discord.TextChannel):
+            if isinstance(
+                channel,
+                discord.TextChannel,
+            ):
                 await handler(channel)
 
-    async def _handle_rules_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_rules_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("rules")
-        msg_ids: list[int] = raw if isinstance(raw, list) else []
+        msg_ids : list[int] = raw if isinstance(
+            raw,
+            list,
+        ) else []
 
         all_exist = False
         n_2 = 2
@@ -255,7 +316,10 @@ class Startup(commands.Cog):
             log.info("Rules layout restored")
             log.debug("Rules message_ids=%s", msg_ids)
 
-    async def _handle_staff_proposals_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_staff_proposals_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("staff_proposals")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -306,7 +370,10 @@ class Startup(commands.Cog):
             log.info("Staff proposals layout restored")
             log.debug("Staff proposals message_ids=%s", msg_ids)
 
-    async def _handle_partnership_requirements_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_partnership_requirements_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("partnership_requirements")
         msg_ids : list[int] = raw if isinstance(raw, list) else []
 
@@ -351,7 +418,10 @@ class Startup(commands.Cog):
             log.info("Partnership requirements layout restored")
             log.debug("Partnership requirements message_ids=%s", msg_ids)
 
-    async def _handle_partnership_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_partnership_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         data : PartnershipData = load_partnership_data()
         partnerships     = data["partnerships"]
         header_msg_id    = data["header_message_id"]
@@ -395,7 +465,10 @@ class Startup(commands.Cog):
         except discord.HTTPException:
             log.exception("Partnership layout failed")
 
-    async def _handle_hierarchy_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_hierarchy_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("hierarchy")
         msg_ids : list[int] = raw if isinstance(raw, list) else []
 
@@ -450,7 +523,10 @@ class Startup(commands.Cog):
             log.info("Hierarchy layout restored")
             log.debug("Hierarchy message_ids=%s", msg_ids)
 
-    async def _handle_moderation_guidelines_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_moderation_guidelines_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("moderation_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -497,7 +573,10 @@ class Startup(commands.Cog):
             log.info("Moderation guidelines layout restored")
             log.debug("Moderation guidelines message_ids=%s", msg_ids)
 
-    async def _handle_administrator_guidelines_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_administrator_guidelines_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("administrator_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -546,7 +625,10 @@ class Startup(commands.Cog):
             log.info("Administrator guidelines layout restored")
             log.debug("Administrator guidelines message_ids=%s", msg_ids)
 
-    async def _handle_staff_guidelines_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_staff_guidelines_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("staff_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 
@@ -595,7 +677,10 @@ class Startup(commands.Cog):
             log.info("Staff guidelines layout restored")
             log.debug("Staff guidelines message_ids=%s", msg_ids)
 
-    async def _handle_directorate_guidelines_layout(self, channel : discord.TextChannel) -> None:
+    async def _handle_directorate_guidelines_layout(
+        self,
+        channel : discord.TextChannel,
+    ) -> None:
         raw = self.layout_message_ids.get("directorate_guidelines")
         msg_ids: list[int] = raw if isinstance(raw, list) else []
 

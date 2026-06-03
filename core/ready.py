@@ -8,20 +8,36 @@ from discord.ext import commands
 from typing_extensions import override
 
 from bot import bot
-from constants import ACCEPTED_EMOJI, APPLICATION_LOG_CHANNEL_ID, BOT_CONSOLE_CHANNEL_ID
-from core.state.application_state import ACTIVE_APPLICATIONS, load_active_applications
-from core.state.automod_state import load_automod_strikes, save_automod_strikes
+from constants import (
+    ACCEPTED_EMOJI,
+    APPLICATION_LOG_CHANNEL_ID,
+    BOT_CONSOLE_CHANNEL_ID,
+)
+from core.state.application_state import (
+    ACTIVE_APPLICATIONS,
+    load_active_applications,
+)
+from core.state.automod_state import (
+    load_automod_strikes,
+    save_automod_strikes,
+)
 from events.systems.applications import DecisionView
 
 log = logging.getLogger("Utility Bot")
 
 class DiscordLogHandler(logging.Handler):
-    def __init__(self, queue : asyncio.Queue[Any]) -> None:
+    def __init__(
+        self,
+        queue : asyncio.Queue[Any],
+    ) -> None:
         super().__init__()
         self.queue = queue
 
     @override
-    def emit(self, record: logging.LogRecord) -> None:
+    def emit(
+        self,
+        record : logging.LogRecord,
+    ) -> None:
         with contextlib.suppress(asyncio.QueueFull):
             self.queue.put_nowait(self.format(record))
 
@@ -30,10 +46,13 @@ class DiscordLogHandler(logging.Handler):
 # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
 
 class Ready(commands.Cog):
-    def __init__(self, bot : commands.Bot) -> None:
+    def __init__(
+        self,
+        bot : commands.Bot,
+    ) -> None:
         self.bot                                 = bot
         self._ran                                = False
-        self._console_queue : asyncio.Queue[Any] = asyncio.Queue(maxsize=500)
+        self._console_queue : asyncio.Queue[Any] = asyncio.Queue(maxsize = 500)
         self._console_task  : asyncio.Task[Any] | None = None
 
     async def console_worker(self) -> None:
@@ -46,8 +65,8 @@ class Ready(commands.Cog):
             return
 
         while True:
-            msg: str = await self._console_queue.get()
-            buffer: list[str] = [msg]
+            msg    : str = await self._console_queue.get()
+            buffer : list[str] = [msg]
 
             deadline = asyncio.get_event_loop().time() + 1.5
             while True:
@@ -55,7 +74,7 @@ class Ready(commands.Cog):
                 if remaining <= 0:
                     break
                 try:
-                    extra: str = await asyncio.wait_for(
+                    extra : str = await asyncio.wait_for(
                         self._console_queue.get(), timeout = remaining,
                     )
                     buffer.append(extra)

@@ -35,7 +35,7 @@ async def run_kick(
         return
 
     if not base.can_apply_standard_actions(actor):
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "error",
             title    = "run command",
@@ -49,7 +49,11 @@ async def run_kick(
             base,
             "Kick",
             "kick",
-            precheck_callback = lambda moderator, target : base.check_can_moderate_target(moderator, target, "kick"),
+            precheck_callback = lambda moderator, target : base.check_can_moderate_target(
+                moderator,
+                target,
+                "kick",
+            ),
             execute_callback = lambda i, m, data: _execute_kick(
                 base,
                 i,
@@ -59,11 +63,14 @@ async def run_kick(
                 cast(discord.Attachment, data.get("proof")) if data.get("proof") is not None else None,
             ),
         )
-        _ = await interaction.response.send_message(view = picker, ephemeral = True)
+        _ = await interaction.response.send_message(
+            view      = picker,
+            ephemeral = True,
+        )
         return
 
     if not reason:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "kick member",
@@ -73,7 +80,7 @@ async def run_kick(
         return
 
     if member.id == actor.id:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "kick member",
@@ -82,9 +89,13 @@ async def run_kick(
         )
         return
 
-    can_moderate, error_msg = base.check_can_moderate_target(actor, member, "kick")
+    can_moderate, error_msg = base.check_can_moderate_target(
+        actor,
+        member,
+        "kick",
+    )
     if not can_moderate:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type = "warning",
             title    = "kick member",
@@ -100,7 +111,7 @@ async def run_kick(
     if not is_director(actor):
         can_proceed, error_msg = base.check_rate_limit(str(actor.id), "kick")
         if not can_proceed:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type          = "error",
                 title             = "kick member",
@@ -118,7 +129,7 @@ async def run_kick(
     _ = await interaction.response.defer(ephemeral = True)
     ok, msg = await _execute_kick(base, interaction, actor, member, reason, proof)
     if not ok:
-        await send_custom_message(
+        _ = await send_custom_message(
             interaction,
             msg_type          = "error",
             title             = "kick members",
@@ -176,9 +187,21 @@ async def _execute_kick(
             color     = COLOR_RED,
             timestamp = datetime.now(UTC),
         )
-        _ = embed.add_field(name = "Member",    value = f"{member.mention} ({member.id})", inline = True)
-        _ = embed.add_field(name = "Moderator", value = actor.mention,                     inline = True)
-        _ = embed.add_field(name = "Reason",    value = reason,                            inline = False)
+        _ = embed.add_field(
+            name   = "Member",
+            value  = f"{member.mention} ({member.id})",
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Moderator",
+            value  = actor.mention,
+            inline = True,
+        )
+        _ = embed.add_field(
+            name   = "Reason",
+            value  = reason,
+            inline = False,
+        )
         if proof:
             _ = embed.set_image(url = proof.url)
 
@@ -186,7 +209,13 @@ async def _execute_kick(
         return False, "I lack permissions to kick members: `Kick Members`"
     else:
         if interaction.response.is_done():
-            await interaction.followup.send(embed = embed, ephemeral = True)
+            await interaction.followup.send(
+                embed     = embed,
+                ephemeral = True,
+            )
         else:
-            _ = await interaction.response.send_message(embed = embed, ephemeral = True)
+            _ = await interaction.response.send_message(
+                embed     = embed,
+                ephemeral = True,
+            )
         return True, "ok"

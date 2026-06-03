@@ -65,7 +65,7 @@ def load_data() -> dict[str, Any]:
 
 def save_data(data: dict[str, Any]) -> None:
     with Path(DATA_FILE).open("w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(data, f, indent = 2)
 
 def extract_name(nickname : str) -> str:
     if "|" in nickname:
@@ -140,6 +140,9 @@ def build_leave_nick(name : str) -> str | None:
     return None
 
 class HardCleanConfirmView(LayoutView):
+    invocator_id    : int
+    target          : discord.Member
+    roles_to_remove : list[discord.Role]
     def __init__(
         self,
         invocator_id    : int,
@@ -153,10 +156,16 @@ class HardCleanConfirmView(LayoutView):
         self.roles_to_remove = roles_to_remove
         self.message: discord.WebhookMessage | None = None
 
-        self._confirm_button : Button[HardCleanConfirmView] = Button(label = "Confirm", style = ButtonStyle.danger)
+        self._confirm_button : Button[HardCleanConfirmView] = Button(
+            label = "Confirm",
+            style = ButtonStyle.danger,
+        )
         self._confirm_button.callback = self._confirm_callback
 
-        self._cancel_button : Button[HardCleanConfirmView] = Button(label = "Cancel", style = ButtonStyle.primary)
+        self._cancel_button : Button[HardCleanConfirmView] = Button(
+            label = "Confirm",
+            style = ButtonStyle.danger,
+        )
         self._cancel_button.callback = self._cancel_callback
 
         self._action_row : ActionRow[HardCleanConfirmView] = ActionRow()
@@ -176,9 +185,12 @@ class HardCleanConfirmView(LayoutView):
         self._confirm_button.disabled = True
         self._cancel_button.disabled  = True
 
-    async def _confirm_callback(self, interaction : discord.Interaction) -> None:
+    async def _confirm_callback(
+            self,
+            interaction : discord.Interaction,
+        ) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "confirm hard clean",
@@ -192,7 +204,7 @@ class HardCleanConfirmView(LayoutView):
         try:
             await self.target.remove_roles(*self.roles_to_remove, reason = f"Hard Clean leave by {interaction.user.display_name}")
         except discord.Forbidden:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type          = "error",
                 title             = "hard clean member",
@@ -202,7 +214,7 @@ class HardCleanConfirmView(LayoutView):
             )
             return
         except discord.HTTPException:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type          = "error",
                 title             = "hard clean member",
@@ -216,9 +228,12 @@ class HardCleanConfirmView(LayoutView):
         self._text_display.content = f"{self.target.mention} has been hard cleaned —— {len(self.roles_to_remove)} staff role(s) removed."
         _ = await interaction.response.edit_message(view = self)
 
-    async def _cancel_callback(self, interaction : discord.Interaction) -> None:
+    async def _cancel_callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "confirm hard clean",
@@ -242,6 +257,8 @@ class HardCleanConfirmView(LayoutView):
                 _ = await self.message.edit(view = self)
 
 class InterferenceConfirmView(LayoutView):
+    invocator_id : int
+    confirmed    : bool
     def __init__(
         self,
         invocator_id : int,
@@ -275,9 +292,12 @@ class InterferenceConfirmView(LayoutView):
         self._confirm_button.disabled = True
         self._cancel_button.disabled  = True
 
-    async def _confirm_callback(self, interaction : discord.Interaction) -> None:
+    async def _confirm_callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "confirm action",
@@ -292,9 +312,12 @@ class InterferenceConfirmView(LayoutView):
         self.stop()
         _ = await interaction.response.edit_message(view = self)
 
-    async def _cancel_callback(self, interaction : discord.Interaction) -> None:
+    async def _cancel_callback(
+        self,
+        interaction : discord.Interaction,
+    ) -> None:
         if interaction.user.id != self.invocator_id:
-            await send_custom_message(
+            _ = await send_custom_message(
                 interaction,
                 msg_type = "warning",
                 title    = "confirm action",

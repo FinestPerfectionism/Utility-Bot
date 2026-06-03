@@ -175,16 +175,33 @@ class CommandHelpData:
     access_node   : AccessNode | None        = None
     channel_rules : list[ChannelRestriction] = field(default_factory = list)
     has_inverse   : bool       | str         = False
-    arguments     : dict[str, ArgumentInfo]  = field(default_factory = dict)
+    arguments     : dict[
+        str,
+        ArgumentInfo,
+    ]                                        = field(default_factory = dict)
     aliases       : list[str]                = field(default_factory = list)
 
 @runtime_checkable
 class HelpCallback(Protocol[P, T_co]):
     __help_data__ : CommandHelpData
-    def __call__(self, *args : P.args, **kwargs : P.kwargs) -> Coroutine[None, None, T_co]: ...
+    def __call__(
+        self,
+        *args    : P.args,
+        **kwargs : P.kwargs,
+    ) -> Coroutine[
+        None,
+        None,
+        T_co,
+    ]: ...
 
 class HelpedCallable:
-    __help_data__ : CommandHelpData = cast("CommandHelpData", cast(object, None))
+    __help_data__ : CommandHelpData = cast(
+        "CommandHelpData",
+        cast(
+            object,
+            None,
+        ),
+    )
 
 def help_description(
     desc          : str,
@@ -197,12 +214,46 @@ def help_description(
     has_inverse   : bool                      | str  = False,
     arguments     : dict[str, ArgumentInfo]   | None = None,
     aliases       : list[str]                 | None = None,
-) -> Callable[[Callable[P, Coroutine[None, None, T_co]]], Callable[P, Coroutine[None, None, T_co]]]:
+) -> Callable[
+    [Callable[
+        P,
+        Coroutine[
+            None,
+            None,
+            T_co,
+        ],
+    ],
+    ],
+    Callable[
+        P,
+        Coroutine[
+            None,
+            None,
+            T_co,
+        ],
+    ],
+]:
     _channel_rules = channel_rules or []
     _arguments     = arguments     or {}
     _aliases       = aliases       or []
 
-    def decorator(func : Callable[P, Coroutine[None, None, T_co]]) -> Callable[P, Coroutine[None, None, T_co]]:
+    def decorator(
+        func : Callable[
+            P,
+            Coroutine[
+                None,
+                None,
+                T_co,
+            ],
+        ],
+    ) -> Callable[
+        P,
+        Coroutine[
+            None,
+            None,
+            T_co,
+        ],
+    ]:
         data = CommandHelpData(
             desc          = desc,
             prefix        = prefix,
@@ -222,12 +273,20 @@ def help_description(
 def check_access(
     member : discord.Member,
     data   : CommandHelpData,
-) -> tuple[str, list[str], list[str], list[int]]:
+) -> tuple[
+    str,
+    list[str],
+    list[str],
+    list[int],
+]:
     if data.access_node is None:
         accessible_args   : list[str] = []
         inaccessible_args : list[str] = []
         for arg_name, arg_info in data.arguments.items():
-            if arg_info.access_node is None or evaluate_access(arg_info.access_node, member):
+            if arg_info.access_node is None or evaluate_access(
+                arg_info.access_node,
+                member,
+            ):
                 accessible_args.append(arg_name)
             else:
                 inaccessible_args.append(arg_name)
@@ -236,14 +295,20 @@ def check_access(
             return "partial", accessible_args, inaccessible_args, []
         return "full", accessible_args, inaccessible_args, []
 
-    has_access = evaluate_access(data.access_node, member)
+    has_access = evaluate_access(
+        data.access_node,
+        member,
+    )
     if not has_access:
         return "none", [], list(data.arguments.keys()), []
 
     accessible_args   = []
     inaccessible_args = []
     for arg_name, arg_info in data.arguments.items():
-        if arg_info.access_node is None or evaluate_access(arg_info.access_node, member):
+        if arg_info.access_node is None or evaluate_access(
+            arg_info.access_node,
+            member,
+        ):
             accessible_args.append(arg_name)
         else:
             inaccessible_args.append(arg_name)
@@ -257,7 +322,10 @@ def check_access(
         return "partial", accessible_args, inaccessible_args, allowed_channels
     return "full", accessible_args, inaccessible_args, allowed_channels
 
-async def resolve_command_ref(bot : commands.Bot, data : CommandHelpData) -> str:
+async def resolve_command_ref(
+    bot  : commands.Bot,
+    data : CommandHelpData,
+) -> str:
     name = data.command_name
     if name is None:
         return ""
