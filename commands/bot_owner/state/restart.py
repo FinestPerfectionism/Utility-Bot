@@ -23,7 +23,7 @@ async def run_restart(
     ctx            : commands.Context[commands.Bot],
     restarting_ref : list[bool],
     log            : logging.Logger,
-) -> None
+) -> None:
     if restarting_ref[0]:
         _ = await send_custom_message(
             ctx,
@@ -33,7 +33,6 @@ async def run_restart(
             footer   = "Bad operation.",
         )
         return
-        raise 
 
     restarting_ref[0] = True
     confirm_msg = await send_custom_message(

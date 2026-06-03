@@ -269,7 +269,7 @@ class MessageSendHandler(commands.Cog):
             await self._assign_failed_role(message.guild, message.author.id)
         self._reset()
 
-    @commands.Cog.listener(on)
+    @commands.Cog.listener("on_message")
     async def on_message(
         self,
         message : discord.Message,
