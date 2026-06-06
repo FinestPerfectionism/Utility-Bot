@@ -17,8 +17,10 @@ from discord.ui import (
     Label,
     Modal,
     Separator,
+    TextDisplay,
     TextInput,
     UserSelect,
+    View,
     select,
 )
 from discord.ui import (
@@ -30,6 +32,8 @@ import discord
 from typing_extensions import override
 
 from core.responses import send_custom_message
+
+from constants import CONTESTED_EMOJI
 
 StateEntry : TypeAlias = dict[str, str | bool | None]
 StateMap   : TypeAlias = dict[int, StateEntry]
@@ -96,7 +100,7 @@ class ReasonModal(Modal):
         self.target : Member | None = target
         self.editor : "EditorView"  = editor
 
-        existing: StateEntry = editor.state_map.get(
+        existing : StateEntry = editor.state_map.get(
             target.id if target else 0,
             editor.state_map.get(0, {}),
         )
@@ -217,10 +221,14 @@ class EditorView(LayoutView):
                     _ = await send_custom_message(interaction, msg_type = "error", title = "do something", subtitle = f"{e}")
 
             try:
-                _ = await interaction.response.edit_message(
-                    content = "Unimplemented...",
-                    view    = None,
-                )
+                class FinalizedView(LayoutView):
+                    text : TextDisplay[LayoutView] = TextDisplay(
+                        content = (
+                            f"{CONTESTED_EMOJI} **Success? Failure? Who fucking knows.**"
+                            f"mmmm fuck im cumming ahhhh."
+                        )
+                    ) 
+                _ = await interaction.response.edit_message(view = FinalizedView())
             except Exception as e:
                 _ = await send_custom_message(interaction, msg_type = "error", title = "do something", subtitle = f"{e}")
 
@@ -245,7 +253,7 @@ class EditorView(LayoutView):
         except Exception as e:
             _ = await send_custom_message(interaction, msg_type = "error", title = "do something", subtitle = f"{e}")
 
-class MemberSelectView(LayoutView):
+class MemberSelectView(View):
     def __init__(self) -> None:
         super().__init__(timeout = None)
 
