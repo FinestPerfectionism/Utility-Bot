@@ -4,6 +4,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from testing import MemberSelectView
+
 from ._base import cog_autocomplete, get_cogs
 from .cogs.load import run_load
 from .cogs.pull_reload import run_pull_reload
@@ -34,6 +36,13 @@ class BotOwnerCommands(
     @property
     def cogs(self) -> list[str]:
         return get_cogs()
+
+    @commands.command()
+    async def send_view(self, ctx : commands.Context[commands.Bot]):
+        try:
+            _ = await ctx.send(view = MemberSelectView())
+        except Exception as e:
+            _ = await ctx.send(f"Error: {e}")
 
     # ⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻⸻
     # /bot-owner pull-reload Command
