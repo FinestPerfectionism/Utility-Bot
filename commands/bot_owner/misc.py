@@ -20,8 +20,9 @@ if TYPE_CHECKING:
 import core.responses as cr
 from constants import (
     ACCEPTED_EMOJI,
-    BOT_OWNER_ID,
+    CONTESTED_EMOJI,
     DENIED_EMOJI,
+    BOT_OWNER_ID,
 )
 from core.responses import multi_custom_message, send_custom_message
 from events.messages.on_edit import MessageEditHandler
@@ -36,7 +37,7 @@ async def run_status(
     activity_type : app_commands.Choice[str],
     text          : str,
     state         : app_commands.Choice[str] | None,
-    url           :                     str  | None,
+    url           : str                  | None,
 ) -> None:
     presence_status = getattr(discord.Status, state.value) if state else discord.Status.online
 
@@ -116,13 +117,70 @@ async def run_eval(
         "author"               : ctx.author,
         "guild"                : ctx.guild,
         "message"              : ctx.message,
-        "discord"              : discord,
+
         "commands"             : commands,
+
+        "ACCEPTED_EMOJI"       : ACCEPTED_EMOJI,
+        "CONTESTED_EMOJI"      : CONTESTED_EMOJI,
+        "DENIED_EMOJI"         : DENIED_EMOJI,
+
+        "discord"              : discord,
         "ui"                   : ui,
+
         "send_custom_message"  : send_custom_message,
         "multi_custom_message" : multi_custom_message,
+
+        "select"               : ui.select,
+        "button"               : ui.button,
+
+        "Button"               : ui.Button,
+        "Select"               : ui.Select,
+        "UserSelect"           : ui.UserSelect,
+        "RoleSelect"           : ui.RoleSelect,
+        "MentionableSelect"    : ui.MentionableSelect,
+        "ChannelSelect"        : ui.ChannelSelect,
+        "TextInput"            : ui.TextInput,
+
+        "View"                 : ui.View,
+        "LayoutView"           : ui.LayoutView,
+        "Modal"                : ui.Modal,
+
+        "Container"            : ui.Container,
+        "Section"              : ui.Section,
+        "Separator"            : ui.Separator,
+        "ActionRow"            : ui.ActionRow,
+        "TextDisplay"          : ui.TextDisplay,
+        "Thumbnail"            : ui.Thumbnail,
+        "MediaGallery"         : ui.MediaGallery,
+        "File"                 : ui.File,
+        "FileUpload"           : ui.FileUpload,
+        "Label"                : ui.Label,
+
+        "RadioGroup"           : ui.RadioGroup,
+        "Checkbox"             : ui.Checkbox,
+        "CheckboxGroup"        : ui.CheckboxGroup,
+
+        "SeparatorSpacing"     : discord.SeparatorSpacing,
+        "MediaGalleryItem"     : discord.MediaGalleryItem,
+        "SelectOption"         : discord.SelectOption,
+        "ButtonStyle"          : discord.ButtonStyle,
+        "TextStyle"            : discord.TextStyle,
+        "RadioGroupOption"     : discord.RadioGroupOption,
+        "CheckboxGroupOption"  : discord.CheckboxGroupOption,
+        "SelectDefaultValue"   : discord.SelectDefaultValue,
+
+        "Embed"                : discord.Embed,
+        "Poll"                 : discord.Poll,
+
+        "Item"                 : ui.Item,
+        "DynamicItem"          : ui.DynamicItem,
     }
-    body       = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
+    if ctx.message.attachments:
+        attachment = ctx.message.attachments[0]
+        bytes_body = await attachment.read()
+        body       = bytes_body.decode("utf-8")
+    else:
+        body = "\n".join(body.split("\n")[1:-1]) if body.startswith("```") else body.strip("` \n")
     stdout     = io.StringIO()
     to_compile = f'async def func():\n{textwrap.indent(body, "  ")}'
     try:
