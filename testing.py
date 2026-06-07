@@ -33,7 +33,7 @@ from typing_extensions import override
 
 from core.responses import send_custom_message
 
-from constants import CONTESTED_EMOJI
+from constants import ACCEPTED_EMOJI
 
 StateEntry : TypeAlias = dict[str, str | bool | None]
 StateMap   : TypeAlias = dict[int, StateEntry]
@@ -221,13 +221,38 @@ class EditorView(LayoutView):
                     _ = await send_custom_message(interaction, msg_type = "error", title = "do something", subtitle = f"{e}")
 
             try:
-                class FinalizedView(LayoutView):
-                    text : TextDisplay[LayoutView] = TextDisplay(
-                        content = (
-                            f"{CONTESTED_EMOJI} **Success? Failure? Who fucking knows.**"
-                            f"mmmm fuck im cumming ahhhh."
+                summary_lines = [f"{ACCEPTED_EMOJI} **Successfully mass moderated all members.**\n"]
+
+                for member in self.members:
+                    entry = resolve_state(member, self.state_map, global_entry)
+                    if entry:
+                        reason     = entry.get("r", "N/A")
+                        timer      = entry.get("t", "N/A")
+                        appealable = "Yes" if entry.get("a") else "No"
+                        dm_user    = "Yes" if entry.get("d") else "No"
+                        file       = entry.get("f") or "None"
+
+                        summary_lines.append(
+                            (
+                                f"{ACCEPTED_EMOJI} **Success for {member.mention}.**\n"
+                                f"- **Reason:** {reason}\n"
+                                f"- **Timer:** {timer}\n"
+                                f"- **Appealable:** {appealable} | **DM Sent:** {dm_user}\n"
+                                f"- ***Attachment:** {file}"
+                            )
                         )
-                    ) 
+                        
+                    else:
+                        summary_lines.append(
+                            (
+                               f"{ACCEPTED_EMOJI} **Success for {member.mention}.**\n"
+                                "-# Missing configuration data for this member."
+                            )
+                        )
+
+                class FinalizedView(LayoutView):
+                    text : TextDisplay[LayoutView] = TextDisplay(content = "\n".join(summary_lines))
+
                 _ = await interaction.response.edit_message(view = FinalizedView())
             except Exception as e:
                 _ = await send_custom_message(interaction, msg_type = "error", title = "do something", subtitle = f"{e}")

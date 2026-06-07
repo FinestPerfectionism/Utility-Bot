@@ -7,7 +7,6 @@ import discord
 from discord.ext import commands
 from typing_extensions import override
 
-from bot import bot
 from constants import (
     ACCEPTED_EMOJI,
     APPLICATION_LOG_CHANNEL_ID,
@@ -140,7 +139,6 @@ class Ready(commands.Cog):
         if self._ran:
             return
         self._ran = True
-        _ = await bot.tree.sync()
 
         loop = asyncio.get_running_loop()
         loop.set_exception_handler(
